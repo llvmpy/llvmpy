@@ -1,0 +1,19 @@
+
+0.1, 10-May-2008:
+
+  * Initial release.
+
+
+0.2, ongoing:
+
+  * Independent package, need not be unpacked into llvm/bindings
+  * Modules can be dumped to a string
+  * Modules can be verified
+  * Module.global_variables, Module.functions, Function.args, 
+        Function.basic_blocks and BasicBlock.instructions are
+        now proper iterators (generators in fact) than plain lists
+
+  * MemoryBuffer is done
+  * TypeHandle is done
+  * Unit tester added (but doesn't do much for now)
+
