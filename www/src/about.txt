@@ -1,0 +1,15 @@
+About
+=====
+
+[NOTE]
+._llvm-py_ Mission Statement
+=======================================================================
+Provide a simple, consistent and well-documented suite of APIs
+that exposes just enough of LLVM to write a compiler/interpreter/VM
+in Python.
+=======================================================================
+
+_llvm-py_ is developed by Mahadevan R, in his spare time, without being
+paid for it. He can be reached at _mdevan.foobar .at. gmail.com_, on the
+llvm-dev mailing list and irc.oftc.net#llvm (mdevan).
+

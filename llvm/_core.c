@@ -3,6 +3,10 @@
 #include "wrap.h"
 #include "extra.h"
 
+/* LLVM includes */
+#include "llvm-c/Analysis.h"
+#include "llvm-c/Transforms/Scalar.h"
+
 /* libc includes */
 #include <stdarg.h> /* for malloc(), free() */
 
@@ -601,6 +605,19 @@ _wrap_obj2none(LLVMDisposePassManager, LLVMPassManagerRef)
 
 
 /*===----------------------------------------------------------------------===*/
+/* Passes                                                                     */
+/*===----------------------------------------------------------------------===*/
+
+_wrap_obj2none(LLVMAddConstantPropagationPass, LLVMPassManagerRef)
+_wrap_obj2none(LLVMAddInstructionCombiningPass, LLVMPassManagerRef)
+_wrap_obj2none(LLVMAddPromoteMemoryToRegisterPass, LLVMPassManagerRef)
+_wrap_obj2none(LLVMAddDemoteMemoryToRegisterPass, LLVMPassManagerRef)
+_wrap_obj2none(LLVMAddReassociatePass, LLVMPassManagerRef)
+_wrap_obj2none(LLVMAddGVNPass, LLVMPassManagerRef)
+_wrap_obj2none(LLVMAddCFGSimplificationPass, LLVMPassManagerRef)
+
+
+/*===----------------------------------------------------------------------===*/
 /* Python member method table                                                 */
 /*===----------------------------------------------------------------------===*/
 
@@ -921,6 +938,15 @@ static PyMethodDef core_methods[] = {
     _method( LLVMRunFunctionPassManager )    
     _method( LLVMFinalizeFunctionPassManager )    
     _method( LLVMDisposePassManager )
+
+    /* Passes */
+	_method( LLVMAddConstantPropagationPass )
+	_method( LLVMAddInstructionCombiningPass )
+	_method( LLVMAddPromoteMemoryToRegisterPass )
+	_method( LLVMAddDemoteMemoryToRegisterPass )
+	_method( LLVMAddReassociatePass )
+	_method( LLVMAddGVNPass )
+	_method( LLVMAddCFGSimplificationPass )
 
     { NULL }
 };

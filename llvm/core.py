@@ -4,7 +4,8 @@ The llvm.core module contains classes and constants required to build the
 in-memory intermediate representation (IR) data structures."""
 
 
-import _core
+import llvm   # top-level, for common stuff
+import _core  # C wrappers
 
 
 #===----------------------------------------------------------------------===
@@ -102,6 +103,7 @@ ATTR_READONLY       = 1024
 
 def _check_gen(obj, type, type_str):
     if not isinstance(obj, type):
+        type_str = type.__module__ + "." + type.__name__
         msg = "argument must be an instance of llvm.core.%s (or of a class derived from it)" % type_str
         raise TypeError, msg
 
@@ -278,7 +280,9 @@ class Module(object):
             _core.LLVMGetNextFunction, self.ptr, Function)
 
     def verify(self):
-        return _core.LLVMVerifyModule(self.ptr)
+        ret = _core.LLVMVerifyModule(self.ptr)
+        if ret != "":
+            raise llvm.LLVMException, ret
 
 
 #===----------------------------------------------------------------------===

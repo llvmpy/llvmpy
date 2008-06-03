@@ -8,8 +8,17 @@ def _run(cmd):
     return os.popen(cmd).read().rstrip()
 
 
-def get_libs(llvm_config, components):
-    return _run(llvm_config + ' --libs ' + ' '.join(components))
+def get_libs_and_objs(llvm_config, components):
+    parts = _run(llvm_config + ' --libs ' + ' '.join(components)).split()
+    libs = []
+    objs = []
+    for part in parts:
+        if part.startswith('-l'):
+            libs.append(part[2:])
+        else:
+            assert part.endswith('.o')
+            objs.append(part[:-2])
+    return (libs, objs)
 
 
 def get_llvm_config():
@@ -34,7 +43,9 @@ def call_setup(llvm_config):
 
     incdir      = _run(llvm_config + ' --includedir')
     ldflags     = _run(llvm_config + ' --ldflags')
-    libs_core   = get_libs(llvm_config, ['core', 'analysis'])
+    libs_core, objs_core = get_libs_and_objs(llvm_config, ['core', 'analysis', 'scalaropts'])
+
+    std_libs    = [ 'pthread', 'dl', 'm' ]
 
     ext_core = Extension(
         'llvm._core',
@@ -43,7 +54,9 @@ def call_setup(llvm_config):
             ('__STDC_LIMIT_MACROS', None),
             ('_GNU_SOURCE', None)],
         include_dirs = [incdir],
-        extra_link_args = [ldflags + ' ' + libs_core])
+        library_dirs = [ '/home/mdevan/llvm/Release/lib' ],
+        libraries = std_libs + libs_core,
+        extra_objects = objs_core)
 
     setup(
         name='llvm-py',

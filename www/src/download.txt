@@ -1,0 +1,82 @@
+Download and Setup
+==================
+
+The latest release is 0.2, released xx-Jun-2008 (full link:changelog[Changelog]
+below).
+
+Download it here:
+
+[frame="all",grid="all"]
+````~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Release,Date,Package,Mirror
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+0.2,xx-xxx-2008,http://link1/[llvm-py-0.2.tar.bz2],http://link1/[llvm-py-0.2.tar.bz2]
+0.1,xx-xxx-2008,http://link1/[llvm-py-0.1.tar.bz2],http://link1/[llvm-py-0.1.tar.bz2]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Bleeding Edge
+-------------
+
+The latest code can be checked out from SVN thusly:
+
+----
+$ svn checkout http://llvm-py.googlecode.com/svn/trunk/ llvm-py
+----
+
+Happy hacking, and please send in your patches.
+
+
+Setting Up
+----------
+
+Follow these steps to get _llvm-py_ up and running:
+
+* Get and build LLVM.
+* Optionally, install it.
+* Get the latest release (see above) of _llvm-py_ and untar it:
+----
+$ wget http://link/llvm-py-0.2.tar.bz2
+$ tar jxvf llvm-py-0.2.tar.bz2
+----
+* If you've installed LLVM, setup _llvm-py_ like this:
+----
+$ cd llvm-py-0.2
+$ sudo python setup.py install
+----
+* If you haven't installed LLVM, locate the executable +llvm-config+
+  under your LLVM build directory (should be something like
+  +/home/mdevan/llvm/Release/bin/llvm-config+) and pass this to setup.py:
+----
+$ cd llvm-py-0.2
+$ sudo python setup.py install --llvm-config=/path/to/llvm-config
+----
+
+That's it!
+
+NOTE: _setup.py_ is a standard Python distutils script. See the Python
+documentation regarding http://docs.python.org/inst/inst.html[Installing
+Python Modules] and http://docs.python.org/dist/dist.html[Distributing
+Python Modules] for more information on such scripts.
+
+Uninstall
+---------
+
+To get rid of llvm-py completely, if you wish to do so:
+
+----
+# rm -rf /usr/lib/python2.5/site-packages/llvm
+# rm -f /usr/lib/python2.5/site-packages/llvm_py-0.1.egg-info
+----
+
+You'll need to be root to do this. Paths are for debian-based systems,
+in other distros it might be different.
+
+
+[[changelog]]
+Changelog
+----------
+
+----
+include::changelog[]
+----

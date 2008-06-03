@@ -1,0 +1,22 @@
+AsciiDoc User Guide
+===================
+Stuart Rackham <srackham@methods.co.nz>
+:Author Initials: SJR
+
+AsciiDoc is a text document format for writing short documents,
+articles, books and UNIX man pages. AsciiDoc files can be translated
+to HTML and DocBook markups using the asciidoc(1) command.  AsciiDoc
+is highly configurable: both the AsciiDoc source file syntax and the
+backend output markups (which can be almost any type of SGML/XML
+markup) can be customized and extended by the user.
+
+
+Introduction
+------------
+
+TIP: Sometimes incorrect highlighting is caused by preceding lines
+that appear blank but contain white space characters -- setting your
+editor options so that white space characters are visible is a good
+idea.
+
+// vim: set syntax=asciidoc:
