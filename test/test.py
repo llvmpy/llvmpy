@@ -5,6 +5,7 @@ import gc
 
 import unittest, sys
 
+from llvm import *
 from llvm.core import *
 
 class TestModule(unittest.TestCase):
@@ -23,6 +24,7 @@ class TestModule(unittest.TestCase):
             m = Module.new("temp_m")
             return ModuleProvider.new(m)
 
+        # check basic ownership and deletion
         m = Module.new("test1.1")
         self.assertEqual(m.owner, None)
         mp = ModuleProvider.new(m)
@@ -34,14 +36,19 @@ class TestModule(unittest.TestCase):
         m = None
         self.assertEqual(gc.garbage, [])
 
+        # delete a module which was owned by a module provider that has
+        # gone out of scope
         m2 = Module.new("test1.2")
         temp_mp(m2)
         del m2
         self.assertEqual(gc.garbage, [])
 
+        # delete a module provider object which owned a module that has
+        # gone out of scope
         mp3 = temp_m()
         mp3 = None
 
+        # check ref counts
         m4 = Module.new("test1.4")
         self.assertEqual(sys.getrefcount(m4), 1+1)
         mp4 = ModuleProvider.new(m4)
@@ -51,14 +58,16 @@ class TestModule(unittest.TestCase):
         self.assertEqual(sys.getrefcount(mp4), 1+1)
         mp4 = None
 
-        own_works = False
+        # cannot create a second module provider object for the same
+        # module
+        works = False
         m5 = Module.new("test1.5")
         mp5 = ModuleProvider.new(m5)
         try:
-            m5._own(None)
-        except AssertionError:
-            own_works = True
-        self.assertEqual(own_works, True)
+            mp5_2 = ModuleProvider.new(m5)
+        except LLVMException:
+            works = True
+        self.assertEqual(works, True)
 
 
     def testdata_layout(self):
@@ -70,6 +79,7 @@ class TestModule(unittest.TestCase):
         reqd = '; ModuleID = \'test2.1\'\ntarget datalayout = "some_value"\n'
         self.assertEqual(str(m), reqd)
 
+
     def testtarget(self):
         """Target property."""
         m = Module.new("test3.1")
@@ -78,6 +88,7 @@ class TestModule(unittest.TestCase):
         self.assertEqual(m.target, 'some_value')
         reqd = '; ModuleID = \'test3.1\'\ntarget triple = "some_value"\n'
         self.assertEqual(str(m), reqd)
+
 
     def testtype_name(self):
         """Type names."""
@@ -95,15 +106,16 @@ class TestModule(unittest.TestCase):
         reqd = "; ModuleID = 'test4.1'\n"
         self.assertEqual(str(m), reqd)
 
+
     def testglobal_variable(self):
         """Global variables."""
         m = Module.new("test5.1")
         t = Type.int()
         gv = m.add_global_variable(t, "gv")
-        print m
         self.assertNotEqual(gv, None)
         self.assertEqual(gv.name, "gv")
-        self.assertEqual(gv.type, t)
+        self.assertEqual(gv.type, Type.pointer(t))
+
 
 def main():
     gc.set_debug(gc.DEBUG_LEAK)

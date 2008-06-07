@@ -74,6 +74,9 @@ PyObject *ctor_int(int i)
     return PyInt_FromLong(i);
 }
 
+_define_std_ctor(LLVMExecutionEngineRef)
+_define_std_ctor(LLVMTargetDataRef)
+
 
 /*===----------------------------------------------------------------------===*/
 /* Helper functions                                                           */

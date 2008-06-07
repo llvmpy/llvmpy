@@ -17,7 +17,8 @@ def get_libs_and_objs(llvm_config, components):
             libs.append(part[2:])
         else:
             assert part.endswith('.o')
-            objs.append(part[:-2])
+#            objs.append(part[:-2])
+            objs.append(part) # eh, looks like we need the .o after all
     return (libs, objs)
 
 
@@ -42,8 +43,11 @@ def get_llvm_config():
 def call_setup(llvm_config):
 
     incdir      = _run(llvm_config + ' --includedir')
+    libdir      = _run(llvm_config + ' --libdir')
     ldflags     = _run(llvm_config + ' --ldflags')
-    libs_core, objs_core = get_libs_and_objs(llvm_config, ['core', 'analysis', 'scalaropts'])
+    libs_core, objs_core = get_libs_and_objs(llvm_config,
+        ['core', 'analysis', 'scalaropts', 'executionengine', 
+         'jit',  'native'])
 
     std_libs    = [ 'pthread', 'dl', 'm' ]
 
@@ -54,7 +58,7 @@ def call_setup(llvm_config):
             ('__STDC_LIMIT_MACROS', None),
             ('_GNU_SOURCE', None)],
         include_dirs = [incdir],
-        library_dirs = [ '/home/mdevan/llvm/Release/lib' ],
+        library_dirs = [libdir],
         libraries = std_libs + libs_core,
         extra_objects = objs_core)
 

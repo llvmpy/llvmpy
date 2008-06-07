@@ -26,18 +26,18 @@ entry = func.append_basic_block("entry")
 builder = Builder.new()
 builder.position_at_end(entry)
 
-# add two args into temp1
-temp1 = builder.add(func.args[0], func.args[1], "temp1")
+# add two args into tmp1
+tmp1 = builder.add(func.args[0], func.args[1], "tmp1")
 
 # sub `1' from that
 one = Constant.real( ty_double, 1.0 )
-temp2 = builder.sub(temp1, one, "temp2")
+tmp2 = builder.sub(tmp1, one, "tmp2")
 
 # convert to integer
-temp3 = builder.fptoui(temp2, ty_int, "temp3")
+tmp3 = builder.fptoui(tmp2, ty_int, "tmp3")
 
 # return it
-builder.ret(temp3)
+builder.ret(tmp3)
 
-# dump the module to see the bc
-module.dump()
+# dump the module to see the llvm "assembly" code
+print module

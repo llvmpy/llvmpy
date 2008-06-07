@@ -13,6 +13,8 @@
 /* llvm includes */
 #include "llvm-c/Core.h"
 #include "llvm-c/Analysis.h"
+#include "llvm-c/ExecutionEngine.h"
+#include "llvm-c/Target.h"
 
 
 /*===----------------------------------------------------------------------===*/
@@ -55,6 +57,20 @@ PyObject *ctor_LLVMPassManagerRef(LLVMPassManagerRef p);
 
 /* standard types */
 PyObject *ctor_int(int i);
+
+#define _declare_std_ctor(typ)                  \
+PyObject * ctor_ ## typ ( typ p);
+
+#define _define_std_ctor(typ)                   \
+PyObject * ctor_ ## typ ( typ p)                \
+{                                               \
+    if (p)                                      \
+        return PyCObject_FromVoidPtr(p, NULL);  \
+    Py_RETURN_NONE;                             \
+}
+
+_declare_std_ctor(LLVMExecutionEngineRef)
+_declare_std_ctor(LLVMTargetDataRef)
 
 
 /*===----------------------------------------------------------------------===*/
@@ -255,6 +271,22 @@ _w ## func (PyObject *self, PyObject *args)             \
     arg3 = ( intype3 ) PyCObject_AsVoidPtr(obj3);       \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3)); \
+}
+
+/**
+ * Wrap LLVM functions of the type
+ * outtype func(const char *s)
+ */
+#define _wrap_str2obj(func, outtype)                    \
+static PyObject *                                       \
+_w ## func (PyObject *self, PyObject *args)             \
+{                                                       \
+    const char *arg1;                                   \
+                                                        \
+    if (!PyArg_ParseTuple(args, "s", &arg1))            \
+        return NULL;                                    \
+                                                        \
+    return ctor_ ## outtype ( func (arg1));             \
 }
 
 /**

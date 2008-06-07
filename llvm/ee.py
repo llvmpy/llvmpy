@@ -2,50 +2,61 @@
 
 """
 
-import llvm, core
-from _util import *
-import _core
+import llvm             # top-level, for common stuff
+import core             # module provider, function etc.
+import _core            # C wrappers
+from _util import *     # utility functions
+
+
+#===----------------------------------------------------------------------===
+# Target data
+#===----------------------------------------------------------------------===
+
+class TargetData(llvm.Ownable):
+
+    @staticmethod
+    def new(strrep):
+        return TargetData(_core.LLVMCreateTargetData(strrep))
+
+    def __init__(self, ptr):
+        llvm.Ownable.__init__(self, ptr, _core.LLVMDisposeTargetData)
+
+    def __del__(self):
+        llvm.Ownable.__del__(self)
+
+    def __str__(self):
+        return _core.LLVMTargetDataAsString(self.ptr)
+
+
+#===----------------------------------------------------------------------===
+# Execution engine
+#===----------------------------------------------------------------------===
 
 class ExecutionEngine(object):
 
     @staticmethod
     def new(mp, force_interpreter=False):
         check_is_module_provider(mp)
-        ret = _core.LLVMCreateExecutionEngine(mp.ptr, int(create_interpreter))
+        check_is_unowned(mp)
+        ret = _core.LLVMCreateExecutionEngine(mp.ptr, int(force_interpreter))
         if isinstance(ret, str):
-            raise llvm.LLVMException, str
-        return ExecutionEngine(ret)
+            raise llvm.LLVMException, ret
+        return ExecutionEngine(ret, mp)
 
-    def __init__(self, ptr):
+    def __init__(self, ptr, mp):
         self.ptr = ptr
+        mp._own(self)
 
     def __del__(self):
         _core.LLVMDisposeExecutionEngine(self.ptr)
-
-    def run_static_constructors(self):
-        _core.LLVMRunStaticConstructors(self.ptr)
-
-    def run_static_destructors(self):
-        _core.LLVMRunStaticDestructors(self.ptr)
-
-    def run_function_as_main(self, fn, argv, envp):
-        check_is_function(fn)
-        _core.LLVMRunFunctionAsMain(self.ptr, fn.ptr, argv, envp)
 
     def run_function(self, fn, args):
         check_is_function(fn)
         return _core.LLVMRunFunction(self.ptr, fn.ptr, args)
 
-    def free_machine_code_for_function(self, fn):
-        check_is_function(fn)
-        _core.LLVMFreeMachineCodeForFunction(self.ptr, fn.ptr)
-
-    def add_module_provider(self, mp):
-        pass
-
-    def remove_module_provider(self):
-        pass
-
     @property
     def target_data(self):
-        return TargetData(_core.LLVMGetExecutionEngineTargetData(self.ptr))
+        td = TargetData(_core.LLVMGetExecutionEngineTargetData(self.ptr))
+        td._own(self)
+        return td
+

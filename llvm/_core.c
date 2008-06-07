@@ -6,6 +6,7 @@
 /* LLVM includes */
 #include "llvm-c/Analysis.h"
 #include "llvm-c/Transforms/Scalar.h"
+#include "llvm-c/ExecutionEngine.h"
 
 /* libc includes */
 #include <stdarg.h> /* for malloc(), free() */
@@ -618,6 +619,97 @@ _wrap_obj2none(LLVMAddCFGSimplificationPass, LLVMPassManagerRef)
 
 
 /*===----------------------------------------------------------------------===*/
+/* Target Data                                                                */
+/*===----------------------------------------------------------------------===*/
+
+_wrap_str2obj(LLVMCreateTargetData, LLVMTargetDataRef)
+_wrap_obj2none(LLVMDisposeTargetData, LLVMTargetDataRef)
+
+static PyObject *
+_wLLVMTargetDataAsString(PyObject *self, PyObject *args)
+{
+    PyObject *obj;
+    LLVMTargetDataRef td;
+    char *tdrep = 0;
+    PyObject *ret;
+
+    if (!PyArg_ParseTuple(args, "O", &obj))
+        return NULL;
+
+    td = (LLVMTargetDataRef) PyCObject_AsVoidPtr(obj);
+    tdrep = LLVMCopyStringRepOfTargetData(td);
+    ret = PyString_FromString(tdrep);
+    LLVMDisposeMessage(tdrep);
+    return ret;
+}
+
+_wrap_objobj2none(LLVMAddTargetData, LLVMTargetDataRef, LLVMPassManagerRef)
+
+
+/*===----------------------------------------------------------------------===*/
+/* Execution Engine                                                           */
+/*===----------------------------------------------------------------------===*/
+
+static PyObject *
+_wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
+{
+    LLVMModuleProviderRef mp;
+    PyObject *obj;
+    int force_interpreter;
+    LLVMExecutionEngineRef ee;
+    char *outmsg;
+    PyObject *ret;
+    int error;
+
+    if (!PyArg_ParseTuple(args, "Oi", &obj, &force_interpreter))
+        return NULL;
+
+    mp = (LLVMModuleProviderRef) PyCObject_AsVoidPtr(obj);
+
+    if (force_interpreter)
+        error = LLVMCreateInterpreter(&ee, mp, &outmsg);
+    else
+        error = LLVMCreateJITCompiler(&ee, mp, &outmsg);
+
+    if (error) {
+        ret = PyString_FromString(outmsg);
+        LLVMDisposeMessage(outmsg);
+    } else {
+        ret = ctor_LLVMExecutionEngineRef(ee);
+    }
+
+    return ret;
+}
+
+_wrap_obj2none(LLVMDisposeExecutionEngine, LLVMExecutionEngineRef)
+
+static PyObject *
+_wLLVMRunFunction(PyObject *self, PyObject *args)
+{
+    PyObject *obj1, *obj2, *obj3;
+    LLVMExecutionEngineRef ee;
+    LLVMValueRef fn;
+
+    if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))
+        return NULL;
+
+    /* obj3 is a list of args to the function, ignored currently */
+
+    ee = (LLVMExecutionEngineRef) PyCObject_AsVoidPtr(obj1);
+    fn = (LLVMValueRef) PyCObject_AsVoidPtr(obj2);
+
+    LLVMRunFunction(ee, fn, 0, NULL);
+
+    /* fn return value ignore currently */
+
+    Py_RETURN_NONE;
+}
+
+_wrap_obj2obj(LLVMGetExecutionEngineTargetData, LLVMExecutionEngineRef,
+    LLVMTargetDataRef)
+
+
+/*===----------------------------------------------------------------------===*/
 /* Python member method table                                                 */
 /*===----------------------------------------------------------------------===*/
 
@@ -947,6 +1039,18 @@ static PyMethodDef core_methods[] = {
 	_method( LLVMAddReassociatePass )
 	_method( LLVMAddGVNPass )
 	_method( LLVMAddCFGSimplificationPass )
+
+    /* Target Data */
+    _method( LLVMCreateTargetData )
+    _method( LLVMDisposeTargetData )
+    _method( LLVMTargetDataAsString )
+    _method( LLVMAddTargetData )
+
+    /* Execution Engine */
+    _method( LLVMCreateExecutionEngine )
+    _method( LLVMDisposeExecutionEngine )
+    _method( LLVMRunFunction )
+    _method( LLVMGetExecutionEngineTargetData )
 
     { NULL }
 };

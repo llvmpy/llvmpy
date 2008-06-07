@@ -1,6 +1,11 @@
+"""Pass managers and passes.
 
-from _util import *
-import _core
+"""
+
+import ee               # target data
+import _core            # C wrappers
+from _util import *     # utility functions
+
 
 # passes
 PASS_CONSTANT_PROPAGATION           = 1
@@ -43,9 +48,19 @@ class PassManager(object):
     def __del__(self):
         _core.LLVMDisposePassManager(self.ptr)
 
-    def add(self, pass_id):
-        assert pass_id in _pass_creator, 'Invalid pass_id ("' + str(pass_id) + '")'
-        cfn = _pass_creator[pass_id] # KeyError => pass_id is invalid
+    def add(self, tgt_data_or_pass_id):
+        if isinstance(tgt_data_or_pass_id, ee.TargetData):
+            self._add_target_data(tgt_data_or_pass_id)
+        elif tgt_data_or_pass_id in _pass_creator:
+            self._add_pass(tgt_data_or_pass_id)
+        else:
+            raise LLVMException, "invalid pass_id"
+
+    def _add_target_data(self, tgt):
+        _core.LLVMAddTargetData(tgt.ptr, self.ptr)
+
+    def _add_pass(self, pass_id):
+        cfn = _pass_creator[pass_id]
         cfn(self.ptr)
 
     def run(self, module):
@@ -70,8 +85,8 @@ class FunctionPassManager(PassManager):
         _core.LLVMInitializeFunctionPassManager(self.ptr)
 
     def run(self, fn):
-        _check_is_function(fn)
-        return _core.LLVMRunFunctionPassManager(fn.ptr)
+        check_is_function(fn)
+        return _core.LLVMRunFunctionPassManager(self.ptr, fn.ptr)
 
     def finalize(self):
         _core.LLVMFinalizeFunctionPassManager(self.ptr)
