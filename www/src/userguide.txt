@@ -1,22 +1,190 @@
-AsciiDoc User Guide
+llvm-py User Guide
 ===================
-Stuart Rackham <srackham@methods.co.nz>
-:Author Initials: SJR
 
-AsciiDoc is a text document format for writing short documents,
-articles, books and UNIX man pages. AsciiDoc files can be translated
-to HTML and DocBook markups using the asciidoc(1) command.  AsciiDoc
-is highly configurable: both the AsciiDoc source file syntax and the
-backend output markups (which can be almost any type of SGML/XML
-markup) can be customized and extended by the user.
+_llvm-py_ provides Python bindings for LLVM. This document explains how
+you can setup and use it. A working knowledge of Python and a basic idea
+of LLVM is assumed.
 
 
 Introduction
 ------------
 
-TIP: Sometimes incorrect highlighting is caused by preceding lines
-that appear blank but contain white space characters -- setting your
-editor options so that white space characters are visible is a good
-idea.
+http://www.llvm.org/[LLVM] (Low-Level Virtual Machine) provides enough
+infrastructure to use it as the backend for your compiled, or
+JIT-compiled language. It provides extensive optimization support, and
+static and dynamic (JIT) backends for many platforms. See the website at
+http://www.llvm.org/[http://www.llvm.org/] to discover more.
 
-// vim: set syntax=asciidoc:
+Python bindings for LLVM provides a gentler learning curve for working
+with the LLVM APIs. It should also prove easier to create working
+prototypes and experimental languages using this medium.
+
+.License
+Both LLVM and _llvm-py_ are distributed under (different) permissive
+open source licenses. _llvm-py_ uses the
+http://opensource.org/licenses/bsd-license.php[new BSD license]. More
+information is available link:license.html[here].
+
+.Platforms
+Currently, _llvm-py_ has been built and tested only on Linux/x86. However,
+it should be trivial to build it on other unices. Windows is not
+supported, for a variety of reasons.
+
+.Versions
+As of now, _llvm-py_ requires the latest SVN version of LLVM. It will
+not work with version 2.2 of LLVM. However, 2.3 should be release soon,
+and _llvm-py_ should work with stock 2.3 LLVM.
+
+_llvm-py_ has been built and tested with Python 2.5. It should work with
+Python 2.4, with minimal changes, if any.
+
+
+Installation
+------------
+
+_llvm-py_ is distributed as a source tarball. You'll need to build and
+install it before it can be used. At least the following will be
+required for this:
+
+- compilers, both gcc and g++
+- Python itself
+- Python development files (headers and libraries)
+- LLVM, either installed or built
+
+On debian-based systems, the first three can be installed with the
+command `sudo apt-get install gcc g++ python python-dev'. Note that
+ubuntu repository has an old version of llvm (1.8) which will not work
+with _llvm-py_.
+
+
+llvm-config
+~~~~~~~~~~~
+
+Inorder to build llvm-py, it's build script needs to know from where to
+invoke the llvm helper program, +llvm-config+. If you've installed LLVM,
+then this will be available in your +PATH+, and nothing further needs to
+be done. If you've built LLVM yourself, or for any reason +llvm-config+
+is not in your +PATH+, you'll need to pass the full path of
++llvm-config+ to the build script.
+
+
+Steps
+~~~~~
+
+The commands illustrated below assume that the LLVM source is available
+under +/home/mdevan/llvm+. If you've a previous version of llvm-py
+installed, you must remove it first, as described
+link:#uninstall[below].
+
+If you have +llvm-config+ in your path, you can build and install
+llvm-py this way:
+
+-----------------------------------------------------------------------
+$ tar jxvf llvm-py-0.2.tar.bz2
+$ cd llvm-py-0.2
+$ sudo python setup.py install
+-----------------------------------------------------------------------
+
+If you need to tell the build script where +llvm-config+ is, do it this
+way:
+
+-----------------------------------------------------------------------
+$ tar jxvf llvm-py-0.2.tar.bz2
+$ cd llvm-py-0.2
+$ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Release/bin/llvm-config
+-----------------------------------------------------------------------
+
+To build a debug version of llvm-py, that links against the debug
+libraries of LLVM, use this:
+
+-----------------------------------------------------------------------
+$ tar jxvf llvm-py-0.2.tar.bz2
+$ cd llvm-py-0.2
+$ python setup.py build -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
+$ sudo python setup.py install -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
+-----------------------------------------------------------------------
+
+Be warned that debug binaries will be huge (65MB+) !
+
+
+[[uninstall]]
+Uninstall
+~~~~~~~~~
+
+To get rid of llvm-py completely, if you wish to do so:
+
+----
+# rm -rf /usr/lib/python2.5/site-packages/llvm
+# rm -f /usr/lib/python2.5/site-packages/llvm_py-0.1.egg-info
+----
+
+- You need to be root to do this. 
+- Paths are for debian-based systems, in other distros it might be different.
+- Note that there are version numbers (both Python's and llvm-py's)
+  which you might need to change to suit your system.
+
+
+The Concepts
+------------
+
+This section explains a few concepts related to LLVM.
+
+
+Intermediate Representation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The intermediate representation, or IR for short, is an in-memory data
+structure that represents executable code. The IR data structures allow
+for creation of types, constants, functions, function arguments,
+instructions, global variables and so on. For example, to create a
+function _sum_ that takes two integers and returns their sum, we need to
+follow these steps:
+
+- create an integer type _ti_ of required bitwidth
+- create a function type _tf_ which takes two _ti_ -s and returns
+  another _ti_
+- create a function of type _tf_ named _sum_
+- add a _basic block_ to the function
+- using a helper object called an _instruction builder_, add two
+  instructions into the basic block: . an instruction to add the two
+  arguments and store the result into a temporary variable . a return
+  instruction to return the value of the temporary variable
+
+(A basic block is a block of instructions.)
+
+LLVM has it's own instruction set; the instructions used above (+add+
+and +ret+) are from this set. The full set of instructions are:
+
+TODO
+
+SSA
+~~~
+
+All LLVM instructions are represented in the SSA form. Essentially, this
+means that any variable can be assigned to only once. 
+
+Executable code, in "real-life", is represented as a sequence of machine
+instructions, which typically reside in e
+
+IR, Module
+Passes
+Execution Engine
+BitCode
+
+The _llvm-py_ Package
+---------------------
+
+modules overview: llvm, llvm.core, llvm.ee, llvm.passes
+
+importing modules
+
+core:
+
+types
+
+constants
+
+values
+
+
+

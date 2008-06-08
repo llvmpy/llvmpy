@@ -18,10 +18,6 @@ link:download.html[download] page.
 News
 ----
 
-xx-Jun-2008::
-    0.2 released. Head to the link:downlad.html[download] page!
-
-xx-May-2008::
+20-May-2008::
     0.1 released.
 
-// vim: set syntax=asciidoc:

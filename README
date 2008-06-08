@@ -11,7 +11,7 @@ Home page:
 
 Quickstart:
 ----------
-    1. Get 2.4svn version of LLVM, build it. 2.3 or older will *not* work.
+    1. Get 2.3svn version of LLVM, build it. 2.2 or earlier will *not* work.
        LLVM need not be installed.
 
     2. Unpack llvm-py, build and install:
