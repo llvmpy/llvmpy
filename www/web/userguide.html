@@ -1,0 +1,357 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.2.2" />
+<meta name="description" content="Text based document generation" />
+<meta name="keywords" content="text to HTML, text to DocBook, text to XML, AsciiDoc" />
+<link rel="stylesheet" href="style/xhtml11.css" type="text/css" />
+<link rel="stylesheet" href="style/xhtml11-quirks.css" type="text/css" />
+<link rel="stylesheet" href="style/layout.css" type="text/css" />
+<title>llvm-py User Guide - llvm-py</title>
+</head>
+<body>
+<div id="layout-banner">
+  <div id="layout-title">llvm-py</div>
+  <div id="layout-description">Python Bindings for LLVM</div>
+</div>
+<table>
+<tr valign="top">
+<td id="layout-menu">
+  <div>&#187;<a href="index.html">Home</a></div>
+  <div>&#187;<a href="examples.html">Examples</a></div>
+  <div>&#187;<a href="download.html">Download</a></div>
+  <div>&#187;<a href="userguide.html">User&nbsp;Guide</a></div>
+  <div>&#187;<a href="contribute.html">Contribute</a></div>
+  <div>&#187;<a href="license.html">License</a></div>
+  <div>&#187;<a href="about.html">About</a></div>
+  <div id="page-source">&#187;<a href="http://www.python.org/">Python</a></div>
+  <div>&#187;<a href="http://llvm.org/">LLVM</a></div>
+</td>
+<td>
+<div id="layout-content">
+<div id="header">
+<h1>llvm-py User Guide</h1>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<p><em>llvm-py</em> provides Python bindings for LLVM. This document explains how
+you can setup and use it. A working knowledge of Python and a basic idea
+of LLVM is assumed.</p>
+</div>
+</div>
+<h2>Introduction</h2>
+<div class="sectionbody">
+<p><a href="http://www.llvm.org/">LLVM</a> (Low-Level Virtual Machine) provides enough
+infrastructure to use it as the backend for your compiled, or
+JIT-compiled language. It provides extensive optimization support, and
+static and dynamic (JIT) backends for many platforms. See the website at
+<a href="http://www.llvm.org/">http://www.llvm.org/</a> to discover more.</p>
+<p>Python bindings for LLVM provides a gentler learning curve for working
+with the LLVM APIs. It should also prove easier to create working
+prototypes and experimental languages using this medium.</p>
+<div class="title">License</div>
+<p>Both LLVM and <em>llvm-py</em> are distributed under (different) permissive
+open source licenses. <em>llvm-py</em> uses the
+<a href="http://opensource.org/licenses/bsd-license.php">new BSD license</a>. More
+information is available <a href="license.html">here</a>.</p>
+<div class="title">Platforms</div>
+<p>Currently, <em>llvm-py</em> has been built and tested only on Linux/x86. However,
+it should be trivial to build it on other unices. Windows is not
+supported, for a variety of reasons.</p>
+<div class="title">Versions</div>
+<p>As of now, <em>llvm-py</em> requires the latest SVN version of LLVM. It will
+not work with version 2.2 of LLVM. However, 2.3 should be release soon,
+and <em>llvm-py</em> should work with stock 2.3 LLVM.</p>
+<p><em>llvm-py</em> has been built and tested with Python 2.5. It should work with
+Python 2.4, with minimal changes, if any.</p>
+</div>
+<h2>Installation</h2>
+<div class="sectionbody">
+<p><em>llvm-py</em> is distributed as a source tarball. You'll need to build and
+install it before it can be used. At least the following will be
+required for this:</p>
+<ul>
+<li>
+<p>
+compilers, both gcc and g++
+</p>
+</li>
+<li>
+<p>
+Python itself
+</p>
+</li>
+<li>
+<p>
+Python development files (headers and libraries)
+</p>
+</li>
+<li>
+<p>
+LLVM, either installed or built
+</p>
+</li>
+</ul>
+<p>On debian-based systems, the first three can be installed with the
+command `sudo apt-get install gcc g++ python python-dev'. Note that
+ubuntu repository has an old version of llvm (1.8) which will not work
+with <em>llvm-py</em>.</p>
+<h3>llvm-config</h3>
+<p>Inorder to build llvm-py, it's build script needs to know from where to
+invoke the llvm helper program, <tt>llvm-config</tt>. If you've installed LLVM,
+then this will be available in your <tt>PATH</tt>, and nothing further needs to
+be done. If you've built LLVM yourself, or for any reason <tt>llvm-config</tt>
+is not in your <tt>PATH</tt>, you'll need to pass the full path of
+<tt>llvm-config</tt> to the build script.</p>
+<h3>Steps</h3>
+<p>The commands illustrated below assume that the LLVM source is available
+under <tt>/home/mdevan/llvm</tt>. If you've a previous version of llvm-py
+installed, you must remove it first, as described
+<a href="#uninstall">below</a>.</p>
+<p>If you have <tt>llvm-config</tt> in your path, you can build and install
+llvm-py this way:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ tar jxvf llvm-py-0.2.tar.bz2
+$ cd llvm-py-0.2
+$ sudo python setup.py install</tt></pre>
+</div></div>
+<p>If you need to tell the build script where <tt>llvm-config</tt> is, do it this
+way:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ tar jxvf llvm-py-0.2.tar.bz2
+$ cd llvm-py-0.2
+$ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Release/bin/llvm-config</tt></pre>
+</div></div>
+<p>To build a debug version of llvm-py, that links against the debug
+libraries of LLVM, use this:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ tar jxvf llvm-py-0.2.tar.bz2
+$ cd llvm-py-0.2
+$ python setup.py build -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
+$ sudo python setup.py install -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config</tt></pre>
+</div></div>
+<p>Be warned that debug binaries will be huge (65MB+) !</p>
+<h3><a id="uninstall"></a>Uninstall</h3>
+<p>To get rid of llvm-py completely, if you wish to do so:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt># rm -rf /usr/lib/python2.5/site-packages/llvm
+# rm -f /usr/lib/python2.5/site-packages/llvm_py-0.1.egg-info</tt></pre>
+</div></div>
+<ul>
+<li>
+<p>
+You need to be root to do this.
+</p>
+</li>
+<li>
+<p>
+Paths are for debian-based systems, in other distros it might be different.
+</p>
+</li>
+<li>
+<p>
+Note that there are version numbers (both Python's and llvm-py's)
+  which you might need to change to suit your system.
+</p>
+</li>
+</ul>
+</div>
+<h2>The Concepts</h2>
+<div class="sectionbody">
+<p>This section explains a few concepts related to LLVM.</p>
+<h3>Intermediate Representation</h3>
+<p>The intermediate representation, or IR for short, is an in-memory data
+structure that represents executable code. The IR data structures allow
+for creation of types, constants, functions, function arguments,
+instructions, global variables and so on. For example, to create a
+function <em>sum</em> that takes two integers and returns their sum, we need to
+follow these steps:</p>
+<ul>
+<li>
+<p>
+create an integer type <em>ti</em> of required bitwidth
+</p>
+</li>
+<li>
+<p>
+create a function type <em>tf</em> which takes two <em>ti</em> -s and returns
+  another <em>ti</em>
+</p>
+</li>
+<li>
+<p>
+create a function of type <em>tf</em> named <em>sum</em>
+</p>
+</li>
+<li>
+<p>
+add a <em>basic block</em> to the function
+</p>
+</li>
+<li>
+<p>
+using a helper object called an <em>instruction builder</em>, add two
+  instructions into the basic block:
+</p>
+<ol>
+<li>
+<p>
+an instruction to add the two arguments and store the result into
+    a temporary variable
+</p>
+</li>
+<li>
+<p>
+a return instruction to return the value of the temporary variable
+</p>
+</li>
+</ol>
+</li>
+</ul>
+<p>(A basic block is a block of instructions.)</p>
+<p>LLVM has it's own instruction set; the instructions used above (<tt>add</tt>
+and <tt>ret</tt>) are from this set. The LLVM instructions are at a higher
+level than the usual assembly language; for example there are
+instructions related to variable argument handling, exception handling,
+and garbage collection. These allow high-level languages to be
+represented cleanly in the IR.</p>
+<p>The full set of instructions are:</p>
+<p>TODO</p>
+<h3>SSA Form and PHI Nodes</h3>
+<p>All LLVM instructions are represented in the <em>Static Single Assignment</em>
+(SSA) form. Essentially, this means that any variable can be assigned to
+only once. Such a representation facilitates better optimization, among
+other benefits.</p>
+<p>A consequence of single assignment are PHI (&#934;) nodes. These
+are required when a variable can be assigned a different value based on
+the path of control flow. For example, the value of <tt>b</tt> at the end of
+execution of the snippet below:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>a = 1;
+if (v &lt; 10)
+  a = 2;
+b = a;</tt></pre>
+</div></div>
+<p>cannot be determined statically. The value of <em>2</em> cannot be assigned to
+the <em>original</em> <tt>a</tt>, since <tt>a</tt> can be assigned to only once. There are
+two <tt>a</tt> 's in there, and the last assignment has to choose between which
+version to pick. This is accomplished by adding a PHI node:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>a1 = 1;
+if (v &lt; 10)
+  a2 = 2;
+b = PHI(a1, a2);</tt></pre>
+</div></div>
+<p>The PHI node selects <tt>a1</tt> or <tt>a2</tt>, depending on where the control
+reached the PHI node. The argument <tt>a1</tt> of the PHI node is associated
+with the block <tt>"a1 = 1;"</tt> and <tt>a2</tt> with the block <tt>"a2 = 2;"</tt>.</p>
+<p>PHI nodes have to be explicitly created in the LLVM IR. The LLVM
+instruction set therefore has an instruction called <em>phi</em>.</p>
+<h3>LLVM Assembly Language</h3>
+<p>The LLVM IR can be represented offline in two formats
+- a textual, human-readable form, similar to assembly language, called
+  the LLVM assembly language (files with .ll extension) (XXX ?)
+- a binary form, called the LLVM bitcode (files with .bc extension)
+All three formats (the in-memory IR, the LLVM assembly language and the
+LLVM bitcode) represent the <em>same</em> information. Each format can be
+converted into the other two formats (using LLVM APIs).</p>
+<p>The <a href="http://www.llvm.org/demo/">LLVM demo page</a> lets you type in C or C++
+code, converts it into LLVM IR and outputs the IR as LLVM assembly
+language code.</p>
+<p>Here's a function in C, that calculates the sum of the first <em>n</em>
+fibonacci numbers:</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">int</span> <span style="font-weight: bold"><span style="color: #000000">fibsum</span></span><span style="color: #990000">(</span><span style="color: #009900">int</span> n<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+<span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<p>And here's the corresponding LLVM assembly listing, as provided by the
+demo page:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt></tt></pre>
+</div></div>
+<p>Note the &#8230; TODO &#8230;</p>
+<p>The <a href="http://www.llvm.org/docs/LangRef.html">LLVM Language Reference</a>
+defines the LLVM assembly language including the entire instruction set.</p>
+<h3>Modules</h3>
+<p>Modules, in the LLVM IR, are similar to a single <em>C</em> language source
+file (.c file). A module contains:</p>
+<ul>
+<li>
+<p>
+functions (declarations and definitions)
+</p>
+</li>
+<li>
+<p>
+global variables and constants
+</p>
+</li>
+<li>
+<p>
+global type aliases (typedef-s)
+</p>
+</li>
+</ul>
+<p>Modules are top-level containers; all executable code representation is
+contained within modules.</p>
+<h3>Optimization and Passes</h3>
+<p>LLVM provides quite a few optimization algorithms that work on the IR.
+These algorithms are organized as <em>passes</em>. Each pass does something
+specific, like combining redundant instructions. Passes need not always
+optimize the IR, it can also do other operations like inserting
+instrumentation code, or analysing the IR (the result of which can be
+used by passes that do optimizations) or even printing call graphs.</p>
+<p>This LLVM <a href="http://www.llvm.org/docs/Passes.html">documentation page</a>
+describes all the available passes, and what they do.</p>
+<p>LLVM does not automatically choose to run any passes, anytime. Passes
+have to be explicitly selected and run on each module. This gives you
+the flexibility to choose transformations and optimizations that are
+most suitable for the code in the module.</p>
+<p>There is a LLVM binary called <a href="http://www.llvm.org/cmds/opt.html">opt</a>,
+which lets you run passes on bitcode files from the command line. You
+can write your own passes (in C/C++, as a shared library). This can be
+loaded and executed by <tt>opt</tt>. (Although <em>llvm-py</em> does not allow you to
+write your own passes, it does allow you to navigate the entire IR at
+any stage, and perform any transforms on it as you like.)</p>
+<p>Passes are run using a <em>pass manager</em>. For our purposes, there are two</p>
+<h3>Execution Engine</h3>
+<p>TODO</p>
+<h3>BitCode</h3>
+<p>TODO</p>
+<h3>llvm-gcc</h3>
+<p>TODO</p>
+</div>
+<h2>The <em>llvm-py</em> Package</h2>
+<div class="sectionbody">
+<p>modules overview: llvm, llvm.core, llvm.ee, llvm.passes</p>
+<p>importing modules</p>
+<p>core:</p>
+<p>types</p>
+<p>constants</p>
+<p>values</p>
+</div>
+<div id="footer">
+<div id="footer-text">
+Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
+Last updated 09-Jun-2008.
+</div>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</body>
+</html>
