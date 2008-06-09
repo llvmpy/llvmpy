@@ -13,3 +13,5 @@ latest code can be checked out from SVN like so:
 $ svn checkout http://llvm-py.googlecode.com/svn/trunk/ llvm-py
 ----
 
+You can browse the source online at:
+http://code.google.com/p/llvm-py/source/browse[http://code.google.com/p/llvm-py/source/browse].

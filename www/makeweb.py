@@ -6,7 +6,7 @@ from string import Template
 from optparse import OptionParser
 
 # files in src dir that should not be copied to web dir
-SKIP_FILES = [ 'layout.conf' ]
+SKIP_FILES = [ 'layout.conf', '.svn' ]
 
 # asciidoc command line
 ASCIIDOC = 'asciidoc --unsafe --conf-file=${srcdir}/layout.conf -a icons -o ${outfile} ${infile}'
@@ -50,7 +50,8 @@ def copy(opts, inp, outp):
             if not opts.dryrun:
                 os.mkdir(outp)
         for file in os.listdir(inp):
-            copy(opts, os.path.join(inp, file), os.path.join(outp, file))
+            if file not in SKIP_FILES:
+                copy(opts, os.path.join(inp, file), os.path.join(outp, file))
     else:
         if _is_older(inp, outp) or opts.force:
             if opts.verbose:

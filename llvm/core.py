@@ -314,12 +314,12 @@ class Type(object):
 
         Creates a structure type with elements of types as given in the
         iterable `element_tys'. This method creates a unpacked
-        structure. For a packed one, use struct_packed() method."""
+        structure. For a packed one, use packed_struct() method."""
         elems = unpack_types(element_tys)
         return _make_type(_core.LLVMStructType(elems, 0), TYPE_STRUCT)
 
     @staticmethod
-    def struct_packed(element_tys):
+    def packed_struct(element_tys):
         """Create a (packed) structure type.
 
         Creates a structure type with elements of types as given in the
@@ -605,7 +605,7 @@ class Constant(Value):
         return Constant(_core.LLVMConstStruct(consts, 0))
     
     @staticmethod
-    def struct_packed(consts):
+    def packed_struct(consts):
         const_ptrs = unpack_constants(consts)
         return Constant(_core.LLVMConstStruct(consts, 1))
     
@@ -763,7 +763,7 @@ class Constant(Value):
         check_is_constant(mask)
         return Constant(_core.LLVMConstShuffleVector(self.ptr, vector_b.ptr, mask.ptr))
 
-    
+
 class GlobalValue(Constant):
 
     def __init__(self, ptr):
@@ -1051,7 +1051,7 @@ class Builder(object):
         return Instruction(_core.LLVMBuildCondBr(self.ptr, if_value.ptr, then_blk.ptr, else_blk.ptr))
         
     def switch(self, value, else_blk, n=10):
-        check_is_value(value)
+        check_is_value(value)  # value has to be of any 'int' type
         check_is_basic_block(else_blk)
         return SwitchInstruction(_core.LLVMBuildSwitch(self.ptr, value.ptr, else_blk.ptr, n))
         

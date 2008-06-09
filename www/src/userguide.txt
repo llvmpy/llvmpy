@@ -146,30 +146,159 @@ follow these steps:
 - create a function of type _tf_ named _sum_
 - add a _basic block_ to the function
 - using a helper object called an _instruction builder_, add two
-  instructions into the basic block: . an instruction to add the two
-  arguments and store the result into a temporary variable . a return
-  instruction to return the value of the temporary variable
+  instructions into the basic block:
+  . an instruction to add the two arguments and store the result into
+    a temporary variable
+  . a return instruction to return the value of the temporary variable
 
 (A basic block is a block of instructions.)
 
 LLVM has it's own instruction set; the instructions used above (+add+
-and +ret+) are from this set. The full set of instructions are:
+and +ret+) are from this set. The LLVM instructions are at a higher
+level than the usual assembly language; for example there are
+instructions related to variable argument handling, exception handling,
+and garbage collection. These allow high-level languages to be
+represented cleanly in the IR.
+
+The full set of instructions are:
 
 TODO
 
-SSA
-~~~
 
-All LLVM instructions are represented in the SSA form. Essentially, this
-means that any variable can be assigned to only once. 
+SSA Form and PHI Nodes
+~~~~~~~~~~~~~~~~~~~~~~
 
-Executable code, in "real-life", is represented as a sequence of machine
-instructions, which typically reside in e
+All LLVM instructions are represented in the _Static Single Assignment_
+(SSA) form. Essentially, this means that any variable can be assigned to
+only once. Such a representation facilitates better optimization, among
+other benefits.
 
-IR, Module
-Passes
+A consequence of single assignment are PHI (+++&#934;+++) nodes. These
+are required when a variable can be assigned a different value based on
+the path of control flow. For example, the value of +b+ at the end of
+execution of the snippet below:
+
+----
+a = 1;
+if (v < 10)
+  a = 2;
+b = a;
+----
+
+cannot be determined statically. The value of '2' cannot be assigned to
+the 'original' +a+, since +a+ can be assigned to only once. There are
+two +a+ 's in there, and the last assignment has to choose between which
+version to pick. This is accomplished by adding a PHI node:
+
+----
+a1 = 1;
+if (v < 10)
+  a2 = 2;
+b = PHI(a1, a2);
+----
+
+The PHI node selects +a1+ or +a2+, depending on where the control
+reached the PHI node. The argument +a1+ of the PHI node is associated
+with the block +"a1 = 1;"+ and +a2+ with the block +"a2 = 2;"+.
+
+PHI nodes have to be explicitly created in the LLVM IR. The LLVM
+instruction set therefore has an instruction called _phi_.
+
+
+LLVM Assembly Language
+~~~~~~~~~~~~~~~~~~~~~~
+
+The LLVM IR can be represented offline in two formats
+- a textual, human-readable form, similar to assembly language, called
+  the LLVM assembly language (files with .ll extension) (XXX ?)
+- a binary form, called the LLVM bitcode (files with .bc extension)
+All three formats (the in-memory IR, the LLVM assembly language and the
+LLVM bitcode) represent the _same_ information. Each format can be
+converted into the other two formats (using LLVM APIs).
+
+The http://www.llvm.org/demo/[LLVM demo page] lets you type in C or C++
+code, converts it into LLVM IR and outputs the IR as LLVM assembly
+language code.
+
+Here's a function in C, that calculates the sum of the first _n_
+fibonacci numbers:
+
+[C]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+int fibsum(int n)
+{
+}
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+And here's the corresponding LLVM assembly listing, as provided by the
+demo page:
+
+----
+----
+
+Note the ... TODO ...
+
+The http://www.llvm.org/docs/LangRef.html[LLVM Language Reference]
+defines the LLVM assembly language including the entire instruction set.
+
+
+Modules
+~~~~~~~
+
+Modules, in the LLVM IR, are similar to a single _C_ language source
+file (.c file). A module contains:
+
+- functions (declarations and definitions)
+- global variables and constants
+- global type aliases (typedef-s)
+
+Modules are top-level containers; all executable code representation is
+contained within modules.
+
+
+Optimization and Passes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+LLVM provides quite a few optimization algorithms that work on the IR.
+These algorithms are organized as _passes_. Each pass does something
+specific, like combining redundant instructions. Passes need not always
+optimize the IR, it can also do other operations like inserting
+instrumentation code, or analysing the IR (the result of which can be
+used by passes that do optimizations) or even printing call graphs.
+
+This LLVM http://www.llvm.org/docs/Passes.html[documentation page]
+describes all the available passes, and what they do.
+
+LLVM does not automatically choose to run any passes, anytime. Passes
+have to be explicitly selected and run on each module. This gives you
+the flexibility to choose transformations and optimizations that are
+most suitable for the code in the module.
+
+There is a LLVM binary called http://www.llvm.org/cmds/opt.html[opt],
+which lets you run passes on bitcode files from the command line. You
+can write your own passes (in C/C\+\+, as a shared library). This can be
+loaded and executed by +opt+. (Although _llvm-py_ does not allow you to
+write your own passes, it does allow you to navigate the entire IR at
+any stage, and perform any transforms on it as you like.)
+
+Passes are run using a _pass manager_. For our purposes, there are two
+
+
 Execution Engine
+~~~~~~~~~~~~~~~~
+
+TODO
+
+
 BitCode
+~~~~~~~
+
+TODO
+
+llvm-gcc
+~~~~~~~~
+
+TODO
 
 The _llvm-py_ Package
 ---------------------
@@ -185,6 +314,5 @@ types
 constants
 
 values
-
 
 
