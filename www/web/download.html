@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style/xhtml11.css" type="text/css" />
 <link rel="stylesheet" href="style/xhtml11-quirks.css" type="text/css" />
 <link rel="stylesheet" href="style/layout.css" type="text/css" />
-<title>Download and Setup - llvm-py</title>
+<title>Download - llvm-py</title>
 </head>
 <body>
 <div id="layout-banner">
@@ -31,11 +31,11 @@
 <td>
 <div id="layout-content">
 <div id="header">
-<h1>Download and Setup</h1>
+<h1>Download</h1>
 </div>
 <div id="preamble">
 <div class="sectionbody">
-<p>The latest release is 0.2, released xx-Jun-2008 (full <a href="#changelog">Changelog</a>
+<p>The latest release is 0.2, released xx-Jun-2008 (<a href="#changelog">Changelog</a>
 below).</p>
 <p>Download it here:</p>
 <div class="tableblock">
@@ -94,162 +94,46 @@ cellspacing="0" cellpadding="4">
 </tbody>
 </table>
 </div>
-</div>
-</div>
-<h2>Bleeding Edge</h2>
-<div class="sectionbody">
-<p>The latest code can be checked out from SVN thusly:</p>
+<p>The latest code can be checked out from SVN like so:</p>
 <div class="listingblock">
 <div class="content">
 <pre><tt>$ svn checkout http://llvm-py.googlecode.com/svn/trunk/ llvm-py</tt></pre>
 </div></div>
-<p>Happy hacking, and please send in your patches.</p>
+<p>Follow the steps <a href="userguide.html#install">described here</a> to install the
+package.</p>
 </div>
-<h2>Setting Up</h2>
-<div class="sectionbody">
-<p>Follow these steps to get <em>llvm-py</em> up and running:</p>
-<ul>
-<li>
-<p>
-<a href="#uninstall">Uninstall</a> any previous version of <em>llvm-py</em>.
-</p>
-</li>
-<li>
-<p>
-Get and build LLVM.
-</p>
-</li>
-<li>
-<p>
-Optionally, install it.
-</p>
-</li>
-<li>
-<p>
-Get the latest release (see above) of <em>llvm-py</em> and untar it:
-</p>
-</li>
-</ul>
-<div class="listingblock">
-<div class="content">
-<pre><tt>$ wget http://link/llvm-py-0.2.tar.bz2
-$ tar jxvf llvm-py-0.2.tar.bz2</tt></pre>
-</div></div>
-<ul>
-<li>
-<p>
-If you've installed LLVM, setup <em>llvm-py</em> like this:
-</p>
-</li>
-</ul>
-<div class="listingblock">
-<div class="content">
-<pre><tt>$ cd llvm-py-0.2
-$ sudo python setup.py install</tt></pre>
-</div></div>
-<ul>
-<li>
-<p>
-If you haven't installed LLVM, locate the executable <tt>llvm-config</tt>
-  under your LLVM build directory (should be something like
-  <tt>/home/mdevan/llvm/Release/bin/llvm-config</tt>) and pass this to setup.py:
-</p>
-</li>
-</ul>
-<div class="listingblock">
-<div class="content">
-<pre><tt>$ cd llvm-py-0.2
-$ sudo python setup.py install --llvm-config=/path/to/llvm-config</tt></pre>
-</div></div>
-<p>That's it!</p>
-<div class="title">Notes:</div><ul>
-<li>
-<p>
-<em>setup.py</em> is a standard Python distutils script. See the Python
-  documentation regarding
-  <a href="http://docs.python.org/inst/inst.html">Installing Python Modules</a> and
-  <a href="http://docs.python.org/dist/dist.html">Distributing Python Modules</a> for
-  more information on such scripts.
-</p>
-</li>
-<li>
-<p>
-To build the debug version, build with the <tt>-g</tt> flag and the debug
-  version of llvm-config:
-</p>
-<div class="listingblock">
-<div class="content">
-<pre><tt>$ python setup.py build -g --llvm-config=/path/to/Debug/bin/llvm-config
-$ sudo python setup.py install</tt></pre>
-</div></div>
-</li>
-<li>
-<p>
-Debug binaries are <em>huge</em>! (65 MB+)
-</p>
-</li>
-<li>
-<p>
-If --llvm-config is not specified, <tt>setup.py</tt> looks for
-  <tt>llvm-config</tt> in the <tt>PATH</tt>, which will succeed if LLVM is installed.
-</p>
-</li>
-</ul>
-</div>
-<h2><a id="uninstall"></a>Uninstall</h2>
-<div class="sectionbody">
-<p>To get rid of llvm-py completely, if you wish to do so:</p>
-<div class="listingblock">
-<div class="content">
-<pre><tt># rm -rf /usr/lib/python2.5/site-packages/llvm
-# rm -f /usr/lib/python2.5/site-packages/llvm_py-0.1.egg-info</tt></pre>
-</div></div>
-<ul>
-<li>
-<p>
-You need to be root to do this.
-</p>
-</li>
-<li>
-<p>
-Paths are for debian-based systems, in other distros it might be different.
-</p>
-</li>
-<li>
-<p>
-Note that there is a version number in the egg file name.
-</p>
-</li>
-</ul>
 </div>
 <h2><a id="changelog"></a>Changelog</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre><tt>0.1, 10-May-2008:
+<pre><tt>0.2, ongoing:
+
+  * Independent package, need not be unpacked into llvm/bindings
+  * Fixed ownership issues with Module/ModuleProvider
+  * Modules, values and types can be stringified, to get their LLVM
+      assembly representation
+  * Modules and functions can be verified
+  * MemoryBuffer and TypeHandle are available
+  * ExecutionEngine, TargetData and passes are available
+  * Unit tester added (but doesn't test much for now)
+  * Python doc string documentation added (still incomplete)
+  * Many minor style/cosmetic changes and bug fixes
+  * Added documentation as on website into SVN
+
+
+0.1, 10-May-2008:
 
   * Initial release.
 
 
-0.2, ongoing:
-
-  * Independent package, need not be unpacked into llvm/bindings
-  * Modules can be dumped to a string
-  * Modules can be verified
-  * Module.global_variables, Module.functions, Function.args,
-        Function.basic_blocks and BasicBlock.instructions are
-        now proper iterators (generators in fact) than plain lists
-
-  * MemoryBuffer is done
-  * TypeHandle is done
-  * Unit tester added (but doesn't do much for now)
 </tt></pre>
 </div></div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 09-Jun-2008.
+Last updated 10-Jun-2008.
 </div>
 </div>
 </div>

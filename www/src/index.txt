@@ -1,19 +1,14 @@
 llvm-py: Python Bindings for LLVM
 ===================================
 
-_llvm-py_ provides http://www.python.org/[Python] bindings for
-http://llvm.org/[LLVM]. It currently provides APIs to build the in-memory IR
-(intermediate representation) and to dump it. Execution engine and related APIs
-should appear soon.
+llvm-py provides http://www.python.org/[Python] bindings for
+http://llvm.org/[LLVM]. It's goal is to expose enough of LLVM APIs to
+implement a compiler or VM in pure Python. Currently, llvm-py is
+available for LLVM 2.3 and Python 2.5, on Linux/x86. It is expected to
+be usable on various unices, as well as with Python 2.4, with minimal
+changes, if any. It should be stable enough for you to play with.
 
-_llvm-py_ is a set of Python-based and C-based Python modules. It makes use of
-llvm-c, the C binding for LLVM. It is based on the latest SVN version of LLVM
-(and will not work on 2.2). It has been tested only with Python 2.5, although
-it should be usable with 2.4 also. I've built and tested it only on Linux/i386
-machines.
-
-Download links, setup help and changelog are on the
-link:download.html[download] page.
+llvm-py is just hatching, and your contributions would be most welcome.
 
 News
 ----

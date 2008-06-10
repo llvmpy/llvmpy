@@ -1,7 +1,7 @@
 llvm-py User Guide
 ===================
 
-_llvm-py_ provides Python bindings for LLVM. This document explains how
+llvm-py provides Python bindings for LLVM. This document explains how
 you can setup and use it. A working knowledge of Python and a basic idea
 of LLVM is assumed.
 
@@ -16,33 +16,33 @@ static and dynamic (JIT) backends for many platforms. See the website at
 http://www.llvm.org/[http://www.llvm.org/] to discover more.
 
 Python bindings for LLVM provides a gentler learning curve for working
-with the LLVM APIs. It should also prove easier to create working
+with the LLVM APIs. It should also be easier to create working
 prototypes and experimental languages using this medium.
 
 .License
-Both LLVM and _llvm-py_ are distributed under (different) permissive
-open source licenses. _llvm-py_ uses the
+Both LLVM and llvm-py are distributed under (different) permissive
+open source licenses. llvm-py uses the
 http://opensource.org/licenses/bsd-license.php[new BSD license]. More
 information is available link:license.html[here].
 
 .Platforms
-Currently, _llvm-py_ has been built and tested only on Linux/x86. However,
+Currently, llvm-py has been built and tested only on Linux/x86. However,
 it should be trivial to build it on other unices. Windows is not
 supported, for a variety of reasons.
 
 .Versions
-As of now, _llvm-py_ requires the latest SVN version of LLVM. It will
-not work with version 2.2 of LLVM. However, 2.3 should be release soon,
-and _llvm-py_ should work with stock 2.3 LLVM.
+llvm-py requires verion 2.3 of LLVM. It will not work with previous
+versions.
 
-_llvm-py_ has been built and tested with Python 2.5. It should work with
+llvm-py has been built and tested with Python 2.5. It should work with
 Python 2.4, with minimal changes, if any.
 
 
+[[install]]
 Installation
 ------------
 
-_llvm-py_ is distributed as a source tarball. You'll need to build and
+llvm-py is distributed as a source tarball. You'll need to build and
 install it before it can be used. At least the following will be
 required for this:
 
@@ -54,7 +54,10 @@ required for this:
 On debian-based systems, the first three can be installed with the
 command `sudo apt-get install gcc g++ python python-dev'. Note that
 ubuntu repository has an old version of llvm (1.8) which will not work
-with _llvm-py_.
+with llvm-py.
+
+Tip: If LLVM 2.3 does not install cleanly, try installing 'ocamldoc'
+first.
 
 
 llvm-config
@@ -66,6 +69,10 @@ then this will be available in your +PATH+, and nothing further needs to
 be done. If you've built LLVM yourself, or for any reason +llvm-config+
 is not in your +PATH+, you'll need to pass the full path of
 +llvm-config+ to the build script.
+
+You'll need to be 'root' to install llvm-py. Remember that your +PATH+
+is different from that of 'root', so even if +llvm-config+ is in your
++PATH+, it may not be available when you do +sudo+.
 
 
 Steps
@@ -201,8 +208,8 @@ The PHI node selects +a1+ or +a2+, depending on where the control
 reached the PHI node. The argument +a1+ of the PHI node is associated
 with the block +"a1 = 1;"+ and +a2+ with the block +"a2 = 2;"+.
 
-PHI nodes have to be explicitly created in the LLVM IR. The LLVM
-instruction set therefore has an instruction called _phi_.
+PHI nodes have to be explicitly created in the LLVM IR. Accordingly the
+LLVM instruction set has an instruction called +phi+.
 
 
 LLVM Assembly Language
@@ -277,11 +284,12 @@ most suitable for the code in the module.
 There is a LLVM binary called http://www.llvm.org/cmds/opt.html[opt],
 which lets you run passes on bitcode files from the command line. You
 can write your own passes (in C/C\+\+, as a shared library). This can be
-loaded and executed by +opt+. (Although _llvm-py_ does not allow you to
+loaded and executed by +opt+. (Although llvm-py does not allow you to
 write your own passes, it does allow you to navigate the entire IR at
 any stage, and perform any transforms on it as you like.)
 
 Passes are run using a _pass manager_. For our purposes, there are two
+pass managers TODO
 
 
 Execution Engine
@@ -295,24 +303,246 @@ BitCode
 
 TODO
 
+
 llvm-gcc
 ~~~~~~~~
 
 TODO
 
-The _llvm-py_ Package
+
+The llvm-py Package
 ---------------------
 
-modules overview: llvm, llvm.core, llvm.ee, llvm.passes
+The llvm-py is a Python package, consisting of 6 modules, that wrap
+over enough LLVM APIs to allow the implementation of your own
+compiler/VM backend in pure Python. If you're come this far, you
+probably know why this is a good idea.
 
-importing modules
+Out of the 6 modules, one is an "extension" module (i.e., it's written
+in C), and another one is a private utility module, which leaves 4
+public modules. These are:
 
-core:
+- +llvm+ -- top-level package, common classes (like exceptions)
+- +llvm.core+ -- IR-related APIs
+- +llvm.ee+ -- execution engine related APIs
+- +llvm.passes+ -- pass manager and passes related APIs
 
-types
+The modules contain only classes and (integer) constants. Mostly simple
+Python constructs are used (deliberately) --
+http://docs.python.org/lib/built-in-funcs.html[property()] and
+http://wiki.python.org/moin/PythonDecoratorLibrary[property
+decorators] are probably the most exotic animals around. The APIs are
+designed to be navigable (and guessable!) once you know a few
+conventions. These conventions are highlighted in the sections below.
 
-constants
+Here is a quick overview of the contents of each package:
 
-values
+.llvm
+- LLVMException -- exception class (currently the only one)
 
+.llvm.core
+- Module -- represents an LLVM Module
+- Type -- represents an LLVM Type
+- IntegerType, FunctionType, StructType, ArrayType, PointerType,
+  VectorType  -- derived classes of Type
+- TypeHandle -- used for constructing recursive (self-referencing) types
+  (e.g. linked list nodes)
+- Value -- represents an LLVM Value
+- Constant, GlobalValue, GlobalVariable, Argument, Function,
+  Instruction, CallOrInvokeInstruction, PHINode, SwitchInstruction --
+  various derived classes of Value
+- BasicBlock -- another derived of Value, represents an LLVM basic block
+- Builder -- used for creating instructions, wraps LLVM IRBuilder helper
+  class
+- ModuleProvider -- required to use modules in execution engine and pass
+  manager
+- constants +TYPE_*+ that represents various types
+- constants +CC_*+ that represent calling conventions
+- constants +IPRED_*+ and +RPRED_*+ that represent integer and real
+  comparison predicates (like less than, greater than etc.)
+- constants +LINKAGE_*+ that represent linkage of symbols (external,
+  internal etc.)
+- constants +VISIBILITY_*+ that represents visibility of symbols
+  (default, hidden, protected)
+- constants +ATTR_*+ that represent function parameter attributes
+
+.llvm.ee
+- ExecutionEngine -- represents an execution engine (which can be an
+  either an interpreter or a JIT)
+- TargetData -- represents the ABI of the target platform (details like
+  sizes and alignment of primitive types, endinanness etc)
+
+.llvm.passes
+- PassManager -- represents an LLVM pass manager 
+- FunctionPassManager -- represents an LLVM function pass manager
+- constants +PASS_*+ that represent various passes
+
+.A note on the 'import'ing of these modules
+Pythonically, modules are imported with the statement +"import
+llvm.core"+ and not +"from llvm.core import *"+. However, you might find
+it more convenient to import llvm-py modules thus:
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from llvm import *
+from llvm.core import *
+from llvm.ee import *
+from llvm.passes import *
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This avoids quite some typing. Both conventions work, however.
+
+TIP: Python-style documentation strings (+__doc__+) are present in
+llvm-py. You can use the +help()+ of the interactive Python
+interpreter or the +object?+ of http://ipython.scipy.org/moin/[IPython]
+to get online help. (Note: not complete yet!)
+
+
+Module (llvm.core)
+~~~~~~~~~~~~~~~~~~
+
+Modules are top-level container objects. You need to create a module
+object first, before you can add global variables, aliases or functions.
+Modules are created using the static method +Module.new+:
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#!/usr/bin/env python
+
+from llvm import *
+from llvm.core import *
+
+# create a module
+my_module = Module.new('my_module')
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The constructor of the Module class should *not* be used to instantiate
+a Module object. This is a common feature for all llvm-py classes.
+
+[TIP]
+.Convention
+=======================================================================
+*All* llvm-py objects are instantiated using static methods of
+corresponding classes. Constructors _should not_ be used.
+=======================================================================
+
+The argument 'my_module' is a module identifier (a plain string).
+
+
+Types (llvm.core)
+~~~~~~~~~~~~~~~~~
+
+Types are what you think they are. A instance of +llvm.core.Type+, or
+one of its derived classes, represent a type. llvm-py does not use as
+many classes to represent types as does LLVM itself. Some types are
+represented using +llvm.core.Type+ itself and the rest are represented
+using derived classes of +llvm.core.Type+. As usual, an instance is created
+via one of the static methods of +Type+. These methods return an
+instance of either +llvm.core.Type+ itself or one of its derived
+classes.
+
+The following table lists all the available types along with the static
+method which has to be used to construct it and the name of the class whose
+object is actually returned by the static method.
+
+[frame="all",grid="all"]
+`50`30`20~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Name,Constructor Method,Class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+integer of bitwidth _n_, +Type.int(n)+, +IntegerType+
+32-bit float, +Type.float()+, +Type+
+64-bit double, +Type.double()+, +Type+
+80-bit float, +Type.x86_fp80()+, +Type+
+128-bit float (112-bit mantissa), +Type.fp128()+, +Type+
+128-bit float (two 64-bits), +Type.ppc_fp128()+, +Type+
+function, "+Type.function(r, p, v)+", +FunctionType+
+unpacked struct, +Type.struct(eltys)+, +StructType+
+packed struct, +Type.packed_struct(eltys)+, +StructType+
+array, "+Type.array(elty, count)+", +ArrayType+
+pointer to value of type _pty_, "+Type.pointer(pty, addrspc)+", +PointerType+
+vector, "+Type.vector(elty, count)+", +VectorType+
+void, +Type.void()+, +Type+
+label, +Type.label()+, +Type+
+opaque, +Type.opaque()+, +Type+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Values (llvm.core)
+~~~~~~~~~~~~~~~~~
+
+TODO
+
+
+Instructions (llvm.core)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO
+
+
+Basic Block (llvm.core)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO
+
+
+Builder (llvm.core)
+~~~~~~~~~~~~~~~~~~~
+
+TODO
+
+
+Module Provider (llvm.core)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO
+
+
+Execution Engine (llvm.ee)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO
+
+
+Target Data (llvm.ee)
+~~~~~~~~~~~~~~~~~~~~~
+
+TODO
+
+
+Pass Managers and Passes (llvm.passes)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO
+
+
+Annotated Examples
+------------------
+
+TODO
+
+
+About the llvm-py Project
+---------------------------
+
+llvm-py lives at
+http://mdevan.nfshost.com/llvm-py/[http://mdevan.nfshost.com/llvm-py/].
+The code (subversion repository) and the issue tracker are hosted on google
+code, at
+http://code.google.com/p/llvm-py/[http://code.google.com/p/llvm-py/].
+llvm-py is distributed under the new BSD license, the full license
+text is in the file named
+http://code.google.com/p/llvm-py/source/browse/trunk/LICENSE[LICENSE]
+available in the source distribution.
+
+The entire llvm-py website is generated from marked up text files
+using the tool http://www.methods.co.nz/asciidoc/[AsciiDoc]. These text
+files and the generated HTML pages are available in the source
+distribution.
+
+llvm-py is an ongoing, live project. Your contributions in any form
+are most welcome. You can checkout the latest SVN HEAD from
+http://code.google.com/p/llvm-py/source/checkout[here].
+
+Mahadevan R wrote llvm-py and works on it in his spare time. He can be
+reached at _mdevan.foobar@gmail.com_.
 

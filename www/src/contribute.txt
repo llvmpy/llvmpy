@@ -1,17 +1,23 @@
 Contribute
 ==========
 
-_llvm-py_ is just hatching. It needs your patches and suggestions to
-grow up. Please contribute! All patches are welcome.
+llvm-py is just hatching. It needs your patches and suggestions to
+grow up. Please contribute! All patches are welcome. Here are some links
+to start hacking away:
 
-The _llvm-py_ code is hosted on a google code project by the same name,
-http://code.google.com/p/llvm-py/[here]. It provides the SVN repository
-and a http://code.google.com/p/llvm-py/issues/list[bug tracker]. The
-latest code can be checked out from SVN like so:
+`40`60~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Google code hosting, http://code.google.com/p/llvm-py/[http://code.google.com/p/llvm-py/]
+Browse SVN, http://code.google.com/p/llvm-py/source/browse/[http://code.google.com/p/llvm-py/source/browse]
+Issues tracker, http://code.google.com/p/llvm-py/issues/list[http://code.google.com/p/llvm-py/issues/list]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+SVN HEAD can be checked out like so:
 
 ----
 $ svn checkout http://llvm-py.googlecode.com/svn/trunk/ llvm-py
 ----
 
-You can browse the source online at:
-http://code.google.com/p/llvm-py/source/browse[http://code.google.com/p/llvm-py/source/browse].
+Mahadevan R (mdevan.foobar@gmail.com) is available to answer your
+queries.
+

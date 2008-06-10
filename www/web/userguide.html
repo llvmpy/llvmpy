@@ -35,7 +35,7 @@
 </div>
 <div id="preamble">
 <div class="sectionbody">
-<p><em>llvm-py</em> provides Python bindings for LLVM. This document explains how
+<p>llvm-py provides Python bindings for LLVM. This document explains how
 you can setup and use it. A working knowledge of Python and a basic idea
 of LLVM is assumed.</p>
 </div>
@@ -48,27 +48,26 @@ JIT-compiled language. It provides extensive optimization support, and
 static and dynamic (JIT) backends for many platforms. See the website at
 <a href="http://www.llvm.org/">http://www.llvm.org/</a> to discover more.</p>
 <p>Python bindings for LLVM provides a gentler learning curve for working
-with the LLVM APIs. It should also prove easier to create working
+with the LLVM APIs. It should also be easier to create working
 prototypes and experimental languages using this medium.</p>
 <div class="title">License</div>
-<p>Both LLVM and <em>llvm-py</em> are distributed under (different) permissive
-open source licenses. <em>llvm-py</em> uses the
+<p>Both LLVM and llvm-py are distributed under (different) permissive
+open source licenses. llvm-py uses the
 <a href="http://opensource.org/licenses/bsd-license.php">new BSD license</a>. More
 information is available <a href="license.html">here</a>.</p>
 <div class="title">Platforms</div>
-<p>Currently, <em>llvm-py</em> has been built and tested only on Linux/x86. However,
+<p>Currently, llvm-py has been built and tested only on Linux/x86. However,
 it should be trivial to build it on other unices. Windows is not
 supported, for a variety of reasons.</p>
 <div class="title">Versions</div>
-<p>As of now, <em>llvm-py</em> requires the latest SVN version of LLVM. It will
-not work with version 2.2 of LLVM. However, 2.3 should be release soon,
-and <em>llvm-py</em> should work with stock 2.3 LLVM.</p>
-<p><em>llvm-py</em> has been built and tested with Python 2.5. It should work with
+<p>llvm-py requires verion 2.3 of LLVM. It will not work with previous
+versions.</p>
+<p>llvm-py has been built and tested with Python 2.5. It should work with
 Python 2.4, with minimal changes, if any.</p>
 </div>
-<h2>Installation</h2>
+<h2><a id="install"></a>Installation</h2>
 <div class="sectionbody">
-<p><em>llvm-py</em> is distributed as a source tarball. You'll need to build and
+<p>llvm-py is distributed as a source tarball. You'll need to build and
 install it before it can be used. At least the following will be
 required for this:</p>
 <ul>
@@ -96,7 +95,9 @@ LLVM, either installed or built
 <p>On debian-based systems, the first three can be installed with the
 command `sudo apt-get install gcc g++ python python-dev'. Note that
 ubuntu repository has an old version of llvm (1.8) which will not work
-with <em>llvm-py</em>.</p>
+with llvm-py.</p>
+<p>Tip: If LLVM 2.3 does not install cleanly, try installing <em>ocamldoc</em>
+first.</p>
 <h3>llvm-config</h3>
 <p>Inorder to build llvm-py, it's build script needs to know from where to
 invoke the llvm helper program, <tt>llvm-config</tt>. If you've installed LLVM,
@@ -104,6 +105,9 @@ then this will be available in your <tt>PATH</tt>, and nothing further needs to
 be done. If you've built LLVM yourself, or for any reason <tt>llvm-config</tt>
 is not in your <tt>PATH</tt>, you'll need to pass the full path of
 <tt>llvm-config</tt> to the build script.</p>
+<p>You'll need to be <em>root</em> to install llvm-py. Remember that your <tt>PATH</tt>
+is different from that of <em>root</em>, so even if <tt>llvm-config</tt> is in your
+<tt>PATH</tt>, it may not be available when you do <tt>sudo</tt>.</p>
 <h3>Steps</h3>
 <p>The commands illustrated below assume that the LLVM source is available
 under <tt>/home/mdevan/llvm</tt>. If you've a previous version of llvm-py
@@ -252,8 +256,8 @@ b = PHI(a1, a2);</tt></pre>
 <p>The PHI node selects <tt>a1</tt> or <tt>a2</tt>, depending on where the control
 reached the PHI node. The argument <tt>a1</tt> of the PHI node is associated
 with the block <tt>"a1 = 1;"</tt> and <tt>a2</tt> with the block <tt>"a2 = 2;"</tt>.</p>
-<p>PHI nodes have to be explicitly created in the LLVM IR. The LLVM
-instruction set therefore has an instruction called <em>phi</em>.</p>
+<p>PHI nodes have to be explicitly created in the LLVM IR. Accordingly the
+LLVM instruction set has an instruction called <tt>phi</tt>.</p>
 <h3>LLVM Assembly Language</h3>
 <p>The LLVM IR can be represented offline in two formats
 - a textual, human-readable form, similar to assembly language, called
@@ -323,10 +327,11 @@ most suitable for the code in the module.</p>
 <p>There is a LLVM binary called <a href="http://www.llvm.org/cmds/opt.html">opt</a>,
 which lets you run passes on bitcode files from the command line. You
 can write your own passes (in C/C++, as a shared library). This can be
-loaded and executed by <tt>opt</tt>. (Although <em>llvm-py</em> does not allow you to
+loaded and executed by <tt>opt</tt>. (Although llvm-py does not allow you to
 write your own passes, it does allow you to navigate the entire IR at
 any stage, and perform any transforms on it as you like.)</p>
-<p>Passes are run using a <em>pass manager</em>. For our purposes, there are two</p>
+<p>Passes are run using a <em>pass manager</em>. For our purposes, there are two
+pass managers TODO</p>
 <h3>Execution Engine</h3>
 <p>TODO</p>
 <h3>BitCode</h3>
@@ -334,19 +339,474 @@ any stage, and perform any transforms on it as you like.)</p>
 <h3>llvm-gcc</h3>
 <p>TODO</p>
 </div>
-<h2>The <em>llvm-py</em> Package</h2>
+<h2>The llvm-py Package</h2>
 <div class="sectionbody">
-<p>modules overview: llvm, llvm.core, llvm.ee, llvm.passes</p>
-<p>importing modules</p>
-<p>core:</p>
-<p>types</p>
-<p>constants</p>
-<p>values</p>
+<p>The llvm-py is a Python package, consisting of 6 modules, that wrap
+over enough LLVM APIs to allow the implementation of your own
+compiler/VM backend in pure Python. If you're come this far, you
+probably know why this is a good idea.</p>
+<p>Out of the 6 modules, one is an "extension" module (i.e., it's written
+in C), and another one is a private utility module, which leaves 4
+public modules. These are:</p>
+<ul>
+<li>
+<p>
+<tt>llvm</tt> &#8212; top-level package, common classes (like exceptions)
+</p>
+</li>
+<li>
+<p>
+<tt>llvm.core</tt> &#8212; IR-related APIs
+</p>
+</li>
+<li>
+<p>
+<tt>llvm.ee</tt> &#8212; execution engine related APIs
+</p>
+</li>
+<li>
+<p>
+<tt>llvm.passes</tt> &#8212; pass manager and passes related APIs
+</p>
+</li>
+</ul>
+<p>The modules contain only classes and (integer) constants. Mostly simple
+Python constructs are used (deliberately) &#8212;
+<a href="http://docs.python.org/lib/built-in-funcs.html">property()</a> and
+<a href="http://wiki.python.org/moin/PythonDecoratorLibrary">property
+decorators</a> are probably the most exotic animals around. The APIs are
+designed to be navigable (and guessable!) once you know a few
+conventions. These conventions are highlighted in the sections below.</p>
+<p>Here is a quick overview of the contents of each package:</p>
+<div class="title">llvm</div><ul>
+<li>
+<p>
+LLVMException &#8212; exception class (currently the only one)
+</p>
+</li>
+</ul>
+<div class="title">llvm.core</div><ul>
+<li>
+<p>
+Module &#8212; represents an LLVM Module
+</p>
+</li>
+<li>
+<p>
+Type &#8212; represents an LLVM Type
+</p>
+</li>
+<li>
+<p>
+IntegerType, FunctionType, StructType, ArrayType, PointerType,
+  VectorType  &#8212; derived classes of Type
+</p>
+</li>
+<li>
+<p>
+TypeHandle &#8212; used for constructing recursive (self-referencing) types
+  (e.g. linked list nodes)
+</p>
+</li>
+<li>
+<p>
+Value &#8212; represents an LLVM Value
+</p>
+</li>
+<li>
+<p>
+Constant, GlobalValue, GlobalVariable, Argument, Function,
+  Instruction, CallOrInvokeInstruction, PHINode, SwitchInstruction &#8212;
+  various derived classes of Value
+</p>
+</li>
+<li>
+<p>
+BasicBlock &#8212; another derived of Value, represents an LLVM basic block
+</p>
+</li>
+<li>
+<p>
+Builder &#8212; used for creating instructions, wraps LLVM IRBuilder helper
+  class
+</p>
+</li>
+<li>
+<p>
+ModuleProvider &#8212; required to use modules in execution engine and pass
+  manager
+</p>
+</li>
+<li>
+<p>
+constants <tt>TYPE_*</tt> that represents various types
+</p>
+</li>
+<li>
+<p>
+constants <tt>CC_*</tt> that represent calling conventions
+</p>
+</li>
+<li>
+<p>
+constants <tt>IPRED_*</tt> and <tt>RPRED_*</tt> that represent integer and real
+  comparison predicates (like less than, greater than etc.)
+</p>
+</li>
+<li>
+<p>
+constants <tt>LINKAGE_*</tt> that represent linkage of symbols (external,
+  internal etc.)
+</p>
+</li>
+<li>
+<p>
+constants <tt>VISIBILITY_*</tt> that represents visibility of symbols
+  (default, hidden, protected)
+</p>
+</li>
+<li>
+<p>
+constants <tt>ATTR_*</tt> that represent function parameter attributes
+</p>
+</li>
+</ul>
+<div class="title">llvm.ee</div><ul>
+<li>
+<p>
+ExecutionEngine &#8212; represents an execution engine (which can be an
+  either an interpreter or a JIT)
+</p>
+</li>
+<li>
+<p>
+TargetData &#8212; represents the ABI of the target platform (details like
+  sizes and alignment of primitive types, endinanness etc)
+</p>
+</li>
+</ul>
+<div class="title">llvm.passes</div><ul>
+<li>
+<p>
+PassManager &#8212; represents an LLVM pass manager
+</p>
+</li>
+<li>
+<p>
+FunctionPassManager &#8212; represents an LLVM function pass manager
+</p>
+</li>
+<li>
+<p>
+constants <tt>PASS_*</tt> that represent various passes
+</p>
+</li>
+</ul>
+<div class="title">A note on the 'import'ing of these modules</div>
+<p>Pythonically, modules are imported with the statement <tt>"import
+llvm.core"</tt> and not <tt>"from llvm.core import *"</tt>. However, you might find
+it more convenient to import llvm-py modules thus:</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
+<span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm<span style="color: #990000">.</span>core <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
+<span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm<span style="color: #990000">.</span>ee <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
+<span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm<span style="color: #990000">.</span>passes <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
+</tt></pre></div></div>
+<p>This avoids quite some typing. Both conventions work, however.</p>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">Python-style documentation strings (<tt><em>doc</em></tt>) are present in
+llvm-py. You can use the <tt>help()</tt> of the interactive Python
+interpreter or the <tt>object?</tt> of <a href="http://ipython.scipy.org/moin/">IPython</a>
+to get online help. (Note: not complete yet!)</td>
+</tr></table>
+</div>
+<h3>Module (llvm.core)</h3>
+<p>Modules are top-level container objects. You need to create a module
+object first, before you can add global variables, aliases or functions.
+Modules are created using the static method <tt>Module.new</tt>:</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900">#!/usr/bin/env python</span></span>
+
+<span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
+<span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm<span style="color: #990000">.</span>core <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># create a module</span></span>
+my<span style="color: #009900">_</span>module <span style="color: #990000">=</span> <span style="color: #009900">Module</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">new</span></span><span style="color: #990000">(</span><span style="color: #FF0000">'my_module'</span><span style="color: #990000">)</span>
+</tt></pre></div></div>
+<p>The constructor of the Module class should <strong>not</strong> be used to instantiate
+a Module object. This is a common feature for all llvm-py classes.</p>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">
+<div class="title">Convention</div>
+<p><strong>All</strong> llvm-py objects are instantiated using static methods of
+corresponding classes. Constructors <em>should not</em> be used.</p>
+</td>
+</tr></table>
+</div>
+<p>The argument <em>my_module</em> is a module identifier (a plain string).</p>
+<h3>Types (llvm.core)</h3>
+<p>Types are what you think they are. A instance of <tt>llvm.core.Type</tt>, or
+one of its derived classes, represent a type. llvm-py does not use as
+many classes to represent types as does LLVM itself. Some types are
+represented using <tt>llvm.core.Type</tt> itself and the rest are represented
+using derived classes of <tt>llvm.core.Type</tt>. As usual, an instance is created
+via one of the static methods of <tt>Type</tt>. These methods return an
+instance of either <tt>llvm.core.Type</tt> itself or one of its derived
+classes.</p>
+<p>The following table lists all the available types along with the static
+method which has to be used to construct it and the name of the class whose
+object is actually returned by the static method.</p>
+<div class="tableblock">
+<table rules="all"
+frame="border"
+cellspacing="0" cellpadding="4">
+<col width="400" />
+<col width="240" />
+<col width="160" />
+<thead>
+  <tr>
+    <th align="left">
+    Name
+    </th>
+    <th align="left">
+    Constructor Method
+    </th>
+    <th align="left">
+    Class
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    integer of bitwidth <em>n</em>
+    </td>
+    <td align="left">
+    <tt>Type.int(n)</tt>
+    </td>
+    <td align="left">
+    <tt>IntegerType</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    32-bit float
+    </td>
+    <td align="left">
+    <tt>Type.float()</tt>
+    </td>
+    <td align="left">
+    <tt>Type</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    64-bit double
+    </td>
+    <td align="left">
+    <tt>Type.double()</tt>
+    </td>
+    <td align="left">
+    <tt>Type</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    80-bit float
+    </td>
+    <td align="left">
+    <tt>Type.x86_fp80()</tt>
+    </td>
+    <td align="left">
+    <tt>Type</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    128-bit float (112-bit mantissa)
+    </td>
+    <td align="left">
+    <tt>Type.fp128()</tt>
+    </td>
+    <td align="left">
+    <tt>Type</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    128-bit float (two 64-bits)
+    </td>
+    <td align="left">
+    <tt>Type.ppc_fp128()</tt>
+    </td>
+    <td align="left">
+    <tt>Type</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    function
+    </td>
+    <td align="left">
+    <tt>Type.function(r, p, v)</tt>
+    </td>
+    <td align="left">
+    <tt>FunctionType</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    unpacked struct
+    </td>
+    <td align="left">
+    <tt>Type.struct(eltys)</tt>
+    </td>
+    <td align="left">
+    <tt>StructType</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    packed struct
+    </td>
+    <td align="left">
+    <tt>Type.packed_struct(eltys)</tt>
+    </td>
+    <td align="left">
+    <tt>StructType</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    array
+    </td>
+    <td align="left">
+    <tt>Type.array(elty, count)</tt>
+    </td>
+    <td align="left">
+    <tt>ArrayType</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    pointer to value of type <em>pty</em>
+    </td>
+    <td align="left">
+    <tt>Type.pointer(pty, addrspc)</tt>
+    </td>
+    <td align="left">
+    <tt>PointerType</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    vector
+    </td>
+    <td align="left">
+    <tt>Type.vector(elty, count)</tt>
+    </td>
+    <td align="left">
+    <tt>VectorType</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    void
+    </td>
+    <td align="left">
+    <tt>Type.void()</tt>
+    </td>
+    <td align="left">
+    <tt>Type</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    label
+    </td>
+    <td align="left">
+    <tt>Type.label()</tt>
+    </td>
+    <td align="left">
+    <tt>Type</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    opaque
+    </td>
+    <td align="left">
+    <tt>Type.opaque()</tt>
+    </td>
+    <td align="left">
+    <tt>Type</tt>
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<h3>Values (llvm.core)</h3>
+<p>TODO</p>
+<h3>Instructions (llvm.core)</h3>
+<p>TODO</p>
+<h3>Basic Block (llvm.core)</h3>
+<p>TODO</p>
+<h3>Builder (llvm.core)</h3>
+<p>TODO</p>
+<h3>Module Provider (llvm.core)</h3>
+<p>TODO</p>
+<h3>Execution Engine (llvm.ee)</h3>
+<p>TODO</p>
+<h3>Target Data (llvm.ee)</h3>
+<p>TODO</p>
+<h3>Pass Managers and Passes (llvm.passes)</h3>
+<p>TODO</p>
+</div>
+<h2>Annotated Examples</h2>
+<div class="sectionbody">
+<p>TODO</p>
+</div>
+<h2>About the llvm-py Project</h2>
+<div class="sectionbody">
+<p>llvm-py lives at
+<a href="http://mdevan.nfshost.com/llvm-py/">http://mdevan.nfshost.com/llvm-py/</a>.
+The code (subversion repository) and the issue tracker are hosted on google
+code, at
+<a href="http://code.google.com/p/llvm-py/">http://code.google.com/p/llvm-py/</a>.
+llvm-py is distributed under the new BSD license, the full license
+text is in the file named
+<a href="http://code.google.com/p/llvm-py/source/browse/trunk/LICENSE">LICENSE</a>
+available in the source distribution.</p>
+<p>The entire llvm-py website is generated from marked up text files
+using the tool <a href="http://www.methods.co.nz/asciidoc/"><em>AsciiDoc</em></a>. These text
+files and the generated HTML pages are available in the source
+distribution.</p>
+<p>llvm-py is an ongoing, live project. Your contributions in any form
+are most welcome. You can checkout the latest SVN HEAD from
+<a href="http://code.google.com/p/llvm-py/source/checkout">here</a>.</p>
+<p>Mahadevan R wrote llvm-py and works on it in his spare time. He can be
+reached at <em>mdevan.foobar@gmail.com</em>.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 09-Jun-2008.
+Last updated 10-Jun-2008.
 </div>
 </div>
 </div>
