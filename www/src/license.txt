@@ -1,9 +1,9 @@
 License
 =======
 
-_llvm-py_ is distributed under the 
+llvm-py is distributed under the 
 http://www.opensource.org/licenses/bsd-license.php[new BSD license].
-This is similar to LLVM's license. You should be able to use _llvm-py_
+This is similar to LLVM's license. You should be able to use llvm-py
 where-ever and how-ever you're able to use LLVM itself.
 
 The license text is present in the 

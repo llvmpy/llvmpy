@@ -23,6 +23,26 @@ char *LLVMDumpTypeToString(LLVMTypeRef Ty);
     LLVMDisposeMessage, after use. */
 char *LLVMDumpValueToString(LLVMValueRef Val);
 
+/* missing constant expressions */
+
+LLVMValueRef LLVMConstVICmp(LLVMIntPredicate Predicate,
+                           LLVMValueRef LHSConstant, LLVMValueRef RHSConstant);
+LLVMValueRef LLVMConstVFCmp(LLVMRealPredicate Predicate,
+                           LLVMValueRef LHSConstant, LLVMValueRef RHSConstant);
+
+/* missing instructions */
+
+LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef, LLVMValueRef *Values,
+                                  unsigned NumValues);
+LLVMValueRef LLVMBuildVICmp(LLVMBuilderRef, LLVMIntPredicate Op,
+                           LLVMValueRef LHS, LLVMValueRef RHS,
+                           const char *Name);
+LLVMValueRef LLVMBuildVFCmp(LLVMBuilderRef, LLVMRealPredicate Op,
+                           LLVMValueRef LHS, LLVMValueRef RHS,
+                           const char *Name);
+LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef, LLVMValueRef V,
+                                unsigned Index, const char *Name);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

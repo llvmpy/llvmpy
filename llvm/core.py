@@ -660,6 +660,10 @@ class Constant(Value):
         check_is_constant(rhs)
         return Constant(_core.LLVMConstSRem(self.ptr, rhs.ptr))
 
+    def frem(self, rhs):
+        check_is_constant(rhs)
+        return Constant(_core.LLVMConstFRem(self.ptr, rhs.ptr))
+
     def and_(self, rhs):
         check_is_constant(rhs)
         return Constant(_core.LLVMConstAnd(self.ptr, rhs.ptr))
@@ -674,11 +678,19 @@ class Constant(Value):
 
     def icmp(self, int_pred, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstICmp(self.ptr, int_pred, rhs.ptr))
+        return Constant(_core.LLVMConstICmp(int_pred, self.ptr, rhs.ptr))
 
     def fcmp(self, real_pred, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstFCmp(self.ptr, real_pred, rhs.ptr))
+        return Constant(_core.LLVMConstFCmp(real_pred, self.ptr, rhs.ptr))
+
+    def vicmp(self, int_pred, rhs):
+        check_is_constant(rhs)
+        return Constant(_core.LLVMConstVICmp(int_pred, self.ptr, rhs.ptr))
+
+    def vfcmp(self, real_pred, rhs):
+        check_is_constant(rhs)
+        return Constant(_core.LLVMConstVFCmp(real_pred, self.ptr, rhs.ptr))
 
     def shl(self, rhs):
         check_is_constant(rhs)
@@ -749,16 +761,16 @@ class Constant(Value):
         check_is_constant(false_const)
         return Constant(_core.LLVMConstSelect(self.ptr, true_const.ptr, false_const.ptr))
 
-    def extract(self, index): # note: self must be a _vector_ constant
+    def extract_element(self, index): # note: self must be a _vector_ constant
         check_is_constant(index)
         return Constant(_core.LLVMConstExtractElement(self.ptr, index.ptr))
 
-    def insert(self, value, index): # note: self must be a _vector_ constant
+    def insert_element(self, value, index): # note: self must be a _vector_ constant
         check_is_constant(value)
         check_is_constant(index)
         return Constant(_core.LLVMConstInsertElement(self.ptr, value.ptr, index.ptr))
 
-    def shuffle(self, vector_b, mask): # note: self must be a _vector_ constant
+    def shuffle_element(self, vector_b, mask): # note: self must be a _vector_ constant
         check_is_constant(vector_b)   # note: vector_b must be a _vector_ constant
         check_is_constant(mask)
         return Constant(_core.LLVMConstShuffleVector(self.ptr, vector_b.ptr, mask.ptr))
@@ -1035,11 +1047,15 @@ class Builder(object):
 
     def ret_void(self):
         return Instruction(_core.LLVMBuildRetVoid(self.ptr))
-        
+
     def ret(self, value):
         check_is_value(value)
         return Instruction(_core.LLVMBuildRet(self.ptr, value.ptr))
-        
+
+    def ret_many(self, values):
+        vs = unpack_values(values)
+        return Instruction(_core.LLVMBuildRetMultiple(self.ptr, vs))
+
     def branch(self, bblk):
         check_is_basic_block(bblk)
         return Instruction(_core.LLVMBuildBr(self.ptr, bblk.ptr))
@@ -1265,7 +1281,21 @@ class Builder(object):
         check_is_value(rhs)
         return Value(_core.LLVMBuildFCmp(self.ptr, rpred, lhs.ptr, rhs.ptr, name))
 
+    def vicmp(self, ipred, lhs, rhs, name=""):
+        check_is_value(lhs)
+        check_is_value(rhs)
+        return Value(_core.LLVMBuildVICmp(self.ptr, ipred, lhs.ptr, rhs.ptr, name))
+        
+    def vfcmp(self, rpred, lhs, rhs, name=""):
+        check_is_value(lhs)
+        check_is_value(rhs)
+        return Value(_core.LLVMBuildVFCmp(self.ptr, rpred, lhs.ptr, rhs.ptr, name))
+
     # misc
+
+    def getresult(self, retval, idx, name=""):
+        check_is_value(retval)
+        return PHINode(_core.LLVMBuildGetResult(self.ptr, retval.ptr, idx, name))
 
     def phi(self, ty, name=""):
         check_is_type(ty)

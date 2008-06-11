@@ -286,6 +286,8 @@ _wrap_objobj2obj(LLVMConstXor, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 
 _wrap_intobjobj2obj(LLVMConstICmp, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_intobjobj2obj(LLVMConstFCmp, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_intobjobj2obj(LLVMConstVICmp, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_intobjobj2obj(LLVMConstVFCmp, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 
 _wrap_objobj2obj(LLVMConstShl, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMConstLShr, LLVMValueRef, LLVMValueRef, LLVMValueRef)
@@ -435,6 +437,7 @@ _wrap_obj2none(LLVMDisposeBuilder, LLVMBuilderRef)
 
 _wrap_obj2obj(LLVMBuildRetVoid, LLVMBuilderRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMBuildRet, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
+_wrap_objlist2obj(LLVMBuildRetMultiple, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMBuildBr, LLVMBuilderRef, LLVMBasicBlockRef, LLVMValueRef)
 _wrap_objobjobjobj2obj(LLVMBuildCondBr, LLVMBuilderRef, LLVMValueRef, LLVMBasicBlockRef, LLVMBasicBlockRef, LLVMValueRef)
 _wrap_objobjobjint2obj(LLVMBuildSwitch, LLVMBuilderRef, LLVMValueRef, LLVMBasicBlockRef, LLVMValueRef)
@@ -527,9 +530,12 @@ _wrap_objobjobjstr2obj(LLVMBuildBitCast, LLVMBuilderRef, LLVMValueRef, LLVMTypeR
 
 _wrap_objintobjobjstr2obj(LLVMBuildICmp, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objintobjobjstr2obj(LLVMBuildFCmp, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objintobjobjstr2obj(LLVMBuildVICmp, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objintobjobjstr2obj(LLVMBuildVFCmp, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 
 /* Miscellaneous instructions */
 
+_wrap_objobjintstr2obj(LLVMBuildGetResult, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobjstr2obj(LLVMBuildPhi, LLVMBuilderRef, LLVMTypeRef, LLVMValueRef)
 _wrap_objobjliststr2obj(LLVMBuildCall, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobjobjobjstr2obj(LLVMBuildSelect, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
@@ -837,6 +843,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMConstXor )    
     _method( LLVMConstICmp )    
     _method( LLVMConstFCmp )    
+    _method( LLVMConstVICmp )    
+    _method( LLVMConstVFCmp )    
     _method( LLVMConstShl )    
     _method( LLVMConstLShr )    
     _method( LLVMConstAShr )    
@@ -947,6 +955,7 @@ static PyMethodDef core_methods[] = {
     /* Terminators */
     _method( LLVMBuildRetVoid )    
     _method( LLVMBuildRet )    
+    _method( LLVMBuildRetMultiple )    
     _method( LLVMBuildBr )    
     _method( LLVMBuildCondBr )    
     _method( LLVMBuildSwitch )    
@@ -1003,8 +1012,11 @@ static PyMethodDef core_methods[] = {
     /* Comparisons */
     _method( LLVMBuildICmp )    
     _method( LLVMBuildFCmp )    
+    _method( LLVMBuildVICmp )    
+    _method( LLVMBuildVFCmp )    
 
     /* Miscellaneous instructions */
+    _method( LLVMBuildGetResult )    
     _method( LLVMBuildPhi )    
     _method( LLVMBuildCall )    
     _method( LLVMBuildSelect )    
