@@ -424,7 +424,7 @@ class StructType(Type):
         return _core.LLVMCountStructElementTypes(self.ptr)
 
     @property
-    def element_types(self):
+    def elements(self):
         pp = _core.LLVMGetStructElementTypes(self.ptr)
         return [ _make_type(p, _core.LLVMGetTypeKind(p)) for p in pp ]
 
@@ -439,13 +439,13 @@ class ArrayType(Type):
         Type.__init__(self, ptr, kind)
 
     @property
-    def element_type(self):
+    def element(self):
         ptr  = _core.LLVMGetElementType(self.ptr)
         kind = _core.LLVMGetTypeKind(ptr)
         return _make_type(ptr, kind)
 
     @property
-    def element_count(self):
+    def count(self):
         return _core.LLVMGetArrayLength(self.ptr)
 
 
@@ -465,13 +465,13 @@ class VectorType(Type):
         Type.__init__(self, ptr, kind)
 
     @property
-    def element_type(self):
+    def element(self):
         ptr  = _core.LLVMGetElementType(self.ptr)
         kind = _core.LLVMGetTypeKind(ptr)
         return _make_type(ptr, kind)
 
     @property
-    def element_count(self):
+    def count(self):
         return _core.LLVMGetVectorSize(self.ptr)
 
 

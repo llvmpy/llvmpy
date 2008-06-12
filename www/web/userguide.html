@@ -312,7 +312,9 @@ bb10:           ; preds = %entry
 }</tt></pre>
 </div></div>
 <p>Note the usage of SSA form and the total absence of any loop or
-recursion at all!</p>
+recursion at all! The long string called <tt>target datalayout</tt> is a
+specification of the platform ABI (like endianness, sizes of types,
+alignment etc.).</p>
 <p>The <a href="http://www.llvm.org/docs/LangRef.html">LLVM Language Reference</a>
 defines the LLVM assembly language including the entire instruction set.
 The table below lists all the LLVM instructions. Each instruction links
@@ -764,7 +766,7 @@ attributes of the <tt>Module</tt> class is:</p>
 </dl>
 <div class="title">Properties</div><dl>
 <dt>
-<tt>data_layout</tt> (r/w)
+<tt>data_layout</tt>
 </dt>
 <dd>
 <p>
@@ -772,7 +774,7 @@ attributes of the <tt>Module</tt> class is:</p>
 </p>
 </dd>
 <dt>
-<tt>target</tt> (r/w)
+<tt>target</tt>
 </dt>
 <dd>
 <p>
@@ -780,7 +782,7 @@ attributes of the <tt>Module</tt> class is:</p>
 </p>
 </dd>
 <dt>
-<tt>global_variables</tt> (r)
+<tt>global_variables</tt> [read-only]
 </dt>
 <dd>
 <p>
@@ -788,7 +790,7 @@ attributes of the <tt>Module</tt> class is:</p>
 </p>
 </dd>
 <dt>
-<tt>functions</tt> (r)
+<tt>functions</tt> [read-only]
 </dt>
 <dd>
 <p>
@@ -829,6 +831,31 @@ attributes of the <tt>Module</tt> class is:</p>
     TODO
 </p>
 </dd>
+<dt>
+<tt>add_function</tt>
+</dt>
+<dd>
+<p>
+    TODO
+</p>
+</dd>
+<dt>
+<tt>get_function_named</tt>
+</dt>
+<dd>
+<p>
+    TODO
+</p>
+</dd>
+<dt>
+<tt>verify</tt>
+</dt>
+<dd>
+<p>
+    Verifies the correctness of the module. Raises <tt>LLVMException</tt> on
+    errors.
+</p>
+</dd>
 </dl>
 <div class="title">Special Methods</div><dl>
 <dt>
@@ -836,7 +863,7 @@ attributes of the <tt>Module</tt> class is:</p>
 </dt>
 <dd>
 <p>
-    Module objects can be stringified into it's LLVM assembly language
+    <tt>Module</tt> objects can be stringified into it's LLVM assembly language
     representation.
 </p>
 </dd>
@@ -845,13 +872,28 @@ attributes of the <tt>Module</tt> class is:</p>
 </dt>
 <dd>
 <p>
-    Module objects can be compared for equality. Internally, this
-    converts both into their LLVM assembly representations and compares
-    them.
+    <tt>Module</tt> objects can be compared for equality. Internally, this
+    converts both arguments into their LLVM assembly representations and
+    compares the resultant strings.
 </p>
 </dd>
 </dl>
 </div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">
+<div class="title">Convention</div>
+<p><strong>All</strong> llvm-py objects (where it makes sense), when stringified, return
+the LLVM assembly representation. &#8220; <tt>print module_obj</tt> &#8221; for example,
+prints the LLVM assembly form of the entire module.</p>
+<p>Such objects, when compared for equality, internally compare these
+string representations.</p>
+</td>
+</tr></table>
+</div>
 <h3>Types (llvm.core)</h3>
 <p>Types are what you think they are. A instance of <tt>llvm.core.Type</tt>, or
 one of its derived classes, represent a type. llvm-py does not use as
@@ -887,7 +929,7 @@ cellspacing="0" cellpadding="4">
 <tbody valign="top">
   <tr>
     <td align="left">
-    integer of bitwidth <em>n</em>
+    integer of bitwidth <tt>n</tt>
     </td>
     <td align="left">
     <tt>Type.int(n)</tt>
@@ -997,7 +1039,7 @@ cellspacing="0" cellpadding="4">
   </tr>
   <tr>
     <td align="left">
-    pointer to value of type <em>pty</em>
+    pointer to value of type <tt>pty</tt>
     </td>
     <td align="left">
     <tt>Type.pointer(pty, addrspc)</tt>
@@ -1064,8 +1106,559 @@ cellspacing="0" cellpadding="4">
   PointerType
   VectorType</tt></pre>
 </div></div>
+<p>The class-level documentation follows:</p>
+<div class="exampleblock">
+<div class="title">llvm.core.Type</div>
+<div class="exampleblock-content">
+<div class="title">Static Constructors</div><dl>
+<dt>
+<tt>int(n)</tt>
+</dt>
+<dd>
+<p>
+    Create an integer type of bit width <tt>n</tt>.
+</p>
+</dd>
+<dt>
+<tt>float()</tt>
+</dt>
+<dd>
+<p>
+    Create a 32-bit floating point type.
+</p>
+</dd>
+<dt>
+<tt>double()</tt>
+</dt>
+<dd>
+<p>
+    Create a 64-bit floating point type.
+</p>
+</dd>
+<dt>
+<tt>x86_fp80()</tt>
+</dt>
+<dd>
+<p>
+    Create a 80-bit 80x87-style floating point type.
+</p>
+</dd>
+<dt>
+<tt>fp128()</tt>
+</dt>
+<dd>
+<p>
+    Create a 128-bit floating point type (112-bit mantissa).
+</p>
+</dd>
+<dt>
+<tt>ppc_fp128()</tt>
+</dt>
+<dd>
+<p>
+    Create a 128-bit float (two 64-bits).
+</p>
+</dd>
+<dt>
+<tt>function(ret, params, vararg=False)</tt>
+</dt>
+<dd>
+<p>
+    Create a function type, having the return type <tt>ret</tt> (must be a
+    <tt>Type</tt>), accepting the parameters <tt>params</tt>, where <tt>params</tt> is an
+    iterable, that yields <tt>Type</tt> objects representing the type of
+    each function argument in order. If <tt>vararg</tt> is <tt>True</tt>, function is
+    variadic.
+</p>
+</dd>
+<dt>
+<tt>struct(eltys)</tt>
+</dt>
+<dd>
+<p>
+    Create an unpacked structure. <tt>eltys</tt> is an iterable, that yields
+    <tt>Type</tt> objects representing the type of each element in order.
+</p>
+</dd>
+<dt>
+<tt>packed_struct(eltys)</tt>
+</dt>
+<dd>
+<p>
+    Like <tt>struct(eltys)</tt>, but creates a packed struct.
+</p>
+</dd>
+<dt>
+<tt>array(elty, count)</tt>
+</dt>
+<dd>
+<p>
+    Creates an array type, holding <tt>count</tt> elements, each of type <tt>elty</tt>
+    (which should be a <tt>Type</tt>).
+</p>
+</dd>
+<dt>
+<tt>pointer(pty, addrspc=0)</tt>
+</dt>
+<dd>
+<p>
+    Create a pointer to type <tt>pty</tt> (which should be a `Type). (TODO
+    addrspc).
+</p>
+</dd>
+<dt>
+<tt>void()</tt>
+</dt>
+<dd>
+<p>
+    Creates a void type. Used for function return types.
+</p>
+</dd>
+<dt>
+<tt>label()</tt>
+</dt>
+<dd>
+<p>
+    Creates a label type.
+</p>
+</dd>
+<dt>
+<tt>opaque()</tt>
+</dt>
+<dd>
+<p>
+    Opaque type, used for creating self-referencing types.
+</p>
+</dd>
+</dl>
+<div class="title">Properties</div><dl>
+<dt>
+<tt>kind</tt> [read-only]
+</dt>
+<dd>
+<p>
+    A value (enum) representing the &#8220;type&#8221; of the object. It will be
+    one of the following constants defined in <tt>llvm.core</tt>:
+</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">TYPE_VOID</span>       <span style="color: #990000">=</span> <span style="color: #993399">0</span>
+<span style="color: #009900">TYPE_FLOAT</span>      <span style="color: #990000">=</span> <span style="color: #993399">1</span>
+<span style="color: #009900">TYPE_DOUBLE</span>     <span style="color: #990000">=</span> <span style="color: #993399">2</span>
+<span style="color: #009900">TYPE_X86_FP80</span>   <span style="color: #990000">=</span> <span style="color: #993399">3</span>
+<span style="color: #009900">TYPE_FP128</span>      <span style="color: #990000">=</span> <span style="color: #993399">4</span>
+<span style="color: #009900">TYPE_PPC_FP128</span>  <span style="color: #990000">=</span> <span style="color: #993399">5</span>
+<span style="color: #009900">TYPE_LABEL</span>      <span style="color: #990000">=</span> <span style="color: #993399">6</span>
+<span style="color: #009900">TYPE_INTEGER</span>    <span style="color: #990000">=</span> <span style="color: #993399">7</span>
+<span style="color: #009900">TYPE_FUNCTION</span>   <span style="color: #990000">=</span> <span style="color: #993399">8</span>
+<span style="color: #009900">TYPE_STRUCT</span>     <span style="color: #990000">=</span> <span style="color: #993399">9</span>
+<span style="color: #009900">TYPE_ARRAY</span>      <span style="color: #990000">=</span> <span style="color: #993399">10</span>
+<span style="color: #009900">TYPE_POINTER</span>    <span style="color: #990000">=</span> <span style="color: #993399">11</span>
+<span style="color: #009900">TYPE_OPAQUE</span>     <span style="color: #990000">=</span> <span style="color: #993399">12</span>
+<span style="color: #009900">TYPE_VECTOR</span>     <span style="color: #990000">=</span> <span style="color: #993399">13</span>
+</tt></pre></div></div>
+<p>Example:</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">assert</span></span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">().</span>kind <span style="color: #990000">==</span> <span style="color: #009900">TYPE_INTEGER</span>
+<span style="font-weight: bold"><span style="color: #0000FF">assert</span></span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">void</span></span><span style="color: #990000">().</span>kind <span style="color: #990000">==</span> <span style="color: #009900">TYPE_VOID</span>
+</tt></pre></div></div>
+</dd>
+</dl>
+<div class="title">Methods</div><dl>
+<dt>
+<tt>refine</tt>
+</dt>
+<dd>
+<p>
+    Used for constructing self-referencing types. See the documentation
+    of <tt>TypeHandle</tt> objects.
+</p>
+</dd>
+</dl>
+<div class="title">Special Methods</div><dl>
+<dt>
+<tt>__str__</tt>
+</dt>
+<dd>
+<p>
+    <tt>Type</tt> objects can be stringified into it's LLVM assembly language
+    representation.
+</p>
+</dd>
+<dt>
+<tt>__eq__</tt>
+</dt>
+<dd>
+<p>
+    <tt>Type</tt> objects can be compared for equality. Internally, this
+    converts both arguments into their LLVM assembly representations and
+    compares the resultant strings.
+</p>
+</dd>
+</dl>
+</div></div>
+<div class="exampleblock">
+<div class="title">llvm.core.IntegerType</div>
+<div class="exampleblock-content">
+<div class="title">Base Class</div><ul>
+<li>
+<p>
+<tt>llvm.core.Type</tt>
+</p>
+</li>
+</ul>
+<div class="title">Properties</div><dl>
+<dt>
+<tt>width</tt> [read-only]
+</dt>
+<dd>
+<p>
+    The width of the integer type, in number of bits.
+</p>
+</dd>
+</dl>
+</div></div>
+<div class="exampleblock">
+<div class="title">llvm.core.FunctionType</div>
+<div class="exampleblock-content">
+<div class="title">Base Class</div><ul>
+<li>
+<p>
+<tt>llvm.core.Type</tt>
+</p>
+</li>
+</ul>
+<div class="title">Properties</div><dl>
+<dt>
+<tt>return_type</tt> [read-only]
+</dt>
+<dd>
+<p>
+    A <tt>Type</tt> object, representing the return type of the function.
+</p>
+</dd>
+<dt>
+<tt>vararg</tt> [read-only]
+</dt>
+<dd>
+<p>
+    <tt>True</tt> if the function is variadic.
+</p>
+</dd>
+<dt>
+<tt>args</tt> [read-only]
+</dt>
+<dd>
+<p>
+    Returns an iterable object that yields <tt>Type</tt> objects that
+    represent, in order, the types of the arguments accepted by the
+    function. Used like this:
+</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>func<span style="color: #009900">_</span>type <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">function</span></span><span style="color: #990000">(</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(),</span> <span style="color: #990000">[</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(),</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">()</span> <span style="color: #990000">]</span> <span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">for</span></span> arg <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> func<span style="color: #009900">_</span>type<span style="color: #990000">.</span>args<span style="color: #990000">:</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">assert</span></span> arg<span style="color: #990000">.</span>kind <span style="color: #990000">==</span> <span style="color: #009900">TYPE_INTEGER</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">assert</span></span> arg <span style="color: #990000">==</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">()</span>
+<span style="font-weight: bold"><span style="color: #0000FF">assert</span></span> func<span style="color: #009900">_</span>type<span style="color: #990000">.</span>arg<span style="color: #009900">_</span>count <span style="color: #990000">==</span> <span style="font-weight: bold"><span style="color: #000000">len</span></span><span style="color: #990000">(</span>func<span style="color: #009900">_</span>type<span style="color: #990000">.</span>args<span style="color: #990000">)</span>
+</tt></pre></div></div>
+</dd>
+<dt>
+<tt>arg_count</tt> [read-only]
+</dt>
+<dd>
+<p>
+    The number of arguments. Same as <tt>len(obj.args)</tt>, but faster.
+</p>
+</dd>
+</dl>
+</div></div>
+<div class="exampleblock">
+<div class="title">llvm.core.StructType</div>
+<div class="exampleblock-content">
+<div class="title">Base Class</div><ul>
+<li>
+<p>
+<tt>llvm.core.Type</tt>
+</p>
+</li>
+</ul>
+<div class="title">Properties</div><dl>
+<dt>
+<tt>packed</tt> [read-only]
+</dt>
+<dd>
+<p>
+    <tt>True</tt> if the structure is packed (no padding between elements).
+</p>
+</dd>
+<dt>
+<tt>elements</tt> [read-only]
+</dt>
+<dd>
+<p>
+    Returns an iterable object that yields <tt>Type</tt> objects that
+    represent, in order, the types of the elements of the structure.
+    Used like this:
+</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>struct<span style="color: #009900">_</span>type <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">struct</span></span><span style="color: #990000">(</span> <span style="color: #990000">[</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(),</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">()</span> <span style="color: #990000">]</span> <span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">for</span></span> elem <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> struct<span style="color: #009900">_</span>type<span style="color: #990000">.</span>elements<span style="color: #990000">:</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">assert</span></span> elem<span style="color: #990000">.</span>kind <span style="color: #990000">==</span> <span style="color: #009900">TYPE_INTEGER</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">assert</span></span> elem <span style="color: #990000">==</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">()</span>
+<span style="font-weight: bold"><span style="color: #0000FF">assert</span></span> struct<span style="color: #009900">_</span>type<span style="color: #990000">.</span>element<span style="color: #009900">_</span>count <span style="color: #990000">==</span> <span style="font-weight: bold"><span style="color: #000000">len</span></span><span style="color: #990000">(</span>struct<span style="color: #009900">_</span>type<span style="color: #990000">.</span>elements<span style="color: #990000">)</span>
+</tt></pre></div></div>
+</dd>
+<dt>
+<tt>element_count</tt> [read-only]
+</dt>
+<dd>
+<p>
+    The number of elements. Same as <tt>len(obj.elements)</tt>, but faster.
+</p>
+</dd>
+</dl>
+</div></div>
+<div class="exampleblock">
+<div class="title">llvm.core.ArrayType</div>
+<div class="exampleblock-content">
+<div class="title">Base Class</div><ul>
+<li>
+<p>
+<tt>llvm.core.Type</tt>
+</p>
+</li>
+</ul>
+<div class="title">Properties</div><dl>
+<dt>
+<tt>element</tt> [read-only]
+</dt>
+<dd>
+<p>
+    A <tt>Type</tt> object representing the type of the element of the array.
+</p>
+</dd>
+<dt>
+<tt>count</tt> [read-only]
+</dt>
+<dd>
+<p>
+    The number of elements in the array.
+</p>
+</dd>
+</dl>
+</div></div>
+<div class="exampleblock">
+<div class="title">llvm.core.PointerType</div>
+<div class="exampleblock-content">
+<div class="title">Base Class</div><ul>
+<li>
+<p>
+<tt>llvm.core.Type</tt>
+</p>
+</li>
+</ul>
+<div class="title">Properties</div><dl>
+<dt>
+<tt>address_space</tt> [read-only]
+</dt>
+<dd>
+<p>
+    The address space of the pointer.
+</p>
+</dd>
+<dt>
+<tt>pointee</tt> [read-only]
+</dt>
+<dd>
+<p>
+    TODO <strong>missing</strong>
+</p>
+</dd>
+</dl>
+</div></div>
+<div class="exampleblock">
+<div class="title">llvm.core.VectorType</div>
+<div class="exampleblock-content">
+<div class="title">Base Class</div><ul>
+<li>
+<p>
+<tt>llvm.core.Type</tt>
+</p>
+</li>
+</ul>
+<div class="title">Properties</div><dl>
+<dt>
+<tt>element</tt> [read-only]
+</dt>
+<dd>
+<p>
+    A <tt>Type</tt> object representing the type of the element of the vector.
+</p>
+</dd>
+<dt>
+<tt>count</tt> [read-only]
+</dt>
+<dd>
+<p>
+    The number of elements in the vector.
+</p>
+</dd>
+</dl>
+</div></div>
+<p>Here is an example that demonstrates the creation of types:</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900">#!/usr/bin/env python</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># integers</span></span>
+int<span style="color: #009900">_</span>ty      <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">()</span>
+bool<span style="color: #009900">_</span>ty     <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(</span><span style="color: #993399">1</span><span style="color: #990000">)</span>
+int<span style="color: #009900">_</span>64bit   <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(</span><span style="color: #993399">64</span><span style="color: #990000">)</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># floats</span></span>
+sprec<span style="color: #009900">_</span>real  <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">float</span></span><span style="color: #990000">()</span>
+dprec<span style="color: #009900">_</span>real  <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">double</span></span><span style="color: #990000">()</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># arrays and vectors</span></span>
+intar<span style="color: #009900">_</span>ty    <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">array</span></span><span style="color: #990000">(</span> int<span style="color: #009900">_</span>ty<span style="color: #990000">,</span> <span style="color: #993399">10</span> <span style="color: #990000">)</span>     <span style="font-style: italic"><span style="color: #9A1900"># "typedef int intar_ty[10];"</span></span>
+twodim      <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">array</span></span><span style="color: #990000">(</span> intar<span style="color: #009900">_</span>ty <span style="color: #990000">,</span> <span style="color: #993399">10</span> <span style="color: #990000">)</span>  <span style="font-style: italic"><span style="color: #9A1900"># "typedef int twodim[10][10];"</span></span>
+vec         <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">array</span></span><span style="color: #990000">(</span> int<span style="color: #009900">_</span>ty<span style="color: #990000">,</span> <span style="color: #993399">10</span> <span style="color: #990000">)</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># structures</span></span>
+s1<span style="color: #009900">_</span>ty       <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">struct</span></span><span style="color: #990000">(</span> <span style="color: #990000">[</span> int<span style="color: #009900">_</span>ty<span style="color: #990000">,</span> sprec<span style="color: #009900">_</span>real <span style="color: #990000">]</span> <span style="color: #990000">)</span>
+    <span style="font-style: italic"><span style="color: #9A1900"># "struct s1_ty { int v1; float v2; };"</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># pointers</span></span>
+intptr<span style="color: #009900">_</span>ty   <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pointer</span></span><span style="color: #990000">(</span>int<span style="color: #009900">_</span>ty<span style="color: #990000">)</span>         <span style="font-style: italic"><span style="color: #9A1900"># "typedef int *intptr_ty;"</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># functions</span></span>
+f1 <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">function</span></span><span style="color: #990000">(</span> int<span style="color: #009900">_</span>ty<span style="color: #990000">,</span> <span style="color: #990000">[</span> int<span style="color: #009900">_</span>ty <span style="color: #990000">]</span> <span style="color: #990000">)</span>
+    <span style="font-style: italic"><span style="color: #9A1900"># functions that take 1 int_ty and return 1 int_ty</span></span>
+
+f2 <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">function</span></span><span style="color: #990000">(</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">void</span></span><span style="color: #990000">(),</span> <span style="color: #990000">[</span> int<span style="color: #009900">_</span>ty <span style="color: #990000">]</span> <span style="color: #990000">)</span>
+    <span style="font-style: italic"><span style="color: #9A1900"># functions that take 1 int_ty and return nothing</span></span>
+
+fnargs <span style="color: #990000">=</span> <span style="color: #990000">[</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pointer</span></span><span style="color: #990000">(</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(</span><span style="color: #993399">8</span><span style="color: #990000">)</span> <span style="color: #990000">)</span> <span style="color: #990000">]</span>
+printf <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">function</span></span><span style="color: #990000">(</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(),</span> fnargs<span style="color: #990000">,</span> <span style="color: #009900">True</span> <span style="color: #990000">)</span>
+    <span style="font-style: italic"><span style="color: #9A1900"># variadic function</span></span>
+</tt></pre></div></div>
 <h3>Values (llvm.core)</h3>
-<p>TODO</p>
+<p><tt>llvm.core.Value</tt> is the base class of all values computed by a program
+that may be used as operands to other values. A value has a type
+associated with it (an object of <tt>llvm.core.Type</tt>).</p>
+<p>The class hierarchy is:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>Value
+  Constant
+    GlobalValue
+      GlobalVariable
+      Function
+  Argument
+  Instruction
+    CallOrInvokeInstruction
+    PHINode
+    SwitchInstruction
+    BasicBlock</tt></pre>
+</div></div>
+<p>The <tt>Value</tt> class is abstract, it's not meant to be instantiated.
+<tt>Constant</tt>-s represent constants that appear within code or as
+initializers of globals. They are constructed using static methods of
+<tt>Constant</tt>. The <tt>Constant</tt> class is covered in a separate section below.
+The <tt>Function</tt> object represents an instance of a function type. Such
+objects contain <tt>Argument</tt> objects, which represent the actual,
+local-variable-like arguments of the function (not to be confused with
+the arguments returned by a function <em>type</em> object &#8212; these represent
+the <em>type</em> of the arguments). The various <tt>Instruction</tt>-s are created by
+the <tt>Builder</tt> class. These are also covered separately.</p>
+<p><tt>Value</tt> objects have a type (read-only), and a name (read-write).</p>
+<div class="exampleblock">
+<div class="title">llvm.core.Value</div>
+<div class="exampleblock-content">
+<div class="title">Properties</div><dl>
+<dt>
+<tt>name</tt>
+</dt>
+<dd>
+<p>
+    The name of the value.
+</p>
+</dd>
+<dt>
+<tt>type</tt> [read-only]
+</dt>
+<dd>
+<p>
+    An <tt>llvm.core.Type</tt> object representing the type of the value.
+</p>
+</dd>
+</dl>
+<div class="title">Special Methods</div><dl>
+<dt>
+<tt>__str__</tt>
+</dt>
+<dd>
+<p>
+    <tt>Value</tt> objects can be stringified into it's LLVM assembly language
+    representation.
+</p>
+</dd>
+<dt>
+<tt>__eq__</tt>
+</dt>
+<dd>
+<p>
+    <tt>Value</tt> objects can be compared for equality. Internally, this
+    converts both arguments into their LLVM assembly representations and
+    compares the resultant strings.
+</p>
+</dd>
+</dl>
+</div></div>
+<h3>Constants (llvm.core)</h3>
+<p><tt>Constant</tt>-s represents constants that appear within the code. The
+values of such objects are known at creation time. Constants can be
+created from Python constants. A constant expression is also a constant.
+Given a <tt>Constant</tt> object, an operation (like addition, subtraction etc)
+can be specified, to yield a new <tt>Constant</tt> object. Let's see some
+examples:</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900">#!/usr/bin/env python</span></span>
+
+ti <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">()</span>                         <span style="font-style: italic"><span style="color: #9A1900"># a 32-bit int type</span></span>
+
+k1 <span style="color: #990000">=</span> <span style="color: #009900">Constant</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(</span>ti<span style="color: #990000">,</span> <span style="color: #993399">42</span><span style="color: #990000">)</span>               <span style="font-style: italic"><span style="color: #9A1900"># "int k1 = 42;"</span></span>
+k2 <span style="color: #990000">=</span> k1<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">add</span></span><span style="color: #990000">(</span> <span style="color: #009900">Constant</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(</span> ti<span style="color: #990000">,</span> <span style="color: #993399">10</span> <span style="color: #990000">)</span> <span style="color: #990000">)</span>   <span style="font-style: italic"><span style="color: #9A1900"># "int k2 = k1 + 10;"</span></span>
+
+tr <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">float</span></span><span style="color: #990000">()</span>
+
+r1 <span style="color: #990000">=</span> <span style="color: #009900">Constant</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">real</span></span><span style="color: #990000">(</span>tr<span style="color: #990000">,</span> <span style="color: #FF0000">"3.141592"</span><span style="color: #990000">)</span>      <span style="font-style: italic"><span style="color: #9A1900"># create from a string</span></span>
+r2 <span style="color: #990000">=</span> <span style="color: #009900">Constant</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">real</span></span><span style="color: #990000">(</span>tr<span style="color: #990000">,</span> <span style="color: #993399">1.61803399</span><span style="color: #990000">)</span>      <span style="font-style: italic"><span style="color: #9A1900"># create from a Python float</span></span>
+
+r3 <span style="color: #990000">=</span> <span style="color: #009900">Constant</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">undef</span></span><span style="color: #990000">()</span>                   <span style="font-style: italic"><span style="color: #9A1900"># an `undefined' value</span></span>
+</tt></pre></div></div>
 <h3>Instructions (llvm.core)</h3>
 <p>TODO</p>
 <h3>Basic Block (llvm.core)</h3>
@@ -1109,7 +1702,7 @@ reached at <em>mdevan.foobar@gmail.com</em>.</p>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 11-Jun-2008.
+Last updated 12-Jun-2008.
 </div>
 </div>
 </div>

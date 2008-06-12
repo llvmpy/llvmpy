@@ -267,7 +267,9 @@ bb10:		; preds = %entry
 -----------------------------------------------------------------------
 
 Note the usage of SSA form and the total absence of any loop or
-recursion at all!
+recursion at all! The long string called `target datalayout` is a
+specification of the platform ABI (like endianness, sizes of types,
+alignment etc.).
 
 The http://www.llvm.org/docs/LangRef.html[LLVM Language Reference]
 defines the LLVM assembly language including the entire instruction set.
@@ -468,13 +470,13 @@ attributes of the `Module` class is:
     should be a string.
 
 .Properties
-`data_layout` (r/w)::
+`data_layout`::
     a string representing the ABI of the platform
-`target` (r/w)::
+`target`::
     a string like `i386-pc-linux-gnu` or `i386-pc-solaris2.8`
-`global_variables` (r)::
+`global_variables` [read-only]::
     TODO
-`functions` (r)::
+`functions` [read-only]::
     TODO
 
 .Methods
@@ -486,16 +488,35 @@ attributes of the `Module` class is:
     TODO
 `get_global_variable_named`::
     TODO
+`add_function`::
+    TODO
+`get_function_named`::
+    TODO
+`verify`::
+    Verifies the correctness of the module. Raises `LLVMException` on
+    errors.
 
 .Special Methods
 `\_\_str\_\_`::
-    Module objects can be stringified into it's LLVM assembly language
+    `Module` objects can be stringified into it's LLVM assembly language
     representation.
 `\_\_eq\_\_`::
-    Module objects can be compared for equality. Internally, this
-    converts both into their LLVM assembly representations and compares
-    them.
+    `Module` objects can be compared for equality. Internally, this
+    converts both arguments into their LLVM assembly representations and
+    compares the resultant strings.
 =======================================================================
+
+[TIP]
+.Convention
+=======================================================================
+*All* llvm-py objects (where it makes sense), when stringified, return
+the LLVM assembly representation. `` `print module_obj` '' for example,
+prints the LLVM assembly form of the entire module.
+
+Such objects, when compared for equality, internally compare these
+string representations.
+=======================================================================
+
 
 Types (llvm.core)
 ~~~~~~~~~~~~~~~~~
@@ -517,7 +538,7 @@ object is actually returned by the static method.
 `50`30`20~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Name,Constructor Method,Class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-integer of bitwidth _n_, +Type.int(n)+, +IntegerType+
+integer of bitwidth `n`, +Type.int(n)+, +IntegerType+
 32-bit float, +Type.float()+, +Type+
 64-bit double, +Type.double()+, +Type+
 80-bit float, +Type.x86_fp80()+, +Type+
@@ -527,7 +548,7 @@ function, "+Type.function(r, p, v)+", +FunctionType+
 unpacked struct, +Type.struct(eltys)+, +StructType+
 packed struct, +Type.packed_struct(eltys)+, +StructType+
 array, "+Type.array(elty, count)+", +ArrayType+
-pointer to value of type _pty_, "+Type.pointer(pty, addrspc)+", +PointerType+
+pointer to value of type `pty`, "+Type.pointer(pty, addrspc)+", +PointerType+
 vector, "+Type.vector(elty, count)+", +VectorType+
 void, +Type.void()+, +Type+
 label, +Type.label()+, +Type+
@@ -545,10 +566,329 @@ Type
   VectorType
 -----------------------------------------------------------------------
 
+The class-level documentation follows:
+
+.llvm.core.Type
+[caption=""]
+=======================================================================
+.Static Constructors
+`int(n)`::
+    Create an integer type of bit width `n`.
+`float()`::
+    Create a 32-bit floating point type.
+`double()`::
+    Create a 64-bit floating point type.
+`x86_fp80()`::
+    Create a 80-bit 80x87-style floating point type.
+`fp128()`::
+    Create a 128-bit floating point type (112-bit mantissa).
+`ppc_fp128()`::
+    Create a 128-bit float (two 64-bits).
+`function(ret, params, vararg=False)`::
+    Create a function type, having the return type `ret` (must be a
+    `Type`), accepting the parameters `params`, where `params` is an
+    iterable, that yields `Type` objects representing the type of
+    each function argument in order. If `vararg` is `True`, function is
+    variadic.
+`struct(eltys)`::
+    Create an unpacked structure. `eltys` is an iterable, that yields
+    `Type` objects representing the type of each element in order.
+`packed_struct(eltys)`::
+    Like `struct(eltys)`, but creates a packed struct.
+`array(elty, count)`::
+    Creates an array type, holding `count` elements, each of type `elty`
+    (which should be a `Type`).
+`pointer(pty, addrspc=0)`::
+    Create a pointer to type `pty` (which should be a `Type). (TODO
+    addrspc).
+`void()`::
+    Creates a void type. Used for function return types.
+`label()`::
+    Creates a label type.
+`opaque()`::
+    Opaque type, used for creating self-referencing types.
+
+.Properties
+`kind` [read-only]::
+    A value (enum) representing the ``type'' of the object. It will be
+    one of the following constants defined in `llvm.core`:
++
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TYPE_VOID       = 0
+TYPE_FLOAT      = 1
+TYPE_DOUBLE     = 2
+TYPE_X86_FP80   = 3
+TYPE_FP128      = 4
+TYPE_PPC_FP128  = 5
+TYPE_LABEL      = 6
+TYPE_INTEGER    = 7
+TYPE_FUNCTION   = 8
+TYPE_STRUCT     = 9
+TYPE_ARRAY      = 10
+TYPE_POINTER    = 11
+TYPE_OPAQUE     = 12
+TYPE_VECTOR     = 13
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
+Example:
++
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+assert Type.int().kind == TYPE_INTEGER
+assert Type.void().kind == TYPE_VOID
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.Methods
+`refine`::
+    Used for constructing self-referencing types. See the documentation
+    of `TypeHandle` objects.
+
+.Special Methods
+`\_\_str\_\_`::
+    `Type` objects can be stringified into it's LLVM assembly language
+    representation.
+`\_\_eq\_\_`::
+    `Type` objects can be compared for equality. Internally, this
+    converts both arguments into their LLVM assembly representations and
+    compares the resultant strings.
+=======================================================================
+
+
+.llvm.core.IntegerType
+[caption=""]
+=======================================================================
+.Base Class
+- `llvm.core.Type`
+
+.Properties
+`width` [read-only]::
+    The width of the integer type, in number of bits.
+=======================================================================
+
+
+.llvm.core.FunctionType
+[caption=""]
+=======================================================================
+.Base Class
+- `llvm.core.Type`
+
+.Properties
+`return_type` [read-only]::
+    A `Type` object, representing the return type of the function.
+`vararg` [read-only]::
+    `True` if the function is variadic.
+`args` [read-only]::
+    Returns an iterable object that yields `Type` objects that
+    represent, in order, the types of the arguments accepted by the
+    function. Used like this:
++
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+func_type = Type.function( Type.int(), [ Type.int(), Type.int() ] )
+for arg in func_type.args:
+    assert arg.kind == TYPE_INTEGER
+    assert arg == Type.int()
+assert func_type.arg_count == len(func_type.args)
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`arg_count` [read-only]::
+    The number of arguments. Same as `len(obj.args)`, but faster.
+
+=======================================================================
+
+
+.llvm.core.StructType
+[caption=""]
+=======================================================================
+.Base Class
+- `llvm.core.Type`
+
+.Properties
+`packed` [read-only]::
+    `True` if the structure is packed (no padding between elements).
+`elements` [read-only]::
+    Returns an iterable object that yields `Type` objects that
+    represent, in order, the types of the elements of the structure.
+    Used like this:
++
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+struct_type = Type.struct( [ Type.int(), Type.int() ] )
+for elem in struct_type.elements:
+    assert elem.kind == TYPE_INTEGER
+    assert elem == Type.int()
+assert struct_type.element_count == len(struct_type.elements)
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`element_count` [read-only]::
+    The number of elements. Same as `len(obj.elements)`, but faster.
+
+=======================================================================
+
+
+.llvm.core.ArrayType
+[caption=""]
+=======================================================================
+.Base Class
+- `llvm.core.Type`
+
+.Properties
+`element` [read-only]::
+    A `Type` object representing the type of the element of the array.
+`count` [read-only]::
+    The number of elements in the array.
+=======================================================================
+
+
+.llvm.core.PointerType
+[caption=""]
+=======================================================================
+.Base Class
+- `llvm.core.Type`
+
+.Properties
+`address_space` [read-only]::
+    The address space of the pointer.
+`pointee` [read-only]::
+    TODO *missing*
+=======================================================================
+
+
+.llvm.core.VectorType
+[caption=""]
+=======================================================================
+.Base Class
+- `llvm.core.Type`
+
+.Properties
+`element` [read-only]::
+    A `Type` object representing the type of the element of the vector.
+`count` [read-only]::
+    The number of elements in the vector.
+=======================================================================
+
+Here is an example that demonstrates the creation of types:
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#!/usr/bin/env python
+
+# integers
+int_ty      = Type.int()
+bool_ty     = Type.int(1)
+int_64bit   = Type.int(64)
+
+# floats
+sprec_real  = Type.float()
+dprec_real  = Type.double()
+
+# arrays and vectors
+intar_ty    = Type.array( int_ty, 10 )     # "typedef int intar_ty[10];"
+twodim      = Type.array( intar_ty , 10 )  # "typedef int twodim[10][10];"
+vec         = Type.array( int_ty, 10 )
+
+# structures
+s1_ty       = Type.struct( [ int_ty, sprec_real ] )
+    # "struct s1_ty { int v1; float v2; };"
+
+# pointers
+intptr_ty   = Type.pointer(int_ty)         # "typedef int *intptr_ty;"
+
+# functions
+f1 = Type.function( int_ty, [ int_ty ] )
+    # functions that take 1 int_ty and return 1 int_ty
+
+f2 = Type.function( Type.void(), [ int_ty ] )
+    # functions that take 1 int_ty and return nothing
+
+fnargs = [ Type.pointer( Type.int(8) ) ]
+printf = Type.function( Type.int(), fnargs, True )
+    # variadic function
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 Values (llvm.core)
 ~~~~~~~~~~~~~~~~~
 
-TODO
+`llvm.core.Value` is the base class of all values computed by a program
+that may be used as operands to other values. A value has a type
+associated with it (an object of `llvm.core.Type`).
+
+The class hierarchy is:
+-----------------------------------------------------------------------
+Value
+  Constant
+    GlobalValue
+      GlobalVariable
+      Function
+  Argument
+  Instruction
+    CallOrInvokeInstruction
+    PHINode
+    SwitchInstruction
+    BasicBlock
+-----------------------------------------------------------------------
+
+The `Value` class is abstract, it's not meant to be instantiated.
+`Constant`-s represent constants that appear within code or as
+initializers of globals. They are constructed using static methods of
+`Constant`. The `Constant` class is covered in a separate section below.
+The `Function` object represents an instance of a function type. Such
+objects contain `Argument` objects, which represent the actual,
+local-variable-like arguments of the function (not to be confused with
+the arguments returned by a function _type_ object -- these represent
+the _type_ of the arguments). The various `Instruction`-s are created by
+the `Builder` class. These are also covered separately.
+
+`Value` objects have a type (read-only), and a name (read-write).
+
+.llvm.core.Value
+[caption=""]
+=======================================================================
+.Properties
+`name`::
+    The name of the value.
+`type` [read-only]::
+    An `llvm.core.Type` object representing the type of the value.
+
+.Special Methods
+`\_\_str\_\_`::
+    `Value` objects can be stringified into it's LLVM assembly language
+    representation.
+`\_\_eq\_\_`::
+    `Value` objects can be compared for equality. Internally, this
+    converts both arguments into their LLVM assembly representations and
+    compares the resultant strings.
+=======================================================================
+
+
+Constants (llvm.core)
+~~~~~~~~~~~~~~~~~~~~~
+
+`Constant`-s represents constants that appear within the code. The
+values of such objects are known at creation time. Constants can be
+created from Python constants. A constant expression is also a constant.
+Given a `Constant` object, an operation (like addition, subtraction etc)
+can be specified, to yield a new `Constant` object. Let's see some
+examples:
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#!/usr/bin/env python
+
+ti = Type.int()                         # a 32-bit int type
+
+k1 = Constant.int(ti, 42)               # "int k1 = 42;"
+k2 = k1.add( Constant.int( ti, 10 ) )   # "int k2 = k1 + 10;"
+
+tr = Type.float()
+
+r1 = Constant.real(tr, "3.141592")      # create from a string
+r2 = Constant.real(tr, 1.61803399)      # create from a Python float
+
+r3 = Constant.undef()                   # an `undefined' value
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Instructions (llvm.core)
