@@ -11,7 +11,6 @@ Browse SVN, http://code.google.com/p/llvm-py/source/browse/[http://code.google.c
 Issues tracker, http://code.google.com/p/llvm-py/issues/list[http://code.google.com/p/llvm-py/issues/list]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 SVN HEAD can be checked out like so:
 
 ----
@@ -21,3 +20,12 @@ $ svn checkout http://llvm-py.googlecode.com/svn/trunk/ llvm-py
 Mahadevan R (mdevan.foobar@gmail.com) is available to answer your
 queries.
 
+Current Next Steps
+------------------
+
+- Wrap GenericValue, function call args for execution engine.
+- Add APIs to read/write `.bc` and `.ll` files.
+- Wrap `lto`.
+- Add examples.
+- Update documentation.
+- Improve tests.

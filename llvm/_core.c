@@ -355,7 +355,20 @@ _wrap_obj2obj(LLVMGetFunctionCallConv, LLVMValueRef, int)
 _wrap_objint2none(LLVMSetFunctionCallConv, LLVMValueRef)
 _wrap_obj2str(LLVMGetCollector, LLVMValueRef)
 _wrap_objstr2none(LLVMSetCollector, LLVMValueRef)
-_wrap_objint2obj(LLVMVerifyFunction, LLVMValueRef, int)
+
+static PyObject *
+_wLLVMVerifyFunction(PyObject *self, PyObject *args)
+{
+    PyObject *obj;
+    LLVMValueRef fn;
+
+    if (!PyArg_ParseTuple(args, "O", &obj))
+        return NULL;
+
+    fn = (LLVMValueRef) PyCObject_AsVoidPtr(obj);
+    return ctor_int(LLVMVerifyFunction(fn, LLVMReturnStatusAction));
+}
+
 
 /*===-- Arguments --------------------------------------------------------===*/
 
@@ -407,27 +420,6 @@ _wrap_objint2obj(LLVMGetIncomingBlock, LLVMValueRef, LLVMBasicBlockRef)
 /*===-- Instruction builders ----------------------------------------------===*/
 
 _wrap_none2obj(LLVMCreateBuilder, LLVMBuilderRef)
-
-static PyObject *
-_wLLVMPositionBuilder(PyObject *self, PyObject *args)
-{
-    PyObject *obj1, *obj2, *obj3 = 0;
-    LLVMBuilderRef builder;
-    LLVMBasicBlockRef block;
-    LLVMValueRef instr = NULL;
-    
-    if (!PyArg_ParseTuple(args, "OO|O", &obj1, &obj2, &obj3))
-        return NULL;
-
-    builder = (LLVMBuilderRef)   (PyCObject_AsVoidPtr(obj1));
-    block   = (LLVMBasicBlockRef)(PyCObject_AsVoidPtr(obj2));
-    if (obj3) /* optional */
-        instr = (LLVMValueRef)(PyCObject_AsVoidPtr(obj3));
-
-    LLVMPositionBuilder(builder, block, instr);
-    Py_RETURN_NONE;
-}
-
 _wrap_objobj2none(LLVMPositionBuilderBefore, LLVMBuilderRef, LLVMValueRef)
 _wrap_objobj2none(LLVMPositionBuilderAtEnd, LLVMBuilderRef, LLVMBasicBlockRef)
 _wrap_obj2obj(LLVMGetInsertBlock, LLVMBuilderRef, LLVMBasicBlockRef)
@@ -946,7 +938,6 @@ static PyMethodDef core_methods[] = {
 
     /* Instruction builders */
     _method( LLVMCreateBuilder )    
-    _method( LLVMPositionBuilder )    
     _method( LLVMPositionBuilderBefore )    
     _method( LLVMPositionBuilderAtEnd )    
     _method( LLVMGetInsertBlock )    

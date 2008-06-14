@@ -132,9 +132,6 @@ class Module(llvm.Ownable):
         """
         llvm.Ownable.__init__(self, ptr, _core.LLVMDisposeModule)
 
-    def __del__(self):
-        llvm.Ownable.__del__(self)
-
     def __str__(self):
         """Text representation of a module.
 
@@ -212,7 +209,7 @@ class Module(llvm.Ownable):
             # do stuff with gv
         """
         return wrapiter(_core.LLVMGetFirstGlobal, _core.LLVMGetNextGlobal,
-            self.ptr, GlobalVariable)
+            self.ptr, GlobalVariable, [self])
 
     def add_function(self, ty, name):
         """Add a function of given type with given name."""
@@ -233,9 +230,13 @@ class Module(llvm.Ownable):
             # do stuff with f
         """
         return wrapiter(_core.LLVMGetFirstFunction, 
-            _core.LLVMGetNextFunction, self.ptr, Function)
+            _core.LLVMGetNextFunction, self.ptr, Function, [self])
 
     def verify(self):
+        """Verify module.
+
+        Checks module for errors. Raises `llvm.LLVMException' on any
+        error."""
         ret = _core.LLVMVerifyModule(self.ptr)
         if ret != "":
             raise llvm.LLVMException, ret
@@ -267,6 +268,7 @@ class Type(object):
         elif bits == 64:
             return _make_type(_core.LLVMInt64Type(), TYPE_INTEGER)
         else:
+            bits = int(bits) # bits must be an int
             return _make_type(_core.LLVMIntType(bits), TYPE_INTEGER)
     
     @staticmethod
@@ -306,7 +308,8 @@ class Type(object):
         check_is_type(return_ty)
         var_arg = 1 if var_arg else 0 # convert to int
         params = unpack_types(param_tys)
-        return _make_type(_core.LLVMFunctionType(return_ty.ptr, params, var_arg), TYPE_FUNCTION)
+        return _make_type(_core.LLVMFunctionType(return_ty.ptr, params, 
+                    var_arg), TYPE_FUNCTION)
 
     @staticmethod
     def struct(element_tys): # not packed
@@ -314,7 +317,7 @@ class Type(object):
 
         Creates a structure type with elements of types as given in the
         iterable `element_tys'. This method creates a unpacked
-        structure. For a packed one, use packed_struct() method."""
+        structure. For a packed one, use the packed_struct() method."""
         elems = unpack_types(element_tys)
         return _make_type(_core.LLVMStructType(elems, 0), TYPE_STRUCT)
 
@@ -324,42 +327,77 @@ class Type(object):
 
         Creates a structure type with elements of types as given in the
         iterable `element_tys'. This method creates a packed
-        structure. For an unpacked one, use struct() method."""
+        structure. For an unpacked one, use the struct() method."""
         elems = unpack_types(element_tys)
         return _make_type(_core.LLVMStructType(elems, 1), TYPE_STRUCT)
 
     @staticmethod
     def array(element_ty, count):
+        """Create an array type.
+
+        Creates a type for an array of elements of type `element_ty',
+        having 'count' elements."""
         check_is_type(element_ty)
-        return _make_type(_core.LLVMArrayType(element_ty.ptr, count), TYPE_ARRAY)
+        count = int(count) # must be an int
+        return _make_type(_core.LLVMArrayType(element_ty.ptr, count), 
+                    TYPE_ARRAY)
 
     @staticmethod
     def pointer(pointee_ty, addr_space=0):
+        """Create a pointer type.
+
+        Creates a pointer type, which can point to values of type
+        `pointee_ty', in the address space `addr_space'."""
         check_is_type(pointee_ty)
-        return _make_type(_core.LLVMPointerType(pointee_ty.ptr, addr_space), TYPE_POINTER)
+        addr_space = int(addr_space) # must be an int
+        return _make_type(_core.LLVMPointerType(pointee_ty.ptr, 
+                    addr_space), TYPE_POINTER)
 
     @staticmethod
     def vector(element_ty, count):
+        """Create a vector type.
+
+        Creates a type for a vector of elements of type `element_ty',
+        having `count' elements."""
         check_is_type(element_ty)
-        return _make_type(_core.LLVMVectorType(element_ty.ptr, count), TYPE_VECTOR)
+        count = int(count) # must be an int
+        return _make_type(_core.LLVMVectorType(element_ty.ptr, count), 
+                    TYPE_VECTOR)
 
     @staticmethod
     def void():
+        """Create a void type.
+
+        Represents the `void' type."""
         return _make_type(_core.LLVMVoidType(), TYPE_VOID)
 
     @staticmethod
     def label():
+        """Create a label type."""
         return _make_type(_core.LLVMLabelType(), TYPE_LABEL)
 
     @staticmethod
     def opaque():
+        """Create an opaque type.
+
+        Opaque types are used to create self-referencing types."""
         return _make_type(_core.LLVMOpaqueType(), TYPE_OPAQUE)
 
     def __init__(self, ptr, kind):
+        """DO NOT CALL DIRECTLY.
+
+        Use one of the static methods instead."""
         self.ptr = ptr
         self.kind = kind
+        """An enum (int) value denoting which type this is.
+
+        Use the symbolic constants TYPE_* defined in llvm.core
+        module."""
 
     def __str__(self):
+        """Text representation of a type.
+
+        Returns the textual representation (`llvm assembly') of the type."""
         return _core.LLVMDumpTypeToString(self.ptr)
 
     def __eq__(self, rhs):
@@ -369,10 +407,10 @@ class Type(object):
             return False
 
     def refine(self, dest):
-        """Refine the abstract type represented by self to a concrete class.
+        """Refine the abstract type represented by self into a concrete class.
 
         This object is no longer valid after refining, so do not hold references
-        to it after calling."""
+        to it after calling. See the user guide for examples on how to use this."""
 
         check_is_type(dest)
         _core.LLVMRefineType(self.ptr, dest.ptr)
@@ -380,43 +418,62 @@ class Type(object):
 
 
 class IntegerType(Type):
+    """Represents an integer type."""
 
     def __init__(self, ptr, kind):
+        """DO NOT CALL DIRECTLY.
+
+        Use one of the static methods of the *base* class (Type) instead."""
         Type.__init__(self, ptr, kind)
 
     @property
     def width(self):
+        """The width of the integer type, in bits."""
         return _core.LLVMGetIntTypeWidth(self.ptr)
 
 
 class FunctionType(Type):
+    """Represents a function type."""
 
     def __init__(self, ptr, kind):
+        """DO NOT CALL DIRECTLY.
+
+        Use one of the static methods of the *base* class (Type) instead."""
         Type.__init__(self, ptr, kind)
 
     @property
     def return_type(self):
+        """The type of the value returned by this function."""
         ptr  = _core.LLVMGetReturnType(self.ptr)
         kind = _core.LLVMGetTypeKind(ptr)
         return _make_type(ptr, kind)
 
     @property
     def vararg(self):
+        """True if this function is variadic."""
         return _core.LLVMIsFunctionVarArg(self.ptr) != 0
 
     @property
     def args(self):
+        """An iterable that yields Type objects, representing the types of the
+        arguments accepted by this function, in order."""
         pp = _core.LLVMGetFunctionTypeParams(self.ptr)
         return [ _make_type(p, _core.LLVMGetTypeKind(p)) for p in pp ]
 
     @property
     def arg_count(self):
+        """Number of arguments accepted by this function.
+
+        Same as len(obj.args), but faster."""
         return _core.LLVMCountParamTypes(self.ptr)
 
 
 class StructType(Type):
 
     def __init__(self, ptr, kind):
+        """DO NOT CALL DIRECTLY.
+
+        Use one of the static methods of the *base* class (Type) instead."""
         Type.__init__(self, ptr, kind)
 
     @property
@@ -436,6 +493,9 @@ class StructType(Type):
 class ArrayType(Type):
 
     def __init__(self, ptr, kind):
+        """DO NOT CALL DIRECTLY.
+
+        Use one of the static methods of the *base* class (Type) instead."""
         Type.__init__(self, ptr, kind)
 
     @property
@@ -452,6 +512,9 @@ class ArrayType(Type):
 class PointerType(Type):
 
     def __init__(self, ptr, kind):
+        """DO NOT CALL DIRECTLY.
+
+        Use one of the static methods of the *base* class (Type) instead."""
         Type.__init__(self, ptr, kind)
 
     @property
@@ -462,6 +525,9 @@ class PointerType(Type):
 class VectorType(Type):
 
     def __init__(self, ptr, kind):
+        """DO NOT CALL DIRECTLY.
+
+        Use one of the static methods of the *base* class (Type) instead."""
         Type.__init__(self, ptr, kind)
 
     @property
@@ -602,12 +668,12 @@ class Constant(Value):
     @staticmethod
     def struct(consts): # not packed
         const_ptrs = unpack_constants(consts)
-        return Constant(_core.LLVMConstStruct(consts, 0))
+        return Constant(_core.LLVMConstStruct(const_ptrs, 0))
     
     @staticmethod
     def packed_struct(consts):
         const_ptrs = unpack_constants(consts)
-        return Constant(_core.LLVMConstStruct(consts, 1))
+        return Constant(_core.LLVMConstStruct(const_ptrs, 1))
     
     @staticmethod
     def vector(consts):
@@ -770,7 +836,7 @@ class Constant(Value):
         check_is_constant(index)
         return Constant(_core.LLVMConstInsertElement(self.ptr, value.ptr, index.ptr))
 
-    def shuffle_element(self, vector_b, mask): # note: self must be a _vector_ constant
+    def shuffle_vector(self, vector_b, mask): # note: self must be a _vector_ constant
         check_is_constant(vector_b)   # note: vector_b must be a _vector_ constant
         check_is_constant(mask)
         return Constant(_core.LLVMConstShuffleVector(self.ptr, vector_b.ptr, mask.ptr))
@@ -778,8 +844,13 @@ class Constant(Value):
 
 class GlobalValue(Constant):
 
-    def __init__(self, ptr):
+    def __init__(self, ptr, module):
         Constant.__init__(self, ptr)
+        self._module = module # hang on to the module
+
+    def _delete(self):
+        self._module = None # set it free
+        self.ptr = None
 
     def get_linkage(self): return _core.LLVMGetLinkage(self.ptr)
     def set_linkage(self, value): _core.LLVMSetLinkage(self.ptr, value)
@@ -799,13 +870,11 @@ class GlobalValue(Constant):
 
     @property
     def is_declaration(self):
-        return _core.LLVMIsDeclaration(self.ptr)
+        return _core.LLVMIsDeclaration(self.ptr) != 0
 
     @property
     def module(self):
-        mod = Module(_core.LLVMGetGlobalParent(self.ptr))
-        owner = dummy_owner(mod)
-        return mod
+        return self._module
 
 
 class GlobalVariable(GlobalValue):
@@ -813,18 +882,18 @@ class GlobalVariable(GlobalValue):
     @staticmethod
     def new(module, ty, name):
         check_is_type(ty)
-        return GlobalVariable(_core.LLVMAddGlobal(module.ptr, ty.ptr, name))
+        return GlobalVariable(_core.LLVMAddGlobal(module.ptr, ty.ptr, name), module)
 
     @staticmethod
     def get(module, name):
-        return GlobalVariable(_core.LLVMGetNamedGlobal(module.ptr, name))
+        return GlobalVariable(_core.LLVMGetNamedGlobal(module.ptr, name), module)
 
-    def __init__(self, ptr):
-        GlobalValue.__init__(self, ptr)
+    def __init__(self, ptr, module):
+        GlobalValue.__init__(self, ptr, module)
 
     def delete(self):
         _core.LLVMDeleteGlobal(self.ptr)
-        self.ptr = None
+        self._delete()
 
     def get_initializer(self):
         if _core.LLVMHasInitializer(self.ptr):
@@ -862,27 +931,23 @@ class Argument(Value):
     def set_alignment(self, align):
         _core.LLVMSetParamAlignment(self.ptr, align)
 
-    @property
-    def function(self):
-        return Function(_core.LLVMGetParamParent(self.ptr))
-
 
 class Function(GlobalValue):
 
     @staticmethod
     def new(module, func_ty, name):
-        return Function(_core.LLVMAddFunction(module.ptr, name, func_ty.ptr))
+        return Function(_core.LLVMAddFunction(module.ptr, name, func_ty.ptr), module)
 
     @staticmethod
     def get(module, name):
-        return Function(_core.LLVMGetNamedFunction(module.ptr, name))
+        return Function(_core.LLVMGetNamedFunction(module.ptr, name), module)
     
-    def __init__(self, ptr):
-        GlobalValue.__init__(self, ptr)
+    def __init__(self, ptr, module):
+        GlobalValue.__init__(self, ptr, module)
 
     def delete(self):
         _core.LLVMDeleteFunction(self.ptr)
-        self.ptr = None
+        self._delete()
 
     @property
     def intrinsic_id(self):
@@ -906,6 +971,8 @@ class Function(GlobalValue):
         return _core.LLVMCountBasicBlocks(self.ptr)
 
     def get_entry_basic_block(self):
+        if self.basic_block_count == 0:
+            return None
         return BasicBlock(_core.LLVMGetEntryBasicBlock(self.ptr))
 
     def append_basic_block(self, name):
@@ -917,6 +984,8 @@ class Function(GlobalValue):
             _core.LLVMGetNextBasicBlock, self.ptr, BasicBlock)
 
     def verify(self):
+        # Although we're just asking LLVM to return the success or
+        # failure, it appears to print result to stderr and abort.
         return _core.LLVMVerifyFunction(self.ptr) != 0
 
 
@@ -939,8 +1008,8 @@ class CallOrInvokeInstruction(Instruction):
     def __init__(self, ptr):
         Instruction.__init__(self, ptr)
 
-    def get_calling_convention(self): return _core.LLVMGetFunctionCallConv(self.ptr)
-    def set_calling_convention(self, value): _core.LLVMSetFunctionCallConv(self.ptr, value)
+    def get_calling_convention(self): return _core.LLVMGetInstructionCallConv(self.ptr)
+    def set_calling_convention(self, value): _core.LLVMSetInstructionCallConv(self.ptr, value)
     calling_convention = property(get_calling_convention, set_calling_convention)
 
     def add_parameter_attribute(self, idx, attr):
@@ -1020,8 +1089,11 @@ class BasicBlock(Value):
 class Builder(object):
 
     @staticmethod
-    def new():
-        return Builder(_core.LLVMCreateBuilder())
+    def new(basic_block):
+        check_is_basic_block(basic_block)
+        b = Builder(_core.LLVMCreateBuilder())
+        b.position_at_end(basic_block)
+        return b
         
     def __init__(self, ptr):
         self.ptr = ptr
@@ -1029,21 +1101,33 @@ class Builder(object):
     def __del__(self):
         _core.LLVMDisposeBuilder(self.ptr)
 
-    def position(self, block, instr=None):
-        if instr:
-            _core.LLVMPositionBuilder(self.ptr, block.ptr, instr.ptr)
-        else:
-            _core.LLVMPositionBuilder(self.ptr, block.ptr)
-
-    def position_before(self, instr):
-        _core.LLVMPositionBuilderBefore(self.ptr, instr.ptr)
+    def position_at_beginning(self, bblk):
+        """Position the builder at the beginning of the given block.
         
+        Next instruction inserted will be first one in the block."""
+        # Avoids using "blk.instructions", which will fetch all the
+        # instructions into a list. Don't try this at home, though.
+        first_inst = Instruction(_core.LLVMGetFirstInstruction(self.block.ptr))
+        self.position_before(first_inst)
+
     def position_at_end(self, bblk):
+        """Position the builder at the end of the given block.
+
+        Next instruction inserted will be last one in the block."""
         _core.LLVMPositionBuilderAtEnd(self.ptr, bblk.ptr)
 
+    def position_before(self, instr):
+        """Position the builder before the given instruction.
+
+        The instruction can belong to a basic block other than the
+        current one."""
+        _core.LLVMPositionBuilderBefore(self.ptr, instr.ptr)
+
     @property
-    def insert_block(self):
+    def block(self):
         return BasicBlock(_core.LLVMGetInsertBlock(self.ptr))
+
+    # terminator instructions
 
     def ret_void(self):
         return Instruction(_core.LLVMBuildRetVoid(self.ptr))
@@ -1084,7 +1168,7 @@ class Builder(object):
     def unreachable(self):
         return Instruction(_core.LLVMBuildUnreachable(self.ptr))
 
-    # arithmethic-related
+    # arithmethic, bitwise and logical
     
     def add(self, lhs, rhs, name=""):
         check_is_value(lhs)
@@ -1207,7 +1291,7 @@ class Builder(object):
         index_ptrs = unpack_values(indices)
         return Value(_core.LLVMBuildGEP(self.ptr, ptr.ptr, index_ptrs, name))
 
-    # casts
+    # casts and extensions
 
     def trunc(self, value, dest_ty, name=""):
         check_is_value(value)
@@ -1306,11 +1390,11 @@ class Builder(object):
         arg_ptrs = unpack_values(args)
         return CallOrInvokeInstruction(_core.LLVMBuildCall(self.ptr, fn.ptr, arg_ptrs, name))
         
-    def select(self, if_blk, then_blk, else_blk, name=""):
-        check_is_basic_block(if_blk)
+    def select(self, cond, then_blk, else_blk, name=""):
+        check_is_value(cond)
         check_is_basic_block(then_blk)
         check_is_basic_block(else_blk)
-        return Value(_core.LLVMBuildSelect(self.ptr, if_blk.ptr, then_blk.ptr, else_blk.ptr, name))
+        return Value(_core.LLVMBuildSelect(self.ptr, cond.ptr, then_blk.ptr, else_blk.ptr, name))
     
     def vaarg(self, list_val, ty, name=""):
         check_is_value(list_val)
@@ -1355,9 +1439,6 @@ class ModuleProvider(llvm.Ownable):
         module._own(self)
         # a module provider is both a owner (of modules) and an ownable
         # (can be owned by execution engines)
-
-    def __del__(self):
-        llvm.Ownable.__del__(self)
 
 
 #===----------------------------------------------------------------------===

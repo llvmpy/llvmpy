@@ -78,9 +78,6 @@ class FunctionPassManager(PassManager):
     def __init__(self, ptr):
         PassManager.__init__(self, ptr)
 
-    def __del__(self):
-        PassManager.__del__(self)
-
     def initialize(self):
         _core.LLVMInitializeFunctionPassManager(self.ptr)
 

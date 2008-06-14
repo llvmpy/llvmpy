@@ -1,6 +1,8 @@
 llvm-py User Guide
 ===================
 
+NOTE: This document is updated constantly. Check back often.
+
 llvm-py provides Python bindings for LLVM. This document explains how
 you can setup and use it. A working knowledge of Python and a basic idea
 of LLVM is assumed.
@@ -46,7 +48,7 @@ llvm-py is distributed as a source tarball. You'll need to build and
 install it before it can be used. At least the following will be
 required for this:
 
-- compilers, both gcc and g++
+- C and C\+\+ compilers (gcc/g\+\+)
 - Python itself
 - Python development files (headers and libraries)
 - LLVM, either installed or built
@@ -56,7 +58,11 @@ command `sudo apt-get install gcc g++ python python-dev'. Note that
 ubuntu repository has an old version of llvm (1.8) which will not work
 with llvm-py.
 
-Tip: If LLVM 2.3 does not install cleanly, try installing 'ocamldoc'
+It does not matter which compiler LLVM itself was built with (g\+\+,
+llvm-g\+\+ or any other); llvm-py can be built with any compiler. It has
+been tried only with gcc/g\+\+ though.
+
+Tip: If LLVM 2.3 does not install cleanly, try installing ``ocamldoc''
 first.
 
 
@@ -108,10 +114,15 @@ libraries of LLVM, use this:
 $ tar jxvf llvm-py-0.2.tar.bz2
 $ cd llvm-py-0.2
 $ python setup.py build -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
-$ sudo python setup.py install -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
+$ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
 -----------------------------------------------------------------------
 
 Be warned that debug binaries will be huge (65MB+) !
+
+`setup.py` is a standard Python distutils script. See the Python
+documentation regarding http://docs.python.org/inst/inst.html[Installing
+Python Modules] and http://docs.python.org/dist/dist.html[Distributing
+Python Modules] for more information on such scripts.
 
 
 [[uninstall]]
@@ -889,6 +900,12 @@ r2 = Constant.real(tr, 1.61803399)      # create from a Python float
 
 r3 = Constant.undef()                   # an `undefined' value
 source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+TypeHandle (llvm.core)
+~~~~~~~~~~~~~~~~~~~~~~
+
+TODO
 
 
 Instructions (llvm.core)

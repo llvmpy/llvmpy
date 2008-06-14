@@ -6,9 +6,11 @@ http://llvm.org/[LLVM]. It's goal is to expose enough of LLVM APIs to
 implement a compiler or VM in pure Python. Currently, llvm-py is
 available for LLVM 2.3 and Python 2.5, on Linux/x86. It is expected to
 be usable on various unices, as well as with Python 2.4, with minimal
-changes, if any. It should be stable enough for you to play with.
+changes, if any.
 
-llvm-py is just hatching, and your contributions would be most welcome.
+llvm-py is just hatching. It should be stable enough to start hacking
+away, though. Be sure to send in a patch (or shout at the author) if you
+miss any specific LLVM API.
 
 News
 ----

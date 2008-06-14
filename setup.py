@@ -68,7 +68,7 @@ def call_setup(llvm_config):
         description='Python Bindings for LLVM',
         author='Mahadevan R',
         author_email='mdevan.foobar@gmail.com',
-        url='http://code.google.com/p/llvm-py/',
+        url='http://mdevan.nfshost.com/llvm-py/',
         packages=['llvm'],
         py_modules = [ 'llvm.core' ],
         ext_modules = [ ext_core ],)

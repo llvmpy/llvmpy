@@ -13,6 +13,7 @@ import llvm
 
 def _check_gen(obj, type):
     if not isinstance(obj, type):
+        type_str = type.__name__
         msg = "argument not an instance of llvm.core.%s" % type_str
         raise TypeError, msg
 
@@ -51,7 +52,7 @@ def unpack_constants(objlist): return _unpack_gen(objlist, check_is_constant)
 # we now return a list.
 #===----------------------------------------------------------------------===
 
-def wrapiter(first, next, container, wrapper):
+def wrapiter(first, next, container, wrapper, extra=[]):
 #    ptr = first(container)
 #    while ptr:
 #        yield wrapper(ptr)
@@ -59,7 +60,7 @@ def wrapiter(first, next, container, wrapper):
     ret = []
     ptr = first(container)
     while ptr:
-        ret.append(wrapper(ptr))
+        ret.append(wrapper(ptr, *extra))
         ptr = next(ptr)
     return ret
 

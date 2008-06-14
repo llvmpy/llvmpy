@@ -35,6 +35,14 @@
 </div>
 <div id="preamble">
 <div class="sectionbody">
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="./images/icons/note.png" alt="Note" />
+</td>
+<td class="content">This document is updated constantly. Check back often.</td>
+</tr></table>
+</div>
 <p>llvm-py provides Python bindings for LLVM. This document explains how
 you can setup and use it. A working knowledge of Python and a basic idea
 of LLVM is assumed.</p>
@@ -73,7 +81,7 @@ required for this:</p>
 <ul>
 <li>
 <p>
-compilers, both gcc and g++
+C and C++ compilers (gcc/g++)
 </p>
 </li>
 <li>
@@ -96,7 +104,10 @@ LLVM, either installed or built
 command `sudo apt-get install gcc g++ python python-dev'. Note that
 ubuntu repository has an old version of llvm (1.8) which will not work
 with llvm-py.</p>
-<p>Tip: If LLVM 2.3 does not install cleanly, try installing <em>ocamldoc</em>
+<p>It does not matter which compiler LLVM itself was built with (g++,
+llvm-g++ or any other); llvm-py can be built with any compiler. It has
+been tried only with gcc/g++ though.</p>
+<p>Tip: If LLVM 2.3 does not install cleanly, try installing &#8220;ocamldoc&#8221;
 first.</p>
 <h3>llvm-config</h3>
 <p>Inorder to build llvm-py, it's build script needs to know from where to
@@ -136,9 +147,13 @@ libraries of LLVM, use this:</p>
 <pre><tt>$ tar jxvf llvm-py-0.2.tar.bz2
 $ cd llvm-py-0.2
 $ python setup.py build -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
-$ sudo python setup.py install -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config</tt></pre>
+$ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config</tt></pre>
 </div></div>
 <p>Be warned that debug binaries will be huge (65MB+) !</p>
+<p><tt>setup.py</tt> is a standard Python distutils script. See the Python
+documentation regarding <a href="http://docs.python.org/inst/inst.html">Installing
+Python Modules</a> and <a href="http://docs.python.org/dist/dist.html">Distributing
+Python Modules</a> for more information on such scripts.</p>
 <h3><a id="uninstall"></a>Uninstall</h3>
 <p>To get rid of llvm-py completely, if you wish to do so:</p>
 <div class="listingblock">
@@ -1659,6 +1674,8 @@ r2 <span style="color: #990000">=</span> <span style="color: #009900">Constant</
 
 r3 <span style="color: #990000">=</span> <span style="color: #009900">Constant</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">undef</span></span><span style="color: #990000">()</span>                   <span style="font-style: italic"><span style="color: #9A1900"># an `undefined' value</span></span>
 </tt></pre></div></div>
+<h3>TypeHandle (llvm.core)</h3>
+<p>TODO</p>
 <h3>Instructions (llvm.core)</h3>
 <p>TODO</p>
 <h3>Basic Block (llvm.core)</h3>
@@ -1702,7 +1719,7 @@ reached at <em>mdevan.foobar@gmail.com</em>.</p>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 12-Jun-2008.
+Last updated 15-Jun-2008.
 </div>
 </div>
 </div>

@@ -21,9 +21,6 @@ class TargetData(llvm.Ownable):
     def __init__(self, ptr):
         llvm.Ownable.__init__(self, ptr, _core.LLVMDisposeTargetData)
 
-    def __del__(self):
-        llvm.Ownable.__del__(self)
-
     def __str__(self):
         return _core.LLVMTargetDataAsString(self.ptr)
 
