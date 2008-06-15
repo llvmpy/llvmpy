@@ -15,6 +15,9 @@ miss any specific LLVM API.
 News
 ----
 
+15-Jun-2008::
+    0.2 released. Lots of cleanup, new website, more documentation.
+
 20-May-2008::
     0.1 released.
 

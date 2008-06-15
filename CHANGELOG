@@ -1,5 +1,5 @@
 
-0.2, xx-Jun-2008:
+0.2, 15-Jun-2008:
 
   * Independent package, need not be unpacked into llvm/bindings
   * Fixed ownership issues with Module/ModuleProvider
