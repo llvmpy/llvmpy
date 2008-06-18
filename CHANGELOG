@@ -1,3 +1,7 @@
+0.2.1, 18-Jun-2008:
+
+  * Build cleanly with LLVM 2.3 and 2.3svn.
+
 
 0.2, 15-Jun-2008:
 
@@ -18,5 +22,4 @@
 0.1, 10-May-2008:
 
   * Initial release.
-
 
