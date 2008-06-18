@@ -750,13 +750,14 @@ class Constant(Value):
         check_is_constant(rhs)
         return Constant(_core.LLVMConstFCmp(real_pred, self.ptr, rhs.ptr))
 
-    def vicmp(self, int_pred, rhs):
-        check_is_constant(rhs)
-        return Constant(_core.LLVMConstVICmp(int_pred, self.ptr, rhs.ptr))
-
-    def vfcmp(self, real_pred, rhs):
-        check_is_constant(rhs)
-        return Constant(_core.LLVMConstVFCmp(real_pred, self.ptr, rhs.ptr))
+# after LLVM 2.3!
+#    def vicmp(self, int_pred, rhs):
+#        check_is_constant(rhs)
+#        return Constant(_core.LLVMConstVICmp(int_pred, self.ptr, rhs.ptr))
+#
+#    def vfcmp(self, real_pred, rhs):
+#        check_is_constant(rhs)
+#        return Constant(_core.LLVMConstVFCmp(real_pred, self.ptr, rhs.ptr))
 
     def shl(self, rhs):
         check_is_constant(rhs)
@@ -1365,15 +1366,16 @@ class Builder(object):
         check_is_value(rhs)
         return Value(_core.LLVMBuildFCmp(self.ptr, rpred, lhs.ptr, rhs.ptr, name))
 
-    def vicmp(self, ipred, lhs, rhs, name=""):
-        check_is_value(lhs)
-        check_is_value(rhs)
-        return Value(_core.LLVMBuildVICmp(self.ptr, ipred, lhs.ptr, rhs.ptr, name))
-        
-    def vfcmp(self, rpred, lhs, rhs, name=""):
-        check_is_value(lhs)
-        check_is_value(rhs)
-        return Value(_core.LLVMBuildVFCmp(self.ptr, rpred, lhs.ptr, rhs.ptr, name))
+# after LLVM 2.3!
+#    def vicmp(self, ipred, lhs, rhs, name=""):
+#        check_is_value(lhs)
+#        check_is_value(rhs)
+#        return Value(_core.LLVMBuildVICmp(self.ptr, ipred, lhs.ptr, rhs.ptr, name))
+#        
+#    def vfcmp(self, rpred, lhs, rhs, name=""):
+#        check_is_value(lhs)
+#        check_is_value(rhs)
+#        return Value(_core.LLVMBuildVFCmp(self.ptr, rpred, lhs.ptr, rhs.ptr, name))
 
     # misc
 

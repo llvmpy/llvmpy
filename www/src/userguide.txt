@@ -879,9 +879,9 @@ Constants (llvm.core)
 
 `Constant`-s represents constants that appear within the code. The
 values of such objects are known at creation time. Constants can be
-created from Python constants. A constant expression is also a constant.
-Given a `Constant` object, an operation (like addition, subtraction etc)
-can be specified, to yield a new `Constant` object. Let's see some
+created from Python constants. A constant expression is also a constant
+-- given a `Constant` object, an operation (like addition, subtraction
+etc) can be specified, to yield a new `Constant` object. Let's see some
 examples:
 
 [python]
@@ -897,9 +897,8 @@ tr = Type.float()
 
 r1 = Constant.real(tr, "3.141592")      # create from a string
 r2 = Constant.real(tr, 1.61803399)      # create from a Python float
-
-r3 = Constant.undef()                   # an `undefined' value
 source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 
 TypeHandle (llvm.core)

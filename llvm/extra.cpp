@@ -41,6 +41,7 @@ char *LLVMDumpValueToString(LLVMValueRef Val) {
   return strdup(buf.str().c_str());
 }
 
+#if 0 /* after LLVM 2.3! */
 LLVMValueRef LLVMConstVICmp(LLVMIntPredicate Predicate,
                            LLVMValueRef LHSConstant, LLVMValueRef RHSConstant) {
   return wrap(ConstantExpr::getVICmp(Predicate,
@@ -55,15 +56,6 @@ LLVMValueRef LLVMConstVFCmp(LLVMRealPredicate Predicate,
                                     unwrap<Constant>(RHSConstant)));
 }
 
-LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef B, LLVMValueRef *Values,
-                                  unsigned NumValues) {
-  std::vector<Value *> Vs;
-  for (LLVMValueRef *I = Values, *E = Values + NumValues; I != E; ++I)
-    Vs.push_back(unwrap(*I));
-
-  return wrap(unwrap(B)->CreateRet(&Vs[0], NumValues));
-}
-
 LLVMValueRef LLVMBuildVICmp(LLVMBuilderRef B, LLVMIntPredicate Op,
                            LLVMValueRef LHS, LLVMValueRef RHS,
                            const char *Name) {
@@ -76,6 +68,16 @@ LLVMValueRef LLVMBuildVFCmp(LLVMBuilderRef B, LLVMRealPredicate Op,
                            const char *Name) {
   return wrap(unwrap(B)->CreateVFCmp(static_cast<FCmpInst::Predicate>(Op),
                                     unwrap(LHS), unwrap(RHS), Name));
+}
+#endif
+
+LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef B, LLVMValueRef *Values,
+                                  unsigned NumValues) {
+  std::vector<Value *> Vs;
+  for (LLVMValueRef *I = Values, *E = Values + NumValues; I != E; ++I)
+    Vs.push_back(unwrap(*I));
+
+  return wrap(unwrap(B)->CreateRet(&Vs[0], NumValues));
 }
 
 LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef B, LLVMValueRef V,

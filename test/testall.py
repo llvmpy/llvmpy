@@ -120,9 +120,10 @@ def do_constant():
     k.srem(k).and_(k).or_(k).icmp(IPRED_ULT, k)
     f.fdiv(f).frem(f).fcmp(RPRED_ULT, f)
     vi = Constant.vector([Constant.int(ti,42)]*10)
-    vi.vicmp(IPRED_ULT, vi)
     vf = Constant.vector([Constant.real(Type.float(), 3.14)]*10)
-    vf.vfcmp(RPRED_ULT, vf)
+    # after LLVM 2.3!
+    #vi.vicmp(IPRED_ULT, vi)
+    #vf.vfcmp(RPRED_ULT, vf)
     k.shl(k).lshr(k).ashr(k)
     # TODO gep
     k.trunc(Type.int(1))
@@ -332,9 +333,10 @@ def do_builder():
     b.icmp(IPRED_ULT, v, v)
     b.fcmp(RPRED_ULT, fv, fv)
     vi = Constant.vector([Constant.int(ti,42)]*10)
-    b.vicmp(IPRED_ULT, vi, vi)
     vf = Constant.vector([Constant.real(Type.float(), 3.14)]*10)
-    b.vfcmp(RPRED_ULT, vf, vf)
+    # after LLVM 2.3!
+    # b.vicmp(IPRED_ULT, vi, vi)
+    # b.vfcmp(RPRED_ULT, vf, vf)
     # TODO b.getresult(v, 0)
     b.call(f, [v])
     b.select(Constant.int(Type.int(1), 1), blk, blk)

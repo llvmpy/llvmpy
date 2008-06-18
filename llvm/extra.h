@@ -25,6 +25,7 @@ char *LLVMDumpValueToString(LLVMValueRef Val);
 
 /* missing constant expressions */
 
+#if 0 /* after LLVM 2.3! */
 LLVMValueRef LLVMConstVICmp(LLVMIntPredicate Predicate,
                            LLVMValueRef LHSConstant, LLVMValueRef RHSConstant);
 LLVMValueRef LLVMConstVFCmp(LLVMRealPredicate Predicate,
@@ -32,14 +33,16 @@ LLVMValueRef LLVMConstVFCmp(LLVMRealPredicate Predicate,
 
 /* missing instructions */
 
-LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef, LLVMValueRef *Values,
-                                  unsigned NumValues);
 LLVMValueRef LLVMBuildVICmp(LLVMBuilderRef, LLVMIntPredicate Op,
                            LLVMValueRef LHS, LLVMValueRef RHS,
                            const char *Name);
 LLVMValueRef LLVMBuildVFCmp(LLVMBuilderRef, LLVMRealPredicate Op,
                            LLVMValueRef LHS, LLVMValueRef RHS,
                            const char *Name);
+#endif
+
+LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef, LLVMValueRef *Values,
+                                  unsigned NumValues);
 LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef, LLVMValueRef V,
                                 unsigned Index, const char *Name);
 

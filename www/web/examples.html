@@ -66,8 +66,7 @@ func<span style="color: #990000">.</span>args<span style="color: #990000">[</spa
 entry <span style="color: #990000">=</span> func<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">append_basic_block</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"entry"</span><span style="color: #990000">)</span>
 
 <span style="font-style: italic"><span style="color: #9A1900"># create an llvm::IRBuilder</span></span>
-builder <span style="color: #990000">=</span> <span style="color: #009900">Builder</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">new</span></span><span style="color: #990000">()</span>
-builder<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">position_at_end</span></span><span style="color: #990000">(</span>entry<span style="color: #990000">)</span>
+builder <span style="color: #990000">=</span> <span style="color: #009900">Builder</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">new</span></span><span style="color: #990000">(</span>entry<span style="color: #990000">)</span>
 
 <span style="font-style: italic"><span style="color: #9A1900"># add two args into tmp1</span></span>
 tmp1 <span style="color: #990000">=</span> builder<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">add</span></span><span style="color: #990000">(</span>func<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">],</span> func<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">1</span><span style="color: #990000">],</span> <span style="color: #FF0000">"tmp1"</span><span style="color: #990000">)</span>
@@ -103,7 +102,7 @@ entry:
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 10-Jun-2008.
+Last updated 18-Jun-2008.
 </div>
 </div>
 </div>

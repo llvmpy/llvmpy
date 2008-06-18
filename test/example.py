@@ -23,8 +23,7 @@ func.args[1].name = "arg2"
 entry = func.append_basic_block("entry")
 
 # create an llvm::IRBuilder
-builder = Builder.new()
-builder.position_at_end(entry)
+builder = Builder.new(entry)
 
 # add two args into tmp1
 tmp1 = builder.add(func.args[0], func.args[1], "tmp1")

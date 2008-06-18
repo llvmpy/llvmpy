@@ -286,8 +286,10 @@ _wrap_objobj2obj(LLVMConstXor, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 
 _wrap_intobjobj2obj(LLVMConstICmp, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_intobjobj2obj(LLVMConstFCmp, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+/* after LLVM 2.3!
 _wrap_intobjobj2obj(LLVMConstVICmp, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_intobjobj2obj(LLVMConstVFCmp, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+*/
 
 _wrap_objobj2obj(LLVMConstShl, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMConstLShr, LLVMValueRef, LLVMValueRef, LLVMValueRef)
@@ -522,8 +524,10 @@ _wrap_objobjobjstr2obj(LLVMBuildBitCast, LLVMBuilderRef, LLVMValueRef, LLVMTypeR
 
 _wrap_objintobjobjstr2obj(LLVMBuildICmp, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objintobjobjstr2obj(LLVMBuildFCmp, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+/* after LLVM 2.3!
 _wrap_objintobjobjstr2obj(LLVMBuildVICmp, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objintobjobjstr2obj(LLVMBuildVFCmp, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+*/
 
 /* Miscellaneous instructions */
 
@@ -835,8 +839,10 @@ static PyMethodDef core_methods[] = {
     _method( LLVMConstXor )    
     _method( LLVMConstICmp )    
     _method( LLVMConstFCmp )    
-    _method( LLVMConstVICmp )    
-    _method( LLVMConstVFCmp )    
+    /* after LLVM 2.3!
+    _method( LLVMConstVICmp )
+    _method( LLVMConstVFCmp )
+    */
     _method( LLVMConstShl )    
     _method( LLVMConstLShr )    
     _method( LLVMConstAShr )    
@@ -1003,8 +1009,10 @@ static PyMethodDef core_methods[] = {
     /* Comparisons */
     _method( LLVMBuildICmp )    
     _method( LLVMBuildFCmp )    
+    /* after LLVM 2.3!
     _method( LLVMBuildVICmp )    
     _method( LLVMBuildVFCmp )    
+    */
 
     /* Miscellaneous instructions */
     _method( LLVMBuildGetResult )    
