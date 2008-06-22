@@ -28,49 +28,24 @@
  * for various types.
  */
 
-/* LLVMModuleRef */
-PyObject *ctor_LLVMModuleRef(LLVMModuleRef p);
+#define _declare_std_ctor(typ)  \
+PyObject * ctor_ ## typ ( typ p);
 
-/* LLVMTypeRef */
-PyObject *ctor_LLVMTypeRef(LLVMTypeRef p);
-
-/* LLVMValueRef */
-PyObject *ctor_LLVMValueRef(LLVMValueRef p);
-
-/* LLVMTypeHandleRef */
-PyObject *ctor_LLVMTypeHandleRef(LLVMTypeHandleRef p);
-
-/* LLVMBasicBlockRef */
-PyObject *ctor_LLVMBasicBlockRef(LLVMBasicBlockRef p);
-
-/* LLVMBuilderRef */
-PyObject *ctor_LLVMBuilderRef(LLVMBuilderRef p);
-
-/* LLVMModuleProviderRef */
-PyObject *ctor_LLVMModuleProviderRef(LLVMModuleProviderRef p);
-
-/* LLVMMemoryBufferRef */
-PyObject *ctor_LLVMMemoryBufferRef(LLVMMemoryBufferRef p);
-
-/* LLVMPassManagerRef */
-PyObject *ctor_LLVMPassManagerRef(LLVMPassManagerRef p);
+_declare_std_ctor(LLVMModuleRef)
+_declare_std_ctor(LLVMTypeRef)
+_declare_std_ctor(LLVMValueRef)
+_declare_std_ctor(LLVMTypeHandleRef)
+_declare_std_ctor(LLVMBasicBlockRef)
+_declare_std_ctor(LLVMBuilderRef)
+_declare_std_ctor(LLVMModuleProviderRef)
+_declare_std_ctor(LLVMMemoryBufferRef)
+_declare_std_ctor(LLVMPassManagerRef)
+_declare_std_ctor(LLVMExecutionEngineRef)
+_declare_std_ctor(LLVMTargetDataRef)
+_declare_std_ctor(LLVMGenericValueRef)
 
 /* standard types */
 PyObject *ctor_int(int i);
-
-#define _declare_std_ctor(typ)                  \
-PyObject * ctor_ ## typ ( typ p);
-
-#define _define_std_ctor(typ)                   \
-PyObject * ctor_ ## typ ( typ p)                \
-{                                               \
-    if (p)                                      \
-        return PyCObject_FromVoidPtr(p, NULL);  \
-    Py_RETURN_NONE;                             \
-}
-
-_declare_std_ctor(LLVMExecutionEngineRef)
-_declare_std_ctor(LLVMTargetDataRef)
 
 
 /*===----------------------------------------------------------------------===*/
@@ -718,6 +693,36 @@ _w ## func (PyObject *self, PyObject *args)                     \
                                                                 \
     ret = func (arg1, arg2v, arg2n, arg3);                      \
     free(arg2v);                                                \
+    return ctor_ ## outtype (ret);                              \
+}
+
+/**
+ * Wrap LLVM functions of the type
+ * outtype func(intype1 arg1, intype2 arg2, intype3 *arg3v, unsigned arg3n)
+ * where arg3v is an array of intype3 elements, arg3n in length.
+ */
+#define _wrap_objobjlist2obj(func, intype1, intype2, intype3, outtype)      \
+static PyObject *                                               \
+_w ## func (PyObject *self, PyObject *args)                     \
+{                                                               \
+    PyObject *obj1, *obj2, *obj3;                               \
+    intype1 arg1;                                               \
+    intype2 arg2;                                               \
+    intype3 *arg3v;                                             \
+    unsigned arg3n;                                             \
+    outtype ret;                                                \
+                                                                \
+    if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))    \
+        return NULL;                                            \
+                                                                \
+    arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);               \
+    arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);               \
+    arg3n = (unsigned) PyList_Size(obj3);                       \
+    if (!(arg3v = ( intype3 *)make_array_from_list(obj3, arg3n)))   \
+        return PyErr_NoMemory();                                \
+                                                                \
+    ret = func (arg1, arg2, arg3v, arg3n);                      \
+    free(arg3v);                                                \
     return ctor_ ## outtype (ret);                              \
 }
 

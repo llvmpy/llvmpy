@@ -2,80 +2,39 @@
 
 
 /*===----------------------------------------------------------------------===*/
+/* Helper functions/macros                                                    */
+/*===----------------------------------------------------------------------===*/
+
+#define _define_std_ctor(typ)                   \
+PyObject * ctor_ ## typ ( typ p)                \
+{                                               \
+    if (p)                                      \
+        return PyCObject_FromVoidPtr(p, NULL);  \
+    Py_RETURN_NONE;                             \
+}
+
+
+/*===----------------------------------------------------------------------===*/
 /* Type ctor/dtor                                                             */
 /*===----------------------------------------------------------------------===*/
 
-PyObject *ctor_LLVMModuleRef(LLVMModuleRef p)
-{
-    if (p)
-        return PyCObject_FromVoidPtr(p, NULL);
-    Py_RETURN_NONE; /* avoiding the `else' since we don't (want to) know what
-                        the macro Py_RETURN_NONE expands to */
-}
-
-PyObject *ctor_LLVMTypeRef(LLVMTypeRef p)
-{
-    if (p)
-        return PyCObject_FromVoidPtr(p, NULL);
-    Py_RETURN_NONE;
-}
-
-PyObject *ctor_LLVMValueRef(LLVMValueRef p)
-{
-    if (p)
-        return PyCObject_FromVoidPtr(p, NULL);
-    Py_RETURN_NONE;
-}
-
-PyObject *ctor_LLVMTypeHandleRef(LLVMTypeHandleRef p)
-{
-    if (p)
-        return PyCObject_FromVoidPtr(p, NULL);
-    Py_RETURN_NONE;
-}
-
-PyObject *ctor_LLVMBasicBlockRef(LLVMBasicBlockRef p)
-{
-    if (p)
-        return PyCObject_FromVoidPtr(p, NULL);
-    Py_RETURN_NONE;
-}
-
-PyObject *ctor_LLVMBuilderRef(LLVMBuilderRef p)
-{
-    if (p)
-        return PyCObject_FromVoidPtr(p, NULL);
-    Py_RETURN_NONE;
-}
-
-PyObject *ctor_LLVMModuleProviderRef(LLVMModuleProviderRef p)
-{
-    if (p)
-        return PyCObject_FromVoidPtr(p, NULL);
-    Py_RETURN_NONE;
-}
-
-PyObject *ctor_LLVMMemoryBufferRef(LLVMMemoryBufferRef p)
-{
-    if (p)
-        return PyCObject_FromVoidPtr(p, NULL);
-    Py_RETURN_NONE;
-}
-
-PyObject *ctor_LLVMPassManagerRef(LLVMPassManagerRef p)
-{
-    if (p)
-        return PyCObject_FromVoidPtr(p, NULL);
-    Py_RETURN_NONE;
-}
+_define_std_ctor(LLVMModuleRef)
+_define_std_ctor(LLVMTypeRef)
+_define_std_ctor(LLVMValueRef)
+_define_std_ctor(LLVMTypeHandleRef)
+_define_std_ctor(LLVMBasicBlockRef)
+_define_std_ctor(LLVMBuilderRef)
+_define_std_ctor(LLVMModuleProviderRef)
+_define_std_ctor(LLVMMemoryBufferRef)
+_define_std_ctor(LLVMPassManagerRef)
+_define_std_ctor(LLVMExecutionEngineRef)
+_define_std_ctor(LLVMTargetDataRef)
+_define_std_ctor(LLVMGenericValueRef)
 
 PyObject *ctor_int(int i)
 {
     return PyInt_FromLong(i);
 }
-
-_define_std_ctor(LLVMExecutionEngineRef)
-_define_std_ctor(LLVMTargetDataRef)
 
 
 /*===----------------------------------------------------------------------===*/
@@ -108,7 +67,7 @@ void **make_array_from_list(PyObject *list, int n)
     
     return arr;
 }
-        
+
 PyObject *make_list_from_LLVMTypeRef_array(LLVMTypeRef *p, unsigned n)
 {
     int i;

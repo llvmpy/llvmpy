@@ -683,32 +683,103 @@ _wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
     return ret;
 }
 
-_wrap_obj2none(LLVMDisposeExecutionEngine, LLVMExecutionEngineRef)
-
-static PyObject *
-_wLLVMRunFunction(PyObject *self, PyObject *args)
+/* the args should have been ptr, num */
+LLVMGenericValueRef LLVMRunFunction2(LLVMExecutionEngineRef EE,
+    LLVMValueRef F, LLVMGenericValueRef *Args, unsigned NumArgs)
 {
-    PyObject *obj1, *obj2, *obj3;
-    LLVMExecutionEngineRef ee;
-    LLVMValueRef fn;
-
-    if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))
-        return NULL;
-
-    /* obj3 is a list of args to the function, ignored currently */
-
-    ee = (LLVMExecutionEngineRef) PyCObject_AsVoidPtr(obj1);
-    fn = (LLVMValueRef) PyCObject_AsVoidPtr(obj2);
-
-    LLVMRunFunction(ee, fn, 0, NULL);
-
-    /* fn return value ignore currently */
-
-    Py_RETURN_NONE;
+    return LLVMRunFunction(EE, F, NumArgs, Args);
 }
 
+_wrap_obj2none(LLVMDisposeExecutionEngine, LLVMExecutionEngineRef)
+_wrap_objobjlist2obj(LLVMRunFunction2, LLVMExecutionEngineRef,
+    LLVMValueRef, LLVMGenericValueRef, LLVMGenericValueRef)
 _wrap_obj2obj(LLVMGetExecutionEngineTargetData, LLVMExecutionEngineRef,
     LLVMTargetDataRef)
+_wrap_obj2none(LLVMRunStaticConstructors, LLVMExecutionEngineRef)
+_wrap_obj2none(LLVMRunStaticDestructors, LLVMExecutionEngineRef)
+_wrap_objobj2none(LLVMFreeMachineCodeForFunction, LLVMExecutionEngineRef,
+    LLVMValueRef)
+_wrap_objobj2none(LLVMAddModuleProvider, LLVMExecutionEngineRef,
+    LLVMModuleProviderRef)
+
+
+/*===----------------------------------------------------------------------===*/
+/* Generic Value                                                              */
+/*===----------------------------------------------------------------------===*/
+
+static PyObject *
+_wLLVMCreateGenericValueOfInt(PyObject *self, PyObject *args)
+{
+    PyObject *obj1;
+    LLVMTypeRef ty;
+    unsigned long long n;
+    int is_signed;
+    LLVMGenericValueRef gv;
+
+    if (!PyArg_ParseTuple(args, "OLi", &obj1, &n, &is_signed))
+        return NULL;
+
+    ty = (LLVMTypeRef) PyCObject_AsVoidPtr(obj1);
+
+    gv = LLVMCreateGenericValueOfInt(ty, n, is_signed);
+    return ctor_LLVMGenericValueRef(gv);
+}
+
+static PyObject *
+_wLLVMCreateGenericValueOfFloat(PyObject *self, PyObject *args)
+{
+    PyObject *obj1;
+    LLVMTypeRef ty;
+    double d;
+    LLVMGenericValueRef gv;
+
+    if (!PyArg_ParseTuple(args, "Od", &obj1, &d))
+        return NULL;
+
+    ty = (LLVMTypeRef) PyCObject_AsVoidPtr(obj1);
+
+    gv = LLVMCreateGenericValueOfFloat(ty, d);
+    return ctor_LLVMGenericValueRef(gv);
+}
+
+static PyObject *
+_wLLVMGenericValueToInt(PyObject *self, PyObject *args)
+{
+    PyObject *obj1;
+    int is_signed;
+    LLVMGenericValueRef gv;
+    unsigned long long val;
+
+    if (!PyArg_ParseTuple(args, "Oi", &obj1, &is_signed))
+        return NULL;
+
+    gv = (LLVMGenericValueRef) PyCObject_AsVoidPtr(obj1);
+
+    val = LLVMGenericValueToInt(gv, is_signed);
+    return is_signed ?
+        PyLong_FromLongLong((long long)val) :
+        PyLong_FromUnsignedLongLong(val);
+}
+
+static PyObject *
+_wLLVMGenericValueToFloat(PyObject *self, PyObject *args)
+{
+    PyObject *obj1, *obj2;
+    LLVMTypeRef ty;
+    LLVMGenericValueRef gv;
+    double val;
+
+    if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))
+        return NULL;
+
+    ty = (LLVMTypeRef) PyCObject_AsVoidPtr(obj1);
+    gv = (LLVMGenericValueRef) PyCObject_AsVoidPtr(obj2);
+
+    val = LLVMGenericValueToFloat(ty, gv);
+    return PyFloat_FromDouble(val);
+}
+
+_wrap_obj2none(LLVMDisposeGenericValue, LLVMGenericValueRef)
 
 
 /*===----------------------------------------------------------------------===*/
@@ -1060,8 +1131,19 @@ static PyMethodDef core_methods[] = {
     /* Execution Engine */
     _method( LLVMCreateExecutionEngine )
     _method( LLVMDisposeExecutionEngine )
-    _method( LLVMRunFunction )
+    _method( LLVMRunFunction2 )
     _method( LLVMGetExecutionEngineTargetData )
+    _method( LLVMRunStaticConstructors )
+    _method( LLVMRunStaticDestructors )
+    _method( LLVMFreeMachineCodeForFunction )
+    _method( LLVMAddModuleProvider )
+
+    /* Generic Value */
+    _method( LLVMCreateGenericValueOfInt )
+    _method( LLVMCreateGenericValueOfFloat )
+    _method( LLVMGenericValueToInt )
+    _method( LLVMGenericValueToFloat )
+    _method( LLVMDisposeGenericValue )
 
     { NULL }
 };
