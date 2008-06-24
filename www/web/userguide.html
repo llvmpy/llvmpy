@@ -8,6 +8,12 @@
 <link rel="stylesheet" href="style/xhtml11.css" type="text/css" />
 <link rel="stylesheet" href="style/xhtml11-quirks.css" type="text/css" />
 <link rel="stylesheet" href="style/layout.css" type="text/css" />
+<script type="text/javascript">
+/*<![CDATA[*/
+window.onload = function(){generateToc(2)}
+/*]]>*/
+</script>
+<script type="text/javascript" src="js/toc.js"></script>
 <title>llvm-py User Guide - llvm-py</title>
 </head>
 <body>
@@ -25,13 +31,15 @@
   <div>&#187;<a href="contribute.html">Contribute</a></div>
   <div>&#187;<a href="license.html">License</a></div>
   <div>&#187;<a href="about.html">About</a></div>
-  <div id="page-source">&#187;<a href="http://www.python.org/">Python</a></div>
-  <div>&#187;<a href="http://llvm.org/">LLVM</a></div>
 </td>
 <td>
 <div id="layout-content">
 <div id="header">
 <h1>llvm-py User Guide</h1>
+</div>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
 </div>
 <div id="preamble">
 <div class="sectionbody">
@@ -40,7 +48,8 @@
 <td class="icon">
 <img src="./images/icons/note.png" alt="Note" />
 </td>
-<td class="content">This document is updated constantly. Check back often.</td>
+<td class="content">This document is updated frequently (last updated on 24-Jun-2008).
+Check back often.</td>
 </tr></table>
 </div>
 <p>llvm-py provides Python bindings for LLVM. This document explains how
@@ -1672,6 +1681,693 @@ tr <span style="color: #990000">=</span> <span style="color: #009900">Type</span
 r1 <span style="color: #990000">=</span> <span style="color: #009900">Constant</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">real</span></span><span style="color: #990000">(</span>tr<span style="color: #990000">,</span> <span style="color: #FF0000">"3.141592"</span><span style="color: #990000">)</span>      <span style="font-style: italic"><span style="color: #9A1900"># create from a string</span></span>
 r2 <span style="color: #990000">=</span> <span style="color: #009900">Constant</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">real</span></span><span style="color: #990000">(</span>tr<span style="color: #990000">,</span> <span style="color: #993399">1.61803399</span><span style="color: #990000">)</span>      <span style="font-style: italic"><span style="color: #9A1900"># create from a Python float</span></span>
 </tt></pre></div></div>
+<p>The following constructors (static methods) can be used to create
+constants:</p>
+<div class="tableblock">
+<table rules="all"
+frame="border"
+cellspacing="0" cellpadding="4">
+<col width="200" />
+<col width="600" />
+<thead>
+  <tr>
+    <th align="left">
+    Constructor Method
+    </th>
+    <th align="left">
+    What It Creates
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    <tt>null(ty)</tt>
+    </td>
+    <td align="left">
+    A null value (all zeros) of type <tt>ty</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>all_ones(ty)</tt>
+    </td>
+    <td align="left">
+    All 1's value of type <tt>ty</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>undef(ty)</tt>
+    </td>
+    <td align="left">
+    An &#8220;undefined&#8221; value of type <tt>ty</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>int(ty, value)</tt>
+    </td>
+    <td align="left">
+    Integer of type <tt>ty</tt>, with value <tt>value</tt> (a Python int or long)
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>int_signextend(ty, value)</tt>
+    </td>
+    <td align="left">
+    Integer of signed type <tt>ty</tt> (use for signed types)
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>real(ty, value)</tt>
+    </td>
+    <td align="left">
+    Floating point value of type <tt>ty</tt>, with value <tt>value</tt> (a Python float)
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>stringz(value)</tt>
+    </td>
+    <td align="left">
+    A null-terminated string. <tt>value</tt> is a Python string
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>string(value)</tt>
+    </td>
+    <td align="left">
+    As <tt>string(ty)</tt>, but not null terminated
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>array(ty, consts)</tt>
+    </td>
+    <td align="left">
+    Array of type <tt>ty</tt>, initialized with <tt>consts</tt> (an iterable yielding <tt>Constant</tt> objects of the appropriate type)
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>struct(ty, consts)</tt>
+    </td>
+    <td align="left">
+    Struct (unpacked) of type <tt>ty</tt>, initialized with <tt>consts</tt> (an iterable yielding <tt>Constant</tt> objects of the appropriate type)
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>packed_struct(ty, consts)</tt>
+    </td>
+    <td align="left">
+    As <tt>struct(ty, consts)</tt> but packed
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>vector(consts)</tt>
+    </td>
+    <td align="left">
+    Vector, initialized with <tt>consts</tt> (an iterable yielding <tt>Constant</tt> objects of the appropriate type)
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>sizeof(ty)</tt>
+    </td>
+    <td align="left">
+    Constant value representing the sizeof the type <tt>ty</tt>
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<p>The following operations are available:</p>
+<div class="tableblock">
+<table rules="all"
+frame="border"
+cellspacing="0" cellpadding="4">
+<col width="200" />
+<col width="600" />
+<thead>
+  <tr>
+    <th align="left">
+    Method
+    </th>
+    <th align="left">
+    Operation
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    <tt>k.neg()</tt>
+    </td>
+    <td align="left">
+    negation, same as <tt>0 - k</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.not_()</tt>
+    </td>
+    <td align="left">
+    1's complement of <tt>k</tt>. Note trailing underscore.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.add(k2)</tt>
+    </td>
+    <td align="left">
+    <tt>k + k2</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.sub(k2)</tt>
+    </td>
+    <td align="left">
+    <tt>k - k2</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.mul(k2)</tt>
+    </td>
+    <td align="left">
+    <tt>k * k2</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.udiv(k2)</tt>
+    </td>
+    <td align="left">
+    Quotient of unsigned division of <tt>k</tt> with <tt>k2</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.sdiv(k2)</tt>
+    </td>
+    <td align="left">
+    Quotient of signed division of <tt>k</tt> with <tt>k2</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.fdiv(k2)</tt>
+    </td>
+    <td align="left">
+    Quotient of floating point division of <tt>k</tt> with <tt>k2</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.urem(k2)</tt>
+    </td>
+    <td align="left">
+    Reminder of unsigned division of <tt>k</tt> with <tt>k2</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.srem(k2)</tt>
+    </td>
+    <td align="left">
+    Reminder of signed division of <tt>k</tt> with <tt>k2</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.frem(k2)</tt>
+    </td>
+    <td align="left">
+    Reminder of floating point division of <tt>k</tt> with <tt>k2</tt>
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.and_(k2)</tt>
+    </td>
+    <td align="left">
+    Bitwise and of <tt>k</tt> and <tt>k2</tt>. Note trailing underscore.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.or_(k2)</tt>
+    </td>
+    <td align="left">
+    Bitwise or of <tt>k</tt> and <tt>k2</tt>. Note trailing underscore.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.xor(k2)</tt>
+    </td>
+    <td align="left">
+    Bitwise exclusive-or of <tt>k</tt> and <tt>k2</tt>.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.icmp(ipred, k2)</tt>
+    </td>
+    <td align="left">
+    Compare <tt>k</tt> with <tt>k2</tt> using the predicate <tt>ipred</tt>. See table <a href="#ipred">below</a> for list of predicates for integer operands.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>k.fcmp(rpred, k2)</tt>
+    </td>
+    <td align="left">
+    Compare <tt>k</tt> with <tt>k2</tt> using the predicate <tt>rpred</tt>. See table <a href="#rpred">below</a> for list of predicates for real operands.
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    shl
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    lshr
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    ashr
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    gep
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    trunc
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    sext
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    zext
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    fptrunc
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    fpext
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    uitofp
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    sitofp
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    fptoui
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    fptosi
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    ptrtoint
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    inttoptr
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    bitcast
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    select
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    extract_element
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    insert_element
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    shuffle_vector
+    </td>
+    <td align="left">
+    TODO
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<p><a id="ipred"></a>Predicates for use with <tt>icmp</tt> instruction are listed below. All
+of these are integer constants defined in the <tt>llvm.core</tt> module.</p>
+<div class="tableblock">
+<table rules="all"
+frame="border"
+cellspacing="0" cellpadding="4">
+<col width="200" />
+<col width="600" />
+<thead>
+  <tr>
+    <th align="left">
+    Value
+    </th>
+    <th align="left">
+    Meaning
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    <tt>IPRED_EQ</tt>
+    </td>
+    <td align="left">
+    Equality
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>IPRED_NE</tt>
+    </td>
+    <td align="left">
+    Inequality
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>IPRED_UGT</tt>
+    </td>
+    <td align="left">
+    Unsigned greater than
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>IPRED_UGE</tt>
+    </td>
+    <td align="left">
+    Unsigned greater than or equal
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>IPRED_ULT</tt>
+    </td>
+    <td align="left">
+    Unsigned less than
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>IPRED_ULE</tt>
+    </td>
+    <td align="left">
+    Unsigned less than or equal
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>IPRED_SGT</tt>
+    </td>
+    <td align="left">
+    Signed greater than
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>IPRED_SGE</tt>
+    </td>
+    <td align="left">
+    Signed greater than or equal
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>IPRED_SLT</tt>
+    </td>
+    <td align="left">
+    Signed less than
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>IPRED_SLE</tt>
+    </td>
+    <td align="left">
+    Signed less than or equal
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<p><a id="rpred"></a>Predicates for use with <tt>fcmp</tt> instruction are listed below. All
+of these are integer constants defined in the <tt>llvm.core</tt> module.</p>
+<div class="tableblock">
+<table rules="all"
+frame="border"
+cellspacing="0" cellpadding="4">
+<col width="200" />
+<col width="600" />
+<thead>
+  <tr>
+    <th align="left">
+    Value
+    </th>
+    <th align="left">
+    Meaning
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="left">
+    <tt>RPRED_FALSE</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_OEQ</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_OGT</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_OGE</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_OLT</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_OLE</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_ONE</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_ORD</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_UNO</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_UEQ</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_UGT</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_UGE</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_ULT</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_ULE</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_UNE</tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+  <tr>
+    <td align="left">
+    <tt>RPRED_TRUE </tt>
+    </td>
+    <td align="left">
+    
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
 <h3>TypeHandle (llvm.core)</h3>
 <p>TODO</p>
 <h3>Instructions (llvm.core)</h3>
@@ -1717,7 +2413,7 @@ reached at <em>mdevan.foobar@gmail.com</em>.</p>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 18-Jun-2008.
+Last updated 24-Jun-2008.
 </div>
 </div>
 </div>
@@ -1727,8 +2423,6 @@ Last updated 18-Jun-2008.
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
 document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
 var pageTracker = _gat._getTracker("UA-4519056-2");
 pageTracker._initData();
 pageTracker._trackPageview();

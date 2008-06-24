@@ -5,7 +5,7 @@ llvm-py is just hatching. It needs your patches and suggestions to
 grow up. Please contribute! All patches are welcome. Here are some links
 to start hacking away:
 
-`40`60~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`75`25~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Google code hosting, http://code.google.com/p/llvm-py/[http://code.google.com/p/llvm-py/]
 Browse SVN, http://code.google.com/p/llvm-py/source/browse/[http://code.google.com/p/llvm-py/source/browse]
 Issues tracker, http://code.google.com/p/llvm-py/issues/list[http://code.google.com/p/llvm-py/issues/list]
@@ -24,6 +24,7 @@ Current Next Steps
 ------------------
 
 - Wrap GenericValue, function call args for execution engine.
+  * done.
 - Add APIs to read/write `.bc` and `.ll` files.
 - Wrap `lto`.
 - Add examples.

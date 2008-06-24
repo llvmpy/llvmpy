@@ -1,7 +1,8 @@
 llvm-py User Guide
 ===================
 
-NOTE: This document is updated constantly. Check back often.
+NOTE: This document is updated frequently (last updated on {localdate}).
+Check back often.
 
 llvm-py provides Python bindings for LLVM. This document explains how
 you can setup and use it. A working knowledge of Python and a basic idea
@@ -898,6 +899,118 @@ tr = Type.float()
 r1 = Constant.real(tr, "3.141592")      # create from a string
 r2 = Constant.real(tr, 1.61803399)      # create from a Python float
 source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following constructors (static methods) can be used to create
+constants:
+
+[frame="all",grid="all"]
+`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Constructor Method, What It Creates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`null(ty)`, A null value (all zeros) of type `ty`
+`all_ones(ty)`, All 1's value of type `ty`
+`undef(ty)`, An ``undefined'' value of type `ty`
+"`int(ty, value)`", "Integer of type `ty`, with value `value` (a Python int or long)"
+"`int_signextend(ty, value)`", Integer of signed type `ty` (use for signed types)
+"`real(ty, value)`", "Floating point value of type `ty`, with value `value` (a Python float)"
+"`stringz(value)`", "A null-terminated string. `value` is a Python string"
+"`string(value)`", "As `string(ty)`, but not null terminated"
+"`array(ty, consts)`", "Array of type `ty`, initialized with `consts` (an iterable yielding `Constant` objects of the appropriate type)"
+"`struct(ty, consts)`", "Struct (unpacked) of type `ty`, initialized with `consts` (an iterable yielding `Constant` objects of the appropriate type)"
+"`packed_struct(ty, consts)`", "As `struct(ty, consts)` but packed"
+"`vector(consts)`", "Vector, initialized with `consts` (an iterable yielding `Constant` objects of the appropriate type)"
+"`sizeof(ty)`", "Constant value representing the sizeof the type `ty`"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operations are available:
+
+[frame="all",grid="all"]
+`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Method, Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`k.neg()`, "negation, same as `0 - k`"
+`k.not_()`, "1's complement of `k`. Note trailing underscore."
+`k.add(k2)`, "`k + k2`"
+`k.sub(k2)`, "`k - k2`"
+`k.mul(k2)`, "`k * k2`"
+`k.udiv(k2)`, "Quotient of unsigned division of `k` with `k2`"
+`k.sdiv(k2)`, "Quotient of signed division of `k` with `k2`"
+`k.fdiv(k2)`, "Quotient of floating point division of `k` with `k2`"
+`k.urem(k2)`, "Reminder of unsigned division of `k` with `k2`"
+`k.srem(k2)`, "Reminder of signed division of `k` with `k2`"
+`k.frem(k2)`, "Reminder of floating point division of `k` with `k2`"
+`k.and_(k2)`, "Bitwise and of `k` and `k2`. Note trailing underscore."
+`k.or_(k2)`, "Bitwise or of `k` and `k2`. Note trailing underscore."
+`k.xor(k2)`, "Bitwise exclusive-or of `k` and `k2`."
+"`k.icmp(ipred, k2)`", "Compare `k` with `k2` using the predicate `ipred`. See table link:#ipred[below] for list of predicates for integer operands."
+"`k.fcmp(rpred, k2)`", "Compare `k` with `k2` using the predicate `rpred`. See table link:#rpred[below] for list of predicates for real operands."
+shl, TODO
+lshr, TODO
+ashr, TODO
+gep, TODO
+trunc, TODO
+sext, TODO
+zext, TODO
+fptrunc, TODO
+fpext, TODO
+uitofp, TODO
+sitofp, TODO
+fptoui, TODO
+fptosi, TODO
+ptrtoint, TODO
+inttoptr, TODO
+bitcast, TODO
+select, TODO
+extract_element, TODO
+insert_element, TODO
+shuffle_vector, TODO
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[[ipred]]
+Predicates for use with `icmp` instruction are listed below. All
+of these are integer constants defined in the `llvm.core` module.
+
+[frame="all",grid="all"]
+`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Value, Meaning
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`IPRED_EQ`, Equality
+`IPRED_NE`, Inequality
+`IPRED_UGT`, Unsigned greater than
+`IPRED_UGE`, Unsigned greater than or equal
+`IPRED_ULT`, Unsigned less than
+`IPRED_ULE`, Unsigned less than or equal
+`IPRED_SGT`, Signed greater than
+`IPRED_SGE`, Signed greater than or equal
+`IPRED_SLT`, Signed less than
+`IPRED_SLE`, Signed less than or equal
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[[rpred]]
+Predicates for use with `fcmp` instruction are listed below. All
+of these are integer constants defined in the `llvm.core` module.
+
+[frame="all",grid="all"]
+`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Value, Meaning
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`RPRED_FALSE`, 
+`RPRED_OEQ`, 
+`RPRED_OGT`, 
+`RPRED_OGE`, 
+`RPRED_OLT`, 
+`RPRED_OLE`, 
+`RPRED_ONE`, 
+`RPRED_ORD`, 
+`RPRED_UNO`, 
+`RPRED_UEQ`, 
+`RPRED_UGT`, 
+`RPRED_UGE`, 
+`RPRED_ULT`, 
+`RPRED_ULE`, 
+`RPRED_UNE`, 
+`RPRED_TRUE `, 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 

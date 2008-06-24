@@ -11,6 +11,12 @@ SKIP_FILES = [ 'layout.conf', '.svn', 'instrset.inc' ]
 # asciidoc command line
 ASCIIDOC = 'asciidoc --unsafe --conf-file=${srcdir}/layout.conf -a icons -o ${outfile} ${infile}'
 
+# specialized ASCIIDOC for certain files
+# - this is a hack trying to look generic
+ASCIIDOC_PERFILE = {
+    'userguide.txt': ASCIIDOC.replace('-a icons', '-a icons -a toc')
+}
+
 
 def _is_older(inp, outp):
     older = True
@@ -29,7 +35,8 @@ def asciidoc(opts, srcdir, inp, outp):
     if _is_older(inp, outp) or opts.force:
         if opts.verbose:
             print "asciidoc %s -> %s" % (inp, outp)
-        cmd = Template(ASCIIDOC).substitute(srcdir=srcdir, infile=inp, outfile=outp)
+        asciidoc = ASCIIDOC_PERFILE.get(os.path.split(inp)[-1], ASCIIDOC)
+        cmd = Template(asciidoc).substitute(srcdir=srcdir, infile=inp, outfile=outp)
         if opts.verbose >= 3:
             print "asciidoc command is [%s]" % cmd
         if not opts.dryrun:
