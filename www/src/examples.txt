@@ -1,25 +1,5 @@
 Examples
 ========
 
-Here's an example:
-
-[python]
-source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-include::../../test/example.py[]
-source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-which gives this output:
-
------------------------------------------------------------------------
-; ModuleID = 'my_module'
-
-define i32 @foobar(double %arg1, double %arg2) {
-entry:
-	%temp1 = add double %arg1, %arg2		; <double> [#uses=1]
-	%temp2 = sub double %temp1, 1.000000e+00		; <double> [#uses=1]
-	%temp3 = fptoui double %temp2 to i32		; <i32> [#uses=1]
-	ret i32 %temp3
-}
------------------------------------------------------------------------
-
+include::example.inc[]
 

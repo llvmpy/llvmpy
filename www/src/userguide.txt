@@ -1,8 +1,14 @@
 llvm-py User Guide
 ===================
 
-NOTE: This document is updated frequently (last updated on {localdate}).
+[NOTE]
+=======================================================================
+This document is updated frequently (last updated on {localdate}).
 Check back often.
+
+You might wish to look over the link:#examples[examples] first.
+=======================================================================
+
 
 llvm-py provides Python bindings for LLVM. This document explains how
 you can setup and use it. A working knowledge of Python and a basic idea
@@ -55,7 +61,7 @@ required for this:
 - LLVM, either installed or built
 
 On debian-based systems, the first three can be installed with the
-command `sudo apt-get install gcc g++ python python-dev'. Note that
+command `sudo apt-get install gcc g\+\+ python python-dev`. Note that
 ubuntu repository has an old version of llvm (1.8) which will not work
 with llvm-py.
 
@@ -296,7 +302,7 @@ in llvm-py.
 Modules
 ~~~~~~~
 
-Modules, in the LLVM IR, are similar to a single _C_ language source
+Modules, in the LLVM IR, are similar to a single `C` language source
 file (.c file). A module contains:
 
 - functions (declarations and definitions)
@@ -325,7 +331,7 @@ have to be explicitly selected and run on each module. This gives you
 the flexibility to choose transformations and optimizations that are
 most suitable for the code in the module.
 
-There is a LLVM binary called http://www.llvm.org/cmds/opt.html[opt],
+There is an LLVM binary called http://www.llvm.org/cmds/opt.html[opt],
 which lets you run passes on bitcode files from the command line. You
 can write your own passes (in C/C\+\+, as a shared library). This can be
 loaded and executed by +opt+. (Although llvm-py does not allow you to
@@ -361,9 +367,9 @@ over enough LLVM APIs to allow the implementation of your own
 compiler/VM backend in pure Python. If you're come this far, you
 probably know why this is a good idea.
 
-Out of the 6 modules, one is an "extension" module (i.e., it's written
-in C), and another one is a private utility module, which leaves 4
-public modules. These are:
+Out of the 6 modules, one is an ``extension'' module (i.e., it is
+written in C), and another one is a small private utility module, which
+leaves 4 public modules.  These are:
 
 - +llvm+ -- top-level package, common classes (like exceptions)
 - +llvm.core+ -- IR-related APIs
@@ -375,7 +381,7 @@ Python constructs are used (deliberately) --
 http://docs.python.org/lib/built-in-funcs.html[property()] and
 http://wiki.python.org/moin/PythonDecoratorLibrary[property
 decorators] are probably the most exotic animals around. All classes are
-the "new style" classes. The APIs are designed to be navigable (and
+"new style" classes. The APIs are designed to be navigable (and
 guessable!) once you know a few conventions. These conventions are
 highlighted in the sections below.
 
@@ -423,8 +429,8 @@ Here is a quick overview of the contents of each package:
 
 .A note on the 'import'ing of these modules
 Pythonically, modules are imported with the statement +"import
-llvm.core"+ and not +"from llvm.core import *"+. However, you might find
-it more convenient to import llvm-py modules thus:
+llvm.core"+. However, you might find it more convenient to import
+llvm-py modules thus:
 
 [python]
 source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -436,7 +442,7 @@ source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This avoids quite some typing. Both conventions work, however.
 
-TIP: Python-style documentation strings (+__doc__+) are present in
+TIP: Python-style documentation strings (`\_\_doc\_\_`) are present in
 llvm-py. You can use the +help()+ of the interactive Python
 interpreter or the +object?+ of http://ipython.scipy.org/moin/[IPython]
 to get online help. (Note: not complete yet!)
@@ -460,7 +466,7 @@ from llvm.core import *
 my_module = Module.new('my_module')
 source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The constructor of the Module class should *not* be used to instantiate
+The constructor of the Module class should _not_ be used to instantiate
 a Module object. This is a common feature for all llvm-py classes.
 
 [TIP]
@@ -903,6 +909,7 @@ source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The following constructors (static methods) can be used to create
 constants:
 
+[[constctors]]
 [frame="all",grid="all"]
 `25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Constructor Method, What It Creates
@@ -924,6 +931,7 @@ Constructor Method, What It Creates
 
 The following operations are available:
 
+[[constops]]
 [frame="all",grid="all"]
 `25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Method, Operation
@@ -944,13 +952,13 @@ Method, Operation
 `k.xor(k2)`, "Bitwise exclusive-or of `k` and `k2`."
 "`k.icmp(ipred, k2)`", "Compare `k` with `k2` using the predicate `ipred`. See table link:#ipred[below] for list of predicates for integer operands."
 "`k.fcmp(rpred, k2)`", "Compare `k` with `k2` using the predicate `rpred`. See table link:#rpred[below] for list of predicates for real operands."
-shl, TODO
-lshr, TODO
-ashr, TODO
-gep, TODO
-trunc, TODO
-sext, TODO
-zext, TODO
+`k.shl(k2)`, "Shift `k` left by `k2` bits."
+`k.lshr(k2)`, "Shift `k` logically right by `k2` bits (new bits are 0s)."
+`k.ashr(k2)`, "Shift `k` arithmetically right by `k2` bits (new bits are same as previous sign bit)."
+`k.gep(indices)`, "TODO"
+`k.trunc(ty)`, "Truncate `k` to a type `ty` of lower bitwidth."
+`k.sext(ty)`, "Sign extend `k` to a type `ty` of higher bitwidth, while extending the sign bit."
+`k.zext(ty)`, "Sign extend `k` to a type `ty` of higher bitwidth, all new bits are 0s."
 fptrunc, TODO
 fpext, TODO
 uitofp, TODO
@@ -994,24 +1002,37 @@ of these are integer constants defined in the `llvm.core` module.
 `25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Value, Meaning
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-`RPRED_FALSE`, 
-`RPRED_OEQ`, 
-`RPRED_OGT`, 
-`RPRED_OGE`, 
-`RPRED_OLT`, 
-`RPRED_OLE`, 
-`RPRED_ONE`, 
-`RPRED_ORD`, 
-`RPRED_UNO`, 
-`RPRED_UEQ`, 
-`RPRED_UGT`, 
-`RPRED_UGE`, 
-`RPRED_ULT`, 
-`RPRED_ULE`, 
-`RPRED_UNE`, 
-`RPRED_TRUE `, 
+`RPRED_FALSE`, Always false
+`RPRED_OEQ`, True if ordered and equal
+`RPRED_OGT`, True if ordered and greater than
+`RPRED_OGE`, True if ordered and greater than or equal
+`RPRED_OLT`, True if ordered and less than
+`RPRED_OLE`, True if ordered and less than or equal
+`RPRED_ONE`, True if ordered and operands are unequal
+`RPRED_ORD`, True if ordered (no NaNs)
+`RPRED_UNO`, True if unordered: `isnan(X) | isnan(Y)`
+`RPRED_UEQ`, True if unordered or equal
+`RPRED_UGT`, True if unordered or greater than
+`RPRED_UGE`, "True if unordered, greater than or equal"
+`RPRED_ULT`, "True if unordered, or less than"
+`RPRED_ULE`, "True if unordered, less than or equal"
+`RPRED_UNE`, True if unordered or not equal
+`RPRED_TRUE `, Always true
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.llvm.core.Constant
+[caption=""]
+=======================================================================
+.Base Class
+- `llvm.core.Value`
+
+.Static Constructors
+See table of constructors link:#constctors[above] for full list.
+
+.Methods
+See table of operations link:#constops[above] for full list. There are no other
+methods.
+=======================================================================
 
 
 TypeHandle (llvm.core)
@@ -1062,10 +1083,11 @@ Pass Managers and Passes (llvm.passes)
 TODO
 
 
+[[examples]]
 Annotated Examples
 ------------------
 
-TODO
+include::example.inc[]
 
 
 About the llvm-py Project

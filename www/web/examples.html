@@ -31,9 +31,20 @@
 <div id="header">
 <h1>Examples</h1>
 </div>
-<div id="preamble">
-<div class="sectionbody">
-<p>Here's an example:</p>
+<h3>A Simple Function</h3>
+<p>Let's create a module containing a single function, corresponding to the
+<tt>C</tt> function:</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">int</span> <span style="color: #000000">sum</span><span style="color: #990000">(</span><span style="color: #009900">int</span> a<span style="color: #990000">,</span> <span style="color: #009900">int</span> b<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> a <span style="color: #990000">+</span> b<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span>
+</tt></pre></div></div>
+<p>Here's how it looks like:</p>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.4
 by Lorenzo Bettini
@@ -41,66 +52,115 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-style: italic"><span style="color: #9A1900">#!/usr/bin/env python</span></span>
 
+<span style="font-style: italic"><span style="color: #9A1900"># Import the llvm-py modules.</span></span>
+<span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
 <span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm<span style="color: #990000">.</span>core <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
 
-<span style="font-style: italic"><span style="color: #9A1900">## create a module</span></span>
-module <span style="color: #990000">=</span> <span style="color: #009900">Module</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">new</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"my_module"</span><span style="color: #990000">)</span>
+<span style="font-style: italic"><span style="color: #9A1900"># Create a module.</span></span>
+my<span style="color: #009900">_</span>module <span style="color: #990000">=</span> <span style="color: #009900">Module</span><span style="color: #990000">.</span><span style="color: #000000">new</span><span style="color: #990000">(</span><span style="color: #FF0000">'my_module'</span><span style="color: #990000">)</span>
 
-<span style="font-style: italic"><span style="color: #9A1900">## create a function type taking two doubles and returning a (32-bit) integer</span></span>
-ty<span style="color: #009900">_</span>double <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">double</span></span><span style="color: #990000">()</span>
-ty<span style="color: #009900">_</span>int    <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">()</span>
-ty<span style="color: #009900">_</span>func   <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">function</span></span><span style="color: #990000">(</span> ty<span style="color: #009900">_</span>int<span style="color: #990000">,</span> <span style="color: #990000">[</span> ty<span style="color: #009900">_</span>double<span style="color: #990000">,</span> ty<span style="color: #009900">_</span>double <span style="color: #990000">]</span> <span style="color: #990000">)</span>
+<span style="font-style: italic"><span style="color: #9A1900"># All the types involved here are "int"s. This type is represented</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># by an object of the llvm.core.Type class:</span></span>
+ty<span style="color: #009900">_</span>int <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="color: #000000">int</span><span style="color: #990000">()</span>   <span style="font-style: italic"><span style="color: #9A1900"># by default 32 bits</span></span>
 
-<span style="font-style: italic"><span style="color: #9A1900">## create a function of this type</span></span>
-func      <span style="color: #990000">=</span> <span style="color: #009900">Function</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">new</span></span><span style="color: #990000">(</span> module<span style="color: #990000">,</span> ty<span style="color: #009900">_</span>func<span style="color: #990000">,</span> <span style="color: #FF0000">"foobar"</span> <span style="color: #990000">)</span>
+<span style="font-style: italic"><span style="color: #9A1900"># We need to represent the class of functions that accept two integers</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># and return an integer. This is represented by an object of the</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># function type (llvm.core.FunctionType):</span></span>
+ty<span style="color: #009900">_</span>func <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="color: #000000">function</span><span style="color: #990000">(</span>ty<span style="color: #009900">_</span>int<span style="color: #990000">,</span> <span style="color: #990000">[</span>ty<span style="color: #009900">_</span>int<span style="color: #990000">,</span> ty<span style="color: #009900">_</span>int<span style="color: #990000">])</span>
 
-<span style="font-style: italic"><span style="color: #9A1900"># name function args</span></span>
-func<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">].</span>name <span style="color: #990000">=</span> <span style="color: #FF0000">"arg1"</span>
-func<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">1</span><span style="color: #990000">].</span>name <span style="color: #990000">=</span> <span style="color: #FF0000">"arg2"</span>
+<span style="font-style: italic"><span style="color: #9A1900"># Now we need a function named 'sum' of this type. Functions are not</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># free-standing (in llvm-py); it needs to be contained in a module.</span></span>
+f<span style="color: #009900">_</span>sum <span style="color: #990000">=</span> my<span style="color: #009900">_</span>module<span style="color: #990000">.</span><span style="color: #000000">add_function</span><span style="color: #990000">(</span>ty<span style="color: #009900">_</span>func<span style="color: #990000">,</span> <span style="color: #FF0000">"sum"</span><span style="color: #990000">)</span>
 
-<span style="font-style: italic"><span style="color: #9A1900">## implement the function</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># Let's name the function arguments as 'a' and 'b'.</span></span>
+f<span style="color: #009900">_</span>sum<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">].</span>name <span style="color: #990000">=</span> <span style="color: #FF0000">"a"</span>
+f<span style="color: #009900">_</span>sum<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">1</span><span style="color: #990000">].</span>name <span style="color: #990000">=</span> <span style="color: #FF0000">"b"</span>
 
-<span style="font-style: italic"><span style="color: #9A1900"># add a basic block</span></span>
-entry <span style="color: #990000">=</span> func<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">append_basic_block</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"entry"</span><span style="color: #990000">)</span>
+<span style="font-style: italic"><span style="color: #9A1900"># Our function needs a "basic block" -- a set of instructions that</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># end with a terminator (like return, branch etc.). By convention</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># the first block is called "entry".</span></span>
+bb <span style="color: #990000">=</span> f<span style="color: #009900">_</span>sum<span style="color: #990000">.</span><span style="color: #000000">append_basic_block</span><span style="color: #990000">(</span><span style="color: #FF0000">"entry"</span><span style="color: #990000">)</span>
 
-<span style="font-style: italic"><span style="color: #9A1900"># create an llvm::IRBuilder</span></span>
-builder <span style="color: #990000">=</span> <span style="color: #009900">Builder</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">new</span></span><span style="color: #990000">(</span>entry<span style="color: #990000">)</span>
+<span style="font-style: italic"><span style="color: #9A1900"># Let's add instructions into the block. For this, we need an</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># instruction builder:</span></span>
+builder <span style="color: #990000">=</span> <span style="color: #009900">Builder</span><span style="color: #990000">.</span><span style="color: #000000">new</span><span style="color: #990000">(</span>bb<span style="color: #990000">)</span>
 
-<span style="font-style: italic"><span style="color: #9A1900"># add two args into tmp1</span></span>
-tmp1 <span style="color: #990000">=</span> builder<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">add</span></span><span style="color: #990000">(</span>func<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">],</span> func<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">1</span><span style="color: #990000">],</span> <span style="color: #FF0000">"tmp1"</span><span style="color: #990000">)</span>
+<span style="font-style: italic"><span style="color: #9A1900"># OK, now for the instructions themselves. We'll create an add</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># instruction that returns the sum as a value, which we'll use</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># a ret instruction to return.</span></span>
+tmp <span style="color: #990000">=</span> builder<span style="color: #990000">.</span><span style="color: #000000">add</span><span style="color: #990000">(</span>f<span style="color: #009900">_</span>sum<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">],</span> f<span style="color: #009900">_</span>sum<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">1</span><span style="color: #990000">],</span> <span style="color: #FF0000">"tmp"</span><span style="color: #990000">)</span>
+builder<span style="color: #990000">.</span><span style="color: #000000">ret</span><span style="color: #990000">(</span>tmp<span style="color: #990000">)</span>
 
-<span style="font-style: italic"><span style="color: #9A1900"># sub `1' from that</span></span>
-one <span style="color: #990000">=</span> <span style="color: #009900">Constant</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">real</span></span><span style="color: #990000">(</span> ty<span style="color: #009900">_</span>double<span style="color: #990000">,</span> <span style="color: #993399">1.0</span> <span style="color: #990000">)</span>
-tmp2 <span style="color: #990000">=</span> builder<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">sub</span></span><span style="color: #990000">(</span>tmp1<span style="color: #990000">,</span> one<span style="color: #990000">,</span> <span style="color: #FF0000">"tmp2"</span><span style="color: #990000">)</span>
-
-<span style="font-style: italic"><span style="color: #9A1900"># convert to integer</span></span>
-tmp3 <span style="color: #990000">=</span> builder<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">fptoui</span></span><span style="color: #990000">(</span>tmp2<span style="color: #990000">,</span> ty<span style="color: #009900">_</span>int<span style="color: #990000">,</span> <span style="color: #FF0000">"tmp3"</span><span style="color: #990000">)</span>
-
-<span style="font-style: italic"><span style="color: #9A1900"># return it</span></span>
-builder<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">ret</span></span><span style="color: #990000">(</span>tmp3<span style="color: #990000">)</span>
-
-<span style="font-style: italic"><span style="color: #9A1900"># dump the module to see the llvm "assembly" code</span></span>
-<span style="font-weight: bold"><span style="color: #0000FF">print</span></span> module
+<span style="font-style: italic"><span style="color: #9A1900"># We've completed the definition now! Let's see the LLVM assembly</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># language representation of what we've created:</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">print</span></span> my<span style="color: #009900">_</span>module
 </tt></pre></div></div>
-<p>which gives this output:</p>
+<p>Here is the output:</p>
 <div class="listingblock">
 <div class="content">
 <pre><tt>; ModuleID = 'my_module'
 
-define i32 @foobar(double %arg1, double %arg2) {
+define i32 @sum(i32 %a, i32 %b) {
 entry:
-        %temp1 = add double %arg1, %arg2                ; &lt;double&gt; [#uses=1]
-        %temp2 = sub double %temp1, 1.000000e+00                ; &lt;double&gt; [#uses=1]
-        %temp3 = fptoui double %temp2 to i32            ; &lt;i32&gt; [#uses=1]
-        ret i32 %temp3
+        %tmp = add i32 %a, %b           ; &lt;i32&gt; [#uses=1]
+        ret i32 %tmp
 }</tt></pre>
 </div></div>
-</div>
-</div>
+<h3>Adding JIT Compilation</h3>
+<p>Let's compile this function in-memory and run it.</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900">#!/usr/bin/env python</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Import the llvm-py modules.</span></span>
+<span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
+<span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm<span style="color: #990000">.</span>core <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
+<span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm<span style="color: #990000">.</span>ee <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>          <span style="font-style: italic"><span style="color: #9A1900"># new import: ee = Execution Engine</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Create a module, as in the previous example.</span></span>
+my<span style="color: #009900">_</span>module <span style="color: #990000">=</span> <span style="color: #009900">Module</span><span style="color: #990000">.</span><span style="color: #000000">new</span><span style="color: #990000">(</span><span style="color: #FF0000">'my_module'</span><span style="color: #990000">)</span>
+ty<span style="color: #009900">_</span>int <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="color: #000000">int</span><span style="color: #990000">()</span>   <span style="font-style: italic"><span style="color: #9A1900"># by default 32 bits</span></span>
+ty<span style="color: #009900">_</span>func <span style="color: #990000">=</span> <span style="color: #009900">Type</span><span style="color: #990000">.</span><span style="color: #000000">function</span><span style="color: #990000">(</span>ty<span style="color: #009900">_</span>int<span style="color: #990000">,</span> <span style="color: #990000">[</span>ty<span style="color: #009900">_</span>int<span style="color: #990000">,</span> ty<span style="color: #009900">_</span>int<span style="color: #990000">])</span>
+f<span style="color: #009900">_</span>sum <span style="color: #990000">=</span> my<span style="color: #009900">_</span>module<span style="color: #990000">.</span><span style="color: #000000">add_function</span><span style="color: #990000">(</span>ty<span style="color: #009900">_</span>func<span style="color: #990000">,</span> <span style="color: #FF0000">"sum"</span><span style="color: #990000">)</span>
+f<span style="color: #009900">_</span>sum<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">].</span>name <span style="color: #990000">=</span> <span style="color: #FF0000">"a"</span>
+f<span style="color: #009900">_</span>sum<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">1</span><span style="color: #990000">].</span>name <span style="color: #990000">=</span> <span style="color: #FF0000">"b"</span>
+bb <span style="color: #990000">=</span> f<span style="color: #009900">_</span>sum<span style="color: #990000">.</span><span style="color: #000000">append_basic_block</span><span style="color: #990000">(</span><span style="color: #FF0000">"entry"</span><span style="color: #990000">)</span>
+builder <span style="color: #990000">=</span> <span style="color: #009900">Builder</span><span style="color: #990000">.</span><span style="color: #000000">new</span><span style="color: #990000">(</span>bb<span style="color: #990000">)</span>
+tmp <span style="color: #990000">=</span> builder<span style="color: #990000">.</span><span style="color: #000000">add</span><span style="color: #990000">(</span>f<span style="color: #009900">_</span>sum<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">],</span> f<span style="color: #009900">_</span>sum<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">1</span><span style="color: #990000">],</span> <span style="color: #FF0000">"tmp"</span><span style="color: #990000">)</span>
+builder<span style="color: #990000">.</span><span style="color: #000000">ret</span><span style="color: #990000">(</span>tmp<span style="color: #990000">)</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Create a module provider object first. Modules can come from</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># in-memory IRs like what we created now, or from bitcode (.bc)</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># files. The module provider abstracts this detail.</span></span>
+mp <span style="color: #990000">=</span> <span style="color: #009900">ModuleProvider</span><span style="color: #990000">.</span><span style="color: #000000">new</span><span style="color: #990000">(</span>my<span style="color: #009900">_</span>module<span style="color: #990000">)</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Create an execution engine object. This will create a JIT compiler</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># on platforms that support it, or an interpreter otherwise.</span></span>
+ee <span style="color: #990000">=</span> <span style="color: #009900">ExecutionEngine</span><span style="color: #990000">.</span><span style="color: #000000">new</span><span style="color: #990000">(</span>mp<span style="color: #990000">)</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># The arguments needs to be passed as "GenericValue" objects.</span></span>
+arg1 <span style="color: #990000">=</span> <span style="color: #009900">GenericValue</span><span style="color: #990000">.</span><span style="color: #000000">int</span><span style="color: #990000">(</span>ty<span style="color: #009900">_</span>int<span style="color: #990000">,</span> <span style="color: #993399">100</span><span style="color: #990000">)</span>
+arg2 <span style="color: #990000">=</span> <span style="color: #009900">GenericValue</span><span style="color: #990000">.</span><span style="color: #000000">int</span><span style="color: #990000">(</span>ty<span style="color: #009900">_</span>int<span style="color: #990000">,</span> <span style="color: #993399">42</span><span style="color: #990000">)</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># Now let's compile and run!</span></span>
+retval <span style="color: #990000">=</span> ee<span style="color: #990000">.</span><span style="color: #000000">run_function</span><span style="color: #990000">(</span>f<span style="color: #009900">_</span>sum<span style="color: #990000">,</span> <span style="color: #990000">[</span>arg1<span style="color: #990000">,</span> arg2<span style="color: #990000">])</span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># The return value is also GenericValue. Let's print it.</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">print</span></span> <span style="color: #FF0000">"returned"</span><span style="color: #990000">,</span> retval<span style="color: #990000">.</span><span style="color: #000000">as_int</span><span style="color: #990000">()</span>
+</tt></pre></div></div>
+<p>And here's the output:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>returned 142</tt></pre>
+</div></div>
+<p>That was easy, right?!</p>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 24-Jun-2008.
+Last updated 25-Jun-2008.
 </div>
 </div>
 </div>

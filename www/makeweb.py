@@ -6,7 +6,7 @@ from string import Template
 from optparse import OptionParser
 
 # files in src dir that should not be copied to web dir
-SKIP_FILES = [ 'layout.conf', '.svn', 'instrset.inc' ]
+SKIP_FILES = [ 'layout.conf', '.svn', 'instrset.inc', 'example.inc' ]
 
 # asciidoc command line
 ASCIIDOC = 'asciidoc --unsafe --conf-file=${srcdir}/layout.conf -a icons -o ${outfile} ${infile}'
