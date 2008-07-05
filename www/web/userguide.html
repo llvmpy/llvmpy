@@ -49,9 +49,8 @@ window.onload = function(){generateToc(2)}
 <img src="./images/icons/note.png" alt="Note" />
 </td>
 <td class="content">
-<p>This document is updated frequently (last updated on 25-Jun-2008).
+<p>This document is updated frequently (last updated on 05-Jul-2008).
 Check back often.</p>
-<p>You might wish to look over the <a href="#examples">examples</a> first.</p>
 </td>
 </tr></table>
 </div>
@@ -2390,7 +2389,83 @@ cellspacing="0" cellpadding="4">
 methods.</p>
 </div></div>
 <h3>TypeHandle (llvm.core)</h3>
-<p>TODO</p>
+<p>TypeHandle objects are used to create recursive types, like this linked
+list node structure in C:</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> node
+<span style="color: #FF0000">{</span>
+    <span style="color: #009900">int</span> data<span style="color: #990000">;</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> node <span style="color: #990000">*</span>next<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+</tt></pre></div></div>
+<p>This can be realized in llvm-py like this:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>#!/usr/bin/env python
+
+from llvm.core import *
+
+# create a type handle object
+th = TypeHandle.new(Type.opaque())
+
+# create the struct with an opaque* instead of self*
+ts = Type.struct([ Type.int(), Type.pointer(th.type) ])
+
+# unify the types
+th.type.refine(ts)
+
+# create a module, and add a "typedef"
+m = Module.new('mod1')
+m.add_type_name("struct.node", th.type)
+
+# show what we created
+print m</tt></pre>
+</div></div>
+<p>which gives the output:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>; ModuleID = 'mod1'
+        %struct.node = type { i32, %struct.node* }</tt></pre>
+</div></div>
+<p>For more details on what is going on here, please refer the LLVM
+Programmer's Manual section
+<a href="http://llvm.org/docs/ProgrammersManual.html#TypeResolve">"LLVM Type
+Resolution"</a>. The TypeHandle class of llvm-py corresponds to
+<a href="http://www.llvm.org/doxygen/classllvm_1_1PATypeHolder.html"><tt>llvm::PATypeHolder</tt></a>
+in C++. The above example is available as
+<a href="http://code.google.com/p/llvm-py/source/browse/trunk/test/typehandle.py">test/typehandle.py</a>
+in the source distribution.</p>
+<div class="exampleblock">
+<div class="title">llvm.core.TypeHandle</div>
+<div class="exampleblock-content">
+<div class="title">Static Constructors</div><dl>
+<dt>
+<tt>new(abstract_ty)</tt>
+</dt>
+<dd>
+<p>
+    create a new <tt>TypeHandle</tt> instance, which holds a reference to the
+    given abstract type <tt>abstract_ty</tt>. Typically, the abstract type used
+    is <tt>Type.opaque()</tt>.
+</p>
+</dd>
+</dl>
+<div class="title">Properties</div><dl>
+<dt>
+<tt>type</tt>
+</dt>
+<dd>
+<p>
+    returns the contained type. Typically the <tt>refine</tt> method is called
+    on the returned type.
+</p>
+</dd>
+</dl>
+</div></div>
 <h3>Instructions (llvm.core)</h3>
 <p>TODO</p>
 <h3>Basic Block (llvm.core)</h3>
@@ -2409,8 +2484,8 @@ methods.</p>
 <h2><a id="examples"></a>Annotated Examples</h2>
 <div class="sectionbody">
 <h3>A Simple Function</h3>
-<p>Let's create a module containing a single function, corresponding to the
-<tt>C</tt> function:</p>
+<p>Let's create a (LLVM) module containing a single function, corresponding
+to the <tt>C</tt> function:</p>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.4
 by Lorenzo Bettini
@@ -2433,7 +2508,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
 <span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm<span style="color: #990000">.</span>core <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
 
-<span style="font-style: italic"><span style="color: #9A1900"># Create a module.</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># Create an (empty) module.</span></span>
 my<span style="color: #009900">_</span>module <span style="color: #990000">=</span> <span style="color: #009900">Module</span><span style="color: #990000">.</span><span style="color: #000000">new</span><span style="color: #990000">(</span><span style="color: #FF0000">'my_module'</span><span style="color: #990000">)</span>
 
 <span style="font-style: italic"><span style="color: #9A1900"># All the types involved here are "int"s. This type is represented</span></span>
@@ -2533,22 +2608,21 @@ retval <span style="color: #990000">=</span> ee<span style="color: #990000">.</s
 <div class="content">
 <pre><tt>returned 142</tt></pre>
 </div></div>
-<p>That was easy, right?!</p>
 </div>
 <h2>About the llvm-py Project</h2>
 <div class="sectionbody">
 <p>llvm-py lives at
 <a href="http://mdevan.nfshost.com/llvm-py/">http://mdevan.nfshost.com/llvm-py/</a>.
-The code (subversion repository) and the issue tracker are hosted on google
-code, at
+The code (subversion repository) and the issue tracker are hosted on the
+Google code hosting service, at
 <a href="http://code.google.com/p/llvm-py/">http://code.google.com/p/llvm-py/</a>.
-llvm-py is distributed under the new BSD license, the full license
-text is in the file named
+It is distributed under the new BSD license, the full license text is in
+the file named
 <a href="http://code.google.com/p/llvm-py/source/browse/trunk/LICENSE">LICENSE</a>
 available in the source distribution.</p>
 <p>The entire llvm-py website is generated from marked up text files
 using the tool <a href="http://www.methods.co.nz/asciidoc/"><em>AsciiDoc</em></a>. These text
-files and the generated HTML pages are available in the source
+files and the (pre-)generated HTML pages are available in the source
 distribution.</p>
 <p>llvm-py is an ongoing, live project. Your contributions in any form
 are most welcome. You can checkout the latest SVN HEAD from
@@ -2559,7 +2633,7 @@ reached at <em>mdevan.foobar@gmail.com</em>.</p>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 25-Jun-2008.
+Last updated 05-Jul-2008.
 </div>
 </div>
 </div>

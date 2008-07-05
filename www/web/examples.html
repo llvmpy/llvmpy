@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="style/xhtml11.css" type="text/css" />
 <link rel="stylesheet" href="style/xhtml11-quirks.css" type="text/css" />
 <link rel="stylesheet" href="style/layout.css" type="text/css" />
-<title>Examples - llvm-py</title>
+<title>Examples and LLVM Tutorials - llvm-py</title>
 </head>
 <body>
 <div id="layout-banner">
@@ -29,11 +29,13 @@
 <td>
 <div id="layout-content">
 <div id="header">
-<h1>Examples</h1>
+<h1>Examples and LLVM Tutorials</h1>
 </div>
+<h2>Examples</h2>
+<div class="sectionbody">
 <h3>A Simple Function</h3>
-<p>Let's create a module containing a single function, corresponding to the
-<tt>C</tt> function:</p>
+<p>Let's create a (LLVM) module containing a single function, corresponding
+to the <tt>C</tt> function:</p>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 2.4
 by Lorenzo Bettini
@@ -56,7 +58,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
 <span style="font-weight: bold"><span style="color: #000080">from</span></span> llvm<span style="color: #990000">.</span>core <span style="font-weight: bold"><span style="color: #000080">import</span></span> <span style="color: #990000">*</span>
 
-<span style="font-style: italic"><span style="color: #9A1900"># Create a module.</span></span>
+<span style="font-style: italic"><span style="color: #9A1900"># Create an (empty) module.</span></span>
 my<span style="color: #009900">_</span>module <span style="color: #990000">=</span> <span style="color: #009900">Module</span><span style="color: #990000">.</span><span style="color: #000000">new</span><span style="color: #990000">(</span><span style="color: #FF0000">'my_module'</span><span style="color: #990000">)</span>
 
 <span style="font-style: italic"><span style="color: #9A1900"># All the types involved here are "int"s. This type is represented</span></span>
@@ -156,11 +158,77 @@ retval <span style="color: #990000">=</span> ee<span style="color: #990000">.</s
 <div class="content">
 <pre><tt>returned 142</tt></pre>
 </div></div>
-<p>That was easy, right?!</p>
+</div>
+<h2>LLVM Tutorials</h2>
+<div class="sectionbody">
+<p>The <a href="http://www.llvm.org/docs/tutorial/">LLVM tutorials</a> have been
+ported to llvm-py. Below are the links to the original LLVM tutorial and
+the corresponding Python code using llvm-py:</p>
+<div class="title">Simple JIT Tutorials</div>
+<p>(These were contributed by Sebastien Binet; thanks!)</p>
+<ol>
+<li>
+<p>
+A First Function
+  <a href="http://www.llvm.org/docs/tutorial/JITTutorial1.html">LLVM</a>
+  <a href="examples/JITTutorial1.py">llvm-py</a>
+</p>
+</li>
+<li>
+<p>
+A More Complicated Function
+  <a href="http://www.llvm.org/docs/tutorial/JITTutorial2.html">LLVM</a>
+  <a href="examples/JITTutorial2.py">llvm-py</a>
+</p>
+</li>
+</ol>
+<div class="title">Kaleidoscope: Implementing a Language with LLVM</div><ol>
+<li>
+<p>
+Tutorial Introduction and the Lexer (TODO)
+</p>
+</li>
+<li>
+<p>
+Implementing a Parser and AST (TODO)
+</p>
+</li>
+<li>
+<p>
+Implementing Code Generation to LLVM IR (TODO)
+</p>
+</li>
+<li>
+<p>
+Adding JIT and Optimizer Support (TODO)
+</p>
+</li>
+<li>
+<p>
+Extending the language: control flow (TODO)
+</p>
+</li>
+<li>
+<p>
+Extending the language: user-defined operators (TODO)
+</p>
+</li>
+<li>
+<p>
+Extending the language: mutable variables / SSA construction (TODO)
+</p>
+</li>
+<li>
+<p>
+Conclusion and other useful LLVM tidbits (TODO)
+</p>
+</li>
+</ol>
+</div>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 25-Jun-2008.
+Last updated 05-Jul-2008.
 </div>
 </div>
 </div>

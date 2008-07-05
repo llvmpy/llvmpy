@@ -5,8 +5,6 @@ llvm-py User Guide
 =======================================================================
 This document is updated frequently (last updated on {localdate}).
 Check back often.
-
-You might wish to look over the link:#examples[examples] first.
 =======================================================================
 
 
@@ -1038,7 +1036,54 @@ methods.
 TypeHandle (llvm.core)
 ~~~~~~~~~~~~~~~~~~~~~~
 
-TODO
+TypeHandle objects are used to create recursive types, like this linked
+list node structure in C:
+
+[C]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+struct node
+{
+    int data;
+    struct node *next;
+};
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This can be realized in llvm-py like this:
+
+-----------------------------------------------------------------------
+include::../../test/typehandle.py[]
+-----------------------------------------------------------------------
+
+which gives the output:
+
+-----------------------------------------------------------------------
+; ModuleID = 'mod1'
+	%struct.node = type { i32, %struct.node* }
+-----------------------------------------------------------------------
+
+For more details on what is going on here, please refer the LLVM
+Programmer's Manual section
+http://llvm.org/docs/ProgrammersManual.html#TypeResolve["LLVM Type
+Resolution"]. The TypeHandle class of llvm-py corresponds to
+http://www.llvm.org/doxygen/classllvm_1_1PATypeHolder.html[`llvm::PATypeHolder`]
+in C\+\+. The above example is available as
+http://code.google.com/p/llvm-py/source/browse/trunk/test/typehandle.py[test/typehandle.py]
+in the source distribution.
+
+.llvm.core.TypeHandle
+[caption=""]
+=======================================================================
+.Static Constructors
+`new(abstract_ty)`::
+    create a new `TypeHandle` instance, which holds a reference to the
+    given abstract type `abstract_ty`. Typically, the abstract type used
+    is `Type.opaque()`.
+
+.Properties
+`type`::
+    returns the contained type. Typically the `refine` method is called
+    on the returned type.
+=======================================================================
 
 
 Instructions (llvm.core)
@@ -1095,17 +1140,17 @@ About the llvm-py Project
 
 llvm-py lives at
 http://mdevan.nfshost.com/llvm-py/[http://mdevan.nfshost.com/llvm-py/].
-The code (subversion repository) and the issue tracker are hosted on google
-code, at
+The code (subversion repository) and the issue tracker are hosted on the
+Google code hosting service, at
 http://code.google.com/p/llvm-py/[http://code.google.com/p/llvm-py/].
-llvm-py is distributed under the new BSD license, the full license
-text is in the file named
+It is distributed under the new BSD license, the full license text is in
+the file named
 http://code.google.com/p/llvm-py/source/browse/trunk/LICENSE[LICENSE]
 available in the source distribution.
 
 The entire llvm-py website is generated from marked up text files
 using the tool http://www.methods.co.nz/asciidoc/[AsciiDoc]. These text
-files and the generated HTML pages are available in the source
+files and the (pre-)generated HTML pages are available in the source
 distribution.
 
 llvm-py is an ongoing, live project. Your contributions in any form

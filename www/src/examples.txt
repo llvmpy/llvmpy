@@ -1,5 +1,35 @@
+Examples and LLVM Tutorials
+===========================
+
 Examples
-========
+--------
 
 include::example.inc[]
 
+LLVM Tutorials
+--------------
+
+The http://www.llvm.org/docs/tutorial/[LLVM tutorials] have been
+ported to llvm-py. Below are the links to the original LLVM tutorial and
+the corresponding Python code using llvm-py:
+
+.Simple JIT Tutorials
+(These were contributed by Sebastien Binet; thanks!)
+
+1. A First Function
+  http://www.llvm.org/docs/tutorial/JITTutorial1.html[LLVM]
+  link:examples/JITTutorial1.py[llvm-py]
+2. A More Complicated Function
+  http://www.llvm.org/docs/tutorial/JITTutorial2.html[LLVM]
+  link:examples/JITTutorial2.py[llvm-py]
+
+
+.Kaleidoscope: Implementing a Language with LLVM
+1. Tutorial Introduction and the Lexer (TODO)
+2. Implementing a Parser and AST (TODO)
+3. Implementing Code Generation to LLVM IR (TODO)
+4. Adding JIT and Optimizer Support (TODO)
+5. Extending the language: control flow (TODO)
+6. Extending the language: user-defined operators (TODO)
+7. Extending the language: mutable variables / SSA construction (TODO)
+8. Conclusion and other useful LLVM tidbits (TODO)

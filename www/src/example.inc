@@ -2,8 +2,8 @@
 A Simple Function
 ~~~~~~~~~~~~~~~~~
 
-Let's create a module containing a single function, corresponding to the
-`C` function:
+Let's create a (LLVM) module containing a single function, corresponding
+to the `C` function:
 
 [C]
 source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,7 +23,7 @@ source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 from llvm import *
 from llvm.core import *
 
-# Create a module.
+# Create an (empty) module.
 my_module = Module.new('my_module')
 
 # All the types involved here are "int"s. This type is represented
@@ -127,6 +127,4 @@ And here's the output:
 -----------------------------------------------------------------------
 returned 142
 -----------------------------------------------------------------------
-
-That was easy, right?!
 

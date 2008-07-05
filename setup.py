@@ -26,11 +26,14 @@ def get_llvm_config():
 
     # get from command-line, or use default
     lc = 'llvm-config'
-    for i in xrange(0, len(sys.argv)):
+    i = 0
+    while i < len(sys.argv):
         arg = sys.argv[i]
         if arg.startswith('--llvm-config='):
             del sys.argv[i]
             lc = arg.split('=')[1]
+        else:
+            i += 1
     
     # see if it works
     version = _run(lc + ' --version')
@@ -49,7 +52,9 @@ def call_setup(llvm_config):
         ['core', 'analysis', 'scalaropts', 'executionengine', 
          'jit',  'native'])
 
-    std_libs    = [ 'pthread', 'dl', 'm' ]
+    std_libs    = [ 'pthread', 'm' ]
+    if not sys.platform.startswith("openbsd"):
+        std_libs.append("dl")
 
     ext_core = Extension(
         'llvm._core',
@@ -60,11 +65,12 @@ def call_setup(llvm_config):
         include_dirs = [incdir],
         library_dirs = [libdir],
         libraries = std_libs + libs_core,
-        extra_objects = objs_core)
+        extra_objects = objs_core,
+        extra_link_args = ["-fPIC"])
 
     setup(
         name='llvm-py',
-        version='0.2.1',
+        version='0.3',
         description='Python Bindings for LLVM',
         author='Mahadevan R',
         author_email='mdevan.foobar@gmail.com',
