@@ -698,6 +698,35 @@ _w ## func (PyObject *self, PyObject *args)                     \
 
 /**
  * Wrap LLVM functions of the type
+ * outtype func(intype1 arg1, int arg2, intype3 *arg3v, unsigned arg3n)
+ * where arg3v is an array of intype3 elements, arg3n in length.
+ */
+#define _wrap_objintlist2obj(func, intype1, intype3, outtype)   \
+static PyObject *                                               \
+_w ## func (PyObject *self, PyObject *args)                     \
+{                                                               \
+    PyObject *obj1, *obj3;                                      \
+    intype1 arg1;                                               \
+    int arg2;                                                   \
+    intype3 *arg3v;                                             \
+    unsigned arg3n;                                             \
+    outtype ret;                                                \
+                                                                \
+    if (!PyArg_ParseTuple(args, "OiO", &obj1, &arg2, &obj3))    \
+        return NULL;                                            \
+                                                                \
+    arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);               \
+    arg3n = (unsigned) PyList_Size(obj3);                       \
+    if (!(arg3v = ( intype3 *)make_array_from_list(obj3, arg3n)))   \
+        return PyErr_NoMemory();                                \
+                                                                \
+    ret = func (arg1, arg2, arg3v, arg3n);                      \
+    free(arg3v);                                                \
+    return ctor_ ## outtype (ret);                              \
+}
+
+/**
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 *arg3v, unsigned arg3n)
  * where arg3v is an array of intype3 elements, arg3n in length.
  */

@@ -46,6 +46,9 @@ LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef, LLVMValueRef *Values,
 LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef, LLVMValueRef V,
                                 unsigned Index, const char *Name);
 
+LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef B, int ID,
+    LLVMTypeRef *Types, unsigned Count);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

@@ -658,8 +658,8 @@ _wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
     LLVMModuleProviderRef mp;
     PyObject *obj;
     int force_interpreter;
-    LLVMExecutionEngineRef ee;
-    char *outmsg;
+    LLVMExecutionEngineRef ee = 0;
+    char *outmsg = 0;
     PyObject *ret;
     int error;
 
@@ -668,10 +668,14 @@ _wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
 
     mp = (LLVMModuleProviderRef) PyCObject_AsVoidPtr(obj);
 
-    if (force_interpreter)
+    printf("\ncalling LLVMCreateInterpreter..");
+
+//    if (force_interpreter)
         error = LLVMCreateInterpreter(&ee, mp, &outmsg);
-    else
-        error = LLVMCreateJITCompiler(&ee, mp, &outmsg);
+//    else
+//        error = LLVMCreateJITCompiler(&ee, mp, &outmsg);
+
+    printf("error = %d, outmsg = %s, ee = %p\n", error, outmsg, ee);
 
     if (error) {
         ret = PyString_FromString(outmsg);
@@ -780,6 +784,9 @@ _wLLVMGenericValueToFloat(PyObject *self, PyObject *args)
 }
 
 _wrap_obj2none(LLVMDisposeGenericValue, LLVMGenericValueRef)
+
+_wrap_objintlist2obj(LLVMGetIntrinsic, LLVMModuleRef, LLVMTypeRef,
+    LLVMValueRef)
 
 
 /*===----------------------------------------------------------------------===*/
@@ -1144,6 +1151,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMGenericValueToInt )
     _method( LLVMGenericValueToFloat )
     _method( LLVMDisposeGenericValue )
+
+    _method( LLVMGetIntrinsic )
 
     { NULL }
 };

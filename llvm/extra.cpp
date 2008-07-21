@@ -12,6 +12,7 @@
 #include "llvm/ModuleProvider.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/CallSite.h"
+#include "llvm/IntrinsicInst.h"
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -83,5 +84,18 @@ LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef B, LLVMValueRef *Values,
 LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef B, LLVMValueRef V,
                                 unsigned Index, const char *Name) {
   return wrap(unwrap(B)->CreateGetResult(unwrap(V), Index, Name));
+}
+
+LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef M, int ID,
+    LLVMTypeRef *Types, unsigned Count)
+{
+    std::vector<const Type*> Tys;
+    for (LLVMTypeRef *I = Types, *E = Types + Count; I != E; ++I)
+        Tys.push_back(unwrap(*I));
+  
+    Function *intfunc = Intrinsic::getDeclaration(unwrap(M),
+        Intrinsic::ID(ID), &Tys[0], Count);
+
+    return wrap(intfunc);
 }
 
