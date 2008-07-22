@@ -18,10 +18,10 @@ the corresponding Python code using llvm-py:
 
 1. A First Function
   http://www.llvm.org/docs/tutorial/JITTutorial1.html[LLVM]
-  link:examples/JITTutorial1.py[llvm-py]
+  link:examples/JITTutorial1.html[llvm-py]
 2. A More Complicated Function
   http://www.llvm.org/docs/tutorial/JITTutorial2.html[LLVM]
-  link:examples/JITTutorial2.py[llvm-py]
+  link:examples/JITTutorial2.html[llvm-py]
 
 
 .Kaleidoscope: Implementing a Language with LLVM

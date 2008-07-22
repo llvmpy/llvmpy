@@ -1,5 +1,7 @@
 0.3, in progress:
 
+  * Intrinsics added.
+  * JIT Tutorials ported (Sebastien Binet).
   * GenericValue added. Used by ExecutionEngine.run().
   * Build cleanly on OpenBSD, x86-64/amd64 (Laurence Tratt).
   * Updated documentation.

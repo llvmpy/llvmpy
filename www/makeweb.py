@@ -1,21 +1,45 @@
 #!/usr/bin/env python
 
+# Usage: run "python makeweb.py src web" to update files
+# under 'web'. See "python makeweb.py --help" for more options.
+
 import os, sys, shutil
 from stat import *
-from string import Template
 from optparse import OptionParser
 
-# files in src dir that should not be copied to web dir
-SKIP_FILES = [ 'layout.conf', '.svn', 'instrset.inc', 'example.inc' ]
 
-# asciidoc command line
-ASCIIDOC = 'asciidoc --unsafe --conf-file=${srcdir}/layout.conf -a icons -o ${outfile} ${infile}'
+# how to process files that match various filename patterns
+FILE_ACTION_TBL = [
 
-# specialized ASCIIDOC for certain files
-# - this is a hack trying to look generic
-ASCIIDOC_PERFILE = {
-    'userguide.txt': ASCIIDOC.replace('-a icons', '-a icons -a toc')
-}
+    # selector_func(infilepath) -> True|False
+    # output_filepath_func(outfilepath) -> outfilepath
+    # cmd_line_func(opts, infilepath, outfilepath) -> cmdline|None
+
+    ( lambda f: f.endswith('.py'),
+      lambda o: o.replace('.py', '.html'),
+      lambda opts, i, o: "source-highlight --input='%s' --output='%s'" \
+        % (i, o) ),
+
+    ( lambda f: f.endswith('userguide.txt'),
+      lambda o: o.replace('.txt', '.html'),
+      lambda opts, i, o: "asciidoc --unsafe --conf-file='%s/layout.conf' -a icons -a toc -o '%s' '%s'" \
+        % (opts.srcdir, o, i) ),
+
+    ( lambda f: f.endswith('.txt'),
+      lambda o: o.replace('.txt', '.html'),
+      lambda opts, i, o: "asciidoc --unsafe --conf-file='%s/layout.conf' -a icons -o '%s' '%s'" \
+        % (opts.srcdir, o, i) ),
+
+    ( lambda f: f.endswith('layout.conf') or f.endswith('.svn') or f.endswith('.inc'),
+      lambda o: o,
+      lambda opts, i, o: None )
+]
+
+
+# list of directories to skip
+DIR_SKIP_TBL = [
+    '.svn'
+]
 
 
 def _is_older(inp, outp):
@@ -31,61 +55,84 @@ def _rmtree_warn(fn, path, excinfo):
     print "** WARNING **: error while doing %s on %s" % (fn, path)
 
 
-def asciidoc(opts, srcdir, inp, outp):
-    if _is_older(inp, outp) or opts.force:
+def _can_skip(opts, infile, outfile):
+    return not _is_older(infile, outfile) and not opts.force
+
+
+def process_file(opts, infile, outfile):
+
+    for matchfn, outfilefn, cmdfn in FILE_ACTION_TBL:
+        if matchfn(infile):
+            outfile_actual = outfilefn(outfile)
+            cmd = cmdfn(opts, infile, outfile_actual)
+            if _can_skip(opts, infile, outfile_actual):
+                if opts.verbose >= 2:
+                    print "up to date %s -> %s" % (infile, outfile_actual)
+                return
+            if cmd:
+                # do cmd
+                if opts.verbose:
+                    print "process %s -> %s" % (infile, outfile_actual)
+                if opts.verbose >= 3:
+                    print "command is [%s]" % cmd
+                if not opts.dryrun:
+                    os.system(cmd)
+            # else if cmd is None, do nothing
+            return
+
+    # nothing matched, default action is to copy
+    if not _can_skip(opts, infile, outfile):
         if opts.verbose:
-            print "asciidoc %s -> %s" % (inp, outp)
-        asciidoc = ASCIIDOC_PERFILE.get(os.path.split(inp)[-1], ASCIIDOC)
-        cmd = Template(asciidoc).substitute(srcdir=srcdir, infile=inp, outfile=outp)
-        if opts.verbose >= 3:
-            print "asciidoc command is [%s]" % cmd
+            print "copying %s -> %s" % (infile, outfile)
         if not opts.dryrun:
-            os.system(cmd)
-    else:
-        if opts.verbose >= 2:
-            print "up to date %s -> %s" % (inp, outp)
-
-
-def copy(opts, inp, outp):
-    if os.path.isdir(inp):
-        if os.path.exists(outp) and not os.path.isdir(outp):
-            print "** ERROR **: cannot copy directory ('%s') to file ('%s')" % (inp, outp)
-            sys.exit(1)
-        if not os.path.exists(outp):
-            if opts.verbose:
-                print "creating %s" % (outp)
-            if not opts.dryrun:
-                os.mkdir(outp)
-        for file in os.listdir(inp):
-            if file not in SKIP_FILES:
-                copy(opts, os.path.join(inp, file), os.path.join(outp, file))
-    else:
-        if _is_older(inp, outp) or opts.force:
-            if opts.verbose:
-                print "copying %s -> %s" % (inp, outp)
-            if not opts.dryrun:
-                shutil.copy(inp, outp)
-        else:
-            if opts.verbose >= 2:
-                print "up to date %s -> %s" % (inp, outp)
+            shutil.copy(infile, outfile)
 
 
 def make(opts, indir, outdir):
-    # make output dir if it does not exist
-    if not os.path.exists(outdir):
+
+    # does outdir exists?
+    odexists = os.path.exists(outdir)
+
+    # if it exists, it must be a dir!
+    if odexists and not os.path.isdir(outdir):
+        print "** WARNING **: output dir '%s' exists but is " \
+            "not a dir, skipping" % outdir
+        return
+
+    # make outdir if not existing
+    if not odexists:
         if opts.verbose:
             print "creating %s" % outdir
         if not opts.dryrun:
             os.mkdir(outdir)
-    # process all files/dirs under input directory
+
+    # process indir/* -> outdir/*
     for elem in os.listdir(indir):
         inp = os.path.join(indir, elem)
-        if elem.endswith('.txt'):
-            outp = os.path.join(outdir, elem[:-4] + '.html')
-            asciidoc(opts, indir, inp, outp)
-        elif elem not in SKIP_FILES:
-            outp = os.path.join(outdir, elem)
-            copy(opts, inp, outp)
+        outp = os.path.join(outdir, elem)
+
+        # process files
+        if os.path.isfile(inp):
+            if os.path.exists(outp) and not os.path.isfile(outp):
+                print "** WARNING **: output '%s' corresponding to " \
+                    "input '%s' is not a file, skipping" % (outp, inp)
+            else:
+                process_file(opts, inp, outp)
+
+        # process directories
+        elif os.path.isdir(inp):
+            # if dir is in skip list, silently ignore
+            if elem in DIR_SKIP_TBL:
+                if opts.verbose >= 3:
+                    print "skipping %s" % inp
+                continue
+            # just recurse
+            make(opts, inp, outp)
+
+        # neither a file nor a dir
+        else:
+            print "** WARNING **: input '%s' is neither file nor " \
+                "dir, skipping" % inp
 
 
 def get_opts():
@@ -115,6 +162,10 @@ def get_opts():
 
     if opts.verbose == None:
         opts.verbose = 0
+
+    # add srcdir and destdir also to opts
+    opts.srcdir = srcdir
+    opts.destdir = destdir
 
     return (opts, srcdir, destdir)
 
