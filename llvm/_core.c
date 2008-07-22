@@ -658,8 +658,8 @@ _wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
     LLVMModuleProviderRef mp;
     PyObject *obj;
     int force_interpreter;
-    LLVMExecutionEngineRef ee = 0;
-    char *outmsg = 0;
+    LLVMExecutionEngineRef ee;
+    char *outmsg;
     PyObject *ret;
     int error;
 
@@ -668,14 +668,10 @@ _wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
 
     mp = (LLVMModuleProviderRef) PyCObject_AsVoidPtr(obj);
 
-    printf("\ncalling LLVMCreateInterpreter..");
-
-//    if (force_interpreter)
+    if (force_interpreter)
         error = LLVMCreateInterpreter(&ee, mp, &outmsg);
-//    else
-//        error = LLVMCreateJITCompiler(&ee, mp, &outmsg);
-
-    printf("error = %d, outmsg = %s, ee = %p\n", error, outmsg, ee);
+    else
+        error = LLVMCreateJITCompiler(&ee, mp, &outmsg);
 
     if (error) {
         ret = PyString_FromString(outmsg);
