@@ -1,13 +1,6 @@
 llvm-py User Guide
 ===================
 
-[NOTE]
-=======================================================================
-This document is updated frequently (last updated on {localdate}).
-Check back often.
-=======================================================================
-
-
 llvm-py provides Python bindings for LLVM. This document explains how
 you can setup and use it. A working knowledge of Python and a basic idea
 of LLVM is assumed.
@@ -33,9 +26,9 @@ http://opensource.org/licenses/bsd-license.php[new BSD license]. More
 information is available link:license.html[here].
 
 .Platforms
-Currently, llvm-py has been built and tested only on Linux/x86. However,
-it should be trivial to build it on other unices. Windows is not
-supported, for a variety of reasons.
+Currently, llvm-py has been built and tested only on Linux (i386, amd64)
+and OpenBSD (i386, amd64). However, it should be trivial to build it on
+other unices. Windows is not supported, for a variety of reasons.
 
 .Versions
 llvm-py requires verion 2.3 of LLVM. It will not work with previous
@@ -70,16 +63,31 @@ been tried only with gcc/g\+\+ though.
 Tip: If LLVM 2.3 does not install cleanly, try installing ``ocamldoc''
 first.
 
+LLVM and `--enable-pic`
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The result of an LLVM build is a set of static libraries and object
+files. The llvm-py contains an extension package that is built into a
+shared object (_core.so) which links to these static libraries and
+object files. It is therefore required that the LLVM libraries and
+object files be built with the `-fPIC` option (generate position
+independent code). Be sure to use the `--enable-pic` option while
+configuring LLVM (default is no PIC), like this:
+
+----
+~/llvm-2.3$ ./configure --enable-pic --enable-optimized
+----
+
 
 llvm-config
 ~~~~~~~~~~~
 
-Inorder to build llvm-py, it's build script needs to know from where to
-invoke the llvm helper program, +llvm-config+. If you've installed LLVM,
-then this will be available in your +PATH+, and nothing further needs to
-be done. If you've built LLVM yourself, or for any reason +llvm-config+
-is not in your +PATH+, you'll need to pass the full path of
-+llvm-config+ to the build script.
+Inorder to build llvm-py, it's build script needs to know from where it
+can invoke the llvm helper program, +llvm-config+. If you've installed
+LLVM, then this will be available in your +PATH+, and nothing further
+needs to be done. If you've built LLVM yourself, or for any reason
++llvm-config+ is not in your +PATH+, you'll need to pass the full path
+of +llvm-config+ to the build script.
 
 You'll need to be 'root' to install llvm-py. Remember that your +PATH+
 is different from that of 'root', so even if +llvm-config+ is in your
@@ -482,34 +490,41 @@ attributes of the `Module` class is:
 =======================================================================
 .Static Constructors
 `new(module_id)`::
-    create a new `Module` instance with given `module_id`. The `module_id`
+    Create a new `Module` instance with given `module_id`. The `module_id`
     should be a string.
 
 .Properties
 `data_layout`::
-    a string representing the ABI of the platform
+    A string representing the ABI of the platform.
 `target`::
-    a string like `i386-pc-linux-gnu` or `i386-pc-solaris2.8`
+    A string like `i386-pc-linux-gnu` or `i386-pc-solaris2.8`.
 `global_variables` [read-only]::
-    TODO
+    An iterable that yields `GlobalVariable` objects, that represent
+    the global variables of the module.
 `functions` [read-only]::
-    TODO
+    An iterable that yields `Function` objects, that represent functions
+    in the module.
 
 .Methods
-`add_type_name`::
-    TODO
-`delete_type_name`::
-    TODO
-`add_global_variable`::
-    TODO
-`get_global_variable_named`::
-    TODO
-`add_function`::
-    TODO
-`get_function_named`::
-    TODO
-`verify`::
-    Verifies the correctness of the module. Raises `LLVMException` on
+`add_type_name(name, ty)`::
+    Add an alias (typedef) for the type `ty` with the name `name`.
+`delete_type_name(name)`::
+    Delete an alias with the name `name`.
+`add_global_variable(ty, name)`::
+    Add a global variable of the type `ty` with the name `name`.
+    Returns a `GlobalVariable` object.
+`get_global_variable_named(name)`::
+    Get a `GlobalVariable` object corresponding to the global
+    variable with the name `name`. Raises `LLVMException` if such a
+    variable does not exist.
+`add_function(ty, name)`::
+    Add a function named `name` with the function type `ty`. `ty` must
+    of an object of type `FunctionType`.
+`get_function_named(name)`::
+    Get a `Function` object corresponding to the function with the name
+    `name`. Raises `LLVMException` if such a function does not exist.
+`verify()`::
+    Verify the correctness of the module. Raises `LLVMException` on
     errors.
 
 .Special Methods
@@ -615,8 +630,9 @@ The class-level documentation follows:
     Creates an array type, holding `count` elements, each of type `elty`
     (which should be a `Type`).
 `pointer(pty, addrspc=0)`::
-    Create a pointer to type `pty` (which should be a `Type). (TODO
-    addrspc).
+    Create a pointer to type `pty` (which should be a `Type). `addrspc`
+    is an integer that represents the address space of the pointer (see
+    LLVM docs / ask on llvm-dev for more info).
 `void()`::
     Creates a void type. Used for function return types.
 `label()`::

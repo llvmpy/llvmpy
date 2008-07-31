@@ -1,0 +1,36 @@
+<!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><i><font color="#9A1900">#!/usr/bin/env python</font></i>
+
+<b><font color="#000080">from</font></b> llvm<font color="#990000">.</font>core <b><font color="#000080">import</font></b> <font color="#990000">*</font>
+
+<i><font color="#9A1900"># create a module</font></i>
+module <font color="#990000">=</font> <font color="#009900">Module</font><font color="#990000">.</font><b><font color="#000000">new </font></b><font color="#990000">(</font><font color="#FF0000">"tut1"</font><font color="#990000">)</font>
+
+<i><font color="#9A1900"># create a function type taking 3 32-bit integers, return a 32-bit integer</font></i>
+ty<font color="#009900">_</font>int <font color="#990000">=</font> <font color="#009900">Type</font><font color="#990000">.</font><b><font color="#000000">int </font></b><font color="#990000">(</font><font color="#993399">32</font><font color="#990000">)</font>
+func<font color="#009900">_</font>type <font color="#990000">=</font> <font color="#009900">Type</font><font color="#990000">.</font><b><font color="#000000">function </font></b><font color="#990000">(</font>ty<font color="#009900">_</font>int<font color="#990000">,</font> <font color="#990000">(</font>ty<font color="#009900">_</font>int<font color="#990000">,)*</font><font color="#993399">3</font><font color="#990000">)</font>
+
+<i><font color="#9A1900"># create a function of that type</font></i>
+mul<font color="#009900">_</font>add <font color="#990000">=</font> <font color="#009900">Function</font><font color="#990000">.</font><b><font color="#000000">new </font></b><font color="#990000">(</font>module<font color="#990000">,</font> func<font color="#009900">_</font>type<font color="#990000">,</font> <font color="#FF0000">"mul_add"</font><font color="#990000">)</font>
+mul<font color="#009900">_</font>add<font color="#990000">.</font>calling<font color="#009900">_</font>convention <font color="#990000">=</font> <font color="#009900">CC_C</font>
+x <font color="#990000">=</font> mul<font color="#009900">_</font>add<font color="#990000">.</font>args<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">];</font> x<font color="#990000">.</font>name <font color="#990000">=</font> <font color="#FF0000">"x"</font>
+y <font color="#990000">=</font> mul<font color="#009900">_</font>add<font color="#990000">.</font>args<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">];</font> y<font color="#990000">.</font>name <font color="#990000">=</font> <font color="#FF0000">"y"</font>
+z <font color="#990000">=</font> mul<font color="#009900">_</font>add<font color="#990000">.</font>args<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">];</font> z<font color="#990000">.</font>name <font color="#990000">=</font> <font color="#FF0000">"z"</font>
+
+<i><font color="#9A1900"># implement the function</font></i>
+
+<i><font color="#9A1900"># new block</font></i>
+blk <font color="#990000">=</font> mul<font color="#009900">_</font>add<font color="#990000">.</font><b><font color="#000000">append_basic_block </font></b><font color="#990000">(</font><font color="#FF0000">"entry"</font><font color="#990000">)</font>
+
+<i><font color="#9A1900"># IR builder</font></i>
+bldr <font color="#990000">=</font> <font color="#009900">Builder</font><font color="#990000">.</font><b><font color="#000000">new </font></b><font color="#990000">(</font>blk<font color="#990000">)</font>
+tmp<font color="#009900">_</font><font color="#993399">1</font> <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">mul </font></b><font color="#990000">(</font>x<font color="#990000">,</font> y<font color="#990000">,</font> <font color="#FF0000">"tmp_1"</font><font color="#990000">)</font>
+tmp<font color="#009900">_</font><font color="#993399">2</font> <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">add </font></b><font color="#990000">(</font>tmp<font color="#009900">_</font><font color="#993399">1</font><font color="#990000">,</font> z<font color="#990000">,</font> <font color="#FF0000">"tmp_2"</font><font color="#990000">)</font>
+
+bldr<font color="#990000">.</font><b><font color="#000000">ret </font></b><font color="#990000">(</font>tmp<font color="#009900">_</font><font color="#993399">2</font><font color="#990000">)</font>
+
+<b><font color="#0000FF">print</font></b> module
+</tt></pre>

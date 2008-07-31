@@ -1483,7 +1483,10 @@ class GlobalVariable(GlobalValue):
 
     @staticmethod
     def get(module, name):
-        return GlobalVariable(_core.LLVMGetNamedGlobal(module.ptr, name), module)
+        ptr = _core.LLVMGetNamedGlobal(module.ptr, name)
+        if not ptr:
+            raise llvm.LLVMException, ("no global named `%s`" % name)
+        return GlobalVariable(ptr, name)
 
     def __init__(self, ptr, module):
         GlobalValue.__init__(self, ptr, module)
@@ -1539,7 +1542,10 @@ class Function(GlobalValue):
 
     @staticmethod
     def get(module, name):
-        return Function(_core.LLVMGetNamedFunction(module.ptr, name), module)
+        ptr = _core.LLVMGetNamedFunction(module.ptr, name)
+        if not ptr:
+            raise llvm.LLVMException, ("no function named `%s`" % name)
+        return Function(ptr, module)
     
     @staticmethod
     def intrinsic(module, id, types):

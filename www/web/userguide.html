@@ -3,8 +3,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.2.2" />
-<meta name="description" content="Text based document generation" />
-<meta name="keywords" content="text to HTML, text to DocBook, text to XML, AsciiDoc" />
+<meta name="description" content="Python bindings for LLVM" />
+<meta name="keywords" content="llvm python compiler backend bindings" />
 <link rel="stylesheet" href="style/xhtml11.css" type="text/css" />
 <link rel="stylesheet" href="style/xhtml11-quirks.css" type="text/css" />
 <link rel="stylesheet" href="style/layout.css" type="text/css" />
@@ -33,7 +33,7 @@ window.onload = function(){generateToc(2)}
   <div>&#187;<a href="about.html">About</a></div>
 </td>
 <td>
-<div id="toc" style="float: right">
+<div id="toc" style="float: right; display: none">
   <div id="toctitle">Table of Contents</div>
   <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
 </div>
@@ -43,17 +43,6 @@ window.onload = function(){generateToc(2)}
 </div>
 <div id="preamble">
 <div class="sectionbody">
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<img src="./images/icons/note.png" alt="Note" />
-</td>
-<td class="content">
-<p>This document is updated frequently (last updated on 21-Jul-2008).
-Check back often.</p>
-</td>
-</tr></table>
-</div>
 <p>llvm-py provides Python bindings for LLVM. This document explains how
 you can setup and use it. A working knowledge of Python and a basic idea
 of LLVM is assumed.</p>
@@ -75,9 +64,9 @@ open source licenses. llvm-py uses the
 <a href="http://opensource.org/licenses/bsd-license.php">new BSD license</a>. More
 information is available <a href="license.html">here</a>.</p>
 <div class="title">Platforms</div>
-<p>Currently, llvm-py has been built and tested only on Linux/x86. However,
-it should be trivial to build it on other unices. Windows is not
-supported, for a variety of reasons.</p>
+<p>Currently, llvm-py has been built and tested only on Linux (i386, amd64)
+and OpenBSD (i386, amd64). However, it should be trivial to build it on
+other unices. Windows is not supported, for a variety of reasons.</p>
 <div class="title">Versions</div>
 <p>llvm-py requires verion 2.3 of LLVM. It will not work with previous
 versions.</p>
@@ -120,13 +109,25 @@ llvm-g++ or any other); llvm-py can be built with any compiler. It has
 been tried only with gcc/g++ though.</p>
 <p>Tip: If LLVM 2.3 does not install cleanly, try installing &#8220;ocamldoc&#8221;
 first.</p>
+<h3>LLVM and <tt>&#8212;enable-pic</tt></h3>
+<p>The result of an LLVM build is a set of static libraries and object
+files. The llvm-py contains an extension package that is built into a
+shared object (_core.so) which links to these static libraries and
+object files. It is therefore required that the LLVM libraries and
+object files be built with the <tt>-fPIC</tt> option (generate position
+independent code). Be sure to use the <tt>&#8212;enable-pic</tt> option while
+configuring LLVM (default is no PIC), like this:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>~/llvm-2.3$ ./configure --enable-pic --enable-optimized</tt></pre>
+</div></div>
 <h3>llvm-config</h3>
-<p>Inorder to build llvm-py, it's build script needs to know from where to
-invoke the llvm helper program, <tt>llvm-config</tt>. If you've installed LLVM,
-then this will be available in your <tt>PATH</tt>, and nothing further needs to
-be done. If you've built LLVM yourself, or for any reason <tt>llvm-config</tt>
-is not in your <tt>PATH</tt>, you'll need to pass the full path of
-<tt>llvm-config</tt> to the build script.</p>
+<p>Inorder to build llvm-py, it's build script needs to know from where it
+can invoke the llvm helper program, <tt>llvm-config</tt>. If you've installed
+LLVM, then this will be available in your <tt>PATH</tt>, and nothing further
+needs to be done. If you've built LLVM yourself, or for any reason
+<tt>llvm-config</tt> is not in your <tt>PATH</tt>, you'll need to pass the full path
+of <tt>llvm-config</tt> to the build script.</p>
 <p>You'll need to be <em>root</em> to install llvm-py. Remember that your <tt>PATH</tt>
 is different from that of <em>root</em>, so even if <tt>llvm-config</tt> is in your
 <tt>PATH</tt>, it may not be available when you do <tt>sudo</tt>.</p>
@@ -785,7 +786,7 @@ attributes of the <tt>Module</tt> class is:</p>
 </dt>
 <dd>
 <p>
-    create a new <tt>Module</tt> instance with given <tt>module_id</tt>. The <tt>module_id</tt>
+    Create a new <tt>Module</tt> instance with given <tt>module_id</tt>. The <tt>module_id</tt>
     should be a string.
 </p>
 </dd>
@@ -796,7 +797,7 @@ attributes of the <tt>Module</tt> class is:</p>
 </dt>
 <dd>
 <p>
-    a string representing the ABI of the platform
+    A string representing the ABI of the platform.
 </p>
 </dd>
 <dt>
@@ -804,7 +805,7 @@ attributes of the <tt>Module</tt> class is:</p>
 </dt>
 <dd>
 <p>
-    a string like <tt>i386-pc-linux-gnu</tt> or <tt>i386-pc-solaris2.8</tt>
+    A string like <tt>i386-pc-linux-gnu</tt> or <tt>i386-pc-solaris2.8</tt>.
 </p>
 </dd>
 <dt>
@@ -812,7 +813,8 @@ attributes of the <tt>Module</tt> class is:</p>
 </dt>
 <dd>
 <p>
-    TODO
+    An iterable that yields <tt>GlobalVariable</tt> objects, that represent
+    the global variables of the module.
 </p>
 </dd>
 <dt>
@@ -820,65 +822,71 @@ attributes of the <tt>Module</tt> class is:</p>
 </dt>
 <dd>
 <p>
-    TODO
+    An iterable that yields <tt>Function</tt> objects, that represent functions
+    in the module.
 </p>
 </dd>
 </dl>
 <div class="title">Methods</div><dl>
 <dt>
-<tt>add_type_name</tt>
+<tt>add_type_name(name, ty)</tt>
 </dt>
 <dd>
 <p>
-    TODO
+    Add an alias (typedef) for the type <tt>ty</tt> with the name <tt>name</tt>.
 </p>
 </dd>
 <dt>
-<tt>delete_type_name</tt>
+<tt>delete_type_name(name)</tt>
 </dt>
 <dd>
 <p>
-    TODO
+    Delete an alias with the name <tt>name</tt>.
 </p>
 </dd>
 <dt>
-<tt>add_global_variable</tt>
+<tt>add_global_variable(ty, name)</tt>
 </dt>
 <dd>
 <p>
-    TODO
+    Add a global variable of the type <tt>ty</tt> with the name <tt>name</tt>.
+    Returns a <tt>GlobalVariable</tt> object.
 </p>
 </dd>
 <dt>
-<tt>get_global_variable_named</tt>
+<tt>get_global_variable_named(name)</tt>
 </dt>
 <dd>
 <p>
-    TODO
+    Get a <tt>GlobalVariable</tt> object corresponding to the global
+    variable with the name <tt>name</tt>. Raises <tt>LLVMException</tt> if such a
+    variable does not exist.
 </p>
 </dd>
 <dt>
-<tt>add_function</tt>
+<tt>add_function(ty, name)</tt>
 </dt>
 <dd>
 <p>
-    TODO
+    Add a function named <tt>name</tt> with the function type <tt>ty</tt>. <tt>ty</tt> must
+    of an object of type <tt>FunctionType</tt>.
 </p>
 </dd>
 <dt>
-<tt>get_function_named</tt>
+<tt>get_function_named(name)</tt>
 </dt>
 <dd>
 <p>
-    TODO
+    Get a <tt>Function</tt> object corresponding to the function with the name
+    <tt>name</tt>. Raises <tt>LLVMException</tt> if such a function does not exist.
 </p>
 </dd>
 <dt>
-<tt>verify</tt>
+<tt>verify()</tt>
 </dt>
 <dd>
 <p>
-    Verifies the correctness of the module. Raises <tt>LLVMException</tt> on
+    Verify the correctness of the module. Raises <tt>LLVMException</tt> on
     errors.
 </p>
 </dd>
@@ -1228,8 +1236,9 @@ cellspacing="0" cellpadding="4">
 </dt>
 <dd>
 <p>
-    Create a pointer to type <tt>pty</tt> (which should be a `Type). (TODO
-    addrspc).
+    Create a pointer to type <tt>pty</tt> (which should be a <tt>Type). `addrspc</tt>
+    is an integer that represents the address space of the pointer (see
+    LLVM docs / ask on llvm-dev for more info).
 </p>
 </dd>
 <dt>
@@ -2425,6 +2434,8 @@ m.add_type_name("struct.node", th.type)
 # show what we created
 print m</tt></pre>
 </div></div>
+<div class="listingblock">
+<div class="content"></div></div>
 <p>which gives the output:</p>
 <div class="listingblock">
 <div class="content">
@@ -2633,7 +2644,7 @@ reached at <em>mdevan.foobar@gmail.com</em>.</p>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 21-Jul-2008.
+Last updated 31-Jul-2008.
 </div>
 </div>
 </div>

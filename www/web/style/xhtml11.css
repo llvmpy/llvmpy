@@ -274,3 +274,7 @@ div.toclevel4 {
   margin-left: 6em;
   font-size: 0.9em;
 }
+
+div.listingblock {
+  line-height: 1.2em;
+}
