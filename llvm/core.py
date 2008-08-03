@@ -721,6 +721,20 @@ class Module(llvm.Ownable):
         """
         return Module(_core.LLVMModuleCreateWithName(id))
 
+    @staticmethod
+    def from_bitcode(fileobj):
+        """Create a Module instance from the contents of a bitcode
+        file."""
+
+        data = fileobj.read()
+        ret = _core.LLVMGetModuleFromBitcode(data)
+        if not ret:
+            raise llvm.LLVMException, "Unable to create module from bitcode"
+        elif isinstance(ret, str):
+            raise llvm.LLVMException, ret
+        else:
+            return Module(ret)
+
     def __init__(self, ptr):
         """DO NOT CALL DIRECTLY.
 
@@ -836,6 +850,15 @@ class Module(llvm.Ownable):
         ret = _core.LLVMVerifyModule(self.ptr)
         if ret != "":
             raise llvm.LLVMException, ret
+
+    def to_bitcode(self, fileobj):
+        """Write bitcode representation of module to given file-like
+        object."""
+
+        data = _core.LLVMGetBitcodeFromModule(self.ptr)
+        if not data:
+            raise llvm.LLVMException, "Unable to create bitcode"
+        fileobj.write(data)
 
 
 #===----------------------------------------------------------------------===

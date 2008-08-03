@@ -4,7 +4,13 @@
  * Python bindings.
  */
 
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+
 #include "llvm/Bitcode/ReaderWriter.h"
+#include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Constants.h"
 #include "llvm/DerivedTypes.h"
 #include "llvm/GlobalVariable.h"
@@ -13,13 +19,10 @@
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/IntrinsicInst.h"
-#include <cassert>
-#include <cstdlib>
-#include <cstring>
-#include <sstream>
+#include "llvm/Analysis/Verifier.h"
 
 #include "llvm-c/Core.h"
-#include "llvm/Analysis/Verifier.h"
+
 #include "extra.h"
 
 using namespace llvm;
@@ -99,3 +102,32 @@ LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef M, int ID,
     return wrap(intfunc);
 }
 
+LLVMModuleRef LLVMGetModuleFromBitcode(const char *BC, unsigned Len,
+                                       char **OutMessage)
+{
+    MemoryBuffer *mb = MemoryBuffer::getMemBufferCopy(BC, BC+Len);
+    if (!mb)
+        return NULL;
+
+    std::string msg;
+    LLVMModuleRef mr = wrap(ParseBitcodeFile(mb, &msg));
+    if (!mr)
+        *OutMessage = strdup(msg.c_str());
+
+    delete mb;
+    return mr;
+}
+
+unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef M, unsigned *Len)
+{
+    std::ostringstream buf;
+    WriteBitcodeToFile(unwrap(M), buf);
+    const std::string& s = buf.str();
+    size_t len = s.size();
+    unsigned char *bytes = (unsigned char *)malloc(len);
+    if (!bytes)
+        return NULL;
+    memcpy(bytes, s.data(), len);
+    *Len = len;
+    return bytes;
+}

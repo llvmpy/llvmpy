@@ -47,7 +47,11 @@ LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef, LLVMValueRef V,
                                 unsigned Index, const char *Name);
 
 LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef B, int ID,
-    LLVMTypeRef *Types, unsigned Count);
+                              LLVMTypeRef *Types, unsigned Count);
+
+LLVMModuleRef LLVMGetModuleFromBitcode(const char *BC, unsigned Len,
+                                       char **OutMessage);
+unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef M, unsigned *Len);
 
 #ifdef __cplusplus
 } /* extern "C" */

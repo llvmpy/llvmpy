@@ -42,15 +42,14 @@ _wrap_dumper(LLVMDumpModuleToString, LLVMModuleRef)
 static PyObject *
 _wLLVMVerifyModule(PyObject *self, PyObject *args)
 {
-    PyObject *obj;
-    char *outmsg = 0;
+    char *outmsg;
     PyObject *ret;
     LLVMModuleRef m;
 
-    if (!PyArg_ParseTuple(args, "O", &obj))
+    if (!(m = (LLVMModuleRef)get_object_arg(args)))
         return NULL;
 
-    m = (LLVMModuleRef) PyCObject_AsVoidPtr(obj);
+    outmsg = 0;
     (void) LLVMVerifyModule(m, LLVMReturnStatusAction, &outmsg);
 
     if (outmsg) {
@@ -63,6 +62,53 @@ _wLLVMVerifyModule(PyObject *self, PyObject *args)
     return ret;
 }
 
+static PyObject *
+_wLLVMGetModuleFromBitcode(PyObject *self, PyObject *args)
+{
+    PyObject *obj, *ret;
+    Py_ssize_t len;
+    char *start, *outmsg;
+    LLVMModuleRef m;
+
+    if (!PyArg_ParseTuple(args, "O", &obj))
+        return NULL;
+
+    start = PyString_AsString(obj);
+    len = PyString_Size(obj);
+
+    outmsg = 0;
+    m = LLVMGetModuleFromBitcode(start, len, &outmsg);
+    if (!m) {
+        if (outmsg) {
+            ret = PyString_FromString(outmsg);
+            LLVMDisposeMessage(outmsg);
+            return ret;
+        } else {
+            Py_RETURN_NONE;
+        }
+    }
+
+    return ctor_LLVMModuleRef(m);
+}
+
+static PyObject *
+_wLLVMGetBitcodeFromModule(PyObject *self, PyObject *args)
+{
+    PyObject *ret;
+    unsigned len;
+    unsigned char *bytes;
+    LLVMModuleRef m;
+
+    if (!(m = (LLVMModuleRef)get_object_arg(args)))
+        return NULL;
+
+    if (!(bytes = LLVMGetBitcodeFromModule(m, &len)))
+        Py_RETURN_NONE;
+
+    ret = PyString_FromStringAndSize((char *)bytes, (Py_ssize_t)len);
+    LLVMDisposeMessage((char *)bytes);
+    return ret;
+}
 
 /*===----------------------------------------------------------------------===*/
 /* Types                                                                      */
@@ -805,6 +851,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMDisposeModule )
     _method( LLVMDumpModuleToString )
     _method( LLVMVerifyModule )
+    _method( LLVMGetModuleFromBitcode )
+    _method( LLVMGetBitcodeFromModule )
 
     /* Types */
 
