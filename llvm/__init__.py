@@ -2,13 +2,15 @@
 
 """
 
-VERSION = '0.2'
+VERSION = '0.3'
+
 
 #===----------------------------------------------------------------------===
 # Exceptions
 #===----------------------------------------------------------------------===
 
 class LLVMException(Exception):
+	"""Generic LLVM exception."""
 
     def __init__(self, msg=""):
         Exception.__init__(self, msg)
@@ -19,6 +21,13 @@ class LLVMException(Exception):
 #===----------------------------------------------------------------------===
 
 class Ownable(object):
+	"""Objects that can be owned.
+
+	Modules and Module Providers can be owned, i.e., the responsibility of
+    destruction of ownable objects can be handed over to other objects. The
+	llvm.Ownable class represents objects that can be so owned. This class
+	is NOT intended for public use.
+	"""
 
     def __init__(self, ptr, del_fn):
         self.ptr = ptr

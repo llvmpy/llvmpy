@@ -1,10 +1,23 @@
 """Pass managers and passes.
 
+This module provides the LLVM pass managers and the passes themselves.
+Passes that are currently available are:
+
+  Simple Constant Propagation
+  Combine Redundant Instructions
+  Promote Memory to Register
+  Demote all values to stack slots
+  Reassociate expressions
+  Global Value Numbering
+  Simplify the CFG
+
+See http://www.llvm.org/docs/Passes.html for the full list of passes
+available in LLVM.
 """
 
-import ee               # target data
-import _core            # C wrappers
-from _util import *     # utility functions
+import llvm.ee as ee        # target data
+import llvm._core as _core  # C wrappers
+from llvm._util import *    # utility functions
 
 
 # passes

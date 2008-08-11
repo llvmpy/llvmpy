@@ -2,7 +2,7 @@
 
 Used only in other modules, not for public use."""
 
-import core
+import llvm.core as core
 import llvm
 
 

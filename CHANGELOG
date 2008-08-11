@@ -1,5 +1,7 @@
 0.3, in progress:
 
+  * Various bug fixes.
+  * Bitcode support: convert modules to bitcode and vice versa.
   * Intrinsics added.
   * JIT Tutorials ported (Sebastien Binet).
   * GenericValue added. Used by ExecutionEngine.run().

@@ -46,12 +46,85 @@ LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef, LLVMValueRef *Values,
 LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef, LLVMValueRef V,
                                 unsigned Index, const char *Name);
 
+/* intrinsics */
+
 LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef B, int ID,
                               LLVMTypeRef *Types, unsigned Count);
+
+/* bitcode related */
 
 LLVMModuleRef LLVMGetModuleFromBitcode(const char *BC, unsigned Len,
                                        char **OutMessage);
 unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef M, unsigned *Len);
+
+/* passes */
+
+#define declare_pass(P) \
+    void LLVMAdd ## P ## Pass (LLVMPassManagerRef PM);
+
+declare_pass( AggressiveDCE )
+declare_pass( ArgumentPromotion )
+declare_pass( BlockPlacement )
+declare_pass( BreakCriticalEdges )
+declare_pass( CodeGenPrepare )
+declare_pass( CondPropagation )
+declare_pass( ConstantMerge )
+//LLVM-C declare_pass( ConstantPropagation )
+declare_pass( DeadCodeElimination )
+declare_pass( DeadArgElimination )
+declare_pass( DeadTypeElimination )
+declare_pass( DeadInstElimination )
+declare_pass( DeadStoreElimination )
+declare_pass( GCSE )
+declare_pass( GlobalDCE )
+declare_pass( GlobalOptimizer )
+//LLVM-C declare_pass( GVN )
+declare_pass( GVNPRE )
+declare_pass( IndMemRem )
+declare_pass( IndVarSimplify )
+declare_pass( FunctionInlining )
+declare_pass( BlockProfiler )
+declare_pass( EdgeProfiler )
+declare_pass( FunctionProfiler )
+declare_pass( NullProfilerRS )
+declare_pass( RSProfiling )
+//LLVM-C declare_pass( InstructionCombining )
+declare_pass( Internalize )
+declare_pass( IPConstantPropagation )
+declare_pass( IPSCCP )
+declare_pass( JumpThreading )
+declare_pass( LCSSA )
+declare_pass( LICM )
+declare_pass( LoopDeletion )
+declare_pass( LoopExtractor )
+declare_pass( SingleLoopExtractor )
+declare_pass( LoopIndexSplit )
+declare_pass( LoopStrengthReduce )
+declare_pass( LoopRotate )
+declare_pass( LoopUnroll )
+declare_pass( LoopUnswitch )
+declare_pass( LoopSimplify )
+declare_pass( LowerAllocations )
+declare_pass( LowerInvoke )
+declare_pass( LowerSetJmp )
+declare_pass( LowerSwitch )
+//LLVM-C declare_pass( PromoteMemoryToRegister )
+declare_pass( MemCpyOpt )
+declare_pass( UnifyFunctionExitNodes )
+declare_pass( PredicateSimplifier )
+declare_pass( PruneEH )
+declare_pass( RaiseAllocations )
+//LLVM-C declare_pass( Reassociate )
+declare_pass( DemoteRegisterToMemory )
+declare_pass( ScalarReplAggregates )
+declare_pass( SCCP )
+declare_pass( SimplifyLibCalls )
+//LLVM-C declare_pass( CFGSimplification )
+declare_pass( StripSymbols )
+declare_pass( StripDeadPrototypes )
+declare_pass( StructRetPromotion )
+declare_pass( TailCallElimination )
+declare_pass( TailDuplication )
 
 #ifdef __cplusplus
 } /* extern "C" */

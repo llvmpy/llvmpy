@@ -4,9 +4,9 @@ The llvm.core module contains classes and constants required to build the
 in-memory intermediate representation (IR) data structures."""
 
 
-import llvm             # top-level, for common stuff
-import _core            # C wrappers
-from _util import *     # utility functions
+import llvm                 # top-level, for common stuff
+import llvm._core as _core  # C wrappers
+from llvm._util import *    # utility functions
 
 
 #===----------------------------------------------------------------------===

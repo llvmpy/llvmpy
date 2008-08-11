@@ -34,6 +34,23 @@ def do_module():
     except LLVMException:
         pass
 
+    class strstream(object):
+        def __init__(self):
+            self.s = ''
+
+        def write(self, data):
+            self.s += data
+
+        def read(self):
+            return self.s
+
+    ss = strstream()
+    m2 = Module.new('test')
+    m2.add_type_name('myint', ti)
+    m2.to_bitcode(ss)
+    m3 = Module.from_bitcode(ss)
+    t = m2 == m3
+
 
 def do_type():
     print "    Testing class Type"

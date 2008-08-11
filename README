@@ -10,9 +10,18 @@ Home page:
     http://mdevan.nfshost.com/llvm-py/
 
 
+Versions:
+---------
+
+This package will work only with LLVM 2.3 release version. If you need llvm-py
+for the in-progress LLVM version (2.4), you've to get llvm-py from the SVN
+repository -- see the website for more details.
+
+
 Quickstart:
-----------
-    1. Get 2.3 version of LLVM, build it. 2.2 or earlier will *not* work.
+-----------
+    1. Get 2.3 version of LLVM, build it. Make sure '--enable-pic' is passed to
+       LLVM's 'configure'.
 
     2. Unpack llvm-py, build and install:
 

@@ -2,10 +2,10 @@
 
 """
 
-import llvm             # top-level, for common stuff
-import core             # module provider, function etc.
-import _core            # C wrappers
-from _util import *     # utility functions
+import llvm                 # top-level, for common stuff
+import llvm.core as core    # module provider, function etc.
+import llvm._core as _core  # C wrappers
+from llvm._util import *    # utility functions
 
 
 #===----------------------------------------------------------------------===
