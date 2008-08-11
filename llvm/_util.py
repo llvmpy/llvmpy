@@ -2,7 +2,6 @@
 
 Used only in other modules, not for public use."""
 
-import llvm.core as core
 import llvm
 
 
@@ -16,15 +15,6 @@ def check_gen(obj, type):
         type_str = type.__name__
         msg = "argument not an instance of llvm.core.%s" % type_str
         raise TypeError, msg
-
-def check_is_type(obj):     check_gen(obj, core.Type)
-def check_is_value(obj):    check_gen(obj, core.Value)
-def check_is_pointer(obj):  check_gen(obj, core.Pointer)
-def check_is_constant(obj): check_gen(obj, core.Constant)
-def check_is_function(obj): check_gen(obj, core.Function)
-def check_is_basic_block(obj): check_gen(obj, core.BasicBlock)
-def check_is_module(obj):   check_gen(obj, core.Module)
-def check_is_module_provider(obj): check_gen(obj, core.ModuleProvider)
 
 def check_is_unowned(ownable):
     if ownable.owner:
@@ -40,10 +30,6 @@ def check_is_unowned(ownable):
 def unpack_gen(objlist, check_fn):
     for obj in objlist: check_fn(obj)
     return [ obj.ptr for obj in objlist ]
-
-def unpack_types(objlist):     return unpack_gen(objlist, check_is_type)
-def unpack_values(objlist):    return unpack_gen(objlist, check_is_value)
-def unpack_constants(objlist): return unpack_gen(objlist, check_is_constant)
 
 
 #===----------------------------------------------------------------------===

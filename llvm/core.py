@@ -13,7 +13,6 @@ from llvm._util import *    # utility functions
 # Enumerations
 #===----------------------------------------------------------------------===
 
-
 # type kinds
 TYPE_VOID       = 0
 TYPE_FLOAT      = 1
@@ -694,9 +693,26 @@ INTR_X86_SSSE3_PSIGN_W_128     = 594
 
 
 #===----------------------------------------------------------------------===
-# Module
+# Helpers (for internal use)
 #===----------------------------------------------------------------------===
 
+def check_is_type(obj):     check_gen(obj, Type)
+def check_is_value(obj):    check_gen(obj, Value)
+def check_is_pointer(obj):  check_gen(obj, Pointer)
+def check_is_constant(obj): check_gen(obj, Constant)
+def check_is_function(obj): check_gen(obj, Function)
+def check_is_basic_block(obj): check_gen(obj, BasicBlock)
+def check_is_module(obj):   check_gen(obj, Module)
+def check_is_module_provider(obj): check_gen(obj, ModuleProvider)
+
+def unpack_types(objlist):     return unpack_gen(objlist, check_is_type)
+def unpack_values(objlist):    return unpack_gen(objlist, check_is_value)
+def unpack_constants(objlist): return unpack_gen(objlist, check_is_constant)
+
+
+#===----------------------------------------------------------------------===
+# Module
+#===----------------------------------------------------------------------===
 
 class Module(llvm.Ownable):
     """A Module instance stores all the information related to an LLVM module. 
@@ -864,7 +880,6 @@ class Module(llvm.Ownable):
 #===----------------------------------------------------------------------===
 # Types
 #===----------------------------------------------------------------------===
-
 
 class Type(object):
     """Represents a type, like a 32-bit integer or an 80-bit x86 float.
@@ -1181,7 +1196,6 @@ def _make_type(ptr, kind):
 # Type Handle
 #===----------------------------------------------------------------------===
 
-
 class TypeHandle(object):
 
     @staticmethod
@@ -1205,7 +1219,6 @@ class TypeHandle(object):
 # Values
 #===----------------------------------------------------------------------===
 
-
 class Value(object):
 
     def __init__(self, ptr):
@@ -1220,13 +1233,13 @@ class Value(object):
         else:
             return False
 
-    def get_name(self):
+    def _get_name(self):
         return _core.LLVMGetValueName(self.ptr)
 
-    def set_name(self, value):
+    def _set_name(self, value):
         return _core.LLVMSetValueName(self.ptr, value)
 
-    name = property(get_name, set_name)
+    name = property(_get_name, _set_name)
 
     @property
     def type(self):
@@ -1472,21 +1485,21 @@ class GlobalValue(Constant):
         self._module = None # set it free
         self.ptr = None
 
-    def get_linkage(self): return _core.LLVMGetLinkage(self.ptr)
-    def set_linkage(self, value): _core.LLVMSetLinkage(self.ptr, value)
-    linkage = property(get_linkage, set_linkage)
+    def _get_linkage(self): return _core.LLVMGetLinkage(self.ptr)
+    def _set_linkage(self, value): _core.LLVMSetLinkage(self.ptr, value)
+    linkage = property(_get_linkage, _set_linkage)
 
-    def get_section(self): return _core.LLVMGetSection(self.ptr)
-    def set_section(self, value): return _core.LLVMSetSection(self.ptr, value)
-    section = property(get_section, set_section)
+    def _get_section(self): return _core.LLVMGetSection(self.ptr)
+    def _set_section(self, value): return _core.LLVMSetSection(self.ptr, value)
+    section = property(_get_section, _set_section)
     
-    def get_visibility(self): return _core.LLVMGetVisibility(self.ptr)
-    def set_visibility(self, value): return _core.LLVMSetVisibility(self.ptr, value)
-    visibility = property(get_visibility, set_visibility)
+    def _get_visibility(self): return _core.LLVMGetVisibility(self.ptr)
+    def _set_visibility(self, value): return _core.LLVMSetVisibility(self.ptr, value)
+    visibility = property(_get_visibility, _set_visibility)
 
-    def get_alignment(self): return _core.LLVMGetAlignment(self.ptr)
-    def set_alignment(self, value): return _core.LLVMSetAlignment(self.ptr, value)
-    alignment = property(get_alignment, set_alignment)
+    def _get_alignment(self): return _core.LLVMGetAlignment(self.ptr)
+    def _set_alignment(self, value): return _core.LLVMSetAlignment(self.ptr, value)
+    alignment = property(_get_alignment, _set_alignment)
 
     @property
     def is_declaration(self):
@@ -1518,26 +1531,26 @@ class GlobalVariable(GlobalValue):
         _core.LLVMDeleteGlobal(self.ptr)
         self._delete()
 
-    def get_initializer(self):
+    def _get_initializer(self):
         if _core.LLVMHasInitializer(self.ptr):
             return Constant(_core.LLVMGetInitializer(self.ptr))
         else:
             return None
 
-    def set_initializer(self, const):
+    def _set_initializer(self, const):
         check_is_constant(const)
         _core.LLVMSetInitializer(self.ptr, const.ptr)
 
-    initializer = property(get_initializer, set_initializer)
+    initializer = property(_get_initializer, _set_initializer)
 
-    def get_is_global_constant(self):
+    def _get_is_global_constant(self):
         return _core.LLVMIsGlobalConstant(self.ptr)
 
-    def set_is_global_constant(self, value):
+    def _set_is_global_constant(self, value):
         value = 1 if value else 0
         _core.LLVMSetGlobalConstant(self.ptr, value)
 
-    global_constant = property(get_is_global_constant, set_is_global_constant)
+    global_constant = property(_get_is_global_constant, _set_is_global_constant)
 
 
 class Argument(Value):
@@ -1587,13 +1600,13 @@ class Function(GlobalValue):
     def intrinsic_id(self):
         return _core.LLVMGetIntrinsicID(self.ptr)
 
-    def get_calling_convention(self): return _core.LLVMGetFunctionCallConv(self.ptr)
-    def set_calling_convention(self, value): _core.LLVMSetFunctionCallConv(self.ptr, value)
-    calling_convention = property(get_calling_convention, set_calling_convention)
+    def _get_cc(self): return _core.LLVMGetFunctionCallConv(self.ptr)
+    def _set_cc(self, value): _core.LLVMSetFunctionCallConv(self.ptr, value)
+    calling_convention = property(_get_cc, _set_cc)
 
-    def get_collector(self): return _core.LLVMGetCollector(self.ptr)
-    def set_collector(self, value): _core.LLVMSetCollector(self.ptr, value)
-    collector = property(get_collector, set_collector)
+    def _get_coll(self): return _core.LLVMGetCollector(self.ptr)
+    def _set_coll(self, value): _core.LLVMSetCollector(self.ptr, value)
+    collector = property(_get_coll, _set_coll)
 
     @property
     def args(self):
@@ -1642,9 +1655,9 @@ class CallOrInvokeInstruction(Instruction):
     def __init__(self, ptr):
         Instruction.__init__(self, ptr)
 
-    def get_calling_convention(self): return _core.LLVMGetInstructionCallConv(self.ptr)
-    def set_calling_convention(self, value): _core.LLVMSetInstructionCallConv(self.ptr, value)
-    calling_convention = property(get_calling_convention, set_calling_convention)
+    def _get_cc(self): return _core.LLVMGetInstructionCallConv(self.ptr)
+    def _set_cc(self, value): _core.LLVMSetInstructionCallConv(self.ptr, value)
+    calling_convention = property(_get_cc, _set_cc)
 
     def add_parameter_attribute(self, idx, attr):
         _core.LLVMAddInstrParamAttr(self.ptr, idx, attr)
@@ -1692,7 +1705,6 @@ class SwitchInstruction(Instruction):
 # Basic block
 #===----------------------------------------------------------------------===
 
-
 class BasicBlock(Value):
 
     def __init__(self, ptr):
@@ -1705,9 +1717,10 @@ class BasicBlock(Value):
         _core.LLVMDeleteBasicBlock(self.ptr)
         self.ptr = None
 
-    @property
-    def function(self):
-        return Function(_core.LLVMGetBasicBlockParent(self.ptr))
+    #-- disabled till we find a proper way to do it --
+    #@property
+    #def function(self):
+    #    return Function(_core.LLVMGetBasicBlockParent(self.ptr))
 
     @property
     def instructions(self):
@@ -1719,7 +1732,6 @@ class BasicBlock(Value):
 # Builder
 #===----------------------------------------------------------------------===
 
-        
 class Builder(object):
 
     @staticmethod
@@ -2058,7 +2070,6 @@ class Builder(object):
 # Module provider
 #===----------------------------------------------------------------------===
 
-
 class ModuleProvider(llvm.Ownable):
 
     @staticmethod
@@ -2079,7 +2090,6 @@ class ModuleProvider(llvm.Ownable):
 #===----------------------------------------------------------------------===
 # Memory buffer
 #===----------------------------------------------------------------------===
-
 
 class MemoryBuffer(object):
 

@@ -33,19 +33,19 @@ class GenericValue(object):
 
     @staticmethod
     def int(ty, intval):
-        check_is_type(ty)
+        core.check_is_type(ty)
         ptr = _core.LLVMCreateGenericValueOfInt(ty.ptr, intval, 0)
         return GenericValue(ptr)
 
     @staticmethod
     def int_signed(ty, intval):
-        check_is_type(ty)
+        core.check_is_type(ty)
         ptr = _core.LLVMCreateGenericValueOfInt(ty.ptr, intval, 1)
         return GenericValue(ptr)
 
     @staticmethod
     def real(ty, floatval):
-        check_is_type(ty)   # only float or double
+        core.check_is_type(ty)   # only float or double
         ptr = _core.LLVMCreateGenericValueOfFloat(ty.ptr, floatval)
         return GenericValue(ptr)
 
@@ -62,14 +62,14 @@ class GenericValue(object):
         return _core.LLVMGenericValueToInt(self.ptr, 1)
 
     def as_real(self, ty):
-        check_is_type(ty)   # only float or double
+        core.check_is_type(ty)   # only float or double
         return _core.LLVMGenericValueToFloat(ty.ptr, self.ptr)
 
 
 # helper functions for generic value objects
-def _check_is_generic_value(obj): check_gen(obj, GenericValue)
+def check_is_generic_value(obj): check_gen(obj, GenericValue)
 def _unpack_generic_values(objlist): 
-    return unpack_gen(objlist, _check_is_generic_value)
+    return unpack_gen(objlist, check_is_generic_value)
 
 
 #===----------------------------------------------------------------------===
@@ -80,8 +80,8 @@ class ExecutionEngine(object):
 
     @staticmethod
     def new(mp, force_interpreter=False):
-        check_is_module_provider(mp)
-        check_is_unowned(mp)
+        core.check_is_module_provider(mp)
+        core.check_is_unowned(mp)
         ret = _core.LLVMCreateExecutionEngine(mp.ptr, int(force_interpreter))
         if isinstance(ret, str):
             raise llvm.LLVMException, ret
@@ -95,7 +95,7 @@ class ExecutionEngine(object):
         _core.LLVMDisposeExecutionEngine(self.ptr)
 
     def run_function(self, fn, args):
-        check_is_function(fn)
+        core.check_is_function(fn)
         ptrs = _unpack_generic_values(args)
         gvptr = _core.LLVMRunFunction2(self.ptr, fn.ptr, ptrs)
         return GenericValue(gvptr)
@@ -107,11 +107,12 @@ class ExecutionEngine(object):
         _core.LLVMRunStaticDestructors(self.ptr)
 
     def free_machine_code_for(self, fn):
-        check_is_function(fn)
+        core.check_is_function(fn)
         _core.LLVMFreeMachineCodeForFunction(self.ptr, fn.ptr)
 
+    # CRASH! BOOM!! BANG!!! TODO FIXME
     def add_module_provider(self, mp):
-        check_is_module_provider(mp)
+        core.check_is_module_provider(mp)
         _core.LLVMAddModuleProvider(self.ptr, mp.ptr)
 
     @property
