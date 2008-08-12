@@ -9,12 +9,15 @@
 from llvm import *
 from llvm.core import *
 from llvm.ee import *
+from llvm.passes import *
 
 ti = Type.int()
+
 
 def do_llvmexception():
     print "    Testing class LLVMException"
     e = LLVMException()
+
 
 def do_ownable():
     print "    Testing class Ownable"
@@ -455,16 +458,15 @@ def do_executionengine():
     bb = f.append_basic_block('entry')
     b = Builder.new(bb)
     b.ret(Constant.int(ti, 42))
+    ee.run_static_ctors()
     gv = ee.run_function(f, [])
     is42 = gv.as_int() == 42
-    ee.run_static_ctors()
     ee.run_static_dtors()
     ee.free_machine_code_for(f)
     t = ee.target_data
     m2 = Module.new('b')
     mp2 = ModuleProvider.new(m2)
-# CRASHES!! TODO FIXME
-#    ee.add_module_provider(mp2)
+    ee.add_module_provider(mp2)
     m3 = Module.new('c')
     mp3 = ModuleProvider.new(m3)
     ee2 = ExecutionEngine.new(mp3, False)
@@ -477,11 +479,45 @@ def do_llvm_ee():
     do_executionengine()
 
 
+def do_passmanager():
+    print "    Testing class PassManager"
+    pm = PassManager.new()
+    pm.add(TargetData.new(''))
+    for i in range(1, 10):
+        pm.add(i)
+    pm.run(Module.new('a'))
+
+
+def do_functionpassmanager():
+    print "    Testing class FunctionPassManager"
+    m = Module.new('a')
+    mp = ModuleProvider.new(m)
+    ft = Type.function(ti, [])
+    f = m.add_function(ft, 'func')
+    bb = f.append_basic_block('entry')
+    b = Builder.new(bb)
+    b.ret(Constant.int(ti, 42))
+    fpm = FunctionPassManager.new(mp)
+    fpm.add(TargetData.new(''))
+    # to be fixed.
+    # fpm.add(PASS_FUNCTION_INLINING)
+    fpm.initialize()
+    fpm.run(f)
+    fpm.finalize()
+
+
+def do_llvm_passes():
+    print "  Testing module llvm.passes"
+    do_passmanager()
+    do_functionpassmanager()
+
+
 def main():
     print "Testing package llvm"
     do_llvm()
     do_llvm_core()
     do_llvm_ee()
+    do_llvm_passes()
 
 
 main()

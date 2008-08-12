@@ -110,10 +110,10 @@ class ExecutionEngine(object):
         core.check_is_function(fn)
         _core.LLVMFreeMachineCodeForFunction(self.ptr, fn.ptr)
 
-    # CRASH! BOOM!! BANG!!! TODO FIXME
     def add_module_provider(self, mp):
         core.check_is_module_provider(mp)
         _core.LLVMAddModuleProvider(self.ptr, mp.ptr)
+        mp._own(self)
 
     @property
     def target_data(self):
