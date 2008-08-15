@@ -1,42 +1,45 @@
 #!/usr/bin/env python
 
+# Import the llvm-py modules.
+from llvm import *
 from llvm.core import *
 
-## create a module
-module = Module.new("my_module")
+# Create an (empty) module.
+my_module = Module.new('my_module')
 
-## create a function type taking two doubles and returning a (32-bit) integer
-ty_double = Type.double()
-ty_int    = Type.int()
-ty_func   = Type.function( ty_int, [ ty_double, ty_double ] )
+# All the types involved here are "int"s. This type is represented
+# by an object of the llvm.core.Type class:
+ty_int = Type.int()   # by default 32 bits
 
-## create a function of this type
-func      = Function.new( module, ty_func, "foobar" )
+# We need to represent the class of functions that accept two integers
+# and return an integer. This is represented by an object of the
+# function type (llvm.core.FunctionType):
+ty_func = Type.function(ty_int, [ty_int, ty_int])
 
-# name function args
-func.args[0].name = "arg1"
-func.args[1].name = "arg2"
+# Now we need a function named 'sum' of this type. Functions are not
+# free-standing (in llvm-py); it needs to be contained in a module.
+f_sum = my_module.add_function(ty_func, "sum")
 
-## implement the function
+# Let's name the function arguments as 'a' and 'b'.
+f_sum.args[0].name = "a"
+f_sum.args[1].name = "b"
 
-# add a basic block
-entry = func.append_basic_block("entry")
+# Our function needs a "basic block" -- a set of instructions that
+# end with a terminator (like return, branch etc.). By convention
+# the first block is called "entry".
+bb = f_sum.append_basic_block("entry")
 
-# create an llvm::IRBuilder
-builder = Builder.new(entry)
+# Let's add instructions into the block. For this, we need an
+# instruction builder:
+builder = Builder.new(bb)
 
-# add two args into tmp1
-tmp1 = builder.add(func.args[0], func.args[1], "tmp1")
+# OK, now for the instructions themselves. We'll create an add
+# instruction that returns the sum as a value, which we'll use
+# a ret instruction to return.
+tmp = builder.add(f_sum.args[0], f_sum.args[1], "tmp")
+builder.ret(tmp)
 
-# sub `1' from that
-one = Constant.real( ty_double, 1.0 )
-tmp2 = builder.sub(tmp1, one, "tmp2")
+# We've completed the definition now! Let's see the LLVM assembly
+# language representation of what we've created:
+print my_module
 
-# convert to integer
-tmp3 = builder.fptoui(tmp2, ty_int, "tmp3")
-
-# return it
-builder.ret(tmp3)
-
-# dump the module to see the llvm "assembly" code
-print module

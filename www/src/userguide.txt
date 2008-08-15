@@ -99,7 +99,7 @@ Steps
 
 The commands illustrated below assume that the LLVM source is available
 under +/home/mdevan/llvm+. If you've a previous version of llvm-py
-installed, you must remove it first, as described
+installed, it is recommended to remove it first, as described
 link:#uninstall[below].
 
 If you have +llvm-config+ in your path, you can build and install
@@ -130,7 +130,8 @@ $ python setup.py build -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
 $ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
 -----------------------------------------------------------------------
 
-Be warned that debug binaries will be huge (65MB+) !
+Be warned that debug binaries will be huge (100MB+) ! They are required
+only if you need to debug into LLVM also.
 
 `setup.py` is a standard Python distutils script. See the Python
 documentation regarding http://docs.python.org/inst/inst.html[Installing
@@ -302,8 +303,6 @@ to it's documentation.
 
 include::instrset.inc[]
 
-Intrinsics (instructions that start with +llvm.+) are not yet available
-in llvm-py.
 
 Modules
 ~~~~~~~
@@ -344,25 +343,7 @@ loaded and executed by +opt+. (Although llvm-py does not allow you to
 write your own passes, it does allow you to navigate the entire IR at
 any stage, and perform any transforms on it as you like.)
 
-Passes are run using a _pass manager_. TODO
-
-
-Execution Engine
-~~~~~~~~~~~~~~~~
-
-TODO
-
-
-BitCode
-~~~~~~~
-
-TODO
-
-
-llvm-gcc
-~~~~~~~~
-
-TODO
+[TODO: pass manager, execution engine, bit code]
 
 
 The llvm-py Package
@@ -482,8 +463,28 @@ a Module object. This is a common feature for all llvm-py classes.
 corresponding classes. Constructors _should not_ be used.
 =======================================================================
 
-The argument `my_module` is a module identifier (a plain string). The
-attributes of the `Module` class is:
+The argument `my_module` is a module identifier (a plain string). A
+module can also be constructed via deserialization from a bit code file,
+using the static method `from_bitcode`. This method takes a file-like
+object as argument, i.e., it should have a `read()` method that returns
+the entire data in a single call, as is the case with the builtin file
+object. Here is an example:
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# create a module from a bit code file
+bcfile = file("test.bc")
+my_module = Module.from_bitcode(bcfile)
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There is corresponding serialization method also, called `to_bitcode`:
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# write out a bit code file from the module
+bcfile = file("test.bc", "w")
+my_module.to_bitcode(bcfile)
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .llvm.core.Module
 [caption=""]
@@ -492,6 +493,9 @@ attributes of the `Module` class is:
 `new(module_id)`::
     Create a new `Module` instance with given `module_id`. The `module_id`
     should be a string.
+`from_bitcode(fileobj)`::
+    Create a new `Module` instance by deserializing the bitcode file
+    represented by the file-like object `fileobj`.
 
 .Properties
 `data_layout`::
@@ -526,6 +530,9 @@ attributes of the `Module` class is:
 `verify()`::
     Verify the correctness of the module. Raises `LLVMException` on
     errors.
+`to_bitcode(fileobj)`::
+    Write the bitcode representation of the module to the file-like
+    object `fileobj`.
 
 .Special Methods
 `\_\_str\_\_`::
@@ -630,9 +637,9 @@ The class-level documentation follows:
     Creates an array type, holding `count` elements, each of type `elty`
     (which should be a `Type`).
 `pointer(pty, addrspc=0)`::
-    Create a pointer to type `pty` (which should be a `Type). `addrspc`
+    Create a pointer to type `pty` (which should be a `Type`). `addrspc`
     is an integer that represents the address space of the pointer (see
-    LLVM docs / ask on llvm-dev for more info).
+    LLVM docs or ask on llvm-dev for more info).
 `void()`::
     Creates a void type. Used for function return types.
 `label()`::
@@ -726,7 +733,6 @@ source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `arg_count` [read-only]::
     The number of arguments. Same as `len(obj.args)`, but faster.
-
 =======================================================================
 
 
@@ -831,13 +837,69 @@ intptr_ty   = Type.pointer(int_ty)         # "typedef int *intptr_ty;"
 f1 = Type.function( int_ty, [ int_ty ] )
     # functions that take 1 int_ty and return 1 int_ty
 
-f2 = Type.function( Type.void(), [ int_ty ] )
-    # functions that take 1 int_ty and return nothing
+f2 = Type.function( Type.void(), [ int_ty, int_ty ] )
+    # functions that take 2 int_tys and return nothing
+
+f3 = Type.function( Type.void(), ( int_ty, int_ty ) )
+    # same as f2; any iterable can be used
 
 fnargs = [ Type.pointer( Type.int(8) ) ]
 printf = Type.function( Type.int(), fnargs, True )
     # variadic function
 source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+TypeHandle (llvm.core)
+~~~~~~~~~~~~~~~~~~~~~~
+
+TypeHandle objects are used to create recursive types, like this linked
+list node structure in C:
+
+[C]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+struct node
+{
+    int data;
+    struct node *next;
+};
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This can be realized in llvm-py like this:
+
+-----------------------------------------------------------------------
+include::../../test/typehandle.py[]
+-----------------------------------------------------------------------
+
+which gives the output:
+
+-----------------------------------------------------------------------
+; ModuleID = 'mod1'
+	%struct.node = type { i32, %struct.node* }
+-----------------------------------------------------------------------
+
+For more details on what is going on here, please refer the LLVM
+Programmer's Manual section
+http://llvm.org/docs/ProgrammersManual.html#TypeResolve["LLVM Type
+Resolution"]. The TypeHandle class of llvm-py corresponds to
+http://www.llvm.org/doxygen/classllvm_1_1PATypeHolder.html[`llvm::PATypeHolder`]
+in C\+\+. The above example is available as
+http://code.google.com/p/llvm-py/source/browse/trunk/test/typehandle.py[test/typehandle.py]
+in the source distribution.
+
+.llvm.core.TypeHandle
+[caption=""]
+=======================================================================
+.Static Constructors
+`new(abstract_ty)`::
+    create a new `TypeHandle` instance, which holds a reference to the
+    given abstract type `abstract_ty`. Typically, the abstract type used
+    is `Type.opaque()`.
+
+.Properties
+`type`::
+    returns the contained type. Typically the `refine` method is called
+    on the returned type.
+=======================================================================
 
 
 Values (llvm.core)
@@ -859,7 +921,7 @@ Value
     CallOrInvokeInstruction
     PHINode
     SwitchInstruction
-    BasicBlock
+  BasicBlock
 -----------------------------------------------------------------------
 
 The `Value` class is abstract, it's not meant to be instantiated.
@@ -943,7 +1005,10 @@ Constructor Method, What It Creates
 "`sizeof(ty)`", "Constant value representing the sizeof the type `ty`"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following operations are available:
+The following operations on constants are supported. For more details on
+any operation, consult the
+http://www.llvm.org/docs/LangRef.html#constantexprs[Constant Expressions]
+section of the LLVM Language Reference.
 
 [[constops]]
 [frame="all",grid="all"]
@@ -973,19 +1038,19 @@ Method, Operation
 `k.trunc(ty)`, "Truncate `k` to a type `ty` of lower bitwidth."
 `k.sext(ty)`, "Sign extend `k` to a type `ty` of higher bitwidth, while extending the sign bit."
 `k.zext(ty)`, "Sign extend `k` to a type `ty` of higher bitwidth, all new bits are 0s."
-fptrunc, TODO
-fpext, TODO
-uitofp, TODO
-sitofp, TODO
-fptoui, TODO
-fptosi, TODO
-ptrtoint, TODO
-inttoptr, TODO
-bitcast, TODO
-select, TODO
-extract_element, TODO
-insert_element, TODO
-shuffle_vector, TODO
+`k.fptrunc(ty)`, "Truncate floating point constant `k` to floating point type `ty` of lower size than k's."
+`k.fpext(ty)`, "Extend floating point constant `k` to floating point type `ty` of higher size than k's."
+`k.uitofp(ty)`, "Convert an unsigned integer constant `k` to floating point constant of type `ty`."
+`k.sitofp(ty)`, "Convert a signed integer constant `k` to floating point constant of type `ty`."
+`k.fptoui(ty)`, "Convert a floating point constant `k` to an unsigned integer constant of type `ty`."
+`k.fptosi(ty)`, "Convert a floating point constant `k` to a signed integer constant of type `ty`."
+`k.ptrtoint(ty)`, "Convert a pointer constant `k` to an integer constant of type `ty`."
+`k.inttoptr(ty)`, "Convert an integer constant `k` to a pointer constant of type `ty`."
+`k.bitcast(ty)`, "Convert `k` to a (equal-width) constant of type `ty`."
+"`k.select(cond,k2,k3)`", "Replace value with `k2` if the 1-bit integer constant `cond` is 1, else with `k3`."
+`k.extract_element(idx)`, "Extract value at `idx` (integer constant) from a vector constant `k`."
+"`k.insert_element(k2,idx)`", "Insert value `k2` (scalar constant) at index `idx` (integer constant) of vector constant `k`."
+"`k.shuffle_vector(k2,mask)`", "Shuffle vector constant `k` based on vector constants `k2` and `mask`."
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 [[ipred]]
@@ -1049,73 +1114,395 @@ methods.
 =======================================================================
 
 
-TypeHandle (llvm.core)
-~~~~~~~~~~~~~~~~~~~~~~
+Global Value (llvm.core)
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-TypeHandle objects are used to create recursive types, like this linked
-list node structure in C:
+The class `llvm.core.GlobalValue` represents module-scope aliases, variables
+and functions. Global variables are represented by the sub-class
+`llvm.core.GlobalVariable` and functions by `llvm.core.Function`. 
 
-[C]
-source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-struct node
-{
-    int data;
-    struct node *next;
-};
-source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Global values have the read-write properties `linkage`, `section`,
+`visibility` and `alignment`. Use one of the following constants (from
+llvm.core) as values for `linkage` (see
+http://www.llvm.org/docs/LangRef.html#linkage[LLVM documentaion] for
+details on each):
 
-This can be realized in llvm-py like this:
+[frame="all",grid="all"]
+`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Value, Equivalent LLVM Assembly Keyword
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`LINKAGE_LINKONCE`, `linkonce`
+`LINKAGE_WEAK`, `weak`
+`LINKAGE_APPENDING`, `appending`
+`LINKAGE_INTERNAL`, `internal`
+`LINKAGE_DLLIMPORT`, `dllimport`
+`LINKAGE_DLLEXPORT`, `dllexport`
+`LINKAGE_EXTERNAL`, `externally visible`
+`LINKAGE_EXTERNAL_WEAK`, `extern_weak`
+`LINKAGE_GHOST`, Stand-in functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
------------------------------------------------------------------------
-include::../../test/typehandle.py[]
------------------------------------------------------------------------
+The `section` property can be assigned strings (like ".rodata"), which
+will be used if the target supports it. Visibility property can be set
+to one of thse constants (from llvm.core, see also
+http://www.llvm.org/docs/LangRef.html#visibility[LLVM docs]):
 
-which gives the output:
+[frame="all",grid="all"]
+`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Value, Equivalent LLVM Assembly Keyword
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`VISIBILITY_DEFAULT`, `default`
+`VISIBILITY_HIDDEN`, `hidden`
+`VISIBILITY_PROTECTED`, `protected`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
------------------------------------------------------------------------
-; ModuleID = 'mod1'
-	%struct.node = type { i32, %struct.node* }
------------------------------------------------------------------------
+The `alignment` property can be 0 (default), or can be set to a power of
+2. The read-only property `is_declaration` can be used to check if the
+global is a declaration or not. The module to which the global belongs
+to can be retrieved using the `module` property (read-only).
 
-For more details on what is going on here, please refer the LLVM
-Programmer's Manual section
-http://llvm.org/docs/ProgrammersManual.html#TypeResolve["LLVM Type
-Resolution"]. The TypeHandle class of llvm-py corresponds to
-http://www.llvm.org/doxygen/classllvm_1_1PATypeHolder.html[`llvm::PATypeHolder`]
-in C\+\+. The above example is available as
-http://code.google.com/p/llvm-py/source/browse/trunk/test/typehandle.py[test/typehandle.py]
-in the source distribution.
-
-.llvm.core.TypeHandle
+.llvm.core.GlobalValue
 [caption=""]
 =======================================================================
-.Static Constructors
-`new(abstract_ty)`::
-    create a new `TypeHandle` instance, which holds a reference to the
-    given abstract type `abstract_ty`. Typically, the abstract type used
-    is `Type.opaque()`.
+.Base Class
+- `llvm.core.Constant`
 
 .Properties
-`type`::
-    returns the contained type. Typically the `refine` method is called
-    on the returned type.
+`linkage`::
+    The linkage type, takes one of the constants listed above
+    (LINKAGE_*).
+`section`::
+    A string like ".rodata", indicating the section into which the
+    global is placed into.
+`visibility`::
+    The visibility type, takes one of the constants listed above
+    (VISIBILITY_*).
+`alignment`::
+    A power-of-2 integer indicating the boundary to align to.
+`is_declaration` [read-only]::
+    `True` if the global is a declaration, `False` otherwise.
+`module` [read-only]::
+    The module object to which this global belongs to.
 =======================================================================
+
+
+Global Variable (llvm.core)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Global variables (`llvm.core.GlobalVariable`) are subclasses of
+`llvm.core.GlobalValue` and represent module-level variables. These can
+have optional initializers and can be marked as constants. Global
+variables can be created either by using the `add_global_variable`
+method of the `Module` class (see above), or by using the static method
+`GlobalVariable.new`.
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# create a global variable using add_global_variable method
+gv1 = module_obj.add_global_variable(Type.int(), "gv1")
+
+# or equivalently, using a static constructor method
+gv2 = GlobalVariable.new(module_obj, Type.int(), "gv2")
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Existing global variables of a module can be accessed by name using
+`module_obj.get_global_variable_named(name)` or `GlobalVariable.get`.
+All existing global variables can be enumerated via iterating over the
+property `module_obj.global_variables`.
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# retrieve a reference to the global variable gv1,
+# using the get_global_variable_named method
+gv1 = module_obj.get_global_variable_named("gv1")
+
+# or equivalently, using the static `get` method:
+gv2 = GlobalVariable.get(module_obj, "gv2")
+
+# list all global variables in a module
+for gv in module_obj.global_variables:
+    print gv.name, "of type", gv.type
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The initializer for a global variable can be set by assigning to the
+`initializer` property of the object. The `is_global_constant` property
+can be used to indicate that the variable is a global constant.
+
+Global variables can be delete using the `delete` method. Do not use the
+object after calling `delete` on it.
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# add an initializer 10 (32-bit integer)
+gv.initializer = Constant.int( Type.int(), 10 )
+
+# delete the global
+gv.delete()
+# DO NOT dereference `gv' beyond this point!
+gv = None
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.llvm.core.GlobalVariable
+[caption=""]
+=======================================================================
+.Base Class
+- `llvm.core.GlobalValue`
+
+.Static Constructors
+`new(module_obj, ty, name)`::
+    Create a global variable named `name` of type `ty` in the module
+    `module_obj` and return a `GlobalVariable` object that represents it.
+`get(module_obj, name)`::
+    Return a `GlobalVariable` object to represent the global variable
+    named `name` in the module `module_obj` or raise `LLVMException` if
+    such a variable does not exist.
+
+.Properties
+`initializer`::
+    The intializer of the variable. Set to `llvm.core.Constant` (or
+    derived). Gets the initializer constant, or `None` if none exists.
+`global_constant`::
+    `True` if the variable is a global constant, `False` otherwise.
+
+.Methods
+`delete()`::
+    Deletes the global variable from it's module. _Do not hold any
+    references to this object after calling `delete` on it._
+=======================================================================
+
+
+Function (llvm.core)
+~~~~~~~~~~~~~~~~~~~~
+
+Functions are represented by `llvm.core.Function` objects. They are
+contained within modules, and can be created either with the method
+`module_obj.add_function` or the static constructor `Function.new`.
+References to functions already present in a module can be retrieved via
+`module.get_function_named` or by the static constructor method
+`Function.get`. All functions in a module can be enumerated by iterating
+over `module_obj.functions`.
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# create a type, representing functions that take an integer and return
+# a floating point value.
+ft = Type.function( Type.float(), [ Type.int() ] )
+
+# create a function of this type
+f1 = module_obj.add_function(ft, "func1")
+
+# or equivalently, like this:
+f2 = Function.new(module_obj, ft, "func2")
+
+# get a reference to an existing function
+f3 = module_obj.get_function_named("func3")
+
+# or like this:
+f4 = Function.get(module_obj, "func4")
+
+# list all function names in a module
+for f in module_obj.functions:
+    print f.name
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+References to intrinsic functions can be got via the static constructor
+`intrinsic`. This returns a `Function` object, calling which is
+equivalent to invoking the intrinsic. The `intrinsic` method has to be
+called with a module object, an instrinic ID (which is a numeric
+constant) and a list of the types of arguments (which LLVM uses to
+resolve overloaded intrinsic functions).
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# get a reference to the llvm.bswap intrinsic
+bswap = Function.intrinsic(mod, INTR_BSWAP, [Type.int()])
+
+# call it
+builder.call(bswap, [value])
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here, the constant `INTR_BSWAP`, available from `llvm.core`, represents
+the LLVM intrinsic
+http://www.llvm.org/docs/LangRef.html#int_bswap[llvm.bswap]. The
+`[Type.int()]` selects the version of `llvm.bswap` that has a single 32-bit
+integer argument. The list of intrinsic IDs defined as integer constants
+in `llvm.core`. These are:
+
+[frame="all",grid="all"]
+`33`33`33~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+INTR_ANNOTATION,INTR_DBG_STOPPOINT,INTR_MEMSET_I64
+INTR_ARM_THREAD_POINTER,INTR_EH_DWARF_CFA,INTR_PART_SELECT
+INTR_ATOMIC_LAS,INTR_EH_EXCEPTION,INTR_PART_SET
+INTR_ATOMIC_LCS,INTR_EH_RETURN,INTR_PCMARKER
+INTR_ATOMIC_LOAD_AND,INTR_EH_SELECTOR_I32,INTR_POW
+INTR_ATOMIC_LOAD_MAX,INTR_EH_SELECTOR_I64,INTR_POWI
+INTR_ATOMIC_LOAD_MIN,INTR_EH_TYPEID_FOR_I32,INTR_PREFETCH
+INTR_ATOMIC_LOAD_OR,INTR_EH_TYPEID_FOR_I64,INTR_READCYCLECOUNTER
+INTR_ATOMIC_LOAD_UMAX,INTR_EH_UNWIND_INIT,INTR_RETURNADDRESS
+INTR_ATOMIC_LOAD_UMIN,INTR_FLT_ROUNDS,INTR_SETJMP
+INTR_ATOMIC_LOAD_XOR,INTR_FRAMEADDRESS,INTR_SIGLONGJMP
+INTR_ATOMIC_LSS,INTR_GCREAD,INTR_SIGSETJMP
+INTR_ATOMIC_SWAP,INTR_GCROOT,INTR_SIN
+INTR_BSWAP,INTR_GCWRITE,INTR_SQRT
+INTR_COS,INTR_INIT_TRAMPOLINE,INTR_STACKRESTORE
+INTR_CTLZ,INTR_LONGJMP,INTR_STACKSAVE
+INTR_CTPOP,INTR_MEMCPY_I32,INTR_TRAP
+INTR_CTTZ,INTR_MEMCPY_I64,INTR_VACOPY
+INTR_DBG_DECLARE,INTR_MEMMOVE_I32,INTR_VAEND
+INTR_DBG_FUNC_START,INTR_MEMMOVE_I64,INTR_VAR_ANNOTATION
+INTR_DBG_REGION_END,INTR_MEMORY_BARRIER,INTR_VASTART
+INTR_DBG_REGION_START,INTR_MEMSET_I32,
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are also target-specific intrinsics (which correspond to that
+target's CPU instructions) available, but are omitted here for brevity.
+Full list can be seen from
+http://code.google.com/p/llvm-py/source/browse/trunk/llvm/core.py[`core.py`].
+See the http://www.llvm.org/docs/LangRef.html[LLVM Language Reference]
+for more information on the intrinsics, and the
+http://code.google.com/p/llvm-py/source/browse#svn/trunk/test[test]
+directory in the source distribution for more examples. The intrinsic ID
+can be retrieved from a function object with the read-only property
+`intrinsic_id`.
+
+The function's calling convention can be set using the
+`calling_convention` property. The following (integer) constants defined
+in `llvm.core` can be used as values:
+
+[frame="all",grid="all"]
+`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Value, Equivalent LLVM Assembly Keyword
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`CC_C`, `ccc`
+`CC_FASTCALL`, `fastcc`
+`CC_COLDCALL`, `coldcc`
+`CC_X86_STDCALL`, ?
+`CC_X86_FASTCALL`, `fastcc`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See the http://www.llvm.org/docs/LangRef.html#callingconv[LLVM docs] for
+more information on each. Backend-specific numbered conventions can be
+directly set as numbers.
+
+An arbitrary string identifying which garbage collector to use can be
+set or got with the property `collector`.
+
+The value objects corresponding to the arguments of a function can be
+got using the read-only property `args`. These can be iterated over, and
+also be indexed via integers. An example:
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# list all argument names and types
+for arg in fn.args:
+    print arg.name, "of type", arg.type
+
+# change the name of the first argument
+fn.args[0].name = "objptr"
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Basic blocks (see later) are contained within functions. When newly
+created, a function has no basic blocks. They have to be added
+explicitly, using the `append_basic_block` method, which adds a new,
+empty basic block as the last one in the function. The first basic block
+of the function can be retrieved using the `get_entry_basic_block`
+method. The existing basic blocks can be enumerated by iterating over
+using the read-only property `basic_blocks`. The number of basic blocks
+can be got via `basic_block_count` method. Note that
+`get_entry_basic_block` is slightly faster than `basic_blocks[0]` and so
+is `basic_block_count`, over `len(f.basic_blocks)`.
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# add a basic block
+b1 = fn.append_basic_block("entry")
+
+# get the first one
+b2 = fn.get_entry_basic_block()
+b2 = fn.basic_blocks[0]  # slower than previous method
+
+# print names of all basic blocks
+for b in fn.basic_blocks:
+    print b.name
+
+# get number of basic blocks
+n = fn.basic_block_count
+n = len(fn.basic_blocks)  # slower than previous method
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Functions can be deleted using the method `delete`. This deletes them
+from their containing module. All references to the function object
+should be dropped after `delete` has been called.
+
+Functions can be verified with the `verify` method. This does not work
+properly yet (aborts on errors), investigation pending.
+
+
+Argument (llvm.core)
+~~~~~~~~~~~~~~~~~~~~
+
+The `args` property of `llvm.core.Function` objects yields
+`llvm.core.Argument` objects. This allows for setting attributes for
+functions arguments. `Argument` objects cannot be constructed from user
+code, the only way to get a reference to these are via functions.
+
+The method `add_attribute` and `remove_attribute` can be used to add or
+remove the following attributes:
+
+[frame="all",grid="all"]
+`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Value, Equivalent LLVM Assembly Keyword
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`ATTR_ZEXT`, `zeroext`
+`ATTR_SEXT`, `signext`
+`ATTR_NO_RETURN`, `noreturn`
+`ATTR_IN_REG`, `inreg`
+`ATTR_STRUCT_RET`, `sret`
+`ATTR_NO_UNWIND`, `nounwind`
+`ATTR_NO_ALIAS`, `noalias`
+`ATTR_BY_VAL`, `byval`
+`ATTR_NEST`, `nest`
+`ATTR_READ_NONE`, `readnone`
+`ATTR_READONLY`, `readonly`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The corresponding
+file:///home/mdevan/llvm-2.3/docs/LangRef.html#paramattrs[LLVM docs]
+provide more information.
+
+The alignment of any parameter can also be set via `set_argument(a)`
+where `a` is a power of 2.
+
+Basic Block (llvm.core)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The class `llvm.core.BasicBlock` represents a basic block of
+instructions. Basic blocks are logically contained within functions, and
+can be constructed only via `Function` objects. Use the
+`Function.append_basic_block()` method for this:
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# create a function
+func = module.add_function(functy, "fn")
+# add a basic block, named 'entry', to the function
+bblk = func.append_basic_block("entry")
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The list of all 
+
+
+Builder (llvm.core)
+~~~~~~~~~~~~~~~~~~~
+
+TODO
 
 
 Instructions (llvm.core)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO
-
-
-Basic Block (llvm.core)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-TODO
-
-
-Builder (llvm.core)
-~~~~~~~~~~~~~~~~~~~
+The class `llvm.core.Instruction` represents an LLVM IR instruction.
+Instruction objects can be created only via a builder.
 
 TODO
 
@@ -1126,14 +1513,14 @@ Module Provider (llvm.core)
 TODO
 
 
-Execution Engine (llvm.ee)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Target Data (llvm.ee)
+~~~~~~~~~~~~~~~~~~~~~
 
 TODO
 
 
-Target Data (llvm.ee)
-~~~~~~~~~~~~~~~~~~~~~
+Execution Engine (llvm.ee)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 TODO
 
@@ -1142,13 +1529,6 @@ Pass Managers and Passes (llvm.passes)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 TODO
-
-
-[[examples]]
-Annotated Examples
-------------------
-
-include::example.inc[]
 
 
 About the llvm-py Project
