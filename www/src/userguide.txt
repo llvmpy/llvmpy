@@ -32,7 +32,7 @@ other unices. Windows is not supported, for a variety of reasons.
 
 .Versions
 llvm-py requires verion 2.3 of LLVM. It will not work with previous
-versions.
+versions. If you're using LLVM 2.4, see link:#llvm24[below].
 
 llvm-py has been built and tested with Python 2.5. It should work with
 Python 2.4, with minimal changes, if any.
@@ -106,8 +106,8 @@ If you have +llvm-config+ in your path, you can build and install
 llvm-py this way:
 
 -----------------------------------------------------------------------
-$ tar jxvf llvm-py-0.2.tar.bz2
-$ cd llvm-py-0.2
+$ tar jxvf llvm-py-0.3.tar.bz2
+$ cd llvm-py-0.3
 $ sudo python setup.py install
 -----------------------------------------------------------------------
 
@@ -115,8 +115,8 @@ If you need to tell the build script where +llvm-config+ is, do it this
 way:
 
 -----------------------------------------------------------------------
-$ tar jxvf llvm-py-0.2.tar.bz2
-$ cd llvm-py-0.2
+$ tar jxvf llvm-py-0.3.tar.bz2
+$ cd llvm-py-0.3
 $ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Release/bin/llvm-config
 -----------------------------------------------------------------------
 
@@ -124,8 +124,8 @@ To build a debug version of llvm-py, that links against the debug
 libraries of LLVM, use this:
 
 -----------------------------------------------------------------------
-$ tar jxvf llvm-py-0.2.tar.bz2
-$ cd llvm-py-0.2
+$ tar jxvf llvm-py-0.3.tar.bz2
+$ cd llvm-py-0.3
 $ python setup.py build -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
 $ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
 -----------------------------------------------------------------------
@@ -137,6 +137,35 @@ only if you need to debug into LLVM also.
 documentation regarding http://docs.python.org/inst/inst.html[Installing
 Python Modules] and http://docs.python.org/dist/dist.html[Distributing
 Python Modules] for more information on such scripts.
+
+
+[[llvm24]]
+LLVM 2.4
+~~~~~~~~
+
+LLVM 2.4 is currently in progress. There are incompatible API changes
+from LLVM 2.3. The latest release of llvm-py will _not_ compile against
+it.
+
+The llvm-py SVN has a branch called
+http://code.google.com/p/llvm-py/source/browse/#svn/branches/llvm2.4[llvm2.4],
+which attempts to track the changes happening in LLVM 2.4. There are
+however, some caveats:
+
+- There are no releases from this branch.
+- When LLVM 2.4 is released, then these changes will be merged to main.
+  From then on llvm-py will support LLVM 2.4 and no longer LLVM 2.3.
+- This branch is not religiously kept up-to-date with the changes
+  happening in LLVM SVN. Therefore, it may not work for you, but might
+  still be worth a try.
+
+llvm-py can be checked out from this branch like this:
+
+-----------------------------------------------------------------------
+$ svn co http://llvm-py.googlecode.com/svn/branches/llvm2.4 llvm-py-2.4
+-----------------------------------------------------------------------
+
+The rest of the steps (build, install) remain the same as before.
 
 
 [[uninstall]]
@@ -486,6 +515,22 @@ bcfile = file("test.bc", "w")
 my_module.to_bitcode(bcfile)
 source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Modules can also be constructed from LLVM assembly files (`.ll` files).
+The static method `from_assembly` can be used for this. Similar to the
+`from_bitcode` method, this one also takes a file-like object as
+argument:
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# create a module from an assembly file
+llfile = file("test.ll")
+my_module = Module.from_assembly(llfile)
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Modules can be converted into their assembly representation by
+stringifying them (see below).
+
+
 .llvm.core.Module
 [caption=""]
 =======================================================================
@@ -495,6 +540,9 @@ source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     should be a string.
 `from_bitcode(fileobj)`::
     Create a new `Module` instance by deserializing the bitcode file
+    represented by the file-like object `fileobj`.
+`from_assembly(fileobj)`::
+    Create a new `Module` instance by parsing the LLVM assembly file
     represented by the file-like object `fileobj`.
 
 .Properties
@@ -1467,7 +1515,7 @@ Value, Equivalent LLVM Assembly Keyword
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The corresponding
-file:///home/mdevan/llvm-2.3/docs/LangRef.html#paramattrs[LLVM docs]
+http://www.llvm.org/docs/LangRef.html#paramattrs[LLVM docs]
 provide more information.
 
 The alignment of any parameter can also be set via `set_argument(a)`
@@ -1476,20 +1524,7 @@ where `a` is a power of 2.
 Basic Block (llvm.core)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The class `llvm.core.BasicBlock` represents a basic block of
-instructions. Basic blocks are logically contained within functions, and
-can be constructed only via `Function` objects. Use the
-`Function.append_basic_block()` method for this:
-
-[python]
-source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# create a function
-func = module.add_function(functy, "fn")
-# add a basic block, named 'entry', to the function
-bblk = func.append_basic_block("entry")
-source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The list of all 
+TODO
 
 
 Builder (llvm.core)
@@ -1500,9 +1535,6 @@ TODO
 
 Instructions (llvm.core)
 ~~~~~~~~~~~~~~~~~~~~~~~~
-
-The class `llvm.core.Instruction` represents an LLVM IR instruction.
-Instruction objects can be created only via a builder.
 
 TODO
 
@@ -1522,13 +1554,13 @@ TODO
 Execution Engine (llvm.ee)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO
+TODO. For now, see `test/example-jit.py`.
 
 
 Pass Managers and Passes (llvm.passes)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO
+TODO. For now, see `test/passes.py`.
 
 
 About the llvm-py Project

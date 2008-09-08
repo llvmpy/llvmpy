@@ -69,7 +69,7 @@ and OpenBSD (i386, amd64). However, it should be trivial to build it on
 other unices. Windows is not supported, for a variety of reasons.</p>
 <div class="title">Versions</div>
 <p>llvm-py requires verion 2.3 of LLVM. It will not work with previous
-versions.</p>
+versions. If you're using LLVM 2.4, see <a href="#llvm24">below</a>.</p>
 <p>llvm-py has been built and tested with Python 2.5. It should work with
 Python 2.4, with minimal changes, if any.</p>
 </div>
@@ -140,32 +140,67 @@ installed, it is recommended to remove it first, as described
 llvm-py this way:</p>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ tar jxvf llvm-py-0.2.tar.bz2
-$ cd llvm-py-0.2
+<pre><tt>$ tar jxvf llvm-py-0.3.tar.bz2
+$ cd llvm-py-0.3
 $ sudo python setup.py install</tt></pre>
 </div></div>
 <p>If you need to tell the build script where <tt>llvm-config</tt> is, do it this
 way:</p>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ tar jxvf llvm-py-0.2.tar.bz2
-$ cd llvm-py-0.2
+<pre><tt>$ tar jxvf llvm-py-0.3.tar.bz2
+$ cd llvm-py-0.3
 $ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Release/bin/llvm-config</tt></pre>
 </div></div>
 <p>To build a debug version of llvm-py, that links against the debug
 libraries of LLVM, use this:</p>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ tar jxvf llvm-py-0.2.tar.bz2
-$ cd llvm-py-0.2
+<pre><tt>$ tar jxvf llvm-py-0.3.tar.bz2
+$ cd llvm-py-0.3
 $ python setup.py build -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
 $ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config</tt></pre>
 </div></div>
-<p>Be warned that debug binaries will be huge (100MB+) !</p>
+<p>Be warned that debug binaries will be huge (100MB+) ! They are required
+only if you need to debug into LLVM also.</p>
 <p><tt>setup.py</tt> is a standard Python distutils script. See the Python
 documentation regarding <a href="http://docs.python.org/inst/inst.html">Installing
 Python Modules</a> and <a href="http://docs.python.org/dist/dist.html">Distributing
 Python Modules</a> for more information on such scripts.</p>
+<h3><a id="llvm24"></a>LLVM 2.4</h3>
+<p>LLVM 2.4 is currently in progress. There are incompatible API changes
+from LLVM 2.3. The latest release of llvm-py will <em>not</em> compile against
+it.</p>
+<p>The llvm-py SVN has a branch called
+<a href="http://code.google.com/p/llvm-py/source/browse/#svn/branches/llvm2.4">llvm2.4</a>,
+which attempts to track the changes happening in LLVM 2.4. There are
+however, some caveats:</p>
+<ul>
+<li>
+<p>
+There are no releases from this branch.
+</p>
+</li>
+<li>
+<p>
+When LLVM 2.4 is released, then these changes will be merged to main.
+  From then on llvm-py will support LLVM 2.4 and no longer LLVM 2.3.
+</p>
+</li>
+<li>
+<p>
+This branch is not religiously kept up-to-date with the changes
+  happening in LLVM SVN. Therefore, it may not work for you, but might
+  still be worth a try.
+</p>
+</li>
+</ul>
+<p>llvm-py can be checked out from this branch like this:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ svn co http://llvm-py.googlecode.com/svn/branches/llvm2.4 llvm-py-2.4</tt></pre>
+</div></div>
+<p>The rest of the steps (build, install) remain the same as before.</p>
 <h3><a id="uninstall"></a>Uninstall</h3>
 <p>To get rid of llvm-py completely, if you wish to do so:</p>
 <div class="listingblock">
@@ -791,6 +826,21 @@ http://www.gnu.org/software/src-highlite -->
 bcfile <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">file</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"test.bc"</span><span style="color: #990000">,</span> <span style="color: #FF0000">"w"</span><span style="color: #990000">)</span>
 my<span style="color: #009900">_</span>module<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">to_bitcode</span></span><span style="color: #990000">(</span>bcfile<span style="color: #990000">)</span>
 </tt></pre></div></div>
+<p>Modules can also be constructed from LLVM assembly files (<tt>.ll</tt> files).
+The static method <tt>from_assembly</tt> can be used for this. Similar to the
+<tt>from_bitcode</tt> method, this one also takes a file-like object as
+argument:</p>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 2.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># create a module from an assembly file</span></span>
+llfile <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">file</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"test.ll"</span><span style="color: #990000">)</span>
+my<span style="color: #009900">_</span>module <span style="color: #990000">=</span> <span style="color: #009900">Module</span><span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">from_assembly</span></span><span style="color: #990000">(</span>llfile<span style="color: #990000">)</span>
+</tt></pre></div></div>
+<p>Modules can be converted into their assembly representation by
+stringifying them (see below).</p>
 <div class="exampleblock">
 <div class="title">llvm.core.Module</div>
 <div class="exampleblock-content">
@@ -810,6 +860,15 @@ my<span style="color: #009900">_</span>module<span style="color: #990000">.</spa
 <dd>
 <p>
     Create a new <tt>Module</tt> instance by deserializing the bitcode file
+    represented by the file-like object <tt>fileobj</tt>.
+</p>
+</dd>
+<dt>
+<tt>from_assembly(fileobj)</tt>
+</dt>
+<dd>
+<p>
+    Create a new <tt>Module</tt> instance by parsing the LLVM assembly file
     represented by the file-like object <tt>fileobj</tt>.
 </p>
 </dd>
@@ -3401,40 +3460,24 @@ cellspacing="0" cellpadding="4">
 </table>
 </div>
 <p>The corresponding
-<a href="file:///home/mdevan/llvm-2.3/docs/LangRef.html#paramattrs">LLVM docs</a>
+<a href="http://www.llvm.org/docs/LangRef.html#paramattrs">LLVM docs</a>
 provide more information.</p>
 <p>The alignment of any parameter can also be set via <tt>set_argument(a)</tt>
 where <tt>a</tt> is a power of 2.</p>
 <h3>Basic Block (llvm.core)</h3>
-<p>The class <tt>llvm.core.BasicBlock</tt> represents a basic block of
-instructions. Basic blocks are logically contained within functions, and
-can be constructed only via <tt>Function</tt> objects. Use the
-<tt>Function.append_basic_block()</tt> method for this:</p>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 2.4
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># create a function</span></span>
-func <span style="color: #990000">=</span> module<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">add_function</span></span><span style="color: #990000">(</span>functy<span style="color: #990000">,</span> <span style="color: #FF0000">"fn"</span><span style="color: #990000">)</span>
-<span style="font-style: italic"><span style="color: #9A1900"># add a basic block, named 'entry', to the function</span></span>
-bblk <span style="color: #990000">=</span> func<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">append_basic_block</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"entry"</span><span style="color: #990000">)</span>
-</tt></pre></div></div>
-<p>The list of all</p>
+<p>TODO</p>
 <h3>Builder (llvm.core)</h3>
 <p>TODO</p>
 <h3>Instructions (llvm.core)</h3>
-<p>The class <tt>llvm.core.Instruction</tt> represents an LLVM IR instruction.
-Instruction objects can be created only via a builder.</p>
 <p>TODO</p>
 <h3>Module Provider (llvm.core)</h3>
 <p>TODO</p>
 <h3>Target Data (llvm.ee)</h3>
 <p>TODO</p>
 <h3>Execution Engine (llvm.ee)</h3>
-<p>TODO</p>
+<p>TODO. For now, see <tt>test/example-jit.py</tt>.</p>
 <h3>Pass Managers and Passes (llvm.passes)</h3>
-<p>TODO</p>
+<p>TODO. For now, see <tt>test/passes.py</tt>.</p>
 </div>
 <h2>About the llvm-py Project</h2>
 <div class="sectionbody">
@@ -3460,7 +3503,7 @@ reached at <em>mdevan.foobar@gmail.com</em>.</p>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 15-Aug-2008.
+Last updated 08-Sep-2008.
 </div>
 </div>
 </div>

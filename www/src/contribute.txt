@@ -1,23 +1,27 @@
 Contribute
 ==========
 
-llvm-py is just hatching. It needs your patches and suggestions to
-grow up. Please contribute! All patches are welcome. Here are some links
-to start hacking away:
+You can make a difference, just by:
 
-`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Google code hosting, http://code.google.com/p/llvm-py/[http://code.google.com/p/llvm-py/]
-Browse SVN, http://code.google.com/p/llvm-py/source/browse/[http://code.google.com/p/llvm-py/source/browse]
-Issues tracker, http://code.google.com/p/llvm-py/issues/list[http://code.google.com/p/llvm-py/issues/list]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- getting llvm-py to work on an as-yet-untested platform
+- adding support for more LLVM features into llvm-py
+- sending in patches for bugs you come across
+- improving the test scripts and documentation
+- spreading the word
+
+
+Useful links:
+
+- Google code hosting: http://code.google.com/p/llvm-py/[http://code.google.com/p/llvm-py/]
+- Browse SVN: http://code.google.com/p/llvm-py/source/browse/[http://code.google.com/p/llvm-py/source/browse]
+- Issues tracker: http://code.google.com/p/llvm-py/issues/list[http://code.google.com/p/llvm-py/issues/list]
 
 SVN HEAD can be checked out like so:
 
 ----
-$ svn checkout http://llvm-py.googlecode.com/svn/trunk/ llvm-py
+$ svn co http://llvm-py.googlecode.com/svn/trunk/ llvm-py
 ----
 
-Mahadevan R (mdevan.foobar@gmail.com) is available to answer your
-queries.
-
+Usual caveats apply: cutting edge, may be broken (but usually not),
+update and merge before sending patches etc.
 
