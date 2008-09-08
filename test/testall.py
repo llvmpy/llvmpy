@@ -74,6 +74,10 @@ def do_module():
     m2.to_bitcode(ss)
     m3 = Module.from_bitcode(ss)
     t = m2 == m3
+    ss2 = strstream()
+    ss2.write(str(m))
+    m4 = Module.from_assembly(ss2)
+    t = m4 == m
 
 
 def do_type():

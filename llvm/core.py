@@ -751,6 +751,21 @@ class Module(llvm.Ownable):
         else:
             return Module(ret)
 
+    @staticmethod
+    def from_assembly(fileobj):
+        """Create a Module instance from the contents of an LLVM
+        assembly (.ll) file."""
+
+        data = fileobj.read()
+        ret = _core.LLVMGetModuleFromAssembly(data)
+        if not ret:
+            raise llvm.LLVMException, \
+                "Unable to create module from assembly"
+        elif isinstance(ret, str):
+            raise llvm.LLVMException, ret
+        else:
+            return Module(ret)
+
     def __init__(self, ptr):
         """DO NOT CALL DIRECTLY.
 

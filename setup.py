@@ -51,7 +51,8 @@ def call_setup(llvm_config):
     libs_core, objs_core = get_libs_and_objs(llvm_config,
         ['core', 'analysis', 'scalaropts', 'executionengine', 
          'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
-         'instrumentation', 'ipa', 'ipo', 'transformutils'])
+         'instrumentation', 'ipa', 'ipo', 'transformutils',
+         'asmparser' ])
 
     std_libs    = [ 'pthread', 'm' ]
     if not sys.platform.startswith("openbsd"):

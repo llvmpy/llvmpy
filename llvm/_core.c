@@ -62,8 +62,11 @@ _wLLVMVerifyModule(PyObject *self, PyObject *args)
     return ret;
 }
 
+typedef LLVMModuleRef (*asm_or_bc_fn_t)(const char *A, unsigned Len,
+    char **OutMessage);
+
 static PyObject *
-_wLLVMGetModuleFromBitcode(PyObject *self, PyObject *args)
+_get_asm_or_bc(asm_or_bc_fn_t fn, PyObject *self, PyObject *args)
 {
     PyObject *obj, *ret;
     Py_ssize_t len;
@@ -77,7 +80,7 @@ _wLLVMGetModuleFromBitcode(PyObject *self, PyObject *args)
     len = PyString_Size(obj);
 
     outmsg = 0;
-    m = LLVMGetModuleFromBitcode(start, len, &outmsg);
+    m = fn(start, len, &outmsg);
     if (!m) {
         if (outmsg) {
             ret = PyString_FromString(outmsg);
@@ -89,6 +92,18 @@ _wLLVMGetModuleFromBitcode(PyObject *self, PyObject *args)
     }
 
     return ctor_LLVMModuleRef(m);
+}
+
+static PyObject *
+_wLLVMGetModuleFromAssembly(PyObject *self, PyObject *args)
+{
+    return _get_asm_or_bc(LLVMGetModuleFromAssembly, self, args);
+}
+
+static PyObject *
+_wLLVMGetModuleFromBitcode(PyObject *self, PyObject *args)
+{
+    return _get_asm_or_bc(LLVMGetModuleFromBitcode, self, args);
 }
 
 static PyObject *
@@ -910,6 +925,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMDisposeModule )
     _method( LLVMDumpModuleToString )
     _method( LLVMVerifyModule )
+    _method( LLVMGetModuleFromAssembly )
     _method( LLVMGetModuleFromBitcode )
     _method( LLVMGetBitcodeFromModule )
 

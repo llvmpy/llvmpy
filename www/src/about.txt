@@ -1,9 +1,9 @@
 About
 =====
 
-llvm-py is developed by Mahadevan R, in his spare time, without being
-paid for it. He can be reached at mdevan.foobar@gmail.com, on the
-llvm-dev mailing list and irc.oftc.net#llvm (mdevan).
+llvm-py is developed by Mahadevan R, in his spare time. He can be
+reached at mdevan.foobar@gmail.com, on the llvm-dev mailing list and
+irc.oftc.net#llvm (mdevan).
 
 Many thanks to the guys over at LLVM for all the nifty software.
 

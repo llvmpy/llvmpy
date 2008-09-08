@@ -20,6 +20,7 @@
 #include "llvm/Support/CallSite.h"
 #include "llvm/IntrinsicInst.h"
 #include "llvm/Analysis/Verifier.h"
+#include "llvm/Assembly/Parser.h"
 // +includes for passes
 #include "llvm/PassManager.h"
 #include "llvm/Analysis/LoopPass.h"
@@ -108,6 +109,20 @@ LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef M, int ID,
         Intrinsic::ID(ID), &Tys[0], Count);
 
     return wrap(intfunc);
+}
+
+LLVMModuleRef LLVMGetModuleFromAssembly(const char *A, unsigned Len,
+                                        char **OutMessage)
+{
+    ParseError e;
+
+    Module *MP = ParseAssemblyString(A, NULL /*unused within!*/, &e);
+    if (!MP) {
+        *OutMessage = strdup(e.getMessage().c_str());
+        return NULL;
+    }
+
+    return wrap(MP);
 }
 
 LLVMModuleRef LLVMGetModuleFromBitcode(const char *BC, unsigned Len,

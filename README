@@ -25,8 +25,8 @@ Quickstart:
 
     2. Unpack llvm-py, build and install:
 
-        $ tar jxvf llvm-py-0.2.tar.bz2
-        $ cd llvm-py-0.2
+        $ tar jxvf llvm-py-0.3.tar.bz2
+        $ cd llvm-py-0.3
         # Locate llvm-config, usually under <llvm>/Release/bin
         $ sudo python setup.py install --llvm-config=/path/to/llvm-config
 
