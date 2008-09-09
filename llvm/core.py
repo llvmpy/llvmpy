@@ -1645,6 +1645,12 @@ class Function(GlobalValue):
         return wrapiter(_core.LLVMGetFirstBasicBlock, 
             _core.LLVMGetNextBasicBlock, self.ptr, BasicBlock)
 
+    def viewCFG(self):
+        return _core.LLVMViewFunctionCFG(self.ptr)
+
+    def viewCFGOnly(self):
+        return _core.LLVMViewFunctionCFGOnly(self.ptr)
+
     def verify(self):
         # Although we're just asking LLVM to return the success or
         # failure, it appears to print result to stderr and abort.

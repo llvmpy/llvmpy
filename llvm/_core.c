@@ -418,6 +418,8 @@ _wrap_obj2obj(LLVMGetFunctionCallConv, LLVMValueRef, int)
 _wrap_objint2none(LLVMSetFunctionCallConv, LLVMValueRef)
 _wrap_obj2str(LLVMGetCollector, LLVMValueRef)
 _wrap_objstr2none(LLVMSetCollector, LLVMValueRef)
+_wrap_obj2none(LLVMViewFunctionCFG, LLVMValueRef)
+_wrap_obj2none(LLVMViewFunctionCFGOnly, LLVMValueRef)
 
 static PyObject *
 _wLLVMVerifyFunction(PyObject *self, PyObject *args)
@@ -1101,6 +1103,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMGetCollector )    
     _method( LLVMSetCollector )    
     _method( LLVMVerifyFunction )
+    _method( LLVMViewFunctionCFG )
+    _method( LLVMViewFunctionCFGOnly )
 
     /* Arguments */
     _method( LLVMCountParams )    
