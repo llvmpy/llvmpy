@@ -84,6 +84,10 @@ LLVMValueRef LLVMBuildVFCmp(LLVMBuilderRef B, LLVMRealPredicate Op,
 }
 #endif
 
+unsigned LLVMInstIsTerminator(LLVMValueRef I) {
+    return unwrap<Instruction>(I)->isTerminator() ? 1 : 0;
+}
+
 LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef B, LLVMValueRef *Values,
                                   unsigned NumValues) {
   std::vector<Value *> Vs;

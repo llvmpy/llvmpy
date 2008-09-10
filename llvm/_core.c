@@ -461,6 +461,7 @@ _wrap_obj2none(LLVMDeleteBasicBlock, LLVMBasicBlockRef)
 _wrap_obj2obj(LLVMGetInstructionParent, LLVMValueRef, LLVMBasicBlockRef)
 _wrap_obj2obj(LLVMGetFirstInstruction, LLVMBasicBlockRef, LLVMValueRef)
 _wrap_obj2obj(LLVMGetNextInstruction, LLVMValueRef, LLVMValueRef)
+_wrap_obj2obj(LLVMInstIsTerminator, LLVMValueRef, int)
 
 /*===-- Call Sites (Call or Invoke) --------------------------------------===*/
 
@@ -1129,6 +1130,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMGetInstructionParent )    
     _method( LLVMGetFirstInstruction )
     _method( LLVMGetNextInstruction )
+    _method( LLVMInstIsTerminator )    
 
     /* Call Sites (Call or Invoke) */
     _method( LLVMSetInstructionCallConv )    

@@ -1670,6 +1670,10 @@ class Instruction(Value):
     def basic_block(self):
         return BasicBlock(_core.LLVMGetInstructionParent(self.ptr))
 
+    @property
+    def is_terminator(self):
+        return _core.LLVMInstIsTerminator(self.ptr)
+
 
 class CallOrInvokeInstruction(Instruction):
 
@@ -2058,11 +2062,11 @@ class Builder(object):
         arg_ptrs = unpack_values(args)
         return CallOrInvokeInstruction(_core.LLVMBuildCall(self.ptr, fn.ptr, arg_ptrs, name))
         
-    def select(self, cond, then_blk, else_blk, name=""):
+    def select(self, cond, then_value, else_value, name=""):
         check_is_value(cond)
-        check_is_basic_block(then_blk)
-        check_is_basic_block(else_blk)
-        return Value(_core.LLVMBuildSelect(self.ptr, cond.ptr, then_blk.ptr, else_blk.ptr, name))
+        check_is_value(then_value)
+        check_is_value(else_value)
+        return Value(_core.LLVMBuildSelect(self.ptr, cond.ptr, then_value.ptr, else_value.ptr, name))
     
     def vaarg(self, list_val, ty, name=""):
         check_is_value(list_val)

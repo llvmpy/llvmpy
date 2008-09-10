@@ -409,6 +409,7 @@ def do_builder():
     # destruction.
     i = b.phi(Type.int())
     i.add_incoming(v, blk)
+    t = i.is_terminator == False
 
 
 def do_moduleprovider():

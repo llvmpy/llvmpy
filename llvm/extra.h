@@ -51,6 +51,10 @@ LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef, LLVMValueRef V,
 LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef B, int ID,
                               LLVMTypeRef *Types, unsigned Count);
 
+/* instruction */
+
+unsigned LLVMInstIsTerminator(LLVMValueRef I);
+
 /* reading llvm "assembly" */
 
 LLVMModuleRef LLVMGetModuleFromAssembly(const char *A, unsigned Len,

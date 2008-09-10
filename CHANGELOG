@@ -1,3 +1,11 @@
+
+0.4, in progress:
+
+  * Instruction.is_terminator added.
+  * Fix Builder.select (Paulo Silva).
+  * Added viewCFG methods to Function (Paulo Silva).
+
+
 0.3, 8-Sep-2008:
 
   * Passes added.

@@ -72,7 +72,7 @@ def call_setup(llvm_config):
 
     setup(
         name='llvm-py',
-        version='0.3',
+        version='0.4',
         description='Python Bindings for LLVM',
         author='Mahadevan R',
         author_email='mdevan.foobar@gmail.com',
