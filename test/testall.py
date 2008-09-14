@@ -94,7 +94,8 @@ def do_type():
     Type.struct([ti]*100)
     Type.packed_struct([ti]*100)
     Type.array(ti, 100)
-    Type.pointer(ti, 4)
+    ptr = Type.pointer(ti, 4)
+    pte = ptr.pointee
     Type.vector(ti, 100)
     Type.void()
     Type.label()

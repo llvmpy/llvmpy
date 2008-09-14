@@ -698,7 +698,6 @@ INTR_X86_SSSE3_PSIGN_W_128     = 594
 
 def check_is_type(obj):     check_gen(obj, Type)
 def check_is_value(obj):    check_gen(obj, Value)
-def check_is_pointer(obj):  check_gen(obj, Pointer)
 def check_is_constant(obj): check_gen(obj, Constant)
 def check_is_function(obj): check_gen(obj, Function)
 def check_is_basic_block(obj): check_gen(obj, BasicBlock)
@@ -708,6 +707,15 @@ def check_is_module_provider(obj): check_gen(obj, ModuleProvider)
 def unpack_types(objlist):     return unpack_gen(objlist, check_is_type)
 def unpack_values(objlist):    return unpack_gen(objlist, check_is_value)
 def unpack_constants(objlist): return unpack_gen(objlist, check_is_constant)
+
+def check_is_callable(obj):
+    if isinstance(obj, Function):
+        return
+    type = obj.type
+    if isinstance(type, PointerType) and \
+        isinstance(type.pointee, FunctionType):
+        return
+    raise TypeError, "argument is neither a function nor a function pointer"
 
 
 #===----------------------------------------------------------------------===
@@ -1165,6 +1173,12 @@ class PointerType(Type):
 
         Use one of the static methods of the *base* class (Type) instead."""
         Type.__init__(self, ptr, kind)
+
+    @property
+    def pointee(self):
+        ptr = _core.LLVMGetElementType(self.ptr)
+        kind = _core.LLVMGetTypeKind(ptr)
+        return _make_type(ptr, kind)
 
     @property
     def address_space(self):
@@ -1827,7 +1841,7 @@ class Builder(object):
         return SwitchInstruction(_core.LLVMBuildSwitch(self.ptr, value.ptr, else_blk.ptr, n))
         
     def invoke(self, func, args, then_blk, catch_blk, name=""):
-        check_is_function(func)
+        check_is_callable(func)
         check_is_basic_block(then_blk)
         check_is_basic_block(catch_blk)
         args2 = unpack_values(args)
@@ -2058,7 +2072,7 @@ class Builder(object):
         return PHINode(_core.LLVMBuildPhi(self.ptr, ty.ptr, name))
         
     def call(self, fn, args, name=""):
-        check_is_function(fn)
+        check_is_callable(fn)
         arg_ptrs = unpack_values(args)
         return CallOrInvokeInstruction(_core.LLVMBuildCall(self.ptr, fn.ptr, arg_ptrs, name))
         
