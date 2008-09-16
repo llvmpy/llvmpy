@@ -54,6 +54,17 @@ LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef B, int ID,
 /* instruction */
 
 unsigned LLVMInstIsTerminator(LLVMValueRef I);
+unsigned LLVMInstIsBinaryOp(LLVMValueRef I);
+unsigned LLVMInstIsShift(LLVMValueRef I);
+unsigned LLVMInstIsCast(LLVMValueRef I);
+unsigned LLVMInstIsLogicalShift(LLVMValueRef I);
+unsigned LLVMInstIsArithmeticShift(LLVMValueRef I);
+unsigned LLVMInstIsAssociative(LLVMValueRef I);
+unsigned LLVMInstIsCommutative(LLVMValueRef I);
+unsigned LLVMInstIsTrapping(LLVMValueRef I);
+
+const char *LLVMInstGetOpcodeName(LLVMValueRef I);
+unsigned LLVMInstGetOpcode(LLVMValueRef I);
 
 /* reading llvm "assembly" */
 

@@ -1686,7 +1686,47 @@ class Instruction(Value):
 
     @property
     def is_terminator(self):
-        return _core.LLVMInstIsTerminator(self.ptr)
+        return _core.LLVMInstIsTerminator(self.ptr) != 0
+
+    @property
+    def is_binary_op(self):
+        return _core.LLVMInstIsBinaryOp(self.ptr) != 0
+
+    @property
+    def is_shift(self):
+        return _core.LLVMInstIsShift(self.ptr) != 0
+
+    @property
+    def is_cast(self):
+        return _core.LLVMInstIsCast(self.ptr) != 0
+
+    @property
+    def is_logical_shift(self):
+        return _core.LLVMInstIsLogicalShift(self.ptr) != 0
+
+    @property
+    def is_arithmetic_shift(self):
+        return _core.LLVMInstIsArithmeticShift(self.ptr) != 0
+
+    @property
+    def is_associative(self):
+        return _core.LLVMInstIsAssociative(self.ptr) != 0
+
+    @property
+    def is_commutative(self):
+        return _core.LLVMInstIsCommutative(self.ptr) != 0
+
+    @property
+    def is_trapping(self):
+        return _core.LLVMInstIsTrapping(self.ptr) != 0
+
+    @property
+    def opcode(self):
+        return _core.LLVMInstGetOpcode(self.ptr)
+
+    @property
+    def opcode_name(self):
+        return _core.LLVMInstGetOpcodeName(self.ptr)
 
 
 class CallOrInvokeInstruction(Instruction):

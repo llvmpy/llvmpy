@@ -461,7 +461,18 @@ _wrap_obj2none(LLVMDeleteBasicBlock, LLVMBasicBlockRef)
 _wrap_obj2obj(LLVMGetInstructionParent, LLVMValueRef, LLVMBasicBlockRef)
 _wrap_obj2obj(LLVMGetFirstInstruction, LLVMBasicBlockRef, LLVMValueRef)
 _wrap_obj2obj(LLVMGetNextInstruction, LLVMValueRef, LLVMValueRef)
-_wrap_obj2obj(LLVMInstIsTerminator, LLVMValueRef, int)
+_wrap_obj2obj(LLVMInstIsTerminator,   LLVMValueRef, int)
+_wrap_obj2obj(LLVMInstIsBinaryOp,     LLVMValueRef, int)
+_wrap_obj2obj(LLVMInstIsShift,        LLVMValueRef, int)
+_wrap_obj2obj(LLVMInstIsCast,         LLVMValueRef, int)
+_wrap_obj2obj(LLVMInstIsLogicalShift, LLVMValueRef, int)
+_wrap_obj2obj(LLVMInstIsArithmeticShift, LLVMValueRef, int)
+_wrap_obj2obj(LLVMInstIsAssociative,  LLVMValueRef, int)
+_wrap_obj2obj(LLVMInstIsCommutative,  LLVMValueRef, int)
+_wrap_obj2obj(LLVMInstIsTrapping,     LLVMValueRef, int)
+_wrap_obj2obj(LLVMInstGetOpcode, LLVMValueRef, int)
+_wrap_obj2str(LLVMInstGetOpcodeName, LLVMValueRef)
+
 
 /*===-- Call Sites (Call or Invoke) --------------------------------------===*/
 
@@ -1130,7 +1141,17 @@ static PyMethodDef core_methods[] = {
     _method( LLVMGetInstructionParent )    
     _method( LLVMGetFirstInstruction )
     _method( LLVMGetNextInstruction )
-    _method( LLVMInstIsTerminator )    
+    _method( LLVMInstIsTerminator )
+    _method( LLVMInstIsBinaryOp )
+    _method( LLVMInstIsShift )
+    _method( LLVMInstIsCast )
+    _method( LLVMInstIsLogicalShift )
+    _method( LLVMInstIsArithmeticShift )
+    _method( LLVMInstIsAssociative )
+    _method( LLVMInstIsCommutative )
+    _method( LLVMInstIsTrapping )
+    _method( LLVMInstGetOpcode )
+    _method( LLVMInstGetOpcodeName )
 
     /* Call Sites (Call or Invoke) */
     _method( LLVMSetInstructionCallConv )    

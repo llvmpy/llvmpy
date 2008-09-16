@@ -84,8 +84,29 @@ LLVMValueRef LLVMBuildVFCmp(LLVMBuilderRef B, LLVMRealPredicate Op,
 }
 #endif
 
-unsigned LLVMInstIsTerminator(LLVMValueRef I) {
-    return unwrap<Instruction>(I)->isTerminator() ? 1 : 0;
+#define inst_checkfn(ourfn, llvmfn)                         \
+    unsigned ourfn (LLVMValueRef I) {                       \
+        return unwrap<Instruction>(I)-> llvmfn () ? 1 : 0;  \
+    }
+
+inst_checkfn(LLVMInstIsTerminator,  isTerminator)
+inst_checkfn(LLVMInstIsBinaryOp,    isBinaryOp)
+inst_checkfn(LLVMInstIsShift,       isShift)
+inst_checkfn(LLVMInstIsCast,        isCast)
+inst_checkfn(LLVMInstIsLogicalShift,isLogicalShift)
+inst_checkfn(LLVMInstIsArithmeticShift,isArithmeticShift)
+inst_checkfn(LLVMInstIsAssociative, isAssociative)
+inst_checkfn(LLVMInstIsCommutative, isCommutative)
+inst_checkfn(LLVMInstIsTrapping,    isTrapping)
+
+const char *LLVMInstGetOpcodeName(LLVMValueRef I)
+{
+    return unwrap<Instruction>(I)->getOpcodeName();
+}
+
+unsigned LLVMInstGetOpcode(LLVMValueRef I)
+{
+    return unwrap<Instruction>(I)->getOpcode();
 }
 
 LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef B, LLVMValueRef *Values,

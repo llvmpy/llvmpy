@@ -411,6 +411,16 @@ def do_builder():
     i = b.phi(Type.int())
     i.add_incoming(v, blk)
     t = i.is_terminator == False
+    t = i.is_binary_op == False
+    t = i.is_shift == False
+    t = i.is_cast == False
+    t = i.is_logical_shift == False
+    t = i.is_arithmetic_shift == False
+    t = i.is_associative == False
+    t = i.is_commutative == False
+    t = i.is_trapping == False
+    t = i.opcode
+    t = i.opcode_name
 
 
 def do_moduleprovider():
