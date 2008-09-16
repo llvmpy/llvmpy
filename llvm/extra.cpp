@@ -84,6 +84,24 @@ LLVMValueRef LLVMBuildVFCmp(LLVMBuilderRef B, LLVMRealPredicate Op,
 }
 #endif
 
+unsigned LLVMModuleGetPointerSize(LLVMModuleRef M)
+{
+    Module::PointerSize p = unwrap(M)->getPointerSize();
+    if (p == Module::Pointer32)
+        return 32;
+    else if (p == Module::Pointer64)
+        return 64;
+    return 0;
+}
+
+LLVMValueRef LLVMModuleGetOrInsertFunction(LLVMModuleRef M, 
+    const char *Name, LLVMTypeRef FunctionTy)
+{
+    FunctionType *ft = unwrap<FunctionType>(FunctionTy);
+    Constant *f = unwrap(M)->getOrInsertFunction(Name, ft);
+    return wrap(f);
+}
+
 #define inst_checkfn(ourfn, llvmfn)                         \
     unsigned ourfn (LLVMValueRef I) {                       \
         return unwrap<Instruction>(I)-> llvmfn () ? 1 : 0;  \

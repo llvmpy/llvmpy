@@ -38,6 +38,9 @@ _wrap_objstr2none(LLVMDeleteTypeName, LLVMModuleRef)
 _wrap_obj2none(LLVMDumpModule, LLVMModuleRef)
 _wrap_obj2none(LLVMDisposeModule, LLVMModuleRef)
 _wrap_dumper(LLVMDumpModuleToString, LLVMModuleRef)
+_wrap_obj2obj(LLVMModuleGetPointerSize, LLVMModuleRef, int)
+_wrap_objstrobj2obj(LLVMModuleGetOrInsertFunction, LLVMModuleRef, 
+    LLVMTypeRef, LLVMValueRef)      
 
 static PyObject *
 _wLLVMVerifyModule(PyObject *self, PyObject *args)
@@ -942,6 +945,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMGetModuleFromAssembly )
     _method( LLVMGetModuleFromBitcode )
     _method( LLVMGetBitcodeFromModule )
+    _method( LLVMModuleGetPointerSize )
+    _method( LLVMModuleGetOrInsertFunction )
 
     /* Types */
 

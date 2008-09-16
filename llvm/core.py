@@ -822,6 +822,14 @@ class Module(llvm.Ownable):
         """
     )
 
+    @property
+    def pointer_size(self):
+        """Pointer size of target platform.
+
+        Can be 0, 32 or 64. Zero represents
+        llvm::Module::AnyPointerSize."""
+        return _core.LLVMModuleGetPointerSize(self.ptr)
+
     def add_type_name(self, name, ty):
         """Map a string to a type.
 
@@ -867,6 +875,9 @@ class Module(llvm.Ownable):
     def get_function_named(self, name):
         """Return a Function object representing function with given name."""
         return Function.get(self, name)
+
+    def get_or_insert_function(self, ty, name):
+        return Function.get_or_insert(self, ty, name)
 
     @property
     def functions(self):
@@ -1603,7 +1614,15 @@ class Function(GlobalValue):
     def new(module, func_ty, name):
         check_is_module(module)
         check_is_type(func_ty)
-        return Function(_core.LLVMAddFunction(module.ptr, name, func_ty.ptr), module)
+        return Function(_core.LLVMAddFunction(module.ptr, name, \
+            func_ty.ptr), module)
+
+    @staticmethod
+    def get_or_insert(module, func_ty, name):
+        check_is_module(module)
+        check_is_type(func_ty)
+        return Function(_core.LLVMModuleGetOrInsertFunction(module.ptr, \
+            name, func_ty.ptr), module)
 
     @staticmethod
     def get(module, name):

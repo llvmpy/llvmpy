@@ -51,6 +51,12 @@ LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef, LLVMValueRef V,
 LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef B, int ID,
                               LLVMTypeRef *Types, unsigned Count);
 
+/* module */
+
+unsigned LLVMModuleGetPointerSize(LLVMModuleRef M);
+LLVMValueRef LLVMModuleGetOrInsertFunction(LLVMModuleRef M, 
+    const char *Name, LLVMTypeRef FunctionTy);
+
 /* instruction */
 
 unsigned LLVMInstIsTerminator(LLVMValueRef I);

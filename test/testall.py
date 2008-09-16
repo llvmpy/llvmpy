@@ -52,6 +52,9 @@ def do_module():
     ft = Type.function(ti, [ti])
     m.add_function(ft, "func")
     m.get_function_named("func")
+    m.get_or_insert_function(ft, "func")
+    m.get_or_insert_function(Type.function(ti, []), "func")
+    m.get_or_insert_function(ft, "func2")
     fns = list(m.functions)
     try:
         m.verify()
@@ -78,6 +81,7 @@ def do_module():
     ss2.write(str(m))
     m4 = Module.from_assembly(ss2)
     t = m4 == m
+    t = m4.pointer_size
 
 
 def do_type():
