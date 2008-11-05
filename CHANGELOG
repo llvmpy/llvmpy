@@ -1,6 +1,7 @@
 
 0.4, in progress:
 
+  * Fix comparison using != (Issue #11).
   * Instruction.is_terminator added.
   * Fix Builder.select (Paulo Silva).
   * Added viewCFG methods to Function (Paulo Silva).

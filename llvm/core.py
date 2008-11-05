@@ -798,6 +798,9 @@ class Module(llvm.Ownable):
         else:
             return False
 
+    def __ne__(self, rhs):
+        return not self == rhs
+
     def _get_target(self):
         return _core.LLVMGetTarget(self.ptr)
 
@@ -1074,6 +1077,9 @@ class Type(object):
         else:
             return False
 
+    def __ne__(self, rhs):
+        return not self == rhs
+
     def refine(self, dest):
         """Refine the abstract type represented by self into a concrete class.
 
@@ -1272,6 +1278,9 @@ class Value(object):
             return str(self) == str(rhs)
         else:
             return False
+
+    def __ne__(self, rhs):
+        return not self == rhs
 
     def _get_name(self):
         return _core.LLVMGetValueName(self.ptr)

@@ -129,6 +129,9 @@ def do_type():
     vt = Type.vector(ti, 100)
     s = vt.element
     s = vt.count
+    Type.int(32) == Type.int(64)
+    Type.int(32) != Type.int(64)
+    Type.int(32) != Type.float()
 
 
 def do_typehandle():
