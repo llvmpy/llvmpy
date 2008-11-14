@@ -21,6 +21,7 @@
 #include "llvm/IntrinsicInst.h"
 #include "llvm/Analysis/Verifier.h"
 #include "llvm/Assembly/Parser.h"
+#include "llvm/System/DynamicLibrary.h"
 // +includes for passes
 #include "llvm/PassManager.h"
 #include "llvm/Analysis/LoopPass.h"
@@ -196,6 +197,20 @@ unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef M, unsigned *Len)
     memcpy(bytes, s.data(), len);
     *Len = len;
     return bytes;
+}
+
+/* Return 0 on failure (with ErrMsg filled in), 1 on success. */
+unsigned LLVMLoadLibraryPermanently(const char* filename, char **ErrMsg)
+{
+    std::string msg;
+ 
+    /* Note: the LLVM API returns true on failure. Don't ask why. */
+    if (sys::DynamicLibrary::LoadLibraryPermanently(filename, &msg)) {
+        *ErrMsg = strdup(msg.c_str());
+        return 0;
+    }
+
+    return 1;
 }
 
 /* passes */

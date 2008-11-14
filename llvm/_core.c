@@ -917,8 +917,36 @@ _wLLVMGenericValueToFloat(PyObject *self, PyObject *args)
 
 _wrap_obj2none(LLVMDisposeGenericValue, LLVMGenericValueRef)
 
+
+/*===----------------------------------------------------------------------===*/
+/* Misc                                                                       */
+/*===----------------------------------------------------------------------===*/
+
 _wrap_objintlist2obj(LLVMGetIntrinsic, LLVMModuleRef, LLVMTypeRef,
     LLVMValueRef)
+
+static PyObject *
+_wLLVMLoadLibraryPermanently(PyObject *self, PyObject *args)
+{
+    const char *filename;
+    char *outmsg;
+    PyObject *ret;
+
+    if (!PyArg_ParseTuple(args, "s", &filename))
+        return NULL;
+
+    outmsg = 0;
+    if (!LLVMLoadLibraryPermanently(filename, &outmsg)) {
+        if (outmsg) {
+            ret = PyString_FromString(outmsg);
+            LLVMDisposeMessage(outmsg);
+            return ret;
+        }
+    }
+
+    /* note: success => None, failure => string with error message */
+    Py_RETURN_NONE;
+}
 
 
 /*===----------------------------------------------------------------------===*/
@@ -1359,7 +1387,9 @@ static PyMethodDef core_methods[] = {
     _method( LLVMGenericValueToFloat )
     _method( LLVMDisposeGenericValue )
 
+    /* Misc */
     _method( LLVMGetIntrinsic )
+    _method( LLVMLoadLibraryPermanently )
 
     { NULL }
 };

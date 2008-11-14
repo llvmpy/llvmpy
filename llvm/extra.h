@@ -83,6 +83,8 @@ LLVMModuleRef LLVMGetModuleFromBitcode(const char *BC, unsigned Len,
                                        char **OutMessage);
 unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef M, unsigned *Len);
 
+unsigned LLVMLoadLibraryPermanently(const char* filename, char **ErrMsg);
+
 /* passes */
 
 #define declare_pass(P) \

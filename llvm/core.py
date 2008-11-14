@@ -2224,3 +2224,19 @@ class MemoryBuffer(object):
     def __del__(self):
         _core.LLVMDisposeMemoryBuffer(self.ptr)
 
+
+#===----------------------------------------------------------------------===
+# Misc
+#===----------------------------------------------------------------------===
+
+def load_library_permanently(filename):
+    """Load a shared library.
+
+    Load the given shared library (filename argument specifies the full
+    path of the .so file) using LLVM. Symbols from these are available
+    from the execution engine thereafter."""
+
+    ret = _core.LLVMLoadLibraryPermanently(filename)
+    if isinstance(ret, str):
+        raise llvm.LLVMException, ret
+

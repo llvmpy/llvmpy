@@ -29,10 +29,23 @@ def do_ownable():
         pass
 
 
+def do_misc():
+    print "    Testing miscellaneous functions"
+    try:
+        load_library_permanently("/usr/lib/libm.so")
+    except LLVMException:
+        pass
+    try:
+        load_library_permanently("no*such*so")
+    except LLVMException:
+        pass
+
+
 def do_llvm():
     print "  Testing module llvm"
     do_llvmexception()
     do_ownable()
+    do_misc()
 
 
 def do_module():
