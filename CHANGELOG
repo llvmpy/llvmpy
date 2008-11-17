@@ -1,6 +1,7 @@
 
 0.4, in progress:
 
+  * Code cleanup, added license headers.
   * Added llvm.core.load_library_permanently() (Issue #12).
   * Fix comparison using != (Issue #11).
   * Instruction.is_terminator added.

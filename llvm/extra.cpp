@@ -1,14 +1,46 @@
+/*
+ * Copyright (c) 2008, Mahadevan R All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither the name of this software, nor the names of its 
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 /**
  * These are some "extra" functions not available in the standard LLVM-C
  * bindings, but are required / good-to-have inorder to implement the
  * Python bindings.
  */
 
+// standard includes
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
 
+// LLVM includes
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Constants.h"
@@ -22,202 +54,271 @@
 #include "llvm/Analysis/Verifier.h"
 #include "llvm/Assembly/Parser.h"
 #include "llvm/System/DynamicLibrary.h"
-// +includes for passes
 #include "llvm/PassManager.h"
 #include "llvm/Analysis/LoopPass.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
 #include "llvm/Transforms/Instrumentation.h"
-// -includes for passes
 
+// LLVM-C includes
 #include "llvm-c/Core.h"
 
+// our includes
 #include "extra.h"
 
-using namespace llvm;
+//using namespace llvm;
 
-char *LLVMDumpModuleToString(LLVMModuleRef M) {
-  std::ostringstream buf;
-  unwrap(M)->print(buf);
-  return strdup(buf.str().c_str());
-}
-
-char *LLVMDumpTypeToString(LLVMTypeRef Ty) {
-  std::ostringstream buf;
-  unwrap(Ty)->print(buf);
-  return strdup(buf.str().c_str());
-}
-
-char *LLVMDumpValueToString(LLVMValueRef Val) {
-  std::ostringstream buf;
-  unwrap(Val)->print(buf);
-  return strdup(buf.str().c_str());
-}
-
-#if 0 /* after LLVM 2.3! */
-LLVMValueRef LLVMConstVICmp(LLVMIntPredicate Predicate,
-                           LLVMValueRef LHSConstant, LLVMValueRef RHSConstant) {
-  return wrap(ConstantExpr::getVICmp(Predicate,
-                                    unwrap<Constant>(LHSConstant),
-                                    unwrap<Constant>(RHSConstant)));
-}
-
-LLVMValueRef LLVMConstVFCmp(LLVMRealPredicate Predicate,
-                           LLVMValueRef LHSConstant, LLVMValueRef RHSConstant) {
-  return wrap(ConstantExpr::getVFCmp(Predicate,
-                                    unwrap<Constant>(LHSConstant),
-                                    unwrap<Constant>(RHSConstant)));
-}
-
-LLVMValueRef LLVMBuildVICmp(LLVMBuilderRef B, LLVMIntPredicate Op,
-                           LLVMValueRef LHS, LLVMValueRef RHS,
-                           const char *Name) {
-  return wrap(unwrap(B)->CreateVICmp(static_cast<ICmpInst::Predicate>(Op),
-                                    unwrap(LHS), unwrap(RHS), Name));
-}
-
-LLVMValueRef LLVMBuildVFCmp(LLVMBuilderRef B, LLVMRealPredicate Op,
-                           LLVMValueRef LHS, LLVMValueRef RHS,
-                           const char *Name) {
-  return wrap(unwrap(B)->CreateVFCmp(static_cast<FCmpInst::Predicate>(Op),
-                                    unwrap(LHS), unwrap(RHS), Name));
-}
-#endif
-
-unsigned LLVMModuleGetPointerSize(LLVMModuleRef M)
+/* Helper method for LLVMDumpXXXToString() methods. */
+template <typename W, typename UW>
+char *do_print(W obj)
 {
-    Module::PointerSize p = unwrap(M)->getPointerSize();
-    if (p == Module::Pointer32)
+    std::ostringstream buf;
+    UW *p = llvm::unwrap(obj);
+    assert(p);
+    p->print(buf);
+    return strdup(buf.str().c_str());
+}
+
+char *LLVMDumpModuleToString(LLVMModuleRef module)
+{
+    return do_print<LLVMModuleRef, llvm::Module>(module);
+}
+
+char *LLVMDumpTypeToString(LLVMTypeRef type)
+{
+    return do_print<LLVMTypeRef, llvm::Type>(type);
+}
+
+char *LLVMDumpValueToString(LLVMValueRef value)
+{
+    return do_print<LLVMValueRef, llvm::Value>(value);
+}
+
+unsigned LLVMModuleGetPointerSize(LLVMModuleRef module)
+{
+    llvm::Module *modulep = llvm::unwrap(module);
+    assert(modulep);
+
+    llvm::Module::PointerSize p = modulep->getPointerSize();
+    if (p == llvm::Module::Pointer32)
         return 32;
-    else if (p == Module::Pointer64)
+    else if (p == llvm::Module::Pointer64)
         return 64;
     return 0;
 }
 
-LLVMValueRef LLVMModuleGetOrInsertFunction(LLVMModuleRef M, 
-    const char *Name, LLVMTypeRef FunctionTy)
+LLVMValueRef LLVMModuleGetOrInsertFunction(LLVMModuleRef module,
+    const char *name, LLVMTypeRef function_type)
 {
-    FunctionType *ft = unwrap<FunctionType>(FunctionTy);
-    Constant *f = unwrap(M)->getOrInsertFunction(Name, ft);
+    assert(name);
+
+    llvm::Module *modulep = llvm::unwrap(module);
+    assert(modulep);
+
+    llvm::FunctionType *ftp = llvm::unwrap<llvm::FunctionType>(function_type);
+    assert(ftp);
+
+    llvm::Constant *f = modulep->getOrInsertFunction(name, ftp);
     return wrap(f);
 }
 
-#define inst_checkfn(ourfn, llvmfn)                         \
-    unsigned ourfn (LLVMValueRef I) {                       \
-        return unwrap<Instruction>(I)-> llvmfn () ? 1 : 0;  \
+#define inst_checkfn(ourfn, llvmfn)                 \
+unsigned ourfn (LLVMValueRef v) {                   \
+    llvm::Instruction *ip = llvm::unwrap<llvm::Instruction>(v); \
+    assert(ip);                                     \
+    return ip-> llvmfn () ? 1 : 0;                  \
+}
+
+inst_checkfn(LLVMInstIsTerminator,      isTerminator)
+inst_checkfn(LLVMInstIsBinaryOp,        isBinaryOp)
+inst_checkfn(LLVMInstIsShift,           isShift)
+inst_checkfn(LLVMInstIsCast,            isCast)
+inst_checkfn(LLVMInstIsLogicalShift,    isLogicalShift)
+inst_checkfn(LLVMInstIsArithmeticShift, isArithmeticShift)
+inst_checkfn(LLVMInstIsAssociative,     isAssociative)
+inst_checkfn(LLVMInstIsCommutative,     isCommutative)
+inst_checkfn(LLVMInstIsTrapping,        isTrapping)
+
+const char *LLVMInstGetOpcodeName(LLVMValueRef inst)
+{
+    llvm::Instruction *instp = llvm::unwrap<llvm::Instruction>(inst);
+    assert(instp);
+    return instp->getOpcodeName();
+}
+
+unsigned LLVMInstGetOpcode(LLVMValueRef inst)
+{
+    llvm::Instruction *instp = llvm::unwrap<llvm::Instruction>(inst);
+    assert(instp);
+    return instp->getOpcode();
+}
+
+/* llvm::unwrap a set of `n' wrapped objects starting at `values',
+ * into a vector of pointers to llvm::unwrapped objects `out'. */
+template <typename W, typename UW>
+void unwrap_vec(W *values, unsigned n, std::vector<UW *>& out)
+{
+    out.clear();
+
+    while (n--) {
+        UW *p = llvm::unwrap(*values);
+        assert(p);
+        out.push_back(p);
+        ++values;
     }
+}
 
-inst_checkfn(LLVMInstIsTerminator,  isTerminator)
-inst_checkfn(LLVMInstIsBinaryOp,    isBinaryOp)
-inst_checkfn(LLVMInstIsShift,       isShift)
-inst_checkfn(LLVMInstIsCast,        isCast)
-inst_checkfn(LLVMInstIsLogicalShift,isLogicalShift)
-inst_checkfn(LLVMInstIsArithmeticShift,isArithmeticShift)
-inst_checkfn(LLVMInstIsAssociative, isAssociative)
-inst_checkfn(LLVMInstIsCommutative, isCommutative)
-inst_checkfn(LLVMInstIsTrapping,    isTrapping)
-
-const char *LLVMInstGetOpcodeName(LLVMValueRef I)
+/* Same as llvm::unwrap_vec, but use a vector of const pointers. */
+template <typename W, typename UW>
+void unwrap_cvec(W *values, unsigned n, std::vector<const UW *>& out)
 {
-    return unwrap<Instruction>(I)->getOpcodeName();
+    out.clear();
+
+    while (n--) {
+        UW *p = llvm::unwrap(*values);
+        assert(p);
+        out.push_back(p);
+        ++values;
+    }
 }
 
-unsigned LLVMInstGetOpcode(LLVMValueRef I)
+LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef builder, 
+    LLVMValueRef *values, unsigned n_values)
 {
-    return unwrap<Instruction>(I)->getOpcode();
+    assert(values);
+
+    std::vector<llvm::Value *> values_vec;
+    unwrap_vec(values, n_values, values_vec);
+
+    llvm::IRBuilder *builderp = llvm::unwrap(builder);
+    assert(builderp);
+
+    return wrap(builderp->CreateRet(&values_vec[0], values_vec.size()));
 }
 
-LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef B, LLVMValueRef *Values,
-                                  unsigned NumValues) {
-  std::vector<Value *> Vs;
-  for (LLVMValueRef *I = Values, *E = Values + NumValues; I != E; ++I)
-    Vs.push_back(unwrap(*I));
-
-  return wrap(unwrap(B)->CreateRet(&Vs[0], NumValues));
-}
-
-LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef B, LLVMValueRef V,
-                                unsigned Index, const char *Name) {
-  return wrap(unwrap(B)->CreateGetResult(unwrap(V), Index, Name));
-}
-
-LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef M, int ID,
-    LLVMTypeRef *Types, unsigned Count)
+LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef builder, 
+    LLVMValueRef value, unsigned index, const char *name)
 {
-    std::vector<const Type*> Tys;
-    for (LLVMTypeRef *I = Types, *E = Types + Count; I != E; ++I)
-        Tys.push_back(unwrap(*I));
-  
-    Function *intfunc = Intrinsic::getDeclaration(unwrap(M),
-        Intrinsic::ID(ID), &Tys[0], Count);
+    assert(name);
+
+    llvm::IRBuilder *builderp = llvm::unwrap(builder);
+    assert(builderp);
+
+    return wrap(builderp->CreateGetResult(llvm::unwrap(value), index, name));
+}
+
+LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef module, int id,
+    LLVMTypeRef *types, unsigned n_types)
+{
+    assert(types);
+
+    std::vector<const llvm::Type*> types_vec;
+    unwrap_cvec(types, n_types, types_vec);
+
+    llvm::Module *modulep = llvm::unwrap(module);
+    assert(modulep);
+
+    llvm::Function *intfunc = llvm::Intrinsic::getDeclaration(modulep, 
+        llvm::Intrinsic::ID(id), &types_vec[0], types_vec.size());
 
     return wrap(intfunc);
 }
 
-LLVMModuleRef LLVMGetModuleFromAssembly(const char *A, unsigned Len,
-                                        char **OutMessage)
+LLVMModuleRef LLVMGetModuleFromAssembly(const char *asmtext, unsigned txtlen,
+    char **out)
 {
-    ParseError e;
+    assert(asmtext);
+    assert(out);
 
-    Module *MP = ParseAssemblyString(A, NULL /*unused within!*/, &e);
-    if (!MP) {
-        *OutMessage = strdup(e.getMessage().c_str());
+    llvm::Module *modulep;
+    llvm::ParseError error;
+    if (!(modulep = llvm::ParseAssemblyString(asmtext, NULL /*unused within!*/, 
+                        &error))) {
+        *out = strdup(error.getMessage().c_str());
         return NULL;
     }
 
-    return wrap(MP);
+    return wrap(modulep);
 }
 
-LLVMModuleRef LLVMGetModuleFromBitcode(const char *BC, unsigned Len,
-                                       char **OutMessage)
+LLVMModuleRef LLVMGetModuleFromBitcode(const char *bitcode, unsigned bclen,
+    char **out)
 {
-    MemoryBuffer *mb = MemoryBuffer::getMemBufferCopy(BC, BC+Len);
-    if (!mb)
+    assert(bitcode);
+    assert(out);
+
+    llvm::MemoryBuffer *mbp;
+    if (!(mbp = llvm::MemoryBuffer::getMemBufferCopy(bitcode, bitcode+bclen)))
         return NULL;
 
     std::string msg;
-    LLVMModuleRef mr = wrap(ParseBitcodeFile(mb, &msg));
-    if (!mr)
-        *OutMessage = strdup(msg.c_str());
+    llvm::Module *modulep;
+    if (!(modulep = llvm::ParseBitcodeFile(mbp, &msg)))
+        *out = strdup(msg.c_str());
 
-    delete mb;
-    return mr;
+    delete mbp;
+    return wrap(modulep);
 }
 
-unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef M, unsigned *Len)
+unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, unsigned *lenp)
 {
+    assert(lenp);
+
+    llvm::Module *modulep = llvm::unwrap(module);
+    assert(modulep);
+
+    /* get bc into a string */
     std::ostringstream buf;
-    WriteBitcodeToFile(unwrap(M), buf);
-    const std::string& s = buf.str();
-    size_t len = s.size();
-    unsigned char *bytes = (unsigned char *)malloc(len);
+    llvm::WriteBitcodeToFile(modulep, buf);
+    const std::string& bc = buf.str();
+
+    /* and then into a malloc()-ed block */
+    size_t bclen = bc.size();
+    unsigned char *bytes = (unsigned char *)malloc(bclen);
     if (!bytes)
         return NULL;
-    memcpy(bytes, s.data(), len);
-    *Len = len;
+    memcpy(bytes, bc.data(), bclen);
+
+    /* return */
+    *lenp = bclen;
     return bytes;
 }
 
-/* Return 0 on failure (with ErrMsg filled in), 1 on success. */
-unsigned LLVMLoadLibraryPermanently(const char* filename, char **ErrMsg)
+/* Return 0 on failure (with errmsg filled in), 1 on success. */
+unsigned LLVMLoadLibraryPermanently(const char* filename, char **errmsg)
 {
-    std::string msg;
- 
+    assert(filename);
+    assert(errmsg);
+
     /* Note: the LLVM API returns true on failure. Don't ask why. */
-    if (sys::DynamicLibrary::LoadLibraryPermanently(filename, &msg)) {
-        *ErrMsg = strdup(msg.c_str());
+    std::string msg;
+    if (llvm::sys::DynamicLibrary::LoadLibraryPermanently(filename, &msg)) {
+        *errmsg = strdup(msg.c_str());
         return 0;
     }
 
     return 1;
 }
 
-/* passes */
 
-#define define_pass(P)                              \
-void LLVMAdd ## P ## Pass (LLVMPassManagerRef PM) { \
-  unwrap(PM)->add( create ## P ## Pass ());         \
+/* Passes. A few passes (listed below) are used directly from LLVM-C,
+ * rest are defined here.
+ *
+ *  ConstantPropagation
+ *  GVN
+ *  InstructionCombining
+ *  PromoteMemoryToRegister
+ *  Reassociate
+ *  CFGSimplification
+ */
+
+#define define_pass(P)                                   \
+void LLVMAdd ## P ## Pass (LLVMPassManagerRef passmgr) { \
+    using namespace llvm;                                \
+    llvm::PassManagerBase *pmp = llvm::unwrap(passmgr);  \
+    assert(pmp);                                         \
+    pmp->add( create ## P ## Pass ());                   \
 }
 
 define_pass( AggressiveDCE )
@@ -227,7 +328,6 @@ define_pass( BreakCriticalEdges )
 define_pass( CodeGenPrepare )
 define_pass( CondPropagation )
 define_pass( ConstantMerge )
-//LLVM-C define_pass( ConstantPropagation )
 define_pass( DeadCodeElimination )
 define_pass( DeadArgElimination )
 define_pass( DeadTypeElimination )
@@ -236,7 +336,6 @@ define_pass( DeadStoreElimination )
 define_pass( GCSE )
 define_pass( GlobalDCE )
 define_pass( GlobalOptimizer )
-//LLVM-C define_pass( GVN )
 define_pass( GVNPRE )
 define_pass( IndMemRem )
 define_pass( IndVarSimplify )
@@ -246,9 +345,8 @@ define_pass( EdgeProfiler )
 define_pass( FunctionProfiler )
 define_pass( NullProfilerRS )
 define_pass( RSProfiling )
-//LLVM-C define_pass( InstructionCombining )
 /* we support only internalize(true) */
-ModulePass *createInternalizePass() { return llvm::createInternalizePass(true); }
+llvm::ModulePass *createInternalizePass() { return llvm::createInternalizePass(true); }
 define_pass( Internalize )
 define_pass( IPConstantPropagation )
 define_pass( IPSCCP )
@@ -268,18 +366,15 @@ define_pass( LowerAllocations )
 define_pass( LowerInvoke )
 define_pass( LowerSetJmp )
 define_pass( LowerSwitch )
-//LLVM-C define_pass( PromoteMemoryToRegister )
 define_pass( MemCpyOpt )
 define_pass( UnifyFunctionExitNodes )
 define_pass( PredicateSimplifier )
 define_pass( PruneEH )
 define_pass( RaiseAllocations )
-//LLVM-C define_pass( Reassociate )
 define_pass( DemoteRegisterToMemory )
 define_pass( ScalarReplAggregates )
 define_pass( SCCP )
 define_pass( SimplifyLibCalls )
-//LLVM-C define_pass( CFGSimplification )
 define_pass( StripSymbols )
 define_pass( StripDeadPrototypes )
 define_pass( StructRetPromotion )

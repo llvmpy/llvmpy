@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2008, Mahadevan R All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither the name of this software, nor the names of its 
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 /**
  * These are some "extra" functions not available in the standard LLVM-C
  * bindings, but are required / good-to-have inorder to implement the
@@ -11,81 +41,92 @@
 extern "C" {
 #endif
 
-/** Dumps module contents to a string. See Module::print. Free the
-    returned string with LLVMDisposeMessage, after use. */
-char *LLVMDumpModuleToString(LLVMModuleRef M);
+/* Notes:
+ *  - Some returned strings must be disposed of by LLVMDisposeMessage. These are
+ *    indicated in the comments. Where it is not indicated, DO NOT call dispose.
+ */
 
-/** Dumps type to a string. See Type::print. Free the returned string with 
-    LLVMDisposeMessage, after use. */
-char *LLVMDumpTypeToString(LLVMTypeRef Ty);
+/* Wraps llvm::Module::print(). Dispose the returned string after use, via
+ * LLVMDisposeMessage(). */
+char *LLVMDumpModuleToString(LLVMModuleRef module);
 
-/** Dumps value to a string. See Value::print. Free the returned string with
-    LLVMDisposeMessage, after use. */
+/* Wraps llvm::Type::print(). Dispose the returned string after use, via
+ * LLVMDisposeMessage(). */
+char *LLVMDumpTypeToString(LLVMTypeRef type);
+
+/* Wraps llvm::Value::print(). Dispose the returned string after use, via
+ * LLVMDisposeMessage(). */
 char *LLVMDumpValueToString(LLVMValueRef Val);
 
-/* missing constant expressions */
+/* Wraps llvm::IRBuilder::CreateRet(). */
+LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef bulder, LLVMValueRef *values,
+    unsigned n_values);
 
-#if 0 /* after LLVM 2.3! */
-LLVMValueRef LLVMConstVICmp(LLVMIntPredicate Predicate,
-                           LLVMValueRef LHSConstant, LLVMValueRef RHSConstant);
-LLVMValueRef LLVMConstVFCmp(LLVMRealPredicate Predicate,
-                           LLVMValueRef LHSConstant, LLVMValueRef RHSConstant);
+/* Wraps llvm::IRBuilder::CreateGetResult(). */
+LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef builder, LLVMValueRef value,
+    unsigned index, const char *name);
 
-/* missing instructions */
+/* Wraps llvm::Intrinsic::getDeclaration(). */
+LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef builder, int id,
+    LLVMTypeRef *types, unsigned n_types);
 
-LLVMValueRef LLVMBuildVICmp(LLVMBuilderRef, LLVMIntPredicate Op,
-                           LLVMValueRef LHS, LLVMValueRef RHS,
-                           const char *Name);
-LLVMValueRef LLVMBuildVFCmp(LLVMBuilderRef, LLVMRealPredicate Op,
-                           LLVMValueRef LHS, LLVMValueRef RHS,
-                           const char *Name);
-#endif
+/* Wraps llvm::Module::getPointerSize(). */
+unsigned LLVMModuleGetPointerSize(LLVMModuleRef module);
 
-LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef, LLVMValueRef *Values,
-                                  unsigned NumValues);
-LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef, LLVMValueRef V,
-                                unsigned Index, const char *Name);
+/* Wraps llvm::Module::getOrInsertFunction(). */
+LLVMValueRef LLVMModuleGetOrInsertFunction(LLVMModuleRef module, 
+    const char *name, LLVMTypeRef function_type);
 
-/* intrinsics */
+/* The following functions wrap various llvm::Instruction::isXXX() functions.
+ * All of them take an instruction and return 0 (isXXX returned false) or 1
+ * (isXXX returned false). */
+unsigned LLVMInstIsTerminator      (LLVMValueRef inst);
+unsigned LLVMInstIsBinaryOp        (LLVMValueRef inst);
+unsigned LLVMInstIsShift           (LLVMValueRef inst);
+unsigned LLVMInstIsCast            (LLVMValueRef inst);
+unsigned LLVMInstIsLogicalShift    (LLVMValueRef inst);
+unsigned LLVMInstIsArithmeticShift (LLVMValueRef inst);
+unsigned LLVMInstIsAssociative     (LLVMValueRef inst);
+unsigned LLVMInstIsCommutative     (LLVMValueRef inst);
+unsigned LLVMInstIsTrapping        (LLVMValueRef inst);
 
-LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef B, int ID,
-                              LLVMTypeRef *Types, unsigned Count);
+/* Wraps llvm::Instruction::getOpcodeName(). */
+const char *LLVMInstGetOpcodeName(LLVMValueRef inst);
 
-/* module */
+/* Wraps llvm::Instruction::getOpcode(). */
+unsigned LLVMInstGetOpcode(LLVMValueRef inst);
 
-unsigned LLVMModuleGetPointerSize(LLVMModuleRef M);
-LLVMValueRef LLVMModuleGetOrInsertFunction(LLVMModuleRef M, 
-    const char *Name, LLVMTypeRef FunctionTy);
+/* Wraps llvm::ParseAssemblyString(). Returns a module reference or NULL (with
+ * `out' pointing to an error message). Dispose error message after use, via
+ * LLVMDisposeMessage(). */
+LLVMModuleRef LLVMGetModuleFromAssembly(const char *asmtxt, unsigned txten,
+    char **out);
 
-/* instruction */
+/* Wraps llvm::ParseBitcodeFile(). Returns a module reference or NULL (with
+ * `out' pointing to an error message). Dispose error message after use, via
+ * LLVMDisposeMessage(). */
+LLVMModuleRef LLVMGetModuleFromBitcode(const char *bc, unsigned bclen,
+    char **out);
 
-unsigned LLVMInstIsTerminator(LLVMValueRef I);
-unsigned LLVMInstIsBinaryOp(LLVMValueRef I);
-unsigned LLVMInstIsShift(LLVMValueRef I);
-unsigned LLVMInstIsCast(LLVMValueRef I);
-unsigned LLVMInstIsLogicalShift(LLVMValueRef I);
-unsigned LLVMInstIsArithmeticShift(LLVMValueRef I);
-unsigned LLVMInstIsAssociative(LLVMValueRef I);
-unsigned LLVMInstIsCommutative(LLVMValueRef I);
-unsigned LLVMInstIsTrapping(LLVMValueRef I);
+/* Returns pointer to a heap-allocated block of `*len' bytes containing bit code
+ * for the given module. NULL on error. */
+unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, unsigned *len);
 
-const char *LLVMInstGetOpcodeName(LLVMValueRef I);
-unsigned LLVMInstGetOpcode(LLVMValueRef I);
+/* Wraps llvm::sys::DynamicLibrary::LoadLibraryPermanently(). Returns 0 on
+ * failure (with errmsg filled in) and 1 on success. Dispose error message after
+ * use, via LLVMDisposeMessage(). */
+unsigned LLVMLoadLibraryPermanently(const char* filename, char **errmsg);
 
-/* reading llvm "assembly" */
-
-LLVMModuleRef LLVMGetModuleFromAssembly(const char *A, unsigned Len,
-                                        char **OutMessage);
-
-/* bitcode related */
-
-LLVMModuleRef LLVMGetModuleFromBitcode(const char *BC, unsigned Len,
-                                       char **OutMessage);
-unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef M, unsigned *Len);
-
-unsigned LLVMLoadLibraryPermanently(const char* filename, char **ErrMsg);
-
-/* passes */
+/* Passes. A few passes (listed below) are used directly from LLVM-C,
+ * rest are declared here.
+ *
+ *  ConstantPropagation
+ *  GVN
+ *  InstructionCombining
+ *  PromoteMemoryToRegister
+ *  Reassociate
+ *  CFGSimplification
+ */
 
 #define declare_pass(P) \
     void LLVMAdd ## P ## Pass (LLVMPassManagerRef PM);
@@ -97,7 +138,6 @@ declare_pass( BreakCriticalEdges )
 declare_pass( CodeGenPrepare )
 declare_pass( CondPropagation )
 declare_pass( ConstantMerge )
-//LLVM-C declare_pass( ConstantPropagation )
 declare_pass( DeadCodeElimination )
 declare_pass( DeadArgElimination )
 declare_pass( DeadTypeElimination )
@@ -106,7 +146,6 @@ declare_pass( DeadStoreElimination )
 declare_pass( GCSE )
 declare_pass( GlobalDCE )
 declare_pass( GlobalOptimizer )
-//LLVM-C declare_pass( GVN )
 declare_pass( GVNPRE )
 declare_pass( IndMemRem )
 declare_pass( IndVarSimplify )
@@ -116,7 +155,6 @@ declare_pass( EdgeProfiler )
 declare_pass( FunctionProfiler )
 declare_pass( NullProfilerRS )
 declare_pass( RSProfiling )
-//LLVM-C declare_pass( InstructionCombining )
 declare_pass( Internalize )
 declare_pass( IPConstantPropagation )
 declare_pass( IPSCCP )
@@ -136,18 +174,15 @@ declare_pass( LowerAllocations )
 declare_pass( LowerInvoke )
 declare_pass( LowerSetJmp )
 declare_pass( LowerSwitch )
-//LLVM-C declare_pass( PromoteMemoryToRegister )
 declare_pass( MemCpyOpt )
 declare_pass( UnifyFunctionExitNodes )
 declare_pass( PredicateSimplifier )
 declare_pass( PruneEH )
 declare_pass( RaiseAllocations )
-//LLVM-C declare_pass( Reassociate )
 declare_pass( DemoteRegisterToMemory )
 declare_pass( ScalarReplAggregates )
 declare_pass( SCCP )
 declare_pass( SimplifyLibCalls )
-//LLVM-C declare_pass( CFGSimplification )
 declare_pass( StripSymbols )
 declare_pass( StripDeadPrototypes )
 declare_pass( StructRetPromotion )

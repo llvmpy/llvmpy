@@ -1,3 +1,32 @@
+/*
+ * Copyright (c) 2008, Mahadevan R All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither the name of this software, nor the names of its 
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 /* our includes */
 #include "wrap.h"
@@ -427,13 +456,11 @@ _wrap_obj2none(LLVMViewFunctionCFGOnly, LLVMValueRef)
 static PyObject *
 _wLLVMVerifyFunction(PyObject *self, PyObject *args)
 {
-    PyObject *obj;
     LLVMValueRef fn;
 
-    if (!PyArg_ParseTuple(args, "O", &obj))
+    if (!(fn = (LLVMValueRef)get_object_arg(args)))
         return NULL;
 
-    fn = (LLVMValueRef) PyCObject_AsVoidPtr(obj);
     return ctor_int(LLVMVerifyFunction(fn, LLVMReturnStatusAction));
 }
 
@@ -473,8 +500,8 @@ _wrap_obj2obj(LLVMInstIsArithmeticShift, LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsAssociative,  LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsCommutative,  LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsTrapping,     LLVMValueRef, int)
-_wrap_obj2obj(LLVMInstGetOpcode, LLVMValueRef, int)
-_wrap_obj2str(LLVMInstGetOpcodeName, LLVMValueRef)
+_wrap_obj2obj(LLVMInstGetOpcode,      LLVMValueRef, int)
+_wrap_obj2str(LLVMInstGetOpcodeName,  LLVMValueRef)
 
 
 /*===-- Call Sites (Call or Invoke) --------------------------------------===*/
@@ -493,7 +520,7 @@ static void LLVMAddIncoming1(LLVMValueRef PhiNode, LLVMValueRef IncomingValue, L
 }
 
 _wrap_objobjobj2none(LLVMAddIncoming1, LLVMValueRef, LLVMValueRef, LLVMBasicBlockRef)
-_wrap_obj2obj(LLVMCountIncoming, LLVMValueRef, int)
+_wrap_obj2obj(LLVMCountIncoming,       LLVMValueRef, int)
 _wrap_objint2obj(LLVMGetIncomingValue, LLVMValueRef, LLVMValueRef)
 _wrap_objint2obj(LLVMGetIncomingBlock, LLVMValueRef, LLVMBasicBlockRef)
 
@@ -766,15 +793,13 @@ _wrap_obj2none(LLVMDisposeTargetData, LLVMTargetDataRef)
 static PyObject *
 _wLLVMTargetDataAsString(PyObject *self, PyObject *args)
 {
-    PyObject *obj;
     LLVMTargetDataRef td;
     char *tdrep = 0;
     PyObject *ret;
 
-    if (!PyArg_ParseTuple(args, "O", &obj))
+    if (!(td = (LLVMTargetDataRef)get_object_arg(args)))
         return NULL;
 
-    td = (LLVMTargetDataRef) PyCObject_AsVoidPtr(obj);
     tdrep = LLVMCopyStringRepOfTargetData(td);
     ret = PyString_FromString(tdrep);
     LLVMDisposeMessage(tdrep);
