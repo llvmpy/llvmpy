@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.2.2" />
+<meta name="generator" content="AsciiDoc 8.2.6" />
 <meta name="description" content="Python bindings for LLVM" />
 <meta name="keywords" content="llvm python compiler backend bindings" />
 <link rel="stylesheet" href="style/xhtml11.css" type="text/css" />
@@ -33,9 +33,9 @@
 </div>
 <div id="preamble">
 <div class="sectionbody">
-<p>The latest release is 0.3, released 8-Sep-2008 (<a href="#changelog">Changelog</a>
-below).</p>
-<p>Download it here:</p>
+<div class="para"><p>The latest release is 0.4, released 21-Nov-2008 (<a href="#changelog">Changelog</a>
+below).</p></div>
+<div class="para"><p>Download it here:</p></div>
 <div class="tableblock">
 <table rules="all"
 frame="border"
@@ -61,6 +61,20 @@ cellspacing="0" cellpadding="4">
   </tr>
 </thead>
 <tbody valign="top">
+  <tr>
+    <td align="left">
+    0.4
+    </td>
+    <td align="left">
+    21-Nov-2008
+    </td>
+    <td align="left">
+    <a href="http://llvm-py.googlecode.com/files/llvm-py-0.4.tar.bz2">llvm-py-0.4.tar.bz2</a>
+    </td>
+    <td align="left">
+    <a href="llvm-py-0.4.tar.bz2">llvm-py-0.4.tar.bz2</a>
+    </td>
+  </tr>
   <tr>
     <td align="left">
     0.3
@@ -120,20 +134,30 @@ cellspacing="0" cellpadding="4">
 </tbody>
 </table>
 </div>
-<p>The latest code can be checked out from SVN like so:</p>
+<div class="para"><p>The latest code can be checked out from SVN like so:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>$ svn checkout http://llvm-py.googlecode.com/svn/trunk/ llvm-py</tt></pre>
 </div></div>
-<p>Follow the steps <a href="userguide.html#install">described here</a> to install the
-package.</p>
+<div class="para"><p>Follow the steps <a href="userguide.html#install">described here</a> to install the
+package.</p></div>
 </div>
 </div>
-<h2><a id="changelog"></a>Changelog</h2>
+<h2 id="changelog">Changelog</h2>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre><tt>0.3, 8-Sep-2008:
+<pre><tt>0.4, 21-Nov-2008:
+
+  * Code cleanup, added license headers.
+  * Added llvm.core.load_library_permanently() (Issue #12).
+  * Fix comparison using != (Issue #11).
+  * Instruction.is_terminator added.
+  * Fix Builder.select (Paulo Silva).
+  * Added viewCFG methods to Function (Paulo Silva).
+
+
+0.3, 8-Sep-2008:
 
   * Passes added.
   * Assembly support: create modules from .ll files.
@@ -169,14 +193,13 @@ package.</p>
 
 0.1, 10-May-2008:
 
-  * Initial release.
-</tt></pre>
+  * Initial release.</tt></pre>
 </div></div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 08-Sep-2008.
+Last updated 2008-11-21.
 </div>
 </div>
 </div>
