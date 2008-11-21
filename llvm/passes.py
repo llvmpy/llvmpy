@@ -56,7 +56,7 @@ PASS_DEAD_ARG_ELIMINATION       = 10
 PASS_DEAD_TYPE_ELIMINATION      = 11
 PASS_DEAD_INST_ELIMINATION      = 12
 PASS_DEAD_STORE_ELIMINATION     = 13
-PASS_GCSE                       = 14
+# PASS_GCSE                       = 14: removed in LLVM 2.4
 PASS_GLOBAL_DCE                 = 15
 PASS_GLOBAL_OPTIMIZER           = 16
 PASS_GVN                        = 17
@@ -127,7 +127,7 @@ _pass_creator = {
     PASS_DEAD_TYPE_ELIMINATION      : _core.LLVMAddDeadTypeEliminationPass,
     PASS_DEAD_INST_ELIMINATION      : _core.LLVMAddDeadInstEliminationPass,
     PASS_DEAD_STORE_ELIMINATION     : _core.LLVMAddDeadStoreEliminationPass,
-    PASS_GCSE                       : _core.LLVMAddGCSEPass,
+    # PASS_GCSE                       : _core.LLVMAddGCSEPass,: removed in LLVM 2.4.
     PASS_GLOBAL_DCE                 : _core.LLVMAddGlobalDCEPass,
     PASS_GLOBAL_OPTIMIZER           : _core.LLVMAddGlobalOptimizerPass,
     PASS_GVN                        : _core.LLVMAddGVNPass,

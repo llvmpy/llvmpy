@@ -82,7 +82,11 @@ char *do_print(W obj)
 
 char *LLVMDumpModuleToString(LLVMModuleRef module)
 {
-    return do_print<LLVMModuleRef, llvm::Module>(module);
+    std::ostringstream buf;
+    llvm::Module *p = llvm::unwrap(module);
+    assert(p);
+    p->print(buf, NULL);
+    return strdup(buf.str().c_str());
 }
 
 char *LLVMDumpTypeToString(LLVMTypeRef type)
@@ -121,6 +125,14 @@ LLVMValueRef LLVMModuleGetOrInsertFunction(LLVMModuleRef module,
 
     llvm::Constant *f = modulep->getOrInsertFunction(name, ftp);
     return wrap(f);
+}
+
+int LLVMHasInitializer(LLVMValueRef global_var)
+{
+    llvm::GlobalVariable *gvp = llvm::unwrap<llvm::GlobalVariable>(global_var);
+    assert(gvp);
+
+    return gvp->hasInitializer();
 }
 
 #define inst_checkfn(ourfn, llvmfn)                 \
@@ -191,10 +203,10 @@ LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef builder,
     std::vector<llvm::Value *> values_vec;
     unwrap_vec(values, n_values, values_vec);
 
-    llvm::IRBuilder *builderp = llvm::unwrap(builder);
+    llvm::IRBuilder<> *builderp = llvm::unwrap(builder);
     assert(builderp);
 
-    return wrap(builderp->CreateRet(&values_vec[0], values_vec.size()));
+    return llvm::wrap(builderp->CreateAggregateRet(&values_vec[0], values_vec.size()));
 }
 
 LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef builder, 
@@ -202,10 +214,10 @@ LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef builder,
 {
     assert(name);
 
-    llvm::IRBuilder *builderp = llvm::unwrap(builder);
+    llvm::IRBuilder<> *builderp = llvm::unwrap(builder);
     assert(builderp);
 
-    return wrap(builderp->CreateGetResult(llvm::unwrap(value), index, name));
+    return llvm::wrap(builderp->CreateExtractValue(llvm::unwrap(value), index, name));
 }
 
 LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef module, int id,
@@ -333,7 +345,7 @@ define_pass( DeadArgElimination )
 define_pass( DeadTypeElimination )
 define_pass( DeadInstElimination )
 define_pass( DeadStoreElimination )
-define_pass( GCSE )
+/* define_pass( GCSE ): removed in LLVM 2.4 */
 define_pass( GlobalDCE )
 define_pass( GlobalOptimizer )
 define_pass( GVNPRE )

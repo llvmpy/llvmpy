@@ -12,21 +12,19 @@ Home page:
 
 Versions:
 ---------
-
-This package will work only with LLVM 2.3 release version. If you need llvm-py
-for the in-progress LLVM version (2.4), you've to get llvm-py from the SVN
-repository -- see the website for more details.
+    This package will work only with LLVM 2.4 release version. If you need
+    llvm-py for LLVM 2.3, use the 0.4 version of llvm-py.
 
 
 Quickstart:
 -----------
-    1. Get 2.3 version of LLVM, build it. Make sure '--enable-pic' is passed to
+    1. Get 2.4 version of LLVM, build it. Make sure '--enable-pic' is passed to
        LLVM's 'configure'.
 
     2. Unpack llvm-py, build and install:
 
-        $ tar jxvf llvm-py-0.4.tar.bz2
-        $ cd llvm-py-0.4
+        $ tar jxvf llvm-py-0.5.tar.bz2
+        $ cd llvm-py-0.5
         # Locate llvm-config, usually under <llvm>/Release/bin
         $ sudo python setup.py install --llvm-config=/path/to/llvm-config
 

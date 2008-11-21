@@ -351,6 +351,19 @@ def do_basicblock():
     # ^ not working yet!
 
 
+def _do_builder_mrv():
+    m = Module.new('mrv')
+    ft = Type.function(Type.array(ti, 2), [ti])
+    f = Function.new(m, ft, 'divrem')
+    blk = f.append_basic_block('b')
+    b = Builder.new(blk)
+    v = b.call(f, [Constant.int(ti, 1)])
+    v1 = b.getresult(v, 0)
+    v2 = b.getresult(v, 1)
+    b.ret_many([v1, v2])
+    #print f
+
+
 def do_builder():
     print "    Testing class Builder"
     m = Module.new('a')
@@ -365,7 +378,8 @@ def do_builder():
     blk2 = b.block
     b.ret_void()
     b.ret(Constant.int(ti, 10))
-    b.ret_many([Constant.int(ti, 10)]*10)
+    _do_builder_mrv()
+    #b.ret_many([Constant.int(ti, 10)]*10)
     b.branch(blk)
     b.cbranch(Constant.int(Type.int(1), 1), blk, blk)
     b.switch(f.args[0], blk)
