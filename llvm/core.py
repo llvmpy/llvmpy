@@ -747,6 +747,12 @@ def check_is_callable(obj):
         return
     raise TypeError, "argument is neither a function nor a function pointer"
 
+def _to_int(v):
+    if v:
+        return 1
+    else:
+        return 0
+
 
 #===----------------------------------------------------------------------===
 # Module
@@ -1009,7 +1015,7 @@ class Type(object):
         `param_tys'. Set `var_arg' to True (default is False) for a
         variadic function."""
         check_is_type(return_ty)
-        var_arg = 1 if var_arg else 0 # convert to int
+        var_arg = _to_int(var_arg) # ensure int
         params = unpack_types(param_tys)
         return _make_type(_core.LLVMFunctionType(return_ty.ptr, params, 
                     var_arg), TYPE_FUNCTION)
@@ -1636,7 +1642,7 @@ class GlobalVariable(GlobalValue):
         return _core.LLVMIsGlobalConstant(self.ptr)
 
     def _set_is_global_constant(self, value):
-        value = 1 if value else 0
+        value = _to_int(value)
         _core.LLVMSetGlobalConstant(self.ptr, value)
 
     global_constant = property(_get_is_global_constant, _set_is_global_constant)

@@ -40,6 +40,11 @@
 /* libc includes */
 #include <stdarg.h> /* for malloc(), free() */
 
+/* Compatibility with Python 2.4: Py_ssize_t is not available. */
+#ifndef PY_SSIZE_T_MAX
+typedef int Py_ssize_t;
+#endif
+
 
 /*===----------------------------------------------------------------------===*/
 /* Modules                                                                    */

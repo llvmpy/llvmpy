@@ -24,6 +24,9 @@ _LLVM 2.4_: Read link:userguide.html#llvm24[this] if you're using LLVM
 News
 ----
 
+21-Nov-2008::
+    0.4 released. Bug fixes, few additional APIs, code cleanup.
+
 8-Sep-2008::
     0.3 released. Passes, intrinsics, bitcode, assembly!
 

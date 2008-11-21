@@ -1,5 +1,5 @@
 
-0.4, in progress:
+0.4, 21-Nov-2008:
 
   * Code cleanup, added license headers.
   * Added llvm.core.load_library_permanently() (Issue #12).

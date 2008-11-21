@@ -3,6 +3,8 @@
 import sys, os
 from distutils.core import setup, Extension
 
+LLVM_PY_VERSION = '0.4'
+
 
 def _run(cmd):
     return os.popen(cmd).read().rstrip()
@@ -72,7 +74,7 @@ def call_setup(llvm_config):
 
     setup(
         name='llvm-py',
-        version='0.4',
+        version=LLVM_PY_VERSION,
         description='Python Bindings for LLVM',
         author='Mahadevan R',
         author_email='mdevan.foobar@gmail.com',
