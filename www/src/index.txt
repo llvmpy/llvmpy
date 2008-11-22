@@ -12,17 +12,15 @@ llvm-py is just hatching. It should be stable enough to start hacking
 away, though. Be sure to send in a patch if you miss any specific LLVM
 API.
 
-_Availability_: llvm-py is available (as a source package) for LLVM 2.3
-and Python 2.5. It has been built and tested on Linux (x86, amd64) and
-is reported to work with OpenBSD. It is expected to be usable on
-various unices, as well as with Python 2.4.
-
-_LLVM 2.4_: Read link:userguide.html#llvm24[this] if you're using LLVM
-2.4!
-
+_Availability_: llvm-py is available (as a source package) for LLVM 2.4
+and Python 2.5. It has been built and tested on Linux and FreeBSD
+(x86 and amd64).
 
 News
 ----
+
+22-Nov-2008::
+    0.5 released. For LLVM 2.4.
 
 21-Nov-2008::
     0.4 released. Bug fixes, few additional APIs, code cleanup.

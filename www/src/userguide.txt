@@ -31,8 +31,8 @@ and OpenBSD (i386, amd64). However, it should be trivial to build it on
 other unices. Windows is not supported, for a variety of reasons.
 
 .Versions
-llvm-py requires verion 2.3 of LLVM. It will not work with previous
-versions. If you're using LLVM 2.4, see link:#llvm24[below].
+llvm-py 0.5 requires verion 2.4 of LLVM. It will not work with previous
+versions.
 
 llvm-py has been built and tested with Python 2.5. It should work with
 Python 2.4, with minimal changes, if any.
@@ -60,8 +60,6 @@ It does not matter which compiler LLVM itself was built with (g\+\+,
 llvm-g\+\+ or any other); llvm-py can be built with any compiler. It has
 been tried only with gcc/g\+\+ though.
 
-Tip: If LLVM 2.3 does not install cleanly, try installing ``ocamldoc''
-first.
 
 LLVM and `--enable-pic`
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -75,7 +73,7 @@ independent code). Be sure to use the `--enable-pic` option while
 configuring LLVM (default is no PIC), like this:
 
 ----
-~/llvm-2.3$ ./configure --enable-pic --enable-optimized
+~/llvm-2.4$ ./configure --enable-pic --enable-optimized
 ----
 
 
@@ -106,8 +104,8 @@ If you have +llvm-config+ in your path, you can build and install
 llvm-py this way:
 
 -----------------------------------------------------------------------
-$ tar jxvf llvm-py-0.3.tar.bz2
-$ cd llvm-py-0.3
+$ tar jxvf llvm-py-0.5.tar.bz2
+$ cd llvm-py-0.5
 $ sudo python setup.py install
 -----------------------------------------------------------------------
 
@@ -115,8 +113,8 @@ If you need to tell the build script where +llvm-config+ is, do it this
 way:
 
 -----------------------------------------------------------------------
-$ tar jxvf llvm-py-0.3.tar.bz2
-$ cd llvm-py-0.3
+$ tar jxvf llvm-py-0.5.tar.bz2
+$ cd llvm-py-0.5
 $ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Release/bin/llvm-config
 -----------------------------------------------------------------------
 
@@ -124,8 +122,8 @@ To build a debug version of llvm-py, that links against the debug
 libraries of LLVM, use this:
 
 -----------------------------------------------------------------------
-$ tar jxvf llvm-py-0.3.tar.bz2
-$ cd llvm-py-0.3
+$ tar jxvf llvm-py-0.5.tar.bz2
+$ cd llvm-py-0.5
 $ python setup.py build -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
 $ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
 -----------------------------------------------------------------------
@@ -137,35 +135,6 @@ only if you need to debug into LLVM also.
 documentation regarding http://docs.python.org/inst/inst.html[Installing
 Python Modules] and http://docs.python.org/dist/dist.html[Distributing
 Python Modules] for more information on such scripts.
-
-
-[[llvm24]]
-LLVM 2.4
-~~~~~~~~
-
-LLVM 2.4 is currently in progress. There are incompatible API changes
-from LLVM 2.3. The latest release of llvm-py will _not_ compile against
-it.
-
-The llvm-py SVN has a branch called
-http://code.google.com/p/llvm-py/source/browse/#svn/branches/llvm2.4[llvm2.4],
-which attempts to track the changes happening in LLVM 2.4. There are
-however, some caveats:
-
-- There are no releases from this branch.
-- When LLVM 2.4 is released, then these changes will be merged to main.
-  From then on llvm-py will support LLVM 2.4 and no longer LLVM 2.3.
-- This branch is not religiously kept up-to-date with the changes
-  happening in LLVM SVN. Therefore, it may not work for you, but might
-  still be worth a try.
-
-llvm-py can be checked out from this branch like this:
-
------------------------------------------------------------------------
-$ svn co http://llvm-py.googlecode.com/svn/branches/llvm2.4 llvm-py-2.4
------------------------------------------------------------------------
-
-The rest of the steps (build, install) remain the same as before.
 
 
 [[uninstall]]
@@ -1378,28 +1347,30 @@ in `llvm.core`. These are:
 
 [frame="all",grid="all"]
 `33`33`33~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-INTR_ANNOTATION,INTR_DBG_STOPPOINT,INTR_MEMSET_I64
-INTR_ARM_THREAD_POINTER,INTR_EH_DWARF_CFA,INTR_PART_SELECT
-INTR_ATOMIC_LAS,INTR_EH_EXCEPTION,INTR_PART_SET
-INTR_ATOMIC_LCS,INTR_EH_RETURN,INTR_PCMARKER
-INTR_ATOMIC_LOAD_AND,INTR_EH_SELECTOR_I32,INTR_POW
-INTR_ATOMIC_LOAD_MAX,INTR_EH_SELECTOR_I64,INTR_POWI
-INTR_ATOMIC_LOAD_MIN,INTR_EH_TYPEID_FOR_I32,INTR_PREFETCH
-INTR_ATOMIC_LOAD_OR,INTR_EH_TYPEID_FOR_I64,INTR_READCYCLECOUNTER
-INTR_ATOMIC_LOAD_UMAX,INTR_EH_UNWIND_INIT,INTR_RETURNADDRESS
-INTR_ATOMIC_LOAD_UMIN,INTR_FLT_ROUNDS,INTR_SETJMP
-INTR_ATOMIC_LOAD_XOR,INTR_FRAMEADDRESS,INTR_SIGLONGJMP
-INTR_ATOMIC_LSS,INTR_GCREAD,INTR_SIGSETJMP
-INTR_ATOMIC_SWAP,INTR_GCROOT,INTR_SIN
-INTR_BSWAP,INTR_GCWRITE,INTR_SQRT
-INTR_COS,INTR_INIT_TRAMPOLINE,INTR_STACKRESTORE
-INTR_CTLZ,INTR_LONGJMP,INTR_STACKSAVE
-INTR_CTPOP,INTR_MEMCPY_I32,INTR_TRAP
-INTR_CTTZ,INTR_MEMCPY_I64,INTR_VACOPY
-INTR_DBG_DECLARE,INTR_MEMMOVE_I32,INTR_VAEND
-INTR_DBG_FUNC_START,INTR_MEMMOVE_I64,INTR_VAR_ANNOTATION
-INTR_DBG_REGION_END,INTR_MEMORY_BARRIER,INTR_VASTART
-INTR_DBG_REGION_START,INTR_MEMSET_I32,
+INTR_ANNOTATION,INTR_ATOMIC_CMP_SWAP,INTR_ATOMIC_LOAD_ADD
+INTR_ATOMIC_LOAD_AND,INTR_ATOMIC_LOAD_MAX,INTR_ATOMIC_LOAD_MIN
+INTR_ATOMIC_LOAD_NAND,INTR_ATOMIC_LOAD_OR,INTR_ATOMIC_LOAD_SUB
+INTR_ATOMIC_LOAD_UMAX,INTR_ATOMIC_LOAD_UMIN,INTR_ATOMIC_LOAD_XOR
+INTR_ATOMIC_SWAP,INTR_BSWAP,INTR_COS
+INTR_CTLZ,INTR_CTPOP,INTR_CTTZ
+INTR_DBG_DECLARE,INTR_DBG_FUNC_START,INTR_DBG_REGION_END
+INTR_DBG_REGION_START,INTR_DBG_STOPPOINT,INTR_EH_DWARF_CFA
+INTR_EH_EXCEPTION,INTR_EH_RETURN_I32,INTR_EH_RETURN_I64
+INTR_EH_SELECTOR_I32,INTR_EH_SELECTOR_I64,INTR_EH_TYPEID_FOR_I32
+INTR_EH_TYPEID_FOR_I64,INTR_EH_UNWIND_INIT,INTR_EXP
+INTR_EXP2,INTR_FLT_ROUNDS,INTR_FRAMEADDRESS
+INTR_GCREAD,INTR_GCROOT,INTR_GCWRITE
+INTR_INIT_TRAMPOLINE,INTR_LOG,INTR_LOG10
+INTR_LOG2,INTR_LONGJMP,INTR_MEMCPY_I32
+INTR_MEMCPY_I64,INTR_MEMMOVE_I32,INTR_MEMMOVE_I64
+INTR_MEMORY_BARRIER,INTR_MEMSET_I32,INTR_MEMSET_I64
+INTR_PART_SELECT,INTR_PART_SET,INTR_PCMARKER
+INTR_POW,INTR_POWI,INTR_PREFETCH
+INTR_READCYCLECOUNTER,INTR_RETURNADDRESS,INTR_SETJMP
+INTR_SIGLONGJMP,INTR_SIGSETJMP,INTR_SIN
+INTR_SQRT,INTR_STACKRESTORE,INTR_STACKSAVE
+INTR_TRAP,INTR_VACOPY,INTR_VAEND
+INTR_VAR_ANNOTATION,INTR_VASTART,
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are also target-specific intrinsics (which correspond to that

@@ -86,7 +86,7 @@ def call_setup(llvm_config):
          'asmparser' ])
 
     std_libs    = [ 'pthread', 'm' ]
-    if not sys.platform.startswith("openbsd"):
+    if not ("openbsd" in sys.platform or "freebsd" in sys.platform):
         std_libs.append("dl")
 
     ext_core = Extension(

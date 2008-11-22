@@ -1,6 +1,9 @@
 
-0,5, in progress:
+0.5, 22-Nov-2008:
 
+  * Added vicmp, vfcmp instructions and constant expressions.
+  * Builds on FreeBSD.
+  * Updated documentation.
   * Migrate to LLVM 2.4.
 
 

@@ -99,6 +99,66 @@ char *LLVMDumpValueToString(LLVMValueRef value)
     return do_print<LLVMValueRef, llvm::Value>(value);
 }
 
+LLVMValueRef LLVMConstVICmp(LLVMIntPredicate predicate, LLVMValueRef lhs,
+    LLVMValueRef rhs)
+{
+    llvm::Constant *lhsp = llvm::unwrap<llvm::Constant>(lhs);
+    assert(lhsp);
+    llvm::Constant *rhsp = llvm::unwrap<llvm::Constant>(rhs);
+    assert(rhsp);
+
+    llvm::Constant *vicmp =
+        llvm::ConstantExpr::getVICmp(predicate, lhsp, rhsp);
+    return llvm::wrap(vicmp);
+}
+    
+LLVMValueRef LLVMConstVFCmp(LLVMRealPredicate predicate, LLVMValueRef lhs,
+    LLVMValueRef rhs)
+{
+    llvm::Constant *lhsp = llvm::unwrap<llvm::Constant>(lhs);
+    assert(lhsp);
+    llvm::Constant *rhsp = llvm::unwrap<llvm::Constant>(rhs);
+    assert(rhsp);
+
+    llvm::Constant *vfcmp =
+        llvm::ConstantExpr::getVFCmp(predicate, lhsp, rhsp);
+    return llvm::wrap(vfcmp);
+}
+
+LLVMValueRef LLVMBuildVICmp(LLVMBuilderRef builder, LLVMIntPredicate predicate,
+    LLVMValueRef lhs, LLVMValueRef rhs, const char *name)
+{
+    llvm::IRBuilder<> *builderp = llvm::unwrap(builder);
+    assert(builderp);
+
+    llvm::Value *lhsp = llvm::unwrap(lhs);
+    assert(lhsp);
+    llvm::Value *rhsp = llvm::unwrap(rhs);
+    assert(rhsp);
+
+    llvm::Value *inst = builderp->CreateVICmp(
+        static_cast<llvm::CmpInst::Predicate>(predicate),
+        lhsp, rhsp, name);
+    return llvm::wrap(inst);
+}
+
+LLVMValueRef LLVMBuildVFCmp(LLVMBuilderRef builder, LLVMRealPredicate predicate,
+    LLVMValueRef lhs, LLVMValueRef rhs, const char *name)
+{
+    llvm::IRBuilder<> *builderp = llvm::unwrap(builder);
+    assert(builderp);
+
+    llvm::Value *lhsp = llvm::unwrap(lhs);
+    assert(lhsp);
+    llvm::Value *rhsp = llvm::unwrap(rhs);
+    assert(rhsp);
+
+    llvm::Value *inst = builderp->CreateVFCmp(
+        static_cast<llvm::CmpInst::Predicate>(predicate),
+        lhsp, rhsp, name);
+    return llvm::wrap(inst);
+}
+
 unsigned LLVMModuleGetPointerSize(LLVMModuleRef module)
 {
     llvm::Module *modulep = llvm::unwrap(module);

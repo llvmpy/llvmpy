@@ -66,6 +66,22 @@ LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef bulder, LLVMValueRef *values,
 LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef builder, LLVMValueRef value,
     unsigned index, const char *name);
 
+/* Wraps llvm::ConstantExpr::getVICmp(). */
+LLVMValueRef LLVMConstVICmp(LLVMIntPredicate predicate, LLVMValueRef lhs,
+    LLVMValueRef rhs);
+
+/* Wraps llvm::ConstantExpr::getVFCmp(). */
+LLVMValueRef LLVMConstVFCmp(LLVMRealPredicate predicate, LLVMValueRef lhs,
+    LLVMValueRef rhs);
+
+/* Wraps llvm::IRBuilder::CreateVICmp(). */    
+LLVMValueRef LLVMBuildVICmp(LLVMBuilderRef builder, LLVMIntPredicate predicate,
+    LLVMValueRef lhs, LLVMValueRef rhs, const char *name);
+
+/* Wraps llvm::IRBuilder::CreateVFCmp(). */    
+LLVMValueRef LLVMBuildVFCmp(LLVMBuilderRef builder, LLVMRealPredicate predicate,
+    LLVMValueRef lhs, LLVMValueRef rhs, const char *name);
+    
 /* Wraps llvm::Intrinsic::getDeclaration(). */
 LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef builder, int id,
     LLVMTypeRef *types, unsigned n_types);
