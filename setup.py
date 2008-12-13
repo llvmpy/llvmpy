@@ -85,7 +85,7 @@ def call_setup(llvm_config):
          'instrumentation', 'ipa', 'ipo', 'transformutils',
          'asmparser' ])
 
-    std_libs    = [ 'pthread', 'm' ]
+    std_libs    = [ 'pthread', 'm', 'stdc++' ]
     if not ("openbsd" in sys.platform or "freebsd" in sys.platform):
         std_libs.append("dl")
 
