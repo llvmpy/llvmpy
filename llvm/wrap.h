@@ -280,6 +280,28 @@ _w ## func (PyObject *self, PyObject *args)             \
 
 /**
  * Wrap LLVM functions of the type
+ * outtype func(enum_intype1 arg1, intype2 arg2, intype3 arg3)
+ */
+#define _wrap_enumobjobj2obj(func, intype1, intype2, intype3, outtype)    \
+static PyObject *                                       \
+_w ## func (PyObject *self, PyObject *args)             \
+{                                                       \
+    intype1 arg1;                                       \
+    PyObject *obj2, *obj3;                              \
+    intype2 arg2;                                       \
+    intype3 arg3;                                       \
+                                                        \
+    if (!PyArg_ParseTuple(args, "IOO", &arg1, &obj2, &obj3))    \
+        return NULL;                                    \
+                                                        \
+    arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
+    arg3 = ( intype3 ) PyCObject_AsVoidPtr(obj3);       \
+                                                        \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3)); \
+}
+
+/**
+ * Wrap LLVM functions of the type
  * outtype func(const char *s)
  */
 #define _wrap_str2obj(func, outtype)                    \
@@ -404,6 +426,27 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
+ * Wrap LLVM functions of the type
+ * void func(intype1 arg1, enum_intype2 arg2)
+ */
+#define _wrap_objenum2none(func, intype1, intype2)      \
+static PyObject *                                       \
+_w ## func (PyObject *self, PyObject *args)             \
+{                                                       \
+    PyObject *obj1;                                     \
+    intype1 arg1;                                       \
+    intype2 arg2;                                       \
+                                                        \
+    if (!PyArg_ParseTuple(args, "Oi", &obj1, &arg2))    \
+        return NULL;                                    \
+                                                        \
+    arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
+                                                        \
+    func (arg1, arg2);                                  \
+    Py_RETURN_NONE;                                     \
+}
+
+/**
  * Wrap LLVM functions of the type 
  * outtype func(intype1 arg1, intype2 arg2, const char *arg3)
  */
@@ -436,6 +479,28 @@ _w ## func (PyObject *self, PyObject *args)             \
     PyObject *obj1;                                     \
     intype1 arg1;                                       \
     int arg2, arg3;                                     \
+                                                        \
+    if (!PyArg_ParseTuple(args, "Oii", &obj1, &arg2, &arg3))  \
+        return NULL;                                    \
+                                                        \
+    arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
+                                                        \
+    func (arg1, arg2, arg3);                            \
+    Py_RETURN_NONE;                                     \
+}
+
+/**
+ * Wrap LLVM functions of the type 
+ * void func(intype1 arg1, <unsigned/signed int> arg2, enum_intype3 arg3)
+ */
+#define _wrap_objintenum2none(func, intype1, intype3)   \
+static PyObject *                                       \
+_w ## func (PyObject *self, PyObject *args)             \
+{                                                       \
+    PyObject *obj1;                                     \
+    intype1 arg1;                                       \
+    int arg2;                                           \
+    intype3 arg3;                                       \
                                                         \
     if (!PyArg_ParseTuple(args, "Oii", &obj1, &arg2, &arg3))  \
         return NULL;                                    \
@@ -593,15 +658,15 @@ _w ## func (PyObject *self, PyObject *args)             \
 
 /**
  * Wrap LLVM functions of the type
- * outtype func(intype1 arg1, int arg2, intype3 arg3, intype4 arg4, const char *arg5)
+ * outtype func(intype1 arg1, enum_intype2 arg2, intype3 arg3, intype4 arg4, const char *arg5)
  */
-#define _wrap_objintobjobjstr2obj(func, intype1, intype3, intype4, outtype) \
+#define _wrap_objenumobjobjstr2obj(func, intype1, intype2, intype3, intype4, outtype) \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
     PyObject *obj1, *obj3, *obj4;                       \
     intype1 arg1;                                       \
-    int arg2;                                           \
+    intype2 arg2;                                       \
     intype3 arg3;                                       \
     intype4 arg4;                                       \
     const char *arg5;                                   \

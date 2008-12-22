@@ -382,10 +382,10 @@ _wrap_objobj2obj(LLVMConstAnd, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMConstOr, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMConstXor, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 
-_wrap_intobjobj2obj(LLVMConstICmp, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_intobjobj2obj(LLVMConstFCmp, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_intobjobj2obj(LLVMConstVICmp, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_intobjobj2obj(LLVMConstVFCmp, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_enumobjobj2obj(LLVMConstICmp, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_enumobjobj2obj(LLVMConstFCmp, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_enumobjobj2obj(LLVMConstVICmp, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_enumobjobj2obj(LLVMConstVFCmp, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 
 _wrap_objobj2obj(LLVMConstShl, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMConstLShr, LLVMValueRef, LLVMValueRef, LLVMValueRef)
@@ -418,11 +418,11 @@ _wrap_objobjobj2obj(LLVMConstShuffleVector, LLVMValueRef, LLVMValueRef, LLVMValu
 _wrap_obj2obj(LLVMGetGlobalParent, LLVMValueRef, LLVMModuleRef)
 _wrap_obj2obj(LLVMIsDeclaration, LLVMValueRef, int)
 _wrap_obj2obj(LLVMGetLinkage, LLVMValueRef, int)
-_wrap_objint2none(LLVMSetLinkage, LLVMValueRef) 
+_wrap_objenum2none(LLVMSetLinkage, LLVMValueRef, LLVMLinkage) 
 _wrap_obj2str(LLVMGetSection, LLVMValueRef)
 _wrap_objstr2none(LLVMSetSection, LLVMValueRef)
 _wrap_obj2obj(LLVMGetVisibility, LLVMValueRef, int)
-_wrap_objint2none(LLVMSetVisibility, LLVMValueRef)
+_wrap_objenum2none(LLVMSetVisibility, LLVMValueRef, LLVMVisibility)
 _wrap_obj2obj(LLVMGetAlignment, LLVMValueRef, int)
 _wrap_objint2none(LLVMSetAlignment, LLVMValueRef)
 
@@ -474,9 +474,9 @@ _wrap_obj2obj(LLVMCountParams, LLVMValueRef, int)
 _wrap_obj2obj(LLVMGetFirstParam, LLVMValueRef, LLVMValueRef)
 _wrap_obj2obj(LLVMGetNextParam, LLVMValueRef, LLVMValueRef)
 _wrap_obj2obj(LLVMGetParamParent, LLVMValueRef, LLVMValueRef)
-_wrap_objint2none(LLVMAddAttribute, LLVMValueRef)
-_wrap_objint2none(LLVMRemoveAttribute, LLVMValueRef)
-_wrap_objint2none(LLVMSetParamAlignment, LLVMValueRef)
+_wrap_objenum2none(LLVMAddAttribute, LLVMValueRef, LLVMAttribute)
+_wrap_objenum2none(LLVMRemoveAttribute, LLVMValueRef, LLVMAttribute)
+_wrap_objenum2none(LLVMSetParamAlignment, LLVMValueRef, LLVMAttribute)
 
 /*===-- Basic Blocks -----------------------------------------------------===*/
 
@@ -511,8 +511,8 @@ _wrap_obj2str(LLVMInstGetOpcodeName,  LLVMValueRef)
 
 _wrap_objint2none(LLVMSetInstructionCallConv, LLVMValueRef)
 _wrap_obj2obj(LLVMGetInstructionCallConv, LLVMValueRef, int)
-_wrap_objintint2none(LLVMAddInstrAttribute, LLVMValueRef)
-_wrap_objintint2none(LLVMRemoveInstrAttribute, LLVMValueRef)
+_wrap_objintenum2none(LLVMAddInstrAttribute, LLVMValueRef, LLVMAttribute)
+_wrap_objintenum2none(LLVMRemoveInstrAttribute, LLVMValueRef, LLVMAttribute)
 _wrap_objintint2none(LLVMSetInstrParamAlignment, LLVMValueRef)
 
 /*===-- PHI Nodes --------------------------------------------------------===*/
@@ -630,10 +630,10 @@ _wrap_objobjobjstr2obj(LLVMBuildBitCast, LLVMBuilderRef, LLVMValueRef, LLVMTypeR
 
 /* Comparisons */
 
-_wrap_objintobjobjstr2obj(LLVMBuildICmp, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objintobjobjstr2obj(LLVMBuildFCmp, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objintobjobjstr2obj(LLVMBuildVICmp, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objintobjobjstr2obj(LLVMBuildVFCmp, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objenumobjobjstr2obj(LLVMBuildICmp, LLVMBuilderRef, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objenumobjobjstr2obj(LLVMBuildFCmp, LLVMBuilderRef, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objenumobjobjstr2obj(LLVMBuildVICmp, LLVMBuilderRef, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objenumobjobjstr2obj(LLVMBuildVFCmp, LLVMBuilderRef, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 
 /* Miscellaneous instructions */
 

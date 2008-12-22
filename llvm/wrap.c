@@ -100,7 +100,7 @@ void **make_array_from_list(PyObject *list, int n)
 
 PyObject *make_list_from_LLVMTypeRef_array(LLVMTypeRef *p, unsigned n)
 {
-    int i;
+    size_t i;
     PyObject *list = PyList_New(n);
 
     if (!list)
