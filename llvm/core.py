@@ -67,34 +67,64 @@ CC_X86_STDCALL  = 64
 CC_X86_FASTCALL = 65
 
 # int predicates
-IPRED_EQ        = 32
-IPRED_NE        = 33
-IPRED_UGT       = 34
-IPRED_UGE       = 35
-IPRED_ULT       = 36
-IPRED_ULE       = 37
-IPRED_SGT       = 38
-IPRED_SGE       = 39
-IPRED_SLT       = 40
-IPRED_SLE       = 41
+ICMP_EQ         = 32
+ICMP_NE         = 33
+ICMP_UGT        = 34
+ICMP_UGE        = 35
+ICMP_ULT        = 36
+ICMP_ULE        = 37
+ICMP_SGT        = 38
+ICMP_SGE        = 39
+ICMP_SLT        = 40
+ICMP_SLE        = 41
+
+# same as ICMP_xx, for backward compatibility
+IPRED_EQ        = ICMP_EQ
+IPRED_NE        = ICMP_NE
+IPRED_UGT       = ICMP_UGT
+IPRED_UGE       = ICMP_UGE
+IPRED_ULT       = ICMP_ULT
+IPRED_ULE       = ICMP_ULE
+IPRED_SGT       = ICMP_SGT
+IPRED_SGE       = ICMP_SGE
+IPRED_SLT       = ICMP_SLT
+IPRED_SLE       = ICMP_SLE
 
 # real predicates
-RPRED_FALSE     = 0
-RPRED_OEQ       = 1
-RPRED_OGT       = 2
-RPRED_OGE       = 3
-RPRED_OLT       = 4
-RPRED_OLE       = 5
-RPRED_ONE       = 6
-RPRED_ORD       = 7
-RPRED_UNO       = 8
-RPRED_UEQ       = 9
-RPRED_UGT       = 10
-RPRED_UGE       = 11
-RPRED_ULT       = 12
-RPRED_ULE       = 13
-RPRED_UNE       = 14
-RPRED_TRUE      = 15
+FCMP_FALSE      = 0
+FCMP_OEQ        = 1
+FCMP_OGT        = 2
+FCMP_OGE        = 3
+FCMP_OLT        = 4
+FCMP_OLE        = 5
+FCMP_ONE        = 6
+FCMP_ORD        = 7
+FCMP_UNO        = 8
+FCMP_UEQ        = 9
+FCMP_UGT        = 10
+FCMP_UGE        = 11
+FCMP_ULT        = 12
+FCMP_ULE        = 13
+FCMP_UNE        = 14
+FCMP_TRUE       = 15
+
+# real predicates
+RPRED_FALSE     = FCMP_FALSE
+RPRED_OEQ       = FCMP_OEQ
+RPRED_OGT       = FCMP_OGT
+RPRED_OGE       = FCMP_OGE
+RPRED_OLT       = FCMP_OLT
+RPRED_OLE       = FCMP_OLE
+RPRED_ONE       = FCMP_ONE
+RPRED_ORD       = FCMP_ORD
+RPRED_UNO       = FCMP_UNO
+RPRED_UEQ       = FCMP_UEQ
+RPRED_UGT       = FCMP_UGT
+RPRED_UGE       = FCMP_UGE
+RPRED_ULT       = FCMP_ULT
+RPRED_ULE       = FCMP_ULE
+RPRED_UNE       = FCMP_UNE
+RPRED_TRUE      = FCMP_TRUE
 
 # linkages
 LINKAGE_EXTERNAL    = 0
@@ -106,6 +136,7 @@ LINKAGE_DLLIMPORT   = 5
 LINKAGE_DLLEXPORT   = 6
 LINKAGE_EXTERNAL_WEAK = 7
 LINKAGE_GHOST       = 8
+LINKAGE_COMMON      = 9
 
 # visibility
 VISIBILITY_DEFAULT  = 0
