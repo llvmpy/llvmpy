@@ -1940,8 +1940,11 @@ class Builder(object):
         Next instruction inserted will be first one in the block."""
         # Avoids using "blk.instructions", which will fetch all the
         # instructions into a list. Don't try this at home, though.
-        first_inst = Instruction(_core.LLVMGetFirstInstruction(self.block.ptr))
-        self.position_before(first_inst)
+        inst_ptr = _core.LLVMGetFirstInstruction(self.block.ptr)
+        if inst_ptr:
+            # Issue #10: inst_ptr can be None if b/b has no insts.
+            inst = Instruction(inst_ptr)
+            self.position_before(inst)
 
     def position_at_end(self, bblk):
         """Position the builder at the end of the given block.
