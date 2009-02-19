@@ -305,9 +305,8 @@ LLVMModuleRef LLVMGetModuleFromAssembly(const char *asmtext, unsigned txtlen,
 
     llvm::Module *modulep;
     llvm::ParseError error;
-    if (!(modulep = llvm::ParseAssemblyString(asmtext, NULL /*unused within!*/, 
-                        &error))) {
-        *out = strdup(error.getMessage().c_str());
+    if (!(modulep = llvm::ParseAssemblyString(asmtext, NULL, error))) {
+        *out = strdup(error.getRawMessage().c_str());
         return NULL;
     }
 

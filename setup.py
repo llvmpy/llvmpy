@@ -32,7 +32,7 @@
 import sys, os
 from distutils.core import setup, Extension
 
-LLVM_PY_VERSION = '0.5'
+LLVM_PY_VERSION = '0.6'
 
 
 def _run(cmd):
@@ -93,6 +93,7 @@ def call_setup(llvm_config):
         'llvm._core',
         ['llvm/_core.c', 'llvm/wrap.c', 'llvm/extra.cpp'],
         define_macros = [
+            ('__STDC_CONSTANT_MACROS', None),
             ('__STDC_LIMIT_MACROS', None),
             ('_GNU_SOURCE', None)],
         include_dirs = [incdir],
