@@ -95,6 +95,9 @@ def do_module():
     m4 = Module.from_assembly(ss2)
     t = m4 == m
     t = m4.pointer_size
+    mA = Module.new('ma')
+    mB = Module.new('mb')
+    mA.link_in(mB)
 
 
 def do_type():
@@ -451,6 +454,7 @@ def do_builder():
     t = i.is_associative == False
     t = i.is_commutative == False
     t = i.is_trapping == False
+    t = i.is_volatile == False
     t = i.opcode
     t = i.opcode_name
 

@@ -109,6 +109,9 @@ unsigned LLVMInstIsAssociative     (LLVMValueRef inst);
 unsigned LLVMInstIsCommutative     (LLVMValueRef inst);
 unsigned LLVMInstIsTrapping        (LLVMValueRef inst);
 
+/* As above, but these are wrap methods from subclasses of Instruction. */
+unsigned LLVMInstIsVolatile        (LLVMValueRef inst);
+
 /* Wraps llvm::Instruction::getOpcodeName(). */
 const char *LLVMInstGetOpcodeName(LLVMValueRef inst);
 
@@ -126,6 +129,11 @@ LLVMModuleRef LLVMGetModuleFromAssembly(const char *asmtxt, unsigned txten,
  * LLVMDisposeMessage(). */
 LLVMModuleRef LLVMGetModuleFromBitcode(const char *bc, unsigned bclen,
     char **out);
+
+/* Wraps llvm::Linker::LinkModules().  Returns 0 on failure (with errmsg
+ * filled in) and 1 on success.  Dispose error message after use with
+ * LLVMDisposeMessage(). */
+unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, char **errmsg);
 
 /* Returns pointer to a heap-allocated block of `*len' bytes containing bit code
  * for the given module. NULL on error. */

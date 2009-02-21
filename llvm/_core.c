@@ -162,6 +162,33 @@ _wLLVMGetBitcodeFromModule(PyObject *self, PyObject *args)
     return ret;
 }
 
+static PyObject *
+_wLLVMLinkModules(PyObject *self, PyObject *args)
+{
+    PyObject *dest_obj, *src_obj, *ret;
+    LLVMModuleRef dest, src; 
+    char *errmsg;
+
+    if (!PyArg_ParseTuple(args, "OO", &dest_obj, &src_obj))
+        return NULL;
+
+    dest = (LLVMModuleRef) PyCObject_AsVoidPtr(dest_obj);
+    src = (LLVMModuleRef) PyCObject_AsVoidPtr(src_obj);
+
+    if (!LLVMLinkModules(dest, src, &errmsg)) {
+        if (errmsg) {
+            ret = PyString_FromString(errmsg);
+            LLVMDisposeMessage(errmsg);
+        } else {
+            ret = PyString_FromString("Link error");
+        }
+        return ret;
+    }
+    
+    /* note: success => None, failure => string with error message */
+    Py_RETURN_NONE;
+}
+
 /*===----------------------------------------------------------------------===*/
 /* Types                                                                      */
 /*===----------------------------------------------------------------------===*/
@@ -505,7 +532,7 @@ _wrap_obj2obj(LLVMInstIsCommutative,  LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsTrapping,     LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstGetOpcode,      LLVMValueRef, int)
 _wrap_obj2str(LLVMInstGetOpcodeName,  LLVMValueRef)
-
+_wrap_obj2obj(LLVMInstIsVolatile,     LLVMValueRef, int)
 
 /*===-- Call Sites (Call or Invoke) --------------------------------------===*/
 
@@ -1001,6 +1028,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMGetBitcodeFromModule )
     _method( LLVMModuleGetPointerSize )
     _method( LLVMModuleGetOrInsertFunction )
+    _method( LLVMLinkModules )
 
     /* Types */
 
@@ -1209,6 +1237,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMInstIsTrapping )
     _method( LLVMInstGetOpcode )
     _method( LLVMInstGetOpcodeName )
+    _method( LLVMInstIsVolatile )
 
     /* Call Sites (Call or Invoke) */
     _method( LLVMSetInstructionCallConv )    

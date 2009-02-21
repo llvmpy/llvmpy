@@ -43,6 +43,7 @@
 // LLVM includes
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Constants.h"
 #include "llvm/DerivedTypes.h"
 #include "llvm/GlobalVariable.h"
@@ -60,6 +61,7 @@
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
 #include "llvm/Transforms/Instrumentation.h"
+#include "llvm/Linker.h"
 
 // LLVM-C includes
 #include "llvm-c/Core.h"
@@ -212,6 +214,15 @@ inst_checkfn(LLVMInstIsAssociative,     isAssociative)
 inst_checkfn(LLVMInstIsCommutative,     isCommutative)
 inst_checkfn(LLVMInstIsTrapping,        isTrapping)
 
+unsigned LLVMInstIsVolatile(LLVMValueRef v)
+{
+    using namespace llvm;
+    Instruction *ip = unwrap<Instruction>(v);
+    assert(ip);
+    return ((isa<LoadInst>(*ip)  && cast<LoadInst>(*ip).isVolatile()) ||
+            (isa<StoreInst>(*ip) && cast<StoreInst>(*ip).isVolatile()) );
+}
+
 const char *LLVMInstGetOpcodeName(LLVMValueRef inst)
 {
     llvm::Instruction *instp = llvm::unwrap<llvm::Instruction>(inst);
@@ -330,6 +341,22 @@ LLVMModuleRef LLVMGetModuleFromBitcode(const char *bitcode, unsigned bclen,
 
     delete mbp;
     return wrap(modulep);
+}
+
+unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, char **out)
+{
+    llvm::Module *sourcep = llvm::unwrap(src);
+    assert(sourcep);
+    llvm::Module *destinationp = llvm::unwrap(dest);
+    assert(destinationp);
+
+    std::string msg;
+    if (llvm::Linker::LinkModules(destinationp, sourcep, &msg)) {
+        *out = strdup(msg.c_str());
+        return 0;
+    }
+
+    return 1;
 }
 
 unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, unsigned *lenp)

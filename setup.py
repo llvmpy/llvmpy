@@ -83,7 +83,7 @@ def call_setup(llvm_config):
         ['core', 'analysis', 'scalaropts', 'executionengine', 
          'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
          'instrumentation', 'ipa', 'ipo', 'transformutils',
-         'asmparser' ])
+         'asmparser', 'linker', 'support'])
 
     std_libs    = [ 'pthread', 'm', 'stdc++' ]
     if not ("openbsd" in sys.platform or "freebsd" in sys.platform):

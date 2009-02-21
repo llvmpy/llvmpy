@@ -918,6 +918,20 @@ class Module(llvm.Ownable):
         llvm::Module::AnyPointerSize."""
         return _core.LLVMModuleGetPointerSize(self.ptr)
 
+    def link_in(self, other):
+        """Link the `other' module into this one.
+
+        The `other' module is linked into this one such that types,
+        global variables, function, etc. are matched and resolved.
+
+        The `other' module is no longer valid after this method is
+        invoked, and will behave in undefined ways.
+        """
+        check_is_module(other)
+        ret = _core.LLVMLinkModules(self.ptr, other.ptr)
+        if isinstance(ret, str):
+            raise llvm.LLVMException, ret
+
     def add_type_name(self, name, ty):
         """Map a string to a type.
 
@@ -1841,6 +1855,11 @@ class Instruction(Value):
     @property
     def is_trapping(self):
         return _core.LLVMInstIsTrapping(self.ptr) != 0
+
+    @property
+    def is_volatile(self):
+        """True if this is a volatile load or store."""
+        return _core.LLVMInstIsVolatile(self.ptr) != 0
 
     @property
     def opcode(self):
