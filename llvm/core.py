@@ -37,6 +37,7 @@ in-memory intermediate representation (IR) data structures."""
 import llvm                 # top-level, for common stuff
 import llvm._core as _core  # C wrappers
 from llvm._util import *    # utility functions
+import weakref              # global list of modules
 
 
 #===----------------------------------------------------------------------===
@@ -802,6 +803,17 @@ def _to_int(v):
     else:
         return 0
 
+__all_modules = weakref.WeakValueDictionary()
+
+def _report_new_module(ptr, obj):
+    __all_modules[_core.PyCObjectVoidPtrToPyLong(ptr)] = obj
+
+def _module_from_ptr(ptr):
+    i = _core.PyCObjectVoidPtrToPyLong(ptr)
+    if i not in __all_modules:
+        raise llvm.LLVMException, "module not found in internal list"
+    return __all_modules[i]
+
 
 #===----------------------------------------------------------------------===
 # Module
@@ -865,6 +877,7 @@ class Module(llvm.Ownable):
         Use the static method `Module.new' instead.
         """
         llvm.Ownable.__init__(self, ptr, _core.LLVMDisposeModule)
+        _report_new_module(ptr, self)
 
     def __str__(self):
         """Text representation of a module.
@@ -1937,10 +1950,12 @@ class BasicBlock(Value):
         _core.LLVMDeleteBasicBlock(self.ptr)
         self.ptr = None
 
-    #-- disabled till we find a proper way to do it --
-    #@property
-    #def function(self):
-    #    return Function(_core.LLVMGetBasicBlockParent(self.ptr))
+    @property
+    def function(self):
+        func_ptr   = _core.LLVMGetBasicBlockParent(self.ptr)
+        module_ptr = _core.LLVMGetGlobalParent(func_ptr)
+        module_obj = _module_from_ptr(module_ptr)
+        return Function(func_ptr, module_obj)
 
     @property
     def instructions(self):

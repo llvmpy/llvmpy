@@ -349,8 +349,9 @@ def do_basicblock():
     s = list(b.instructions)
     b2 = b.insert_before('before')
     b2.delete()
-    # ff = b.function
-    # ^ not working yet!
+    ff = b.function
+    m2 = ff.module
+    t = m == m2
 
 
 def _do_builder_mrv():

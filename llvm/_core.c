@@ -1001,6 +1001,19 @@ _wLLVMLoadLibraryPermanently(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+/* Expose the void* inside a PyCObject as a PyLong. This allows us to
+ * use it as a unique ID. */
+static PyObject *
+_wPyCObjectVoidPtrToPyLong(PyObject *self, PyObject *args)
+{
+    void *p;
+    
+    if (!(p = get_object_arg(args)))
+        return NULL;
+
+    return PyLong_FromVoidPtr(p);
+}
+
 
 /*===----------------------------------------------------------------------===*/
 /* Python member method table                                                 */
@@ -1441,6 +1454,7 @@ static PyMethodDef core_methods[] = {
     /* Misc */
     _method( LLVMGetIntrinsic )
     _method( LLVMLoadLibraryPermanently )
+    _method( PyCObjectVoidPtrToPyLong )
 
     { NULL }
 };
