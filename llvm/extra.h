@@ -66,6 +66,9 @@ LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef bulder, LLVMValueRef *values,
 LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef builder, LLVMValueRef value,
     unsigned index, const char *name);
 
+/* Wraps llvm::Value::getValueID(). */
+unsigned LLVMValueGetID(LLVMValueRef value);
+
 /* Wraps llvm::ConstantExpr::getVICmp(). */
 LLVMValueRef LLVMConstVICmp(LLVMIntPredicate predicate, LLVMValueRef lhs,
     LLVMValueRef rhs);

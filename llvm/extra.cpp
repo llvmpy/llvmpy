@@ -291,6 +291,14 @@ LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef builder,
     return llvm::wrap(builderp->CreateExtractValue(llvm::unwrap(value), index, name));
 }
 
+unsigned LLVMValueGetID(LLVMValueRef value)
+{
+    llvm::Value *valuep = llvm::unwrap(value);
+    assert(valuep);
+
+    return valuep->getValueID();
+}
+
 LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef module, int id,
     LLVMTypeRef *types, unsigned n_types)
 {

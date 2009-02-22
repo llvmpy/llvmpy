@@ -60,6 +60,81 @@ TYPE_POINTER    = 11
 TYPE_OPAQUE     = 12
 TYPE_VECTOR     = 13
 
+# value IDs (llvm::Value::ValueTy enum)
+VALUE_ARGUMENT                  = 0
+VALUE_BASIC_BLOCK               = 1
+VALUE_FUNCTION                  = 2
+VALUE_GLOBAL_ALIAS              = 3
+VALUE_GLOBAL_VARIABLE           = 4
+VALUE_UNDEF_VALUE               = 5
+VALUE_CONSTANT_EXPR             = 6
+VALUE_CONSTANT_AGGREGATE_ZERO   = 7
+VALUE_CONSTANT_INT              = 8
+VALUE_CONSTANT_FP               = 9
+VALUE_CONSTANT_ARRAY            = 10
+VALUE_CONSTANT_STRUCT           = 11
+VALUE_CONSTANT_VECTOR           = 12
+VALUE_CONSTANT_POINTER_NULL     = 13
+VALUE_INLINE_ASM                = 14
+VALUE_PSEUDO_SOURCE_VALUE       = 15
+VALUE_INSTRUCTION               = 16
+
+# instruction opcodes
+OPCODE_RET            = 1
+OPCODE_BR             = 2
+OPCODE_SWITCH         = 3
+OPCODE_INVOKE         = 4
+OPCODE_UNWIND         = 5
+OPCODE_UNREACHABLE    = 6
+OPCODE_ADD            = 7
+OPCODE_SUB            = 8
+OPCODE_MUL            = 9
+OPCODE_UDIV           = 10
+OPCODE_SDIV           = 11
+OPCODE_FDIV           = 12
+OPCODE_UREM           = 13
+OPCODE_SREM           = 14
+OPCODE_FREM           = 15
+OPCODE_SHL            = 16
+OPCODE_LSHR           = 17
+OPCODE_ASHR           = 18
+OPCODE_AND            = 19
+OPCODE_OR             = 20
+OPCODE_XOR            = 21
+OPCODE_MALLOC         = 22
+OPCODE_FREE           = 23
+OPCODE_ALLOCA         = 24
+OPCODE_LOAD           = 25
+OPCODE_STORE          = 26
+OPCODE_GETELEMENTPTR  = 27
+OPCODE_TRUNC          = 28
+OPCODE_ZEXT           = 29
+OPCODE_SZEXT          = 30
+OPCODE_FPTOUI         = 31
+OPCODE_FPTOSI         = 32
+OPCODE_UITOFP         = 33
+OPCODE_SITOFP         = 34
+OPCODE_FPTRUNC        = 35
+OPCODE_FPEXT          = 36
+OPCODE_PTRTOINT       = 37
+OPCODE_INTTOPTR       = 38
+OPCODE_BITCAST        = 39
+OPCODE_ICMP           = 40
+OPCODE_FCMP           = 41
+OPCODE_PHI            = 42
+OPCODE_CALL           = 43
+OPCODE_SELECT         = 44
+OPCODE_USEROP1        = 45
+OPCODE_USEROP2        = 46
+OPCODE_VAARG          = 47
+OPCODE_EXTRACTELEMENT = 48
+OPCODE_INSERTELEMENT  = 49
+OPCODE_SHUFFLEVECTOR  = 50
+OPCODE_EXTRACTVALUE   = 51
+OPCODE_INSERTVALUE    = 52
+OPCODE_VICMP          = 53
+OPCODE_VFCMP          = 54
+
 # calling conventions
 CC_C            = 0
 CC_FASTCALL     = 8
@@ -981,7 +1056,7 @@ class Module(llvm.Ownable):
             # do stuff with gv
         """
         return wrapiter(_core.LLVMGetFirstGlobal, _core.LLVMGetNextGlobal,
-            self.ptr, GlobalVariable, [self])
+            self.ptr, _make_value)
 
     def add_function(self, ty, name):
         """Add a function of given type with given name."""
@@ -1007,7 +1082,7 @@ class Module(llvm.Ownable):
             # do stuff with f
         """
         return wrapiter(_core.LLVMGetFirstFunction, 
-            _core.LLVMGetNextFunction, self.ptr, Function, [self])
+            _core.LLVMGetNextFunction, self.ptr, _make_value)
 
     def verify(self):
         """Verify module.
@@ -1343,6 +1418,10 @@ class VectorType(Type):
         return _core.LLVMGetVectorSize(self.ptr)
 
 
+#===----------------------------------------------------------------------===
+# Type factory method
+#===----------------------------------------------------------------------===
+
 def _make_type(ptr, kind):
     if kind == TYPE_INTEGER:
         return IntegerType(ptr, kind)
@@ -1413,6 +1492,10 @@ class Value(object):
     name = property(_get_name, _set_name)
 
     @property
+    def value_id(self):
+        return _core.LLVMValueGetID(ptr)
+
+    @property
     def type(self):
         ptr  = _core.LLVMTypeOf(self.ptr)
         kind = _core.LLVMGetTypeKind(ptr)
@@ -1424,236 +1507,279 @@ class Constant(Value):
     @staticmethod
     def null(ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstNull(ty.ptr));
+        return _make_value(_core.LLVMConstNull(ty.ptr));
         
     @staticmethod
     def all_ones(ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstAllOnes(ty.ptr));
+        return _make_value(_core.LLVMConstAllOnes(ty.ptr));
         
     @staticmethod
     def undef(ty):
         check_is_type(ty)
-        return Constant(_core.LLVMGetUndef(ty.ptr));
+        return _make_value(_core.LLVMGetUndef(ty.ptr));
 
     @staticmethod
     def int(ty, value):
         check_is_type(ty)
-        return Constant(_core.LLVMConstInt(ty.ptr, value, 0))
+        return _make_value(_core.LLVMConstInt(ty.ptr, value, 0))
 
     @staticmethod
     def int_signextend(ty, value):
         check_is_type(ty)
-        return Constant(_core.LLVMConstInt(ty.ptr, value, 1))
+        return _make_value(_core.LLVMConstInt(ty.ptr, value, 1))
 
     @staticmethod
     def real(ty, value):
         check_is_type(ty)
         if isinstance(value, str):
-            return Constant(_core.LLVMConstRealOfString(ty.ptr, value))
+            return _make_value(_core.LLVMConstRealOfString(ty.ptr, value))
         else:
-            return Constant(_core.LLVMConstReal(ty.ptr, value))
+            return _make_value(_core.LLVMConstReal(ty.ptr, value))
 
     @staticmethod
     def string(strval): # dont_null_terminate=True
-        return Constant(_core.LLVMConstString(strval, 1))
+        return _make_value(_core.LLVMConstString(strval, 1))
         
     @staticmethod
     def stringz(strval): # dont_null_terminate=False
-        return Constant(_core.LLVMConstString(strval, 0))
+        return _make_value(_core.LLVMConstString(strval, 0))
 
     @staticmethod
     def array(ty, consts):
         check_is_type(ty)
         const_ptrs = unpack_constants(consts)
-        return Constant(_core.LLVMConstArray(ty.ptr, const_ptrs))
+        return _make_value(_core.LLVMConstArray(ty.ptr, const_ptrs))
         
     @staticmethod
     def struct(consts): # not packed
         const_ptrs = unpack_constants(consts)
-        return Constant(_core.LLVMConstStruct(const_ptrs, 0))
+        return _make_value(_core.LLVMConstStruct(const_ptrs, 0))
     
     @staticmethod
     def packed_struct(consts):
         const_ptrs = unpack_constants(consts)
-        return Constant(_core.LLVMConstStruct(const_ptrs, 1))
+        return _make_value(_core.LLVMConstStruct(const_ptrs, 1))
     
     @staticmethod
     def vector(consts):
         const_ptrs = unpack_constants(consts)
-        return Constant(_core.LLVMConstVector(const_ptrs))
+        return _make_value(_core.LLVMConstVector(const_ptrs))
 
     @staticmethod
     def sizeof(ty):
         check_is_type(ty)
-        return Constant(_core.LLVMSizeOf(ty.ptr))
+        return _make_value(_core.LLVMSizeOf(ty.ptr))
 
     def __init__(self, ptr):
         Value.__init__(self, ptr)
         
     def neg(self):
-        return Constant(_core.LLVMConstNeg(self.ptr))
+        return _make_value(_core.LLVMConstNeg(self.ptr))
         
     def not_(self):
-        return Constant(_core.LLVMConstNot(self.ptr))
+        return _make_value(_core.LLVMConstNot(self.ptr))
         
     def add(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstAdd(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstAdd(self.ptr, rhs.ptr))
 
     def sub(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstSub(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstSub(self.ptr, rhs.ptr))
 
     def mul(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstMul(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstMul(self.ptr, rhs.ptr))
 
     def udiv(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstUDiv(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstUDiv(self.ptr, rhs.ptr))
 
     def sdiv(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstSDiv(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstSDiv(self.ptr, rhs.ptr))
 
     def fdiv(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstFDiv(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstFDiv(self.ptr, rhs.ptr))
 
     def urem(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstURem(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstURem(self.ptr, rhs.ptr))
 
     def srem(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstSRem(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstSRem(self.ptr, rhs.ptr))
 
     def frem(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstFRem(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstFRem(self.ptr, rhs.ptr))
 
     def and_(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstAnd(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstAnd(self.ptr, rhs.ptr))
 
     def or_(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstOr(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstOr(self.ptr, rhs.ptr))
 
     def xor(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstXor(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstXor(self.ptr, rhs.ptr))
 
     def icmp(self, int_pred, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstICmp(int_pred, self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstICmp(int_pred, self.ptr, rhs.ptr))
 
     def fcmp(self, real_pred, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstFCmp(real_pred, self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstFCmp(real_pred, self.ptr, rhs.ptr))
 
     def vicmp(self, int_pred, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstVICmp(int_pred, self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstVICmp(int_pred, self.ptr, rhs.ptr))
 
     def vfcmp(self, real_pred, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstVFCmp(real_pred, self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstVFCmp(real_pred, self.ptr, rhs.ptr))
 
     def shl(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstShl(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstShl(self.ptr, rhs.ptr))
 
     def lshr(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstLShr(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstLShr(self.ptr, rhs.ptr))
 
     def ashr(self, rhs):
         check_is_constant(rhs)
-        return Constant(_core.LLVMConstAShr(self.ptr, rhs.ptr))
+        return _make_value(_core.LLVMConstAShr(self.ptr, rhs.ptr))
 
     def gep(self, indices):
         index_ptrs = unpack_constants(indices)
-        return Constant(_core.LLVMConstGEP(self.ptr, index_ptrs))
+        return _make_value(_core.LLVMConstGEP(self.ptr, index_ptrs))
     
     def trunc(self, ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstTrunc(self.ptr, ty.ptr))
+        return _make_value(_core.LLVMConstTrunc(self.ptr, ty.ptr))
 
     def sext(self, ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstSExt(self.ptr, ty.ptr))
+        return _make_value(_core.LLVMConstSExt(self.ptr, ty.ptr))
 
     def zext(self, ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstZExt(self.ptr, ty.ptr))
+        return _make_value(_core.LLVMConstZExt(self.ptr, ty.ptr))
 
     def fptrunc(self, ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstFPTrunc(self.ptr, ty.ptr))
+        return _make_value(_core.LLVMConstFPTrunc(self.ptr, ty.ptr))
 
     def fpext(self, ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstFPExt(self.ptr, ty.ptr))
+        return _make_value(_core.LLVMConstFPExt(self.ptr, ty.ptr))
 
     def uitofp(self, ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstUIToFP(self.ptr, ty.ptr))
+        return _make_value(_core.LLVMConstUIToFP(self.ptr, ty.ptr))
 
     def sitofp(self, ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstSIToFP(self.ptr, ty.ptr))
+        return _make_value(_core.LLVMConstSIToFP(self.ptr, ty.ptr))
 
     def fptoui(self, ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstFPToUI(self.ptr, ty.ptr))
+        return _make_value(_core.LLVMConstFPToUI(self.ptr, ty.ptr))
 
     def fptosi(self, ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstFPToSI(self.ptr, ty.ptr))
+        return _make_value(_core.LLVMConstFPToSI(self.ptr, ty.ptr))
 
     def ptrtoint(self, ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstPtrToInt(self.ptr, ty.ptr))
+        return _make_value(_core.LLVMConstPtrToInt(self.ptr, ty.ptr))
 
     def inttoptr(self, ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstIntToPtr(self.ptr, ty.ptr))
+        return _make_value(_core.LLVMConstIntToPtr(self.ptr, ty.ptr))
 
     def bitcast(self, ty):
         check_is_type(ty)
-        return Constant(_core.LLVMConstBitCast(self.ptr, ty.ptr))
+        return _make_value(_core.LLVMConstBitCast(self.ptr, ty.ptr))
 
     def select(self, true_const, false_const):
         check_is_constant(true_const)
         check_is_constant(false_const)
-        return Constant(_core.LLVMConstSelect(self.ptr, true_const.ptr, false_const.ptr))
+        return _make_value(_core.LLVMConstSelect(self.ptr, true_const.ptr, false_const.ptr))
 
     def extract_element(self, index): # note: self must be a _vector_ constant
         check_is_constant(index)
-        return Constant(_core.LLVMConstExtractElement(self.ptr, index.ptr))
+        return _make_value(_core.LLVMConstExtractElement(self.ptr, index.ptr))
 
     def insert_element(self, value, index): # note: self must be a _vector_ constant
         check_is_constant(value)
         check_is_constant(index)
-        return Constant(_core.LLVMConstInsertElement(self.ptr, value.ptr, index.ptr))
+        return _make_value(_core.LLVMConstInsertElement(self.ptr, value.ptr, index.ptr))
 
     def shuffle_vector(self, vector_b, mask): # note: self must be a _vector_ constant
         check_is_constant(vector_b)   # note: vector_b must be a _vector_ constant
         check_is_constant(mask)
-        return Constant(_core.LLVMConstShuffleVector(self.ptr, vector_b.ptr, mask.ptr))
+        return _make_value(_core.LLVMConstShuffleVector(self.ptr, vector_b.ptr, mask.ptr))
+
+
+class ConstantExpr(Constant):
+
+    def __init__(self, ptr):
+        Constant.__init__(self, ptr)
+
+
+class ConstantAggregateZero(Constant):
+
+    def __init__(self, ptr):
+        Constant.__init__(self, ptr)
+
+
+class ConstantInt(Constant):
+
+    def __init__(self, ptr):
+        Constant.__init__(self, ptr)
+
+
+class ConstantFP(Constant):
+
+    def __init__(self, ptr):
+        Constant.__init__(self, ptr)
+
+
+class ConstantArray(Constant):
+
+    def __init__(self, ptr):
+        Constant.__init__(self, ptr)
+
+
+class ConstantStruct(Constant):
+
+    def __init__(self, ptr):
+        Constant.__init__(self, ptr)
+
+
+class ConstantVector(Constant):
+
+    def __init__(self, ptr):
+        Constant.__init__(self, ptr)
+
+
+class ConstantPointerNull(Constant):
+
+    def __init__(self, ptr):
+        Constant.__init__(self, ptr)
 
 
 class GlobalValue(Constant):
 
-    def __init__(self, ptr, module):
+    def __init__(self, ptr):
         Constant.__init__(self, ptr)
-        self._module = module # hang on to the module
-
-    def _delete(self):
-        self._module = None # set it free
-        self.ptr = None
 
     def _get_linkage(self): return _core.LLVMGetLinkage(self.ptr)
     def _set_linkage(self, value): _core.LLVMSetLinkage(self.ptr, value)
@@ -1677,29 +1803,31 @@ class GlobalValue(Constant):
 
     @property
     def module(self):
-        return self._module
+        module_ptr = _core.LLVMGetGlobalParent(self.ptr)
+        return _module_from_ptr(module_ptr)
 
 
 class GlobalVariable(GlobalValue):
 
     @staticmethod
     def new(module, ty, name):
+        check_is_module(module)
         check_is_type(ty)
-        return GlobalVariable(_core.LLVMAddGlobal(module.ptr, ty.ptr, name), module)
+        return _make_value(_core.LLVMAddGlobal(module.ptr, ty.ptr, name))
 
     @staticmethod
     def get(module, name):
+        check_is_module(module)
         ptr = _core.LLVMGetNamedGlobal(module.ptr, name)
         if not ptr:
             raise llvm.LLVMException, ("no global named `%s`" % name)
-        return GlobalVariable(ptr, name)
+        return _make_value(ptr)
 
-    def __init__(self, ptr, module):
-        GlobalValue.__init__(self, ptr, module)
+    def __init__(self, ptr):
+        GlobalValue.__init__(self, ptr)
 
     def delete(self):
         _core.LLVMDeleteGlobal(self.ptr)
-        self._delete()
 
     def _get_initializer(self):
         if _core.LLVMHasInitializer(self.ptr):
@@ -1744,35 +1872,35 @@ class Function(GlobalValue):
     def new(module, func_ty, name):
         check_is_module(module)
         check_is_type(func_ty)
-        return Function(_core.LLVMAddFunction(module.ptr, name, \
-            func_ty.ptr), module)
+        return _make_value(_core.LLVMAddFunction(module.ptr, name, \
+            func_ty.ptr))
 
     @staticmethod
     def get_or_insert(module, func_ty, name):
         check_is_module(module)
         check_is_type(func_ty)
-        return Function(_core.LLVMModuleGetOrInsertFunction(module.ptr, \
-            name, func_ty.ptr), module)
+        return _make_value(_core.LLVMModuleGetOrInsertFunction(module.ptr, \
+            name, func_ty.ptr))
 
     @staticmethod
     def get(module, name):
+        check_is_module(module)
         ptr = _core.LLVMGetNamedFunction(module.ptr, name)
         if not ptr:
             raise llvm.LLVMException, ("no function named `%s`" % name)
-        return Function(ptr, module)
+        return _make_value(ptr)
     
     @staticmethod
     def intrinsic(module, id, types):
         check_is_module(module)
         ptrs = unpack_types(types)
-        return Function(_core.LLVMGetIntrinsic(module.ptr, id, ptrs), module)
+        return _make_value(_core.LLVMGetIntrinsic(module.ptr, id, ptrs))
 
-    def __init__(self, ptr, module):
-        GlobalValue.__init__(self, ptr, module)
+    def __init__(self, ptr):
+        GlobalValue.__init__(self, ptr)
 
     def delete(self):
         _core.LLVMDeleteFunction(self.ptr)
-        self._delete()
 
     @property
     def intrinsic_id(self):
@@ -1789,7 +1917,7 @@ class Function(GlobalValue):
     @property
     def args(self):
         return wrapiter(_core.LLVMGetFirstParam, _core.LLVMGetNextParam,
-            self.ptr, Argument)
+            self.ptr, _make_value)
 
     @property
     def basic_block_count(self):
@@ -1798,15 +1926,15 @@ class Function(GlobalValue):
     def get_entry_basic_block(self):
         if self.basic_block_count == 0:
             return None
-        return BasicBlock(_core.LLVMGetEntryBasicBlock(self.ptr))
+        return _make_value(_core.LLVMGetEntryBasicBlock(self.ptr))
 
     def append_basic_block(self, name):
-        return BasicBlock(_core.LLVMAppendBasicBlock(self.ptr, name))
+        return _make_value(_core.LLVMAppendBasicBlock(self.ptr, name))
 
     @property
     def basic_blocks(self):
         return wrapiter(_core.LLVMGetFirstBasicBlock, 
-            _core.LLVMGetNextBasicBlock, self.ptr, BasicBlock)
+            _core.LLVMGetNextBasicBlock, self.ptr, _make_value)
 
     def viewCFG(self):
         return _core.LLVMViewFunctionCFG(self.ptr)
@@ -1831,7 +1959,7 @@ class Instruction(Value):
 
     @property
     def basic_block(self):
-        return BasicBlock(_core.LLVMGetInstructionParent(self.ptr))
+        return _make_value(_core.LLVMGetInstructionParent(self.ptr))
 
     @property
     def is_terminator(self):
@@ -1917,10 +2045,10 @@ class PHINode(Instruction):
         _core.LLVMAddIncoming1(self.ptr, value.ptr, block.ptr)
 
     def get_incoming_value(self, idx):
-        return Value(_core.LLVMGetIncomingValue(self.ptr, idx))
+        return _make_value(_core.LLVMGetIncomingValue(self.ptr, idx))
 
     def get_incoming_block(self, idx):
-        return BasicBlock(_core.LLVMGetIncomingBlock(self.ptr, idx))
+        return _make_value(_core.LLVMGetIncomingBlock(self.ptr, idx))
 
 
 class SwitchInstruction(Instruction):
@@ -1944,7 +2072,7 @@ class BasicBlock(Value):
         self.ptr = ptr
 
     def insert_before(self, name):
-        return BasicBlock(_core.LLVMInsertBasicBlock(self.ptr, name))
+        return _make_value(_core.LLVMInsertBasicBlock(self.ptr, name))
 
     def delete(self):
         _core.LLVMDeleteBasicBlock(self.ptr)
@@ -1952,15 +2080,52 @@ class BasicBlock(Value):
 
     @property
     def function(self):
-        func_ptr   = _core.LLVMGetBasicBlockParent(self.ptr)
-        module_ptr = _core.LLVMGetGlobalParent(func_ptr)
-        module_obj = _module_from_ptr(module_ptr)
-        return Function(func_ptr, module_obj)
+        func_ptr = _core.LLVMGetBasicBlockParent(self.ptr)
+        return _make_value(func_ptr)
 
     @property
     def instructions(self):
         return wrapiter(_core.LLVMGetFirstInstruction,
-            _core.LLVMGetNextInstruction, self.ptr, Instruction)
+            _core.LLVMGetNextInstruction, self.ptr, _make_value)
+
+
+#===----------------------------------------------------------------------===
+# Value factory method
+#===----------------------------------------------------------------------===
+
+# value ID -> class map
+__class_for_valueid = {
+    VALUE_ARGUMENT                        : Argument,
+    VALUE_BASIC_BLOCK                     : BasicBlock,
+    VALUE_FUNCTION                        : Function,
+    VALUE_GLOBAL_ALIAS                    : GlobalValue,
+    VALUE_GLOBAL_VARIABLE                 : GlobalVariable,
+    VALUE_CONSTANT_EXPR                   : ConstantExpr,
+    VALUE_INLINE_ASM                      : Constant,
+    VALUE_CONSTANT_AGGREGATE_ZERO         : ConstantAggregateZero,
+    VALUE_CONSTANT_INT                    : ConstantInt,
+    VALUE_CONSTANT_FP                     : ConstantFP,
+    VALUE_CONSTANT_ARRAY                  : ConstantArray,
+    VALUE_CONSTANT_STRUCT                 : ConstantStruct,
+    VALUE_CONSTANT_VECTOR                 : ConstantVector,
+    VALUE_CONSTANT_POINTER_NULL           : ConstantPointerNull,
+    VALUE_INSTRUCTION + OPCODE_PHI        : PHINode,
+    VALUE_INSTRUCTION + OPCODE_CALL       : CallOrInvokeInstruction,
+    VALUE_INSTRUCTION + OPCODE_INVOKE     : CallOrInvokeInstruction,
+    VALUE_INSTRUCTION + OPCODE_SWITCH     : SwitchInstruction,
+}
+
+def _make_value(ptr):
+    kind = _core.LLVMValueGetID(ptr)
+    # based on kind, create one of the Value subclasses
+    if kind in __class_for_valueid:
+        return __class_for_valueid[kind](ptr)
+    elif kind > VALUE_INSTRUCTION:
+        # "generic" instruction
+        return Instruction(ptr)
+    else:
+        # "generic" value
+        return Value(ptr)
 
 
 #===----------------------------------------------------------------------===
@@ -2009,298 +2174,298 @@ class Builder(object):
 
     @property
     def block(self):
-        return BasicBlock(_core.LLVMGetInsertBlock(self.ptr))
+        return _make_value(_core.LLVMGetInsertBlock(self.ptr))
 
     # terminator instructions
 
     def ret_void(self):
-        return Instruction(_core.LLVMBuildRetVoid(self.ptr))
+        return _make_value(_core.LLVMBuildRetVoid(self.ptr))
 
     def ret(self, value):
         check_is_value(value)
-        return Instruction(_core.LLVMBuildRet(self.ptr, value.ptr))
+        return _make_value(_core.LLVMBuildRet(self.ptr, value.ptr))
 
     def ret_many(self, values):
         vs = unpack_values(values)
-        return Instruction(_core.LLVMBuildRetMultiple(self.ptr, vs))
+        return _make_value(_core.LLVMBuildRetMultiple(self.ptr, vs))
 
     def branch(self, bblk):
         check_is_basic_block(bblk)
-        return Instruction(_core.LLVMBuildBr(self.ptr, bblk.ptr))
-        
+        return _make_value(_core.LLVMBuildBr(self.ptr, bblk.ptr))
+
     def cbranch(self, if_value, then_blk, else_blk):
         check_is_value(if_value)
         check_is_basic_block(then_blk)
         check_is_basic_block(else_blk)
-        return Instruction(_core.LLVMBuildCondBr(self.ptr, if_value.ptr, then_blk.ptr, else_blk.ptr))
+        return _make_value(_core.LLVMBuildCondBr(self.ptr, if_value.ptr, then_blk.ptr, else_blk.ptr))
         
     def switch(self, value, else_blk, n=10):
         check_is_value(value)  # value has to be of any 'int' type
         check_is_basic_block(else_blk)
-        return SwitchInstruction(_core.LLVMBuildSwitch(self.ptr, value.ptr, else_blk.ptr, n))
+        return _make_value(_core.LLVMBuildSwitch(self.ptr, value.ptr, else_blk.ptr, n))
         
     def invoke(self, func, args, then_blk, catch_blk, name=""):
         check_is_callable(func)
         check_is_basic_block(then_blk)
         check_is_basic_block(catch_blk)
         args2 = unpack_values(args)
-        return CallOrInvokeInstruction(_core.LLVMBuildInvoke(self.ptr, func.ptr, args2, then_blk.ptr, catch_blk.ptr, name))
+        return _make_value(_core.LLVMBuildInvoke(self.ptr, func.ptr, args2, then_blk.ptr, catch_blk.ptr, name))
 
     def unwind(self):
-        return Instruction(_core.LLVMBuildUnwind(self.ptr))
+        return _make_value(_core.LLVMBuildUnwind(self.ptr))
         
     def unreachable(self):
-        return Instruction(_core.LLVMBuildUnreachable(self.ptr))
+        return _make_value(_core.LLVMBuildUnreachable(self.ptr))
 
     # arithmethic, bitwise and logical
     
     def add(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildAdd(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildAdd(self.ptr, lhs.ptr, rhs.ptr, name))
         
     def sub(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildSub(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildSub(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def mul(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildMul(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildMul(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def udiv(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildUDiv(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildUDiv(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def sdiv(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildSDiv(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildSDiv(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def fdiv(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildFDiv(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildFDiv(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def urem(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildURem(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildURem(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def srem(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildSRem(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildSRem(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def frem(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildFRem(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildFRem(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def shl(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildShl(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildShl(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def lshr(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildLShr(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildLShr(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def ashr(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildAShr(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildAShr(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def and_(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildAnd(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildAnd(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def or_(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildOr(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildOr(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def xor(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildXor(self.ptr, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildXor(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def neg(self, val, name=""):
         check_is_value(val)
-        return Instruction(_core.LLVMBuildNeg(self.ptr, val.ptr, name))
+        return _make_value(_core.LLVMBuildNeg(self.ptr, val.ptr, name))
 
     def not_(self, val, name=""):
         check_is_value(val)
-        return Instruction(_core.LLVMBuildNot(self.ptr, val.ptr, name))
+        return _make_value(_core.LLVMBuildNot(self.ptr, val.ptr, name))
 
     # memory
 
     def malloc(self, ty, name=""):
         check_is_type(ty)
-        return Instruction(_core.LLVMBuildMalloc(self.ptr, ty.ptr, name))
+        return _make_value(_core.LLVMBuildMalloc(self.ptr, ty.ptr, name))
 
     def malloc_array(self, ty, size, name=""):
         check_is_type(ty)
         check_is_value(size)
-        return Instruction(_core.LLVMBuildArrayMalloc(self.ptr, ty.ptr, size.ptr, name))
+        return _make_value(_core.LLVMBuildArrayMalloc(self.ptr, ty.ptr, size.ptr, name))
 
     def alloca(self, ty, name=""):
         check_is_type(ty)
-        return Instruction(_core.LLVMBuildAlloca(self.ptr, ty.ptr, name))
+        return _make_value(_core.LLVMBuildAlloca(self.ptr, ty.ptr, name))
 
     def alloca_array(self, ty, size, name=""):
         check_is_type(ty)
         check_is_value(size)
-        return Instruction(_core.LLVMBuildArrayAlloca(self.ptr, ty.ptr, size.ptr, name))
+        return _make_value(_core.LLVMBuildArrayAlloca(self.ptr, ty.ptr, size.ptr, name))
 
     def free(self, ptr):
         check_is_value(ptr)
-        return Instruction(_core.LLVMBuildFree(self.ptr, ptr.ptr))
+        return _make_value(_core.LLVMBuildFree(self.ptr, ptr.ptr))
 
     def load(self, ptr, name=""):
         check_is_value(ptr)
-        return Instruction(_core.LLVMBuildLoad(self.ptr, ptr.ptr, name))
+        return _make_value(_core.LLVMBuildLoad(self.ptr, ptr.ptr, name))
 
     def store(self, value, ptr):
         check_is_value(value)
         check_is_value(ptr)
-        return Instruction(_core.LLVMBuildStore(self.ptr, value.ptr, ptr.ptr))
+        return _make_value(_core.LLVMBuildStore(self.ptr, value.ptr, ptr.ptr))
 
     def gep(self, ptr, indices, name=""):
         check_is_value(ptr)
         index_ptrs = unpack_values(indices)
-        return Value(_core.LLVMBuildGEP(self.ptr, ptr.ptr, index_ptrs, name))
+        return _make_value(_core.LLVMBuildGEP(self.ptr, ptr.ptr, index_ptrs, name))
 
     # casts and extensions
 
     def trunc(self, value, dest_ty, name=""):
         check_is_value(value)
         check_is_type(dest_ty)
-        return Value(_core.LLVMBuildTrunc(self.ptr, value.ptr, dest_ty.ptr, name))
+        return _make_value(_core.LLVMBuildTrunc(self.ptr, value.ptr, dest_ty.ptr, name))
 
     def zext(self, value, dest_ty, name=""):
         check_is_value(value)
         check_is_type(dest_ty)
-        return Value(_core.LLVMBuildZExt(self.ptr, value.ptr, dest_ty.ptr, name))
+        return _make_value(_core.LLVMBuildZExt(self.ptr, value.ptr, dest_ty.ptr, name))
 
     def sext(self, value, dest_ty, name=""):
         check_is_value(value)
         check_is_type(dest_ty)
-        return Value(_core.LLVMBuildSExt(self.ptr, value.ptr, dest_ty.ptr, name))
+        return _make_value(_core.LLVMBuildSExt(self.ptr, value.ptr, dest_ty.ptr, name))
 
     def fptoui(self, value, dest_ty, name=""):
         check_is_value(value)
         check_is_type(dest_ty)
-        return Value(_core.LLVMBuildFPToUI(self.ptr, value.ptr, dest_ty.ptr, name))
+        return _make_value(_core.LLVMBuildFPToUI(self.ptr, value.ptr, dest_ty.ptr, name))
 
     def fptosi(self, value, dest_ty, name=""):
         check_is_value(value)
         check_is_type(dest_ty)
-        return Value(_core.LLVMBuildFPToSI(self.ptr, value.ptr, dest_ty.ptr, name))
+        return _make_value(_core.LLVMBuildFPToSI(self.ptr, value.ptr, dest_ty.ptr, name))
 
     def uitofp(self, value, dest_ty, name=""):
         check_is_value(value)
         check_is_type(dest_ty)
-        return Value(_core.LLVMBuildUIToFP(self.ptr, value.ptr, dest_ty.ptr, name))
+        return _make_value(_core.LLVMBuildUIToFP(self.ptr, value.ptr, dest_ty.ptr, name))
 
     def sitofp(self, value, dest_ty, name=""):
         check_is_value(value)
         check_is_type(dest_ty)
-        return Value(_core.LLVMBuildSIToFP(self.ptr, value.ptr, dest_ty.ptr, name))
+        return _make_value(_core.LLVMBuildSIToFP(self.ptr, value.ptr, dest_ty.ptr, name))
 
     def fptrunc(self, value, dest_ty, name=""):
         check_is_value(value)
         check_is_type(dest_ty)
-        return Value(_core.LLVMBuildFPTrunc(self.ptr, value.ptr, dest_ty.ptr, name))
+        return _make_value(_core.LLVMBuildFPTrunc(self.ptr, value.ptr, dest_ty.ptr, name))
 
     def fpext(self, value, dest_ty, name=""):
         check_is_value(value)
         check_is_type(dest_ty)
-        return Value(_core.LLVMBuildFPExt(self.ptr, value.ptr, dest_ty.ptr, name))
+        return _make_value(_core.LLVMBuildFPExt(self.ptr, value.ptr, dest_ty.ptr, name))
 
     def ptrtoint(self, value, dest_ty, name=""):
         check_is_value(value)
         check_is_type(dest_ty)
-        return Value(_core.LLVMBuildPtrToInt(self.ptr, value.ptr, dest_ty.ptr, name))
+        return _make_value(_core.LLVMBuildPtrToInt(self.ptr, value.ptr, dest_ty.ptr, name))
 
     def inttoptr(self, value, dest_ty, name=""):
         check_is_value(value)
         check_is_type(dest_ty)
-        return Value(_core.LLVMBuildIntToPtr(self.ptr, value.ptr, dest_ty.ptr, name))
+        return _make_value(_core.LLVMBuildIntToPtr(self.ptr, value.ptr, dest_ty.ptr, name))
 
     def bitcast(self, value, dest_ty, name=""):
         check_is_value(value)
         check_is_type(dest_ty)
-        return Value(_core.LLVMBuildBitCast(self.ptr, value.ptr, dest_ty.ptr, name))
+        return _make_value(_core.LLVMBuildBitCast(self.ptr, value.ptr, dest_ty.ptr, name))
 
     # comparisons
 
     def icmp(self, ipred, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildICmp(self.ptr, ipred, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildICmp(self.ptr, ipred, lhs.ptr, rhs.ptr, name))
         
     def fcmp(self, rpred, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildFCmp(self.ptr, rpred, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildFCmp(self.ptr, rpred, lhs.ptr, rhs.ptr, name))
 
     def vicmp(self, ipred, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildVICmp(self.ptr, ipred, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildVICmp(self.ptr, ipred, lhs.ptr, rhs.ptr, name))
         
     def vfcmp(self, rpred, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
-        return Value(_core.LLVMBuildVFCmp(self.ptr, rpred, lhs.ptr, rhs.ptr, name))
+        return _make_value(_core.LLVMBuildVFCmp(self.ptr, rpred, lhs.ptr, rhs.ptr, name))
 
     # misc
 
     def getresult(self, retval, idx, name=""):
         check_is_value(retval)
-        return PHINode(_core.LLVMBuildGetResult(self.ptr, retval.ptr, idx, name))
+        return _make_value(_core.LLVMBuildGetResult(self.ptr, retval.ptr, idx, name))
 
     def phi(self, ty, name=""):
         check_is_type(ty)
-        return PHINode(_core.LLVMBuildPhi(self.ptr, ty.ptr, name))
+        return _make_value(_core.LLVMBuildPhi(self.ptr, ty.ptr, name))
         
     def call(self, fn, args, name=""):
         check_is_callable(fn)
         arg_ptrs = unpack_values(args)
-        return CallOrInvokeInstruction(_core.LLVMBuildCall(self.ptr, fn.ptr, arg_ptrs, name))
+        return _make_value(_core.LLVMBuildCall(self.ptr, fn.ptr, arg_ptrs, name))
         
     def select(self, cond, then_value, else_value, name=""):
         check_is_value(cond)
         check_is_value(then_value)
         check_is_value(else_value)
-        return Value(_core.LLVMBuildSelect(self.ptr, cond.ptr, then_value.ptr, else_value.ptr, name))
+        return _make_value(_core.LLVMBuildSelect(self.ptr, cond.ptr, then_value.ptr, else_value.ptr, name))
     
     def vaarg(self, list_val, ty, name=""):
         check_is_value(list_val)
         check_is_type(ty)
-        return Instruction(_core.LLVMBuildVAArg(self.ptr, list_val.ptr, ty.ptr, name))
+        return _make_value(_core.LLVMBuildVAArg(self.ptr, list_val.ptr, ty.ptr, name))
     
     def extract_element(self, vec_val, idx_val, name=""):
         check_is_value(vec_val)
         check_is_value(idx_val)
-        return Value(_core.LLVMBuildExtractElement(self.ptr, vec_val.ptr, idx_val.ptr, name))
+        return _make_value(_core.LLVMBuildExtractElement(self.ptr, vec_val.ptr, idx_val.ptr, name))
     
     def insert_element(self, vec_val, elt_val, idx_val, name=""):
         check_is_value(vec_val)
         check_is_value(elt_val)
         check_is_value(idx_val)
-        return Value(_core.LLVMBuildInsertElement(self.ptr, vec_val.ptr, elt_val.ptr, idx_val.ptr, name))
+        return _make_value(_core.LLVMBuildInsertElement(self.ptr, vec_val.ptr, elt_val.ptr, idx_val.ptr, name))
 
     def shuffle_vector(self, vecA, vecB, mask, name=""):
         check_is_value(vecA)
         check_is_value(vecB)
         check_is_value(mask)
-        return Value(_core.LLVMBuildShuffleVector(self.ptr, vecA.ptr, vecB.ptr, mask.ptr, name))
+        return _make_value(_core.LLVMBuildShuffleVector(self.ptr, vecA.ptr, vecB.ptr, mask.ptr, name))
 
 
 #===----------------------------------------------------------------------===

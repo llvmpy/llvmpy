@@ -321,6 +321,7 @@ _wrap_obj2str(LLVMGetValueName, LLVMValueRef)
 _wrap_objstr2none(LLVMSetValueName, LLVMValueRef)
 _wrap_obj2none(LLVMDumpValue, LLVMValueRef)
 _wrap_dumper(LLVMDumpValueToString, LLVMValueRef)
+_wrap_obj2obj(LLVMValueGetID, LLVMValueRef, int)
 
 /*===-- Constant Values --------------------------------------------------===*/
 
@@ -1110,6 +1111,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMSetValueName )    
     _method( LLVMDumpValue )    
     _method( LLVMDumpValueToString )
+    _method( LLVMValueGetID )
 
     /* Constant Values */
 
