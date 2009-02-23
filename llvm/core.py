@@ -1772,6 +1772,10 @@ class GlobalValue(Constant):
 
     def __init__(self, ptr):
         Constant.__init__(self, ptr)
+        # Hang on to the module, don't let it die before we do.
+        # It is nice to have just a map of functions without 
+        # retaining a ref to the owning module.
+        self._module_obj = self.module
 
     def _get_linkage(self): return _core.LLVMGetLinkage(self.ptr)
     def _set_linkage(self, value): _core.LLVMSetLinkage(self.ptr, value)
@@ -2000,6 +2004,18 @@ class Instruction(Value):
     @property
     def opcode_name(self):
         return _core.LLVMInstGetOpcodeName(self.ptr)
+
+    @property
+    def operand_count(self):
+        return _core.LLVMInstGetNumOperands(self.ptr)
+
+    @property
+    def operands(self):
+        """Yields operands of this instruction."""
+        return [self._get_operand(i) for i in range(self.operand_count)]
+
+    def _get_operand(self, i):
+        return _make_value(_core.LLVMInstGetOperand(self.ptr, i))
 
 
 class CallOrInvokeInstruction(Instruction):

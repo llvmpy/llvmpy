@@ -121,6 +121,12 @@ const char *LLVMInstGetOpcodeName(LLVMValueRef inst);
 /* Wraps llvm::Instruction::getOpcode(). */
 unsigned LLVMInstGetOpcode(LLVMValueRef inst);
 
+/* Wraps llvm:Instruction::getNumOperands(). */
+unsigned LLVMInstGetNumOperands(LLVMValueRef inst);
+
+/* Wraps llvm:Instruction::getOperand(). */
+LLVMValueRef LLVMInstGetOperand(LLVMValueRef inst, unsigned idx);
+
 /* Wraps llvm::ParseAssemblyString(). Returns a module reference or NULL (with
  * `out' pointing to an error message). Dispose error message after use, via
  * LLVMDisposeMessage(). */

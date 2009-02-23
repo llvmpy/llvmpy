@@ -237,6 +237,21 @@ unsigned LLVMInstGetOpcode(LLVMValueRef inst)
     return instp->getOpcode();
 }
 
+unsigned LLVMInstGetNumOperands(LLVMValueRef inst)
+{
+    llvm::Instruction *instp = llvm::unwrap<llvm::Instruction>(inst);
+    assert(instp);
+    return instp->getNumOperands();
+}
+
+LLVMValueRef LLVMInstGetOperand(LLVMValueRef inst, unsigned idx)
+{
+    llvm::Instruction *instp = llvm::unwrap<llvm::Instruction>(inst);
+    assert(instp);
+    llvm::Value *operand = instp->getOperand(idx);
+    return llvm::wrap(operand);
+}
+
 /* llvm::unwrap a set of `n' wrapped objects starting at `values',
  * into a vector of pointers to llvm::unwrapped objects `out'. */
 template <typename W, typename UW>

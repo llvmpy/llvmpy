@@ -531,9 +531,11 @@ _wrap_obj2obj(LLVMInstIsArithmeticShift, LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsAssociative,  LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsCommutative,  LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsTrapping,     LLVMValueRef, int)
+_wrap_obj2obj(LLVMInstIsVolatile,     LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstGetOpcode,      LLVMValueRef, int)
 _wrap_obj2str(LLVMInstGetOpcodeName,  LLVMValueRef)
-_wrap_obj2obj(LLVMInstIsVolatile,     LLVMValueRef, int)
+_wrap_obj2obj(LLVMInstGetNumOperands, LLVMValueRef, int)
+_wrap_objint2obj(LLVMInstGetOperand,  LLVMValueRef, LLVMValueRef)
 
 /*===-- Call Sites (Call or Invoke) --------------------------------------===*/
 
@@ -1250,9 +1252,11 @@ static PyMethodDef core_methods[] = {
     _method( LLVMInstIsAssociative )
     _method( LLVMInstIsCommutative )
     _method( LLVMInstIsTrapping )
+    _method( LLVMInstIsVolatile )
     _method( LLVMInstGetOpcode )
     _method( LLVMInstGetOpcodeName )
-    _method( LLVMInstIsVolatile )
+    _method( LLVMInstGetNumOperands )
+    _method( LLVMInstGetOperand )
 
     /* Call Sites (Call or Invoke) */
     _method( LLVMSetInstructionCallConv )    

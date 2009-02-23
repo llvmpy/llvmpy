@@ -292,6 +292,8 @@ def do_instruction():
     bb = Builder.new(b)
     i = bb.ret_void()
     bb2 = i.basic_block
+    ops = i.operands
+    opcount = i.operand_count
 
 
 def do_callorinvokeinstruction():
