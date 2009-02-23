@@ -878,17 +878,6 @@ def _to_int(v):
     else:
         return 0
 
-__all_modules = weakref.WeakValueDictionary()
-
-def _report_new_module(ptr, obj):
-    __all_modules[_core.PyCObjectVoidPtrToPyLong(ptr)] = obj
-
-def _module_from_ptr(ptr):
-    i = _core.PyCObjectVoidPtrToPyLong(ptr)
-    if i not in __all_modules:
-        raise llvm.LLVMException, "module not found in internal list"
-    return __all_modules[i]
-
 
 #===----------------------------------------------------------------------===
 # Module
@@ -908,6 +897,8 @@ class Module(llvm.Ownable):
 
     module_obj = Module.new('my_module')
     """
+
+    __metaclass__ = ObjectCache
 
     @staticmethod
     def new(id):
@@ -952,7 +943,6 @@ class Module(llvm.Ownable):
         Use the static method `Module.new' instead.
         """
         llvm.Ownable.__init__(self, ptr, _core.LLVMDisposeModule)
-        _report_new_module(ptr, self)
 
     def __str__(self):
         """Text representation of a module.
@@ -1468,6 +1458,8 @@ class TypeHandle(object):
 
 class Value(object):
 
+    __metaclass__ = ObjectCache
+
     def __init__(self, ptr):
         self.ptr = ptr
 
@@ -1803,8 +1795,7 @@ class GlobalValue(Constant):
 
     @property
     def module(self):
-        module_ptr = _core.LLVMGetGlobalParent(self.ptr)
-        return _module_from_ptr(module_ptr)
+        return Module(_core.LLVMGetGlobalParent(self.ptr))
 
 
 class GlobalVariable(GlobalValue):
@@ -2174,6 +2165,12 @@ class Builder(object):
 
     @property
     def block(self):
+        """Deprecated, use basic_block property instead."""
+        return _make_value(_core.LLVMGetInsertBlock(self.ptr))
+
+    @property
+    def basic_block(self):
+        """The basic block where the builder is positioned."""
         return _make_value(_core.LLVMGetInsertBlock(self.ptr))
 
     # terminator instructions

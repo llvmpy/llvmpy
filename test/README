@@ -1,0 +1,5 @@
+
+The files herein serve as examples or testers for various parts of llvm-py.
+Everything here is checked to be working before release. All files are
+self-contained.
+

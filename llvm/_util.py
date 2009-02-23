@@ -33,6 +33,8 @@
 Used only in other modules, not for public use."""
 
 import llvm
+import llvm._core as _core  # for PyCObjectVoidPtrToPyLong
+from weakref import WeakValueDictionary
 
 
 #===----------------------------------------------------------------------===
@@ -89,4 +91,40 @@ class dummy_owner(object):
 
     def __init__(self, ownee):
         ownee._own(self)
+
+
+#===----------------------------------------------------------------------===
+# A metaclass to prevent aliasing.  It stores a (weak) reference to objects
+# constructed based on a PyCObject.  If an object is constructed based on a
+# PyCObject with the same underlying pointer as a previous object, a reference
+# to the previous object is returned rather than a new one.
+#===----------------------------------------------------------------------===
+
+class ObjectCache(type):
+    """A metaclass to prevent aliasing.
+
+    Classes using 'ObjectCache' as a metaclass must have constructors
+    that take a PyCObject as their first argument.  When the class is
+    called (to create a new instance of the class), the value of the
+    pointer wrapped by the PyCObj is checked:
+
+        If no previous object has been created based on the same
+        underlying pointer (note that different PyCObject objects can
+        wrap the same pointer), the object will be initialized as
+        usual and returned.
+
+        If a previous has been created based on the same pointer,
+        then a reference to that object will be returned, and no
+        object initialization is performed.
+    """
+
+    __instances = WeakValueDictionary()
+
+    def __call__(cls, ptr, *args, **kwargs):
+        id = _core.PyCObjectVoidPtrToPyLong(ptr)
+        obj = ObjectCache.__instances.get(id)
+        if obj is None:
+            obj = super(ObjectCache, cls).__call__(ptr, *args, **kwargs)
+            ObjectCache.__instances[id] = obj
+        return obj
 
