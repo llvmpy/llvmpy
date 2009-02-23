@@ -1,4 +1,16 @@
 
+0.6, in progress:
+
+  * Fetch operands of instructions (Seth Warn).
+  * Unaliased objects (with Seth Warn).
+  * Value factory, more Constant subclasses.
+  * Module.link_in and Instruction.is_volatile (Seth Warn).
+  * Fix Builder.position_at_beginning crash (Issue #10).
+  * Builds on gentoo.
+  * Code cleanup.
+  * Migrate to LLVM 2.5.
+
+
 0.5, 22-Nov-2008:
 
   * Added vicmp, vfcmp instructions and constant expressions.

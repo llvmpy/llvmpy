@@ -1,20 +1,20 @@
-# 
+#
 # Copyright (c) 2008, Mahadevan R All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #  * Redistributions of source code must retain the above copyright notice,
 #    this list of conditions and the following disclaimer.
-# 
+#
 #  * Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions and the following disclaimer in the documentation
 #    and/or other materials provided with the distribution.
-# 
-#  * Neither the name of this software, nor the names of its 
+#
+#  * Neither the name of this software, nor the names of its
 #    contributors may be used to endorse or promote products derived from
 #    this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -26,7 +26,7 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# 
+#
 
 """Pass managers and passes.
 
@@ -39,7 +39,6 @@ import llvm                 # top-level, for common stuff
 import llvm.ee as ee        # target data
 import llvm.core as core    # module provider, function etc.
 import llvm._core as _core  # C wrappers
-from llvm._util import *    # utility functions
 
 
 # passes
@@ -127,7 +126,7 @@ _pass_creator = {
     PASS_DEAD_TYPE_ELIMINATION      : _core.LLVMAddDeadTypeEliminationPass,
     PASS_DEAD_INST_ELIMINATION      : _core.LLVMAddDeadInstEliminationPass,
     PASS_DEAD_STORE_ELIMINATION     : _core.LLVMAddDeadStoreEliminationPass,
-    # PASS_GCSE                       : _core.LLVMAddGCSEPass,: removed in LLVM 2.4.
+    # PASS_GCSE           : _core.LLVMAddGCSEPass,: removed in LLVM 2.4.
     PASS_GLOBAL_DCE                 : _core.LLVMAddGlobalDCEPass,
     PASS_GLOBAL_OPTIMIZER           : _core.LLVMAddGlobalOptimizerPass,
     PASS_GVN                        : _core.LLVMAddGVNPass,
@@ -202,7 +201,8 @@ class PassManager(object):
         elif tgt_data_or_pass_id in _pass_creator:
             self._add_pass(tgt_data_or_pass_id)
         else:
-            raise llvm.LLVMException, ("invalid pass_id (%s)" % str(tgt_data_or_pass_id))
+            raise llvm.LLVMException, \
+                ("invalid pass_id (%s)" % str(tgt_data_or_pass_id))
 
     def _add_target_data(self, tgt):
         _core.LLVMAddTargetData(tgt.ptr, self.ptr)

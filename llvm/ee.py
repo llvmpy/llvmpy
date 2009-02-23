@@ -1,20 +1,20 @@
-# 
+#
 # Copyright (c) 2008, Mahadevan R All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #  * Redistributions of source code must retain the above copyright notice,
 #    this list of conditions and the following disclaimer.
-# 
+#
 #  * Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions and the following disclaimer in the documentation
 #    and/or other materials provided with the distribution.
-# 
-#  * Neither the name of this software, nor the names of its 
+#
+#  * Neither the name of this software, nor the names of its
 #    contributors may be used to endorse or promote products derived from
 #    this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -26,7 +26,7 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# 
+#
 
 """Execution Engine and related classes.
 
@@ -35,7 +35,7 @@
 import llvm                 # top-level, for common stuff
 import llvm.core as core    # module provider, function etc.
 import llvm._core as _core  # C wrappers
-from llvm._util import *    # utility functions
+import llvm._util as _util  # utility functions
 
 
 #===----------------------------------------------------------------------===
@@ -97,9 +97,9 @@ class GenericValue(object):
 
 
 # helper functions for generic value objects
-def check_is_generic_value(obj): check_gen(obj, GenericValue)
-def _unpack_generic_values(objlist): 
-    return unpack_gen(objlist, check_is_generic_value)
+def check_is_generic_value(obj): _util.check_gen(obj, GenericValue)
+def _unpack_generic_values(objlist):
+    return _util.unpack_gen(objlist, check_is_generic_value)
 
 
 #===----------------------------------------------------------------------===
@@ -111,7 +111,7 @@ class ExecutionEngine(object):
     @staticmethod
     def new(mp, force_interpreter=False):
         core.check_is_module_provider(mp)
-        core.check_is_unowned(mp)
+        _util.check_is_unowned(mp)
         ret = _core.LLVMCreateExecutionEngine(mp.ptr, int(force_interpreter))
         if isinstance(ret, str):
             raise llvm.LLVMException, ret

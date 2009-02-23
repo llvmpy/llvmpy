@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 from llvm.core import *
 import llvm._core

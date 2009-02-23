@@ -162,9 +162,10 @@ def do_value():
     k = Constant.int(ti, 42)
     k.name = 'a'
     s = k.name
-    t = s.type
+    t = k.type
     s = str(k)
     s = k == Constant.int(ti, 43)
+    i = k.value_id
 
 
 def do_constant():
@@ -473,6 +474,7 @@ def do_llvm_core():
     do_module()
     do_type()
     do_typehandle()
+    do_value()
     do_constant()
     do_global_value()
     do_global_variable()
@@ -576,4 +578,21 @@ def main():
 
 
 main()
+
+# to add:
+# IntegerType
+# FunctionType
+# StructType
+# ArrayType
+# PointerType
+# VectorType
+# ConstantExpr
+# ConstantAggregateZero
+# ConstantInt
+# ConstantFP
+# ConstantArray
+# ConstantStruct
+# ConstantVector
+# ConstantPointerNull
+# MemoryBuffer
 
