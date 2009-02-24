@@ -34,7 +34,6 @@ Used only in other modules, not for public use."""
 
 import llvm
 import llvm._core as _core  # for PyCObjectVoidPtrToPyLong
-from weakref import WeakValueDictionary
 
 
 #===----------------------------------------------------------------------===
@@ -42,10 +41,10 @@ from weakref import WeakValueDictionary
 # failures.
 #===----------------------------------------------------------------------===
 
-def check_gen(obj, type):
-    if not isinstance(obj, type):
-        type_str = type.__name__
-        msg = "argument not an instance of llvm.core.%s" % type_str
+def check_gen(obj, typ):
+    if not isinstance(obj, typ):
+        typ_str = typ.__name__
+        msg = "argument not an instance of llvm.core.%s" % typ_str
         raise TypeError, msg
 
 def check_is_unowned(ownable):
@@ -70,51 +69,11 @@ def unpack_gen(objlist, check_fn):
 # we now return a list.
 #===----------------------------------------------------------------------===
 
-def wrapiter(first, next, container, wrapper, extra=[]):
-#    ptr = first(container)
-#    while ptr:
-#        yield wrapper(ptr)
-#        ptr = next(ptr)
+def wrapiter(first, next, container, wrapper):
     ret = []
     ptr = first(container)
     while ptr:
-        ret.append(wrapper(ptr, *extra))
+        ret.append(wrapper(ptr))
         ptr = next(ptr)
     return ret
-
-
-#===----------------------------------------------------------------------===
-# A metaclass to prevent aliasing.  It stores a (weak) reference to objects
-# constructed based on a PyCObject.  If an object is constructed based on a
-# PyCObject with the same underlying pointer as a previous object, a reference
-# to the previous object is returned rather than a new one.
-#===----------------------------------------------------------------------===
-
-class ObjectCache(type):
-    """A metaclass to prevent aliasing.
-
-    Classes using 'ObjectCache' as a metaclass must have constructors
-    that take a PyCObject as their first argument.  When the class is
-    called (to create a new instance of the class), the value of the
-    pointer wrapped by the PyCObj is checked:
-
-        If no previous object has been created based on the same
-        underlying pointer (note that different PyCObject objects can
-        wrap the same pointer), the object will be initialized as
-        usual and returned.
-
-        If a previous has been created based on the same pointer,
-        then a reference to that object will be returned, and no
-        object initialization is performed.
-    """
-
-    __instances = WeakValueDictionary()
-
-    def __call__(cls, ptr, *args, **kwargs):
-        id = _core.PyCObjectVoidPtrToPyLong(ptr)
-        obj = ObjectCache.__instances.get(id)
-        if obj is None:
-            obj = super(ObjectCache, cls).__call__(ptr, *args, **kwargs)
-            ObjectCache.__instances[id] = obj
-        return obj
 

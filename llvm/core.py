@@ -37,7 +37,6 @@ in-memory intermediate representation (IR) data structures."""
 import llvm                 # top-level, for common stuff
 import llvm._core as _core  # C wrappers
 import llvm._util as _util  # utility functions
-import weakref              # global list of modules
 
 
 #===----------------------------------------------------------------------===
@@ -272,7 +271,7 @@ def _to_int(v):
 # Module
 #===----------------------------------------------------------------------===
 
-class Module(llvm.Ownable):
+class Module(llvm.Ownable, llvm.Cacheable):
     """A Module instance stores all the information related to an LLVM module.
 
     Modules are the top level container of all other LLVM Intermediate
@@ -286,8 +285,6 @@ class Module(llvm.Ownable):
 
     module_obj = Module.new('my_module')
     """
-
-    __metaclass__ = _util.ObjectCache
 
     @staticmethod
     def new(id):
@@ -392,12 +389,18 @@ class Module(llvm.Ownable):
         global variables, function, etc. are matched and resolved.
 
         The `other' module is no longer valid after this method is
-        invoked, and will behave in undefined ways.
+        invoked, all refs to it should be dropped.
+
+        In future, this API might be replaced with a full-fledged
+        Linker class.
         """
         check_is_module(other)
+        other.forget() # remove it from object cache
         ret = _core.LLVMLinkModules(self.ptr, other.ptr)
         if isinstance(ret, str):
             raise llvm.LLVMException, ret
+        # Do not try to destroy the other module's llvm::Module*.
+        other._own(llvm.DummyOwner())
 
     def add_type_name(self, name, ty):
         """Map a string to a type.
@@ -848,9 +851,7 @@ class TypeHandle(object):
 # Values
 #===----------------------------------------------------------------------===
 
-class Value(object):
-
-    __metaclass__ = _util.ObjectCache
+class Value(llvm.Cacheable):
 
     def __init__(self, ptr):
         self.ptr = ptr
@@ -1233,6 +1234,7 @@ class GlobalVariable(GlobalValue):
     def delete(self):
         self._delete()
         _core.LLVMDeleteGlobal(self.ptr)
+        self.forget()
         self.ptr = None
 
     def _get_initializer(self):
@@ -1310,6 +1312,7 @@ class Function(GlobalValue):
     def delete(self):
         self._delete()
         _core.LLVMDeleteFunction(self.ptr)
+        self.forget()
         self.ptr = None
 
     @property
@@ -1498,6 +1501,7 @@ class BasicBlock(Value):
 
     def delete(self):
         _core.LLVMDeleteBasicBlock(self.ptr)
+        self.forget()
         self.ptr = None
 
     @property

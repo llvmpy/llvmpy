@@ -8,6 +8,12 @@ def check(a, b):
     else:
         print "FAIL"
 
+def check_isnot(a, b):
+    if not (a is b):
+        print "OK"
+    else:
+        print "FAIL"
+
 print "Testing module aliasing ..",
 m1 = Module.new('a')
 t = Type.int()
@@ -19,11 +25,18 @@ check(m1, m2)
 print "Testing global vairable aliasing 1 .. ",
 gv1 = GlobalVariable.new(m1, t, "gv")
 gv2 = GlobalVariable.get(m1, "gv")
-check(gv2, gv2)
+check(gv1, gv2)
 
 print "Testing global vairable aliasing 2 .. ",
 gv3 = m1.global_variables[0]
-check(gv3, gv1)
+check(gv1, gv3)
+
+print "Testing global vairable aliasing 3 .. ",
+gv2 = None
+gv3 = None
+gv1.delete()
+gv4 = GlobalVariable.new(m1, t, "gv")
+check_isnot(gv1, gv4)
 
 print "Testing function aliasing 1 ..",
 b1 = f1.append_basic_block('entry')

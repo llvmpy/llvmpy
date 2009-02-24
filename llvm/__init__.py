@@ -32,7 +32,9 @@
 
 """
 
-VERSION = '0.3'
+VERSION = '0.6'
+
+from weakref import WeakValueDictionary
 
 
 #===----------------------------------------------------------------------===
@@ -77,4 +79,71 @@ class Ownable(object):
     def __del__(self):
         if not self.owner:
             self.del_fn(self.ptr)
+
+
+#===----------------------------------------------------------------------===
+# Dummy owner, will not delete ownee. Be careful.
+#===----------------------------------------------------------------------===
+
+class DummyOwner(object):
+    pass
+
+
+#===----------------------------------------------------------------------===
+# A metaclass to prevent aliasing.  It stores a (weak) reference to objects
+# constructed based on a PyCObject.  If an object is constructed based on a
+# PyCObject with the same underlying pointer as a previous object, a reference
+# to the previous object is returned rather than a new one.
+#===----------------------------------------------------------------------===
+
+class _ObjectCache(type):
+    """A metaclass to prevent aliasing.
+
+    Classes using 'ObjectCache' as a metaclass must have constructors
+    that take a PyCObject as their first argument.  When the class is
+    called (to create a new instance of the class), the value of the
+    pointer wrapped by the PyCObj is checked:
+
+        If no previous object has been created based on the same
+        underlying pointer (note that different PyCObject objects can
+        wrap the same pointer), the object will be initialized as
+        usual and returned.
+
+        If a previous has been created based on the same pointer,
+        then a reference to that object will be returned, and no
+        object initialization is performed.
+    """
+
+    __instances = WeakValueDictionary()
+
+    def __call__(cls, ptr, *args, **kwargs):
+        objid = _core.PyCObjectVoidPtrToPyLong(ptr)
+        obj = _ObjectCache.__instances.get(objid)
+        if obj is None:
+            obj = super(_ObjectCache, cls).__call__(ptr, *args, **kwargs)
+            _ObjectCache.__instances[objid] = obj
+        return obj
+
+    @staticmethod
+    def forget(obj):
+        objid = _core.PyCObjectVoidPtrToPyLong(obj.ptr)
+        if objid in _ObjectCache.__instances:
+            del _ObjectCache.__instances[objid]
+
+
+#===----------------------------------------------------------------------===
+# Cacheables
+#===----------------------------------------------------------------------===
+
+class Cacheable(object):
+    """Objects that can be cached.
+
+    Objects that wrap a PyCObject are cached to avoid "aliasing", i.e.,
+    two Python objects each containing a PyCObject which internally points
+    to the same C pointer."""
+
+    __metaclass__ = _ObjectCache
+
+    def forget(self):
+        _ObjectCache.forget(self)
 
