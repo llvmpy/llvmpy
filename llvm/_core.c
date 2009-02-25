@@ -323,6 +323,11 @@ _wrap_obj2none(LLVMDumpValue, LLVMValueRef)
 _wrap_dumper(LLVMDumpValueToString, LLVMValueRef)
 _wrap_obj2obj(LLVMValueGetID, LLVMValueRef, int)
 
+/*===-- Users ------------------------------------------------------------===*/
+
+_wrap_obj2obj(LLVMUserGetNumOperands, LLVMValueRef, int)
+_wrap_objint2obj(LLVMUserGetOperand,  LLVMValueRef, LLVMValueRef)
+
 /*===-- Constant Values --------------------------------------------------===*/
 
 /* Operations on constants of any type */
@@ -534,8 +539,6 @@ _wrap_obj2obj(LLVMInstIsTrapping,     LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsVolatile,     LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstGetOpcode,      LLVMValueRef, int)
 _wrap_obj2str(LLVMInstGetOpcodeName,  LLVMValueRef)
-_wrap_obj2obj(LLVMInstGetNumOperands, LLVMValueRef, int)
-_wrap_objint2obj(LLVMInstGetOperand,  LLVMValueRef, LLVMValueRef)
 
 /*===-- Call Sites (Call or Invoke) --------------------------------------===*/
 
@@ -1115,6 +1118,11 @@ static PyMethodDef core_methods[] = {
     _method( LLVMDumpValueToString )
     _method( LLVMValueGetID )
 
+    /* Users */
+
+    _method( LLVMUserGetNumOperands )
+    _method( LLVMUserGetOperand )
+
     /* Constant Values */
 
     /* Operations on constants of any type */
@@ -1255,8 +1263,6 @@ static PyMethodDef core_methods[] = {
     _method( LLVMInstIsVolatile )
     _method( LLVMInstGetOpcode )
     _method( LLVMInstGetOpcodeName )
-    _method( LLVMInstGetNumOperands )
-    _method( LLVMInstGetOperand )
 
     /* Call Sites (Call or Invoke) */
     _method( LLVMSetInstructionCallConv )    

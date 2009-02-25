@@ -329,6 +329,7 @@ class Module(llvm.Ownable, llvm.Cacheable):
         Use the static method `Module.new' instead.
         """
         llvm.Ownable.__init__(self, ptr, _core.LLVMDisposeModule)
+        llvm.Cacheable.__init__(self, ptr)
 
     def __str__(self):
         """Text representation of a module.
@@ -666,12 +667,6 @@ class Type(object):
 class IntegerType(Type):
     """Represents an integer type."""
 
-    def __init__(self, ptr, kind):
-        """DO NOT CALL DIRECTLY.
-
-        Use one of the static methods of the *base* class (Type) instead."""
-        Type.__init__(self, ptr, kind)
-
     @property
     def width(self):
         """The width of the integer type, in bits."""
@@ -680,12 +675,6 @@ class IntegerType(Type):
 
 class FunctionType(Type):
     """Represents a function type."""
-
-    def __init__(self, ptr, kind):
-        """DO NOT CALL DIRECTLY.
-
-        Use one of the static methods of the *base* class (Type) instead."""
-        Type.__init__(self, ptr, kind)
 
     @property
     def return_type(self):
@@ -717,12 +706,6 @@ class FunctionType(Type):
 class StructType(Type):
     """Represents a structure type."""
 
-    def __init__(self, ptr, kind):
-        """DO NOT CALL DIRECTLY.
-
-        Use one of the static methods of the *base* class (Type) instead."""
-        Type.__init__(self, ptr, kind)
-
     @property
     def element_count(self):
         """Number of elements (members) in the structure.
@@ -746,12 +729,6 @@ class StructType(Type):
 class ArrayType(Type):
     """Represents an array type."""
 
-    def __init__(self, ptr, kind):
-        """DO NOT CALL DIRECTLY.
-
-        Use one of the static methods of the *base* class (Type) instead."""
-        Type.__init__(self, ptr, kind)
-
     @property
     def element(self):
         ptr  = _core.LLVMGetElementType(self.ptr)
@@ -765,12 +742,6 @@ class ArrayType(Type):
 
 class PointerType(Type):
 
-    def __init__(self, ptr, kind):
-        """DO NOT CALL DIRECTLY.
-
-        Use one of the static methods of the *base* class (Type) instead."""
-        Type.__init__(self, ptr, kind)
-
     @property
     def pointee(self):
         ptr = _core.LLVMGetElementType(self.ptr)
@@ -783,12 +754,6 @@ class PointerType(Type):
 
 
 class VectorType(Type):
-
-    def __init__(self, ptr, kind):
-        """DO NOT CALL DIRECTLY.
-
-        Use one of the static methods of the *base* class (Type) instead."""
-        Type.__init__(self, ptr, kind)
 
     @property
     def element(self):
@@ -854,6 +819,7 @@ class TypeHandle(object):
 class Value(llvm.Cacheable):
 
     def __init__(self, ptr):
+        llvm.Cacheable.__init__(self, ptr)
         self.ptr = ptr
 
     def __str__(self):
@@ -887,7 +853,22 @@ class Value(llvm.Cacheable):
         return _make_type(ptr, kind)
 
 
-class Constant(Value):
+class User(Value):
+
+    @property
+    def operand_count(self):
+        return _core.LLVMUserGetNumOperands(self.ptr)
+
+    @property
+    def operands(self):
+        """Yields operands of this instruction."""
+        return [self._get_operand(i) for i in range(self.operand_count)]
+
+    def _get_operand(self, i):
+        return _make_value(_core.LLVMUserGetOperand(self.ptr, i))
+
+
+class Constant(User):
 
     @staticmethod
     def null(ty):
@@ -955,9 +936,6 @@ class Constant(Value):
     def sizeof(ty):
         check_is_type(ty)
         return _make_value(_core.LLVMSizeOf(ty.ptr))
-
-    def __init__(self, ptr):
-        Value.__init__(self, ptr)
 
     def neg(self):
         return _make_value(_core.LLVMConstNeg(self.ptr))
@@ -1121,51 +1099,39 @@ class Constant(Value):
 
 
 class ConstantExpr(Constant):
-
-    def __init__(self, ptr):
-        Constant.__init__(self, ptr)
+    pass
 
 
 class ConstantAggregateZero(Constant):
-
-    def __init__(self, ptr):
-        Constant.__init__(self, ptr)
+    pass
 
 
 class ConstantInt(Constant):
-
-    def __init__(self, ptr):
-        Constant.__init__(self, ptr)
+    pass
 
 
 class ConstantFP(Constant):
-
-    def __init__(self, ptr):
-        Constant.__init__(self, ptr)
+    pass
 
 
 class ConstantArray(Constant):
-
-    def __init__(self, ptr):
-        Constant.__init__(self, ptr)
+    pass
 
 
 class ConstantStruct(Constant):
-
-    def __init__(self, ptr):
-        Constant.__init__(self, ptr)
+    pass
 
 
 class ConstantVector(Constant):
-
-    def __init__(self, ptr):
-        Constant.__init__(self, ptr)
+    pass
 
 
 class ConstantPointerNull(Constant):
+    pass
 
-    def __init__(self, ptr):
-        Constant.__init__(self, ptr)
+
+class UndefValue(Constant):
+    pass
 
 
 class GlobalValue(Constant):
@@ -1228,9 +1194,6 @@ class GlobalVariable(GlobalValue):
             raise llvm.LLVMException, ("no global named `%s`" % name)
         return _make_value(ptr)
 
-    def __init__(self, ptr):
-        GlobalValue.__init__(self, ptr)
-
     def delete(self):
         self._delete()
         _core.LLVMDeleteGlobal(self.ptr)
@@ -1261,9 +1224,6 @@ class GlobalVariable(GlobalValue):
 
 
 class Argument(Value):
-
-    def __init__(self, ptr):
-        Value.__init__(self, ptr)
 
     def add_attribute(self, attr):
         _core.LLVMAddAttribute(self.ptr, attr)
@@ -1306,9 +1266,6 @@ class Function(GlobalValue):
         return _make_value(
             _core.LLVMGetIntrinsic(module.ptr, intrinsic_id, ptrs))
 
-    def __init__(self, ptr):
-        GlobalValue.__init__(self, ptr)
-
     def delete(self):
         self._delete()
         _core.LLVMDeleteFunction(self.ptr)
@@ -1336,10 +1293,15 @@ class Function(GlobalValue):
     def basic_block_count(self):
         return _core.LLVMCountBasicBlocks(self.ptr)
 
-    def get_entry_basic_block(self):
+    @property
+    def entry_basic_block(self):
         if self.basic_block_count == 0:
             return None
         return _make_value(_core.LLVMGetEntryBasicBlock(self.ptr))
+
+    def get_entry_basic_block(self):
+        """Deprecated, use entry_basic_block property."""
+        return self.entry_basic_block
 
     def append_basic_block(self, name):
         return _make_value(_core.LLVMAppendBasicBlock(self.ptr, name))
@@ -1365,10 +1327,7 @@ class Function(GlobalValue):
 # Instruction
 #===----------------------------------------------------------------------===
 
-class Instruction(Value):
-
-    def __init__(self, ptr):
-        Value.__init__(self, ptr)
+class Instruction(User):
 
     @property
     def basic_block(self):
@@ -1423,23 +1382,8 @@ class Instruction(Value):
     def opcode_name(self):
         return _core.LLVMInstGetOpcodeName(self.ptr)
 
-    @property
-    def operand_count(self):
-        return _core.LLVMInstGetNumOperands(self.ptr)
-
-    @property
-    def operands(self):
-        """Yields operands of this instruction."""
-        return [self._get_operand(i) for i in range(self.operand_count)]
-
-    def _get_operand(self, i):
-        return _make_value(_core.LLVMInstGetOperand(self.ptr, i))
-
 
 class CallOrInvokeInstruction(Instruction):
-
-    def __init__(self, ptr):
-        Instruction.__init__(self, ptr)
 
     def _get_cc(self): return _core.LLVMGetInstructionCallConv(self.ptr)
     def _set_cc(self, value): _core.LLVMSetInstructionCallConv(self.ptr, value)
@@ -1456,9 +1400,6 @@ class CallOrInvokeInstruction(Instruction):
 
 
 class PHINode(Instruction):
-
-    def __init__(self, ptr):
-        Instruction.__init__(self, ptr)
 
     @property
     def incoming_count(self):
@@ -1478,9 +1419,6 @@ class PHINode(Instruction):
 
 class SwitchInstruction(Instruction):
 
-    def __init__(self, ptr):
-        Instruction.__init__(self, ptr)
-
     def add_case(self, const, bblk):
         check_is_constant(const) # and has to be an int too
         check_is_basic_block(bblk)
@@ -1492,9 +1430,6 @@ class SwitchInstruction(Instruction):
 #===----------------------------------------------------------------------===
 
 class BasicBlock(Value):
-
-    def __init__(self, ptr):
-        Value.__init__(self, ptr)
 
     def insert_before(self, name):
         return _make_value(_core.LLVMInsertBasicBlock(self.ptr, name))
@@ -1526,8 +1461,8 @@ __class_for_valueid = {
     VALUE_FUNCTION                        : Function,
     VALUE_GLOBAL_ALIAS                    : GlobalValue,
     VALUE_GLOBAL_VARIABLE                 : GlobalVariable,
+    VALUE_UNDEF_VALUE                     : UndefValue,
     VALUE_CONSTANT_EXPR                   : ConstantExpr,
-    VALUE_INLINE_ASM                      : Constant,
     VALUE_CONSTANT_AGGREGATE_ZERO         : ConstantAggregateZero,
     VALUE_CONSTANT_INT                    : ConstantInt,
     VALUE_CONSTANT_FP                     : ConstantFP,

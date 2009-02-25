@@ -69,6 +69,12 @@ LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef builder, LLVMValueRef value,
 /* Wraps llvm::Value::getValueID(). */
 unsigned LLVMValueGetID(LLVMValueRef value);
 
+/* Wraps llvm:User::getNumOperands(). */
+unsigned LLVMUserGetNumOperands(LLVMValueRef user);
+
+/* Wraps llvm:User::getOperand(). */
+LLVMValueRef LLVMUserGetOperand(LLVMValueRef user, unsigned idx);
+
 /* Wraps llvm::ConstantExpr::getVICmp(). */
 LLVMValueRef LLVMConstVICmp(LLVMIntPredicate predicate, LLVMValueRef lhs,
     LLVMValueRef rhs);
@@ -120,12 +126,6 @@ const char *LLVMInstGetOpcodeName(LLVMValueRef inst);
 
 /* Wraps llvm::Instruction::getOpcode(). */
 unsigned LLVMInstGetOpcode(LLVMValueRef inst);
-
-/* Wraps llvm:Instruction::getNumOperands(). */
-unsigned LLVMInstGetNumOperands(LLVMValueRef inst);
-
-/* Wraps llvm:Instruction::getOperand(). */
-LLVMValueRef LLVMInstGetOperand(LLVMValueRef inst, unsigned idx);
 
 /* Wraps llvm::ParseAssemblyString(). Returns a module reference or NULL (with
  * `out' pointing to an error message). Dispose error message after use, via

@@ -77,11 +77,15 @@ b3 = f1.get_entry_basic_block()
 check(b1, b3)
 
 print "Testing basic block aliasing 3 .. ",
+b31 = f1.entry_basic_block
+check(b1, b31)
+
+print "Testing basic block aliasing 4 .. ",
 bldr = Builder.new(b1)
 b4 = bldr.basic_block
 check(b1, b4)
 
-print "Testing basic block aliasing 4 .. ",
+print "Testing basic block aliasing 5 .. ",
 i1 = bldr.ret_void()
 b5 = i1.basic_block
 check(b1, b5)

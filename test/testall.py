@@ -168,6 +168,21 @@ def do_value():
     i = k.value_id
 
 
+def do_user():
+    m = Module.new('a')
+    ft = Type.function(ti, [ti]*2)
+    f = Function.new(m, ft, 'func')
+    b = f.append_basic_block('a')
+    bb = Builder.new(b)
+    i1 = bb.add(f.args[0], f.args[1])
+    i2 = bb.ret(i1)
+    i1.operand_count == 2
+    i2.operand_count == 1
+    i1.operands[0] is f.args[0]
+    i1.operands[1] is f.args[1]
+    i2.operands[0] is i1
+
+
 def do_constant():
     print "    Testing class Constant"
     Constant.null(ti)
@@ -475,6 +490,7 @@ def do_llvm_core():
     do_type()
     do_typehandle()
     do_value()
+    do_user()
     do_constant()
     do_global_value()
     do_global_variable()

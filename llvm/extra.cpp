@@ -237,21 +237,6 @@ unsigned LLVMInstGetOpcode(LLVMValueRef inst)
     return instp->getOpcode();
 }
 
-unsigned LLVMInstGetNumOperands(LLVMValueRef inst)
-{
-    llvm::Instruction *instp = llvm::unwrap<llvm::Instruction>(inst);
-    assert(instp);
-    return instp->getNumOperands();
-}
-
-LLVMValueRef LLVMInstGetOperand(LLVMValueRef inst, unsigned idx)
-{
-    llvm::Instruction *instp = llvm::unwrap<llvm::Instruction>(inst);
-    assert(instp);
-    llvm::Value *operand = instp->getOperand(idx);
-    return llvm::wrap(operand);
-}
-
 /* llvm::unwrap a set of `n' wrapped objects starting at `values',
  * into a vector of pointers to llvm::unwrapped objects `out'. */
 template <typename W, typename UW>
@@ -312,6 +297,21 @@ unsigned LLVMValueGetID(LLVMValueRef value)
     assert(valuep);
 
     return valuep->getValueID();
+}
+
+unsigned LLVMUserGetNumOperands(LLVMValueRef user)
+{
+    llvm::User *userp = llvm::unwrap<llvm::User>(user);
+    assert(userp);
+    return userp->getNumOperands();
+}
+
+LLVMValueRef LLVMUserGetOperand(LLVMValueRef user, unsigned idx)
+{
+    llvm::User *userp = llvm::unwrap<llvm::User>(user);
+    assert(userp);
+    llvm::Value *operand = userp->getOperand(idx);
+    return llvm::wrap(operand);
 }
 
 LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef module, int id,
