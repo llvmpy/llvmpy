@@ -166,6 +166,8 @@ def do_value():
     s = str(k)
     s = k == Constant.int(ti, 43)
     i = k.value_id
+    i = k.use_count
+    i = k.uses
 
 
 def do_user():

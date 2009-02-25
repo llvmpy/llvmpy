@@ -98,11 +98,14 @@ void *get_object_arg(PyObject *args);
 void **make_array_from_list(PyObject *list, int n);
 
 /**
- * Given an array of LLVMTypeRef's, create a PyList object. Note that
- * currently such an action is required only for LLVMTypeRef's, when
- * it is required another type, this method has to be generalized.
+ * Given an array of LLVMTypeRef's, create a PyList object.
  */
 PyObject *make_list_from_LLVMTypeRef_array(LLVMTypeRef *p, unsigned n);
+
+/**
+ * Given an array of LLVMValueRef's, create a PyList object.
+ */
+PyObject *make_list_from_LLVMValueRef_array(LLVMValueRef *p, unsigned n);
 
 
 /*===----------------------------------------------------------------------===*/

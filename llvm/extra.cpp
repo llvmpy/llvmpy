@@ -299,6 +299,47 @@ unsigned LLVMValueGetID(LLVMValueRef value)
     return valuep->getValueID();
 }
 
+
+unsigned LLVMValueGetNumUses(LLVMValueRef value)
+{
+    llvm::Value *valuep = llvm::unwrap(value);
+    assert(valuep);
+
+    return valuep->getNumUses();
+}
+
+
+unsigned LLVMValueGetUses(LLVMValueRef value, LLVMValueRef **refs)
+{
+    llvm::Value *valuep = llvm::unwrap(value);
+    assert(valuep);
+
+    unsigned n = valuep->getNumUses();
+    if (n == 0)
+        return 0;
+
+    assert(refs);
+    LLVMValueRef *out = (LLVMValueRef *)malloc(sizeof(LLVMValueRef) * n);
+    if (!out)
+        return 0;
+    *refs = out;
+
+    memset(out, 0, sizeof(LLVMValueRef) * n);
+    llvm::Value::use_iterator it = valuep->use_begin();
+    while (it != valuep->use_end()) {
+        *out++ = llvm::wrap(*it);
+        ++it;
+    }
+
+    return n;
+}
+
+void LLVMDisposeValueRefArray(LLVMValueRef *refs)
+{
+    assert(refs);
+    free(refs);
+}
+
 unsigned LLVMUserGetNumOperands(LLVMValueRef user)
 {
     llvm::User *userp = llvm::unwrap<llvm::User>(user);

@@ -322,6 +322,25 @@ _wrap_objstr2none(LLVMSetValueName, LLVMValueRef)
 _wrap_obj2none(LLVMDumpValue, LLVMValueRef)
 _wrap_dumper(LLVMDumpValueToString, LLVMValueRef)
 _wrap_obj2obj(LLVMValueGetID, LLVMValueRef, int)
+_wrap_obj2obj(LLVMValueGetNumUses, LLVMValueRef, int)
+
+static PyObject *
+_wLLVMValueGetUses(PyObject *self, PyObject *args)
+{
+    LLVMValueRef value;
+
+    if (!(value = (LLVMValueRef)get_object_arg(args)))
+        return NULL;
+
+    LLVMValueRef *uses = 0;
+    unsigned n = LLVMValueGetUses(value, &uses);
+
+    PyObject *list = make_list_from_LLVMValueRef_array(uses, n);
+    if (n > 0)
+        LLVMDisposeValueRefArray(uses);
+
+    return list;
+}
 
 /*===-- Users ------------------------------------------------------------===*/
 
@@ -1117,6 +1136,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMDumpValue )    
     _method( LLVMDumpValueToString )
     _method( LLVMValueGetID )
+    _method( LLVMValueGetNumUses )
+    _method( LLVMValueGetUses )
 
     /* Users */
 

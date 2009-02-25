@@ -69,6 +69,18 @@ LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef builder, LLVMValueRef value,
 /* Wraps llvm::Value::getValueID(). */
 unsigned LLVMValueGetID(LLVMValueRef value);
 
+/* Wraps llvm::Value::getNumUses(). */
+unsigned LLVMValueGetNumUses(LLVMValueRef value);
+
+/* Wraps llvm::Value::use_{begin,end}. Allocates LLVMValueRef's as
+ * required. Number of objects are returned as return value. If that is
+ * greater than zero, the pointer given out must be freed by a
+ * subsequent call to LLVMDisposeValueRefArray(). */
+unsigned LLVMValueGetUses(LLVMValueRef value, LLVMValueRef **refs);
+
+/* See above. */
+void LLVMDisposeValueRefArray(LLVMValueRef *refs);
+
 /* Wraps llvm:User::getNumOperands(). */
 unsigned LLVMUserGetNumOperands(LLVMValueRef user);
 

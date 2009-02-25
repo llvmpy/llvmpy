@@ -852,6 +852,14 @@ class Value(llvm.Cacheable):
         kind = _core.LLVMGetTypeKind(ptr)
         return _make_type(ptr, kind)
 
+    @property
+    def use_count(self):
+        return _core.LLVMValueGetNumUses(self.ptr)
+
+    @property
+    def uses(self):
+        return [ _make_value(v) for v in _core.LLVMValueGetUses(self.ptr) ]
+
 
 class User(Value):
 

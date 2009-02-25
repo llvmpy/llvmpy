@@ -98,19 +98,22 @@ void **make_array_from_list(PyObject *list, int n)
     return arr;
 }
 
-PyObject *make_list_from_LLVMTypeRef_array(LLVMTypeRef *p, unsigned n)
-{
-    size_t i;
-    PyObject *list = PyList_New(n);
-
-    if (!list)
-        return NULL;
-
-    for (i=0; i<n; i++) {
-        PyObject *elem = ctor_LLVMTypeRef(p[i]);
-        PyList_SetItem(list, i, elem);
-    }
-
-    return list;
+#define LIST_FROM_ARRAY_IMPL(TYPE)                                  \
+PyObject *make_list_from_ ## TYPE ## _array( TYPE *p, unsigned n)   \
+{                                                                   \
+    size_t i;                                                       \
+    PyObject *list = PyList_New(n);                                 \
+                                                                    \
+    if (!list)                                                      \
+        return NULL;                                                \
+                                                                    \
+    for (i=0; i<n; i++) {                                           \
+        PyObject *elem = ctor_ ## TYPE (p[i]);                      \
+        PyList_SetItem(list, i, elem);                              \
+    }                                                               \
+                                                                    \
+    return list;                                                    \
 }
 
+LIST_FROM_ARRAY_IMPL(LLVMTypeRef)
+LIST_FROM_ARRAY_IMPL(LLVMValueRef)
