@@ -329,7 +329,6 @@ class Module(llvm.Ownable, llvm.Cacheable):
         Use the static method `Module.new' instead.
         """
         llvm.Ownable.__init__(self, ptr, _core.LLVMDisposeModule)
-        llvm.Cacheable.__init__(self, ptr)
 
     def __str__(self):
         """Text representation of a module.
@@ -392,7 +391,7 @@ class Module(llvm.Ownable, llvm.Cacheable):
         The `other' module is no longer valid after this method is
         invoked, all refs to it should be dropped.
 
-        In future, this API might be replaced with a full-fledged
+        In the future, this API might be replaced with a full-fledged
         Linker class.
         """
         check_is_module(other)
@@ -430,14 +429,7 @@ class Module(llvm.Ownable, llvm.Cacheable):
 
     @property
     def global_variables(self):
-        """All global variables in this module.
-
-        This property returns a generator that yields GlobalVariable
-        objects. Use it like this:
-          for gv in module_obj.global_variables:
-            # gv is an instance of GlobalVariable
-            # do stuff with gv
-        """
+        """All global variables in this module."""
         return _util.wrapiter(_core.LLVMGetFirstGlobal,
             _core.LLVMGetNextGlobal, self.ptr, _make_value)
 
@@ -456,14 +448,7 @@ class Module(llvm.Ownable, llvm.Cacheable):
 
     @property
     def functions(self):
-        """All functions in this module.
-
-        This property returns a generator that yields Function objects.
-        Use it like this:
-          for f in module_obj.functions:
-            # f is an instance of Function
-            # do stuff with f
-        """
+        """All functions in this module."""
         return _util.wrapiter(_core.LLVMGetFirstFunction,
             _core.LLVMGetNextFunction, self.ptr, _make_value)
 
@@ -819,7 +804,6 @@ class TypeHandle(object):
 class Value(llvm.Cacheable):
 
     def __init__(self, ptr):
-        llvm.Cacheable.__init__(self, ptr)
         self.ptr = ptr
 
     def __str__(self):
@@ -1155,8 +1139,10 @@ class GlobalValue(Constant):
         # Called in subclass delete() methods.
         self._module_obj = None
 
-    def _get_linkage(self): return _core.LLVMGetLinkage(self.ptr)
-    def _set_linkage(self, value): _core.LLVMSetLinkage(self.ptr, value)
+    def _get_linkage(self):
+        return _core.LLVMGetLinkage(self.ptr)
+    def _set_linkage(self, value):
+        _core.LLVMSetLinkage(self.ptr, value)
     linkage = property(_get_linkage, _set_linkage)
 
     def _get_section(self):
@@ -1210,7 +1196,7 @@ class GlobalVariable(GlobalValue):
 
     def _get_initializer(self):
         if _core.LLVMHasInitializer(self.ptr):
-            return Constant(_core.LLVMGetInitializer(self.ptr))
+            return _make_value(_core.LLVMGetInitializer(self.ptr))
         else:
             return None
 
@@ -1527,7 +1513,7 @@ class Builder(object):
         inst_ptr = _core.LLVMGetFirstInstruction(bblk.ptr)
         if inst_ptr:
             # Issue #10: inst_ptr can be None if b/b has no insts.
-            inst = Instruction(inst_ptr)
+            inst = _make_value(inst_ptr)
             self.position_before(inst)
 
     def position_at_end(self, bblk):
