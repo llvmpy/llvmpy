@@ -1,7 +1,7 @@
 
 0.6, in progress:
 
-  * More properties/methods for TargetData.
+  * More properties/methods for TargetData (Florian Noding) (Issue #16).
   * Value.uses API.
   * Fetch operands of instructions (Seth Warn).
   * Unaliased objects (with Seth Warn).
