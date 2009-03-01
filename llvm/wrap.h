@@ -48,6 +48,13 @@
 
 
 /*===----------------------------------------------------------------------===*/
+/* Typedefs                                                                   */
+/*===----------------------------------------------------------------------===*/
+
+typedef unsigned long long llvmwrap_ull;
+
+
+/*===----------------------------------------------------------------------===*/
 /* Type ctor/dtor                                                             */
 /*===----------------------------------------------------------------------===*/
 
@@ -75,7 +82,8 @@ _declare_std_ctor(LLVMTargetDataRef)
 _declare_std_ctor(LLVMGenericValueRef)
 
 /* standard types */
-PyObject *ctor_int(int i);
+_declare_std_ctor(int)
+_declare_std_ctor(llvmwrap_ull)
 
 
 /*===----------------------------------------------------------------------===*/
@@ -463,6 +471,50 @@ _w ## func (PyObject *self, PyObject *args)             \
     const char *arg3;                                   \
                                                         \
     if (!PyArg_ParseTuple(args, "OOs", &obj1, &obj2, &arg3))   \
+        return NULL;                                    \
+                                                        \
+    arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
+    arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
+                                                        \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3)) ;\
+}
+
+/**
+ * Wrap LLVM functions of the type 
+ * outtype func(intype1 arg1, intype2 arg2, int arg3)
+ */
+#define _wrap_objobjint2obj(func, intype1, intype2, outtype)    \
+static PyObject *                                       \
+_w ## func (PyObject *self, PyObject *args)             \
+{                                                       \
+    PyObject *obj1, *obj2;                              \
+    intype1 arg1;                                       \
+    intype2 arg2;                                       \
+    int arg3;                                           \
+                                                        \
+    if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3))   \
+        return NULL;                                    \
+                                                        \
+    arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
+    arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
+                                                        \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3)) ;\
+}
+
+/**
+ * Wrap LLVM functions of the type 
+ * outtype func(intype1 arg1, intype2 arg2, unsigned long long arg3)
+ */
+#define _wrap_objobjull2obj(func, intype1, intype2, outtype)    \
+static PyObject *                                       \
+_w ## func (PyObject *self, PyObject *args)             \
+{                                                       \
+    PyObject *obj1, *obj2;                              \
+    intype1 arg1;                                       \
+    intype2 arg2;                                       \
+    unsigned long long arg3;                            \
+                                                        \
+    if (!PyArg_ParseTuple(args, "OOK", &obj1, &obj2, &arg3))   \
         return NULL;                                    \
                                                         \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \

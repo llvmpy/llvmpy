@@ -239,12 +239,13 @@ from llvm._intrinsic_ids import *
 # Helpers (for internal use)
 #===----------------------------------------------------------------------===
 
-def check_is_type(obj):     _util.check_gen(obj, Type)
-def check_is_value(obj):    _util.check_gen(obj, Value)
-def check_is_constant(obj): _util.check_gen(obj, Constant)
-def check_is_function(obj): _util.check_gen(obj, Function)
-def check_is_basic_block(obj): _util.check_gen(obj, BasicBlock)
-def check_is_module(obj):   _util.check_gen(obj, Module)
+def check_is_type(obj):         _util.check_gen(obj, Type)
+def check_is_type_struct(obj):  _util.check_gen(obj, StructType)
+def check_is_value(obj):        _util.check_gen(obj, Value)
+def check_is_constant(obj):     _util.check_gen(obj, Constant)
+def check_is_function(obj):     _util.check_gen(obj, Function)
+def check_is_basic_block(obj):  _util.check_gen(obj, BasicBlock)
+def check_is_module(obj):       _util.check_gen(obj, Module)
 def check_is_module_provider(obj): _util.check_gen(obj, ModuleProvider)
 
 def unpack_types(objlst):     return _util.unpack_gen(objlst, check_is_type)

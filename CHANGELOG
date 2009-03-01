@@ -1,6 +1,8 @@
 
 0.6, in progress:
 
+  * More properties/methods for TargetData.
+  * Value.uses API.
   * Fetch operands of instructions (Seth Warn).
   * Unaliased objects (with Seth Warn).
   * Value factory, more Constant subclasses.

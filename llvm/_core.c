@@ -860,6 +860,26 @@ _wLLVMTargetDataAsString(PyObject *self, PyObject *args)
 }
 
 _wrap_objobj2none(LLVMAddTargetData, LLVMTargetDataRef, LLVMPassManagerRef)
+_wrap_obj2obj(LLVMByteOrder, LLVMTargetDataRef, int)
+_wrap_obj2obj(LLVMPointerSize, LLVMTargetDataRef, int)
+_wrap_obj2obj(LLVMIntPtrType, LLVMTargetDataRef, LLVMTypeRef)
+_wrap_objobj2obj(LLVMSizeOfTypeInBits, LLVMTargetDataRef, LLVMTypeRef,
+        llvmwrap_ull)
+_wrap_objobj2obj(LLVMStoreSizeOfType, LLVMTargetDataRef, LLVMTypeRef,
+        llvmwrap_ull)
+_wrap_objobj2obj(LLVMABISizeOfType, LLVMTargetDataRef, LLVMTypeRef,
+        llvmwrap_ull)
+_wrap_objobj2obj(LLVMABIAlignmentOfType, LLVMTargetDataRef, LLVMTypeRef,
+        int)
+_wrap_objobj2obj(LLVMCallFrameAlignmentOfType, LLVMTargetDataRef, LLVMTypeRef,
+        int)
+_wrap_objobj2obj(LLVMPreferredAlignmentOfType, LLVMTargetDataRef, LLVMTypeRef,
+        int)
+_wrap_objobj2obj(LLVMPreferredAlignmentOfGlobal, LLVMTargetDataRef, 
+        LLVMValueRef, int)
+_wrap_objobjull2obj(LLVMElementAtOffset, LLVMTargetDataRef, LLVMTypeRef, int)
+_wrap_objobjint2obj(LLVMOffsetOfElement, LLVMTargetDataRef, LLVMTypeRef, 
+        llvmwrap_ull)
 
 
 /*===----------------------------------------------------------------------===*/
@@ -1466,6 +1486,18 @@ static PyMethodDef core_methods[] = {
     _method( LLVMDisposeTargetData )
     _method( LLVMTargetDataAsString )
     _method( LLVMAddTargetData )
+    _method( LLVMByteOrder )
+    _method( LLVMPointerSize )
+    _method( LLVMIntPtrType )
+    _method( LLVMSizeOfTypeInBits )
+    _method( LLVMStoreSizeOfType )
+    _method( LLVMABISizeOfType )
+    _method( LLVMABIAlignmentOfType )
+    _method( LLVMCallFrameAlignmentOfType )
+    _method( LLVMPreferredAlignmentOfType )
+    _method( LLVMPreferredAlignmentOfGlobal )
+    _method( LLVMElementAtOffset )
+    _method( LLVMOffsetOfElement )
 
     /* Execution Engine */
     _method( LLVMCreateExecutionEngine )

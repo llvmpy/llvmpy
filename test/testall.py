@@ -510,7 +510,23 @@ def do_llvm_core():
 def do_targetdata():
     print "    Testing class TargetData"
     t = TargetData.new('')
-    t = str(t)
+    v = str(t)
+    v = t.byte_order
+    v = t.pointer_size
+    v = t.target_integer_type
+    ty = Type.int()
+    v = t.size(ty)
+    v = t.store_size(ty)
+    v = t.abi_size(ty)
+    v = t.abi_alignment(ty)
+    v = t.callframe_alignment(ty)
+    v = t.preferred_alignment(ty)
+    sty = Type.struct([ty, ty])
+    v = t.element_at_offset(sty, 0)
+    v = t.offset_of_element(sty, 0)
+    m = Module.new('a')
+    gv = m.add_global_variable(ty, 'gv')
+    v = t.preferred_alignment(gv)
 
 
 def do_genericvalue():

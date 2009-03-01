@@ -39,6 +39,14 @@ import llvm._util as _util  # utility functions
 
 
 #===----------------------------------------------------------------------===
+# Enumerations
+#===----------------------------------------------------------------------===
+
+BO_BIG_ENDIAN       = 0
+BO_LITTLE_ENDIAN    = 1
+
+
+#===----------------------------------------------------------------------===
 # Target data
 #===----------------------------------------------------------------------===
 
@@ -53,6 +61,60 @@ class TargetData(llvm.Ownable):
 
     def __str__(self):
         return _core.LLVMTargetDataAsString(self.ptr)
+
+    @property
+    def byte_order(self):
+        return _core.LLVMByteOrder(self.ptr)
+
+    @property
+    def pointer_size(self):
+        return _core.LLVMPointerSize(self.ptr)
+
+    @property
+    def target_integer_type(self):
+        ptr = _core.LLVMIntPtrType(self.ptr);
+        return core.IntegerType(ptr, core.TYPE_INTEGER)
+
+    def size(self, ty):
+        core.check_is_type(ty)
+        return _core.LLVMSizeOfTypeInBits(self.ptr, ty.ptr)
+
+    def store_size(self, ty):
+        core.check_is_type(ty)
+        return _core.LLVMStoreSizeOfType(self.ptr, ty.ptr)
+
+    def abi_size(self, ty):
+        core.check_is_type(ty)
+        return _core.LLVMABISizeOfType(self.ptr, ty.ptr)
+
+    def abi_alignment(self, ty):
+        core.check_is_type(ty)
+        return _core.LLVMABIAlignmentOfType(self.ptr, ty.ptr)
+
+    def callframe_alignment(self, ty):
+        core.check_is_type(ty)
+        return _core.LLVMCallFrameAlignmentOfType(self.ptr, ty.ptr)
+
+    def preferred_alignment(self, ty_or_gv):
+        if isinstance(ty_or_gv, core.Type):
+            return _core.LLVMPreferredAlignmentOfType(self.ptr,
+                    ty_or_gv.ptr)
+        elif isinstance(ty_or_gv, core.GlobalVariable):
+            return _core.LLVMPreferredAlignmentOfGlobal(self.ptr,
+                    ty_or_gv.ptr)
+        else:
+            raise core.LLVMException, \
+                "argument is neither a type nor a global variable"
+
+    def element_at_offset(self, ty, ofs):
+        core.check_is_type_struct(ty)
+        ofs = long(ofs) # ofs is unsigned long long
+        return _core.LLVMElementAtOffset(self.ptr, ty.ptr, ofs)
+
+    def offset_of_element(self, ty, el):
+        core.check_is_type_struct(ty)
+        el = int(el) # el should be an int
+        return _core.LLVMOffsetOfElement(self.ptr, ty.ptr, el)
 
 
 #===----------------------------------------------------------------------===
