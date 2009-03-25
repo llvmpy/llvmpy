@@ -240,6 +240,13 @@ unsigned LLVMInstGetOpcode(LLVMValueRef inst)
     return instp->getOpcode();
 }
 
+unsigned LLVMCmpInstGetPredicate(LLVMValueRef cmpinst)
+{
+    llvm::CmpInst *instp = llvm::unwrap<llvm::CmpInst>(cmpinst);
+    assert(instp);
+    return instp->getPredicate();
+}
+
 /* llvm::unwrap a set of `n' wrapped objects starting at `values',
  * into a vector of pointers to llvm::unwrapped objects `out'. */
 template <typename W, typename UW>

@@ -1420,6 +1420,13 @@ class SwitchInstruction(Instruction):
         _core.LLVMAddCase(self.ptr, const.ptr, bblk.ptr)
 
 
+class CompareInstruction(Instruction):
+
+    @property
+    def predicate(self):
+        return _core.LLVMCmpInstGetPredicate(self.ptr)
+
+
 #===----------------------------------------------------------------------===
 # Basic block
 #===----------------------------------------------------------------------===
@@ -1469,6 +1476,8 @@ __class_for_valueid = {
     VALUE_INSTRUCTION + OPCODE_CALL       : CallOrInvokeInstruction,
     VALUE_INSTRUCTION + OPCODE_INVOKE     : CallOrInvokeInstruction,
     VALUE_INSTRUCTION + OPCODE_SWITCH     : SwitchInstruction,
+    VALUE_INSTRUCTION + OPCODE_ICMP       : CompareInstruction,
+    VALUE_INSTRUCTION + OPCODE_FCMP       : CompareInstruction
 }
 
 def _make_value(ptr):

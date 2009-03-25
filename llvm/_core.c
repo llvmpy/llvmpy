@@ -579,6 +579,10 @@ _wrap_obj2obj(LLVMCountIncoming,       LLVMValueRef, int)
 _wrap_objint2obj(LLVMGetIncomingValue, LLVMValueRef, LLVMValueRef)
 _wrap_objint2obj(LLVMGetIncomingBlock, LLVMValueRef, LLVMBasicBlockRef)
 
+/*===-- Compare Instructions ---------------------------------------------===*/
+
+_wrap_obj2obj(LLVMCmpInstGetPredicate, LLVMValueRef, int)
+
 /*===-- Instruction builders ----------------------------------------------===*/
 
 _wrap_none2obj(LLVMCreateBuilder, LLVMBuilderRef)
@@ -1372,6 +1376,9 @@ static PyMethodDef core_methods[] = {
     _method( LLVMCountIncoming )    
     _method( LLVMGetIncomingValue )    
     _method( LLVMGetIncomingBlock )    
+
+    /* Comparison Instructions */
+    _method( LLVMCmpInstGetPredicate )
 
     /* Instruction builders */
     _method( LLVMCreateBuilder )    
