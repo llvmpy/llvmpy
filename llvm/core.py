@@ -1946,3 +1946,7 @@ def load_library_permanently(filename):
     if isinstance(ret, str):
         raise llvm.LLVMException, ret
 
+def inline_function(call):
+    check_is_value(call)
+    return _core.LLVMInlineFunction(call.ptr)
+

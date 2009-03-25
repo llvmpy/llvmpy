@@ -1,6 +1,8 @@
 
 0.6, in progress:
 
+  * Inline function (Corrado Zoccolo).
+  * Get pointer to function (Corrado Zoccolo).
   * More properties/methods for TargetData (Florian Noding) (Issue #16).
   * Value.uses API.
   * Fetch operands of instructions (Seth Warn).

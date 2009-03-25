@@ -165,6 +165,15 @@ unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, unsigned *len);
  * use, via LLVMDisposeMessage(). */
 unsigned LLVMLoadLibraryPermanently(const char* filename, char **errmsg);
 
+/* Wraps llvm::ExecutionEngine::getPointerToFunction(). Returns a pointer 
+ * to the JITted function. */
+void *LLVMGetPointerToFunction(LLVMExecutionEngineRef ee, LLVMValueRef fn);
+
+/* Wraps llvm::InlineFunction(). Inlines a function. C is the call 
+ * instruction, created by LLVMBuildCall. Even if it fails, the Function 
+ * containing the call is still in a proper state (not changed). */
+int LLVMInlineFunction(LLVMValueRef call);
+
 /* Passes. A few passes (listed below) are used directly from LLVM-C,
  * rest are declared here.
  *

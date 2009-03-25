@@ -917,6 +917,23 @@ _wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
     return ret;
 }
 
+static PyObject *
+_wLLVMGetPointerToFunction(PyObject *self, PyObject *args)
+{
+    PyObject *obj_ee;
+    PyObject *obj_fn;
+    LLVMExecutionEngineRef ee;
+    LLVMValueRef fn;
+
+    if (!PyArg_ParseTuple(args, "OO", &obj_ee, &obj_fn))
+        return NULL;
+
+    ee = (LLVMExecutionEngineRef) PyCObject_AsVoidPtr(obj_ee);
+    fn = (LLVMValueRef) PyCObject_AsVoidPtr(obj_fn);
+
+    return PyLong_FromVoidPtr(LLVMGetPointerToFunction(ee,fn));
+}
+
 /* the args should have been ptr, num */
 LLVMGenericValueRef LLVMRunFunction2(LLVMExecutionEngineRef EE,
     LLVMValueRef F, LLVMGenericValueRef *Args, unsigned NumArgs)
@@ -977,6 +994,26 @@ _wLLVMCreateGenericValueOfFloat(PyObject *self, PyObject *args)
 }
 
 static PyObject *
+_wLLVMCreateGenericValueOfPointer(PyObject *self, PyObject *args)
+{
+    PyObject *obj1;
+    LLVMTypeRef ty;
+    unsigned long long n_;
+    size_t n;
+    LLVMGenericValueRef gv;
+
+    if (!PyArg_ParseTuple(args, "OL", &obj1, &n_))
+        return NULL;
+
+    n=n_;
+
+    ty = (LLVMTypeRef) PyCObject_AsVoidPtr(obj1);
+
+    gv = LLVMCreateGenericValueOfPointer((void*)n);
+    return ctor_LLVMGenericValueRef(gv);
+}
+
+static PyObject *
 _wLLVMGenericValueToInt(PyObject *self, PyObject *args)
 {
     PyObject *obj1;
@@ -1013,6 +1050,22 @@ _wLLVMGenericValueToFloat(PyObject *self, PyObject *args)
     return PyFloat_FromDouble(val);
 }
 
+static PyObject *
+_wLLVMGenericValueToPointer(PyObject *self, PyObject *args)
+{
+    PyObject *obj1;
+    LLVMGenericValueRef gv;
+    void * val;
+
+    if (!PyArg_ParseTuple(args, "O", &obj1))
+        return NULL;
+
+    gv = (LLVMGenericValueRef) PyCObject_AsVoidPtr(obj1);
+
+    val = LLVMGenericValueToPointer(gv);
+    return PyLong_FromVoidPtr(val);
+}
+
 _wrap_obj2none(LLVMDisposeGenericValue, LLVMGenericValueRef)
 
 
@@ -1045,6 +1098,8 @@ _wLLVMLoadLibraryPermanently(PyObject *self, PyObject *args)
     /* note: success => None, failure => string with error message */
     Py_RETURN_NONE;
 }
+
+_wrap_obj2obj(LLVMInlineFunction, LLVMValueRef, int)
 
 /* Expose the void* inside a PyCObject as a PyLong. This allows us to
  * use it as a unique ID. */
@@ -1503,6 +1558,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMCreateExecutionEngine )
     _method( LLVMDisposeExecutionEngine )
     _method( LLVMRunFunction2 )
+    _method( LLVMGetPointerToFunction )
     _method( LLVMGetExecutionEngineTargetData )
     _method( LLVMRunStaticConstructors )
     _method( LLVMRunStaticDestructors )
@@ -1512,13 +1568,16 @@ static PyMethodDef core_methods[] = {
     /* Generic Value */
     _method( LLVMCreateGenericValueOfInt )
     _method( LLVMCreateGenericValueOfFloat )
+    _method( LLVMCreateGenericValueOfPointer )
     _method( LLVMGenericValueToInt )
     _method( LLVMGenericValueToFloat )
+    _method( LLVMGenericValueToPointer )
     _method( LLVMDisposeGenericValue )
 
     /* Misc */
     _method( LLVMGetIntrinsic )
     _method( LLVMLoadLibraryPermanently )
+    _method( LLVMInlineFunction )
     _method( PyCObjectVoidPtrToPyLong )
 
     { NULL }

@@ -56,15 +56,18 @@
 #include "llvm/Assembly/Parser.h"
 #include "llvm/System/DynamicLibrary.h"
 #include "llvm/PassManager.h"
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/Analysis/LoopPass.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
 #include "llvm/Transforms/Instrumentation.h"
+#include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Linker.h"
 
 // LLVM-C includes
 #include "llvm-c/Core.h"
+#include "llvm-c/ExecutionEngine.h"
 
 // our includes
 #include "extra.h"
@@ -461,6 +464,27 @@ unsigned LLVMLoadLibraryPermanently(const char* filename, char **errmsg)
     }
 
     return 1;
+}
+
+void *LLVMGetPointerToFunction(LLVMExecutionEngineRef ee, LLVMValueRef fn)
+{
+    llvm::ExecutionEngine *eep = llvm::unwrap(ee);
+    assert(eep);
+
+    llvm::Function *fnp = llvm::unwrap<llvm::Function>(fn);
+    assert(fnp);
+
+    return eep->getPointerToFunction(fnp);
+}
+
+int LLVMInlineFunction(LLVMValueRef call)
+{
+    llvm::Value *callp = llvm::unwrap(call);
+    assert(callp);
+
+    llvm::CallSite cs = llvm::CallSite::get(callp);
+
+    return llvm::InlineFunction(cs);
 }
 
 

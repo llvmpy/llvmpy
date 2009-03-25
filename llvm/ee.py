@@ -141,6 +141,12 @@ class GenericValue(object):
         ptr = _core.LLVMCreateGenericValueOfFloat(ty.ptr, floatval)
         return GenericValue(ptr)
 
+    @staticmethod
+    def pointer(ty, intval):
+        core.check_is_type(ty)
+        ptr = _core.LLVMCreateGenericValueOfPointer(ty.ptr, intval)
+        return GenericValue(ptr)
+                                    
     def __init__(self, ptr):
         self.ptr = ptr
 
@@ -156,6 +162,9 @@ class GenericValue(object):
     def as_real(self, ty):
         core.check_is_type(ty)   # only float or double
         return _core.LLVMGenericValueToFloat(ty.ptr, self.ptr)
+
+    def as_pointer(self):
+        return _core.LLVMGenericValueToPointer(self.ptr)
 
 
 # helper functions for generic value objects
@@ -191,6 +200,10 @@ class ExecutionEngine(object):
         ptrs = _unpack_generic_values(args)
         gvptr = _core.LLVMRunFunction2(self.ptr, fn.ptr, ptrs)
         return GenericValue(gvptr)
+
+    def get_pointer_to_function(self, fn):
+        core.check_is_function(fn)
+        return _core.LLVMGetPointerToFunction(self.ptr,fn.ptr)
 
     def run_static_ctors(self):
         _core.LLVMRunStaticConstructors(self.ptr)
