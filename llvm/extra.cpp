@@ -365,6 +365,22 @@ LLVMValueRef LLVMUserGetOperand(LLVMValueRef user, unsigned idx)
     return llvm::wrap(operand);
 }
 
+unsigned LLVMGetDoesNotThrow(LLVMValueRef fn)
+{
+    llvm::Function *fnp = llvm::unwrap<llvm::Function>(fn);
+    assert(fnp);
+
+    return fnp->doesNotThrow();
+}
+
+void LLVMSetDoesNotThrow(LLVMValueRef fn, int DoesNotThrow)
+{
+    llvm::Function *fnp = llvm::unwrap<llvm::Function>(fn);
+    assert(fnp);
+
+    return fnp->setDoesNotThrow((bool)DoesNotThrow);
+}
+
 LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef module, int id,
     LLVMTypeRef *types, unsigned n_types)
 {

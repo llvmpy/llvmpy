@@ -1286,6 +1286,11 @@ class Function(GlobalValue):
     def _set_coll(self, value): _core.LLVMSetGC(self.ptr, value)
     collector = property(_get_coll, _set_coll)
 
+    # the nounwind attribute:
+    def _get_does_not_throw(self): return _core.LLVMGetDoesNotThrow(self.ptr)
+    def _set_does_not_throw(self,value):  _core.LLVMSetDoesNotThrow(self.ptr, value)
+    does_not_throw = property(_get_does_not_throw, _set_does_not_throw)
+
     @property
     def args(self):
         return _util.wrapiter(_core.LLVMGetFirstParam,
@@ -1323,7 +1328,6 @@ class Function(GlobalValue):
         # Although we're just asking LLVM to return the success or
         # failure, it appears to print result to stderr and abort.
         return _core.LLVMVerifyFunction(self.ptr) != 0
-
 
 #===----------------------------------------------------------------------===
 # Instruction

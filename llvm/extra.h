@@ -107,6 +107,12 @@ LLVMValueRef LLVMBuildVFCmp(LLVMBuilderRef builder, LLVMRealPredicate predicate,
 LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef builder, int id,
     LLVMTypeRef *types, unsigned n_types);
 
+/* Wraps llvm::Function::doesNotThrow(). */
+unsigned LLVMGetDoesNotThrow(LLVMValueRef fn);
+
+/* Wraps llvm::Function::setDoesNotThrow(). */
+void LLVMSetDoesNotThrow(LLVMValueRef fn, int DoesNotThrow);
+
 /* Wraps llvm::Module::getPointerSize(). */
 unsigned LLVMModuleGetPointerSize(LLVMModuleRef module);
 

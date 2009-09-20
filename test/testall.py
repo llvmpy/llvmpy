@@ -282,6 +282,8 @@ def do_function():
     f.delete()
     ft = Type.function(ti, [ti]*20)
     f = Function.new(m, ft, 'func2')
+    has_nounwind = f.does_not_throw
+    f.does_not_throw = True
     f2 = Function.intrinsic(m, INTR_COS, [ti])
     g = f.intrinsic_id
     f.calling_convenion = CC_FASTCALL
