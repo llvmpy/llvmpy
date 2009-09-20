@@ -1404,6 +1404,10 @@ class CallOrInvokeInstruction(Instruction):
     def set_parameter_alignment(self, idx, align):
         _core.LLVMSetInstrParamAlignment(self.ptr, idx, align)
 
+    def _get_tc(self): return _core.LLVMIsTailCall(self.ptr)
+    def _set_tc(self, value): _core.LLVMSetTailCall(self.ptr, value)
+    tail_call = property(_get_tc, _set_tc)
+
 
 class PHINode(Instruction):
 
