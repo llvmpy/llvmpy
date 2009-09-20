@@ -46,8 +46,7 @@ def get_libs_and_objs(llvm_config, components):
     for part in parts:
         if part.startswith('-l'):
             libs.append(part[2:])
-        else:
-            assert part.endswith('.o')
+        elif part.endswith('.o'):
 #            objs.append(part[:-2])
             objs.append(part) # eh, looks like we need the .o after all
     return (libs, objs)
