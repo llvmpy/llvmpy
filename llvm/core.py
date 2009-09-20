@@ -218,7 +218,7 @@ VISIBILITY_DEFAULT  = 0
 VISIBILITY_HIDDEN   = 1
 VISIBILITY_PROTECTED = 2
 
-# parameter attributes
+# parameter attributes (see llvm/Attributes.h)
 ATTR_ZEXT           = 1
 ATTR_SEXT           = 2
 ATTR_NO_RETURN      = 4
@@ -230,6 +230,13 @@ ATTR_BY_VAL         = 128
 ATTR_NEST           = 256
 ATTR_READ_NONE      = 512
 ATTR_READONLY       = 1024
+ATTR_NO_INLINE      = 1<<11
+ATTR_ALWAYS_INLINE  = 1<<12
+ATTR_OPTIMIZE_FOR_SIZE = 1<<13
+ATTR_STACK_PROTECT  = 1<<14
+ATTR_STACK_PROTECT_REQ = 1<<15
+ATTR_ALIGNMENT      = 31<<16
+ATTR_NO_CAPTURE     = 1<<21
 
 # intrinsic IDs
 from llvm._intrinsic_ids import *
