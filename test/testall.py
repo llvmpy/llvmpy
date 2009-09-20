@@ -329,6 +329,8 @@ def do_callorinvokeinstruction():
     i.add_parameter_attribute(0, ATTR_SEXT)
     i.remove_parameter_attribute(0, ATTR_SEXT)
     i.set_parameter_alignment(0, 8)
+    #tc = i.tail_call
+    #i.tail_call = 1
 
 
 def do_phinode():
