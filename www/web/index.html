@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.2.6" />
+<meta name="generator" content="AsciiDoc 8.5.0" />
 <meta name="description" content="Python bindings for LLVM" />
 <meta name="keywords" content="llvm python compiler backend bindings" />
 <link rel="stylesheet" href="style/xhtml11.css" type="text/css" />
@@ -33,69 +33,29 @@
 </div>
 <div id="preamble">
 <div class="sectionbody">
-<div class="para"><p>llvm-py provides <a href="http://www.python.org/">Python</a> bindings for
-<a href="http://llvm.org/">LLVM</a>. It's goal is to expose enough of LLVM APIs to
+<div class="paragraph"><p>llvm-py provides <a href="http://www.python.org/">Python</a> bindings for
+<a href="http://llvm.org/">LLVM</a>. It&#8217;s goal is to expose enough of LLVM APIs to
 implement a compiler backend or a VM in pure Python. llvm-py consists of
 Python and C modules that wrap over the native C++/C bindings of LLVM,
 and does not use / have dependencies on "glue utilities" like
 Boost.Python, swig etc.</p></div>
-<div class="para"><p>llvm-py is just hatching. It should be stable enough to start hacking
-away, though. Be sure to send in a patch if you miss any specific LLVM
-API.</p></div>
-<div class="para"><p><em>Availability</em>: llvm-py is available (as a source package) for LLVM 2.4
-and Python 2.5. It has been built and tested on Linux and FreeBSD
-(x86 and amd64).</p></div>
+<div class="paragraph"><p>llvm-py is available as a source package (only). It works / should work
+with GNU/Linux, *BSD and Mac OS X platforms, on both 32-bit and 64-bit
+architectures. Python 2.4 or better (but 3.x is untested) is required.
+The SVN HEAD usually works with the latest released LLVM. In case you
+discover that any of these claims are wrong, feel free to send across
+a patch.</p></div>
 </div>
 </div>
 <h2 id="_news">News</h2>
 <div class="sectionbody">
-<div class="vlist"><dl>
-<dt>
-22-Nov-2008
+<div class="dlist"><dl>
+<dt class="hdlist1">
+28-Oct-2009
 </dt>
 <dd>
 <p>
-    0.5 released. For LLVM 2.4.
-</p>
-</dd>
-<dt>
-21-Nov-2008
-</dt>
-<dd>
-<p>
-    0.4 released. Bug fixes, few additional APIs, code cleanup.
-</p>
-</dd>
-<dt>
-8-Sep-2008
-</dt>
-<dd>
-<p>
-    0.3 released. Passes, intrinsics, bitcode, assembly!
-</p>
-</dd>
-<dt>
-18-Jun-2008
-</dt>
-<dd>
-<p>
-    0.2.1 released. Builds cleanly with LLVM 2.3 and 2.3+svn.
-</p>
-</dd>
-<dt>
-15-Jun-2008
-</dt>
-<dd>
-<p>
-    0.2 released. Lots of cleanup, new website, more documentation.
-</p>
-</dd>
-<dt>
-20-May-2008
-</dt>
-<dd>
-<p>
-    0.1 released.
+    SVN r83 works with LLVM 2.6. Website updated.
 </p>
 </dd>
 </dl></div>
@@ -103,7 +63,7 @@ and Python 2.5. It has been built and tested on Linux and FreeBSD
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 2008-11-22.
+Last updated 2009-10-28.
 </div>
 </div>
 </div>

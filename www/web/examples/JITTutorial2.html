@@ -1,4 +1,4 @@
-<!-- Generator: GNU source-highlight 2.4
+<!-- Generator: GNU source-highlight 3.1
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -7,14 +7,14 @@ http://www.gnu.org/software/src-highlite -->
 <b><font color="#000080">from</font></b> llvm<font color="#990000">.</font>core <b><font color="#000080">import</font></b> <font color="#990000">*</font>
 
 <i><font color="#9A1900"># create a module</font></i>
-module <font color="#990000">=</font> <font color="#009900">Module</font><font color="#990000">.</font><b><font color="#000000">new </font></b><font color="#990000">(</font><font color="#FF0000">"tut2"</font><font color="#990000">)</font>
+module <font color="#990000">=</font> Module<font color="#990000">.</font><b><font color="#000000">new</font></b> <font color="#990000">(</font><font color="#FF0000">"tut2"</font><font color="#990000">)</font>
 
 <i><font color="#9A1900"># create a function type taking 2 integers, return a 32-bit integer</font></i>
-ty<font color="#009900">_</font>int    <font color="#990000">=</font> <font color="#009900">Type</font><font color="#990000">.</font><b><font color="#000000">int </font></b><font color="#990000">(</font><font color="#993399">32</font><font color="#990000">)</font>
-func<font color="#009900">_</font>type <font color="#990000">=</font> <font color="#009900">Type</font><font color="#990000">.</font><b><font color="#000000">function </font></b><font color="#990000">(</font>ty<font color="#009900">_</font>int<font color="#990000">,</font> <font color="#990000">(</font>ty<font color="#009900">_</font>int<font color="#990000">,</font> ty<font color="#009900">_</font>int<font color="#990000">))</font>
+ty_int    <font color="#990000">=</font> Type<font color="#990000">.</font><b><font color="#000000">int</font></b> <font color="#990000">(</font><font color="#993399">32</font><font color="#990000">)</font>
+func_type <font color="#990000">=</font> Type<font color="#990000">.</font><b><font color="#000000">function</font></b> <font color="#990000">(</font>ty_int<font color="#990000">,</font> <font color="#990000">(</font>ty_int<font color="#990000">,</font> ty_int<font color="#990000">))</font>
 
 <i><font color="#9A1900"># create a function of that type</font></i>
-gcd <font color="#990000">=</font> <font color="#009900">Function</font><font color="#990000">.</font><b><font color="#000000">new </font></b><font color="#990000">(</font>module<font color="#990000">,</font> func<font color="#009900">_</font>type<font color="#990000">,</font> <font color="#FF0000">"gcd"</font><font color="#990000">)</font>
+gcd <font color="#990000">=</font> Function<font color="#990000">.</font><b><font color="#000000">new</font></b> <font color="#990000">(</font>module<font color="#990000">,</font> func_type<font color="#990000">,</font> <font color="#FF0000">"gcd"</font><font color="#990000">)</font>
 
 <i><font color="#9A1900"># name function args</font></i>
 x <font color="#990000">=</font> gcd<font color="#990000">.</font>args<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">];</font> x<font color="#990000">.</font>name <font color="#990000">=</font> <font color="#FF0000">"x"</font>
@@ -23,33 +23,33 @@ y <font color="#990000">=</font> gcd<font color="#990000">.</font>args<font colo
 <i><font color="#9A1900"># implement the function</font></i>
 
 <i><font color="#9A1900"># blocks...</font></i>
-entry <font color="#990000">=</font> gcd<font color="#990000">.</font><b><font color="#000000">append_basic_block </font></b><font color="#990000">(</font><font color="#FF0000">"entry"</font><font color="#990000">)</font>
-ret   <font color="#990000">=</font> gcd<font color="#990000">.</font><b><font color="#000000">append_basic_block </font></b><font color="#990000">(</font><font color="#FF0000">"return"</font><font color="#990000">)</font>
-cond<font color="#009900">_</font>false   <font color="#990000">=</font> gcd<font color="#990000">.</font><b><font color="#000000">append_basic_block </font></b><font color="#990000">(</font><font color="#FF0000">"cond_false"</font><font color="#990000">)</font>
-cond<font color="#009900">_</font>true    <font color="#990000">=</font> gcd<font color="#990000">.</font><b><font color="#000000">append_basic_block </font></b><font color="#990000">(</font><font color="#FF0000">"cond_true"</font><font color="#990000">)</font>
-cond<font color="#009900">_</font>false<font color="#009900">_</font><font color="#993399">2</font> <font color="#990000">=</font> gcd<font color="#990000">.</font><b><font color="#000000">append_basic_block </font></b><font color="#990000">(</font><font color="#FF0000">"cond_false_2"</font><font color="#990000">)</font>
+entry <font color="#990000">=</font> gcd<font color="#990000">.</font><b><font color="#000000">append_basic_block</font></b> <font color="#990000">(</font><font color="#FF0000">"entry"</font><font color="#990000">)</font>
+ret   <font color="#990000">=</font> gcd<font color="#990000">.</font><b><font color="#000000">append_basic_block</font></b> <font color="#990000">(</font><font color="#FF0000">"return"</font><font color="#990000">)</font>
+cond_false   <font color="#990000">=</font> gcd<font color="#990000">.</font><b><font color="#000000">append_basic_block</font></b> <font color="#990000">(</font><font color="#FF0000">"cond_false"</font><font color="#990000">)</font>
+cond_true    <font color="#990000">=</font> gcd<font color="#990000">.</font><b><font color="#000000">append_basic_block</font></b> <font color="#990000">(</font><font color="#FF0000">"cond_true"</font><font color="#990000">)</font>
+cond_false_2 <font color="#990000">=</font> gcd<font color="#990000">.</font><b><font color="#000000">append_basic_block</font></b> <font color="#990000">(</font><font color="#FF0000">"cond_false_2"</font><font color="#990000">)</font>
 
 <i><font color="#9A1900"># create a llvm::IRBuilder</font></i>
-bldr <font color="#990000">=</font> <font color="#009900">Builder</font><font color="#990000">.</font><b><font color="#000000">new </font></b><font color="#990000">(</font>entry<font color="#990000">)</font>
-x<font color="#009900">_</font>eq<font color="#009900">_</font>y <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">icmp </font></b><font color="#990000">(</font><font color="#009900">IPRED_EQ</font><font color="#990000">,</font> x<font color="#990000">,</font> y<font color="#990000">,</font> <font color="#FF0000">"tmp"</font><font color="#990000">)</font>
-bldr<font color="#990000">.</font><b><font color="#000000">cbranch </font></b><font color="#990000">(</font>x<font color="#009900">_</font>eq<font color="#009900">_</font>y<font color="#990000">,</font> ret<font color="#990000">,</font> cond<font color="#009900">_</font>false<font color="#990000">)</font>
+bldr <font color="#990000">=</font> Builder<font color="#990000">.</font><b><font color="#000000">new</font></b> <font color="#990000">(</font>entry<font color="#990000">)</font>
+x_eq_y <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">icmp</font></b> <font color="#990000">(</font>IPRED_EQ<font color="#990000">,</font> x<font color="#990000">,</font> y<font color="#990000">,</font> <font color="#FF0000">"tmp"</font><font color="#990000">)</font>
+bldr<font color="#990000">.</font><b><font color="#000000">cbranch</font></b> <font color="#990000">(</font>x_eq_y<font color="#990000">,</font> ret<font color="#990000">,</font> cond_false<font color="#990000">)</font>
 
-bldr<font color="#990000">.</font><b><font color="#000000">position_at_end </font></b><font color="#990000">(</font>ret<font color="#990000">)</font>
+bldr<font color="#990000">.</font><b><font color="#000000">position_at_end</font></b> <font color="#990000">(</font>ret<font color="#990000">)</font>
 bldr<font color="#990000">.</font><b><font color="#000000">ret</font></b><font color="#990000">(</font>x<font color="#990000">)</font>
 
-bldr<font color="#990000">.</font><b><font color="#000000">position_at_end </font></b><font color="#990000">(</font>cond<font color="#009900">_</font>false<font color="#990000">)</font>
-x<font color="#009900">_</font>lt<font color="#009900">_</font>y <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">icmp </font></b><font color="#990000">(</font><font color="#009900">IPRED_ULT</font><font color="#990000">,</font> x<font color="#990000">,</font> y<font color="#990000">,</font> <font color="#FF0000">"tmp"</font><font color="#990000">)</font>
-bldr<font color="#990000">.</font><b><font color="#000000">cbranch </font></b><font color="#990000">(</font>x<font color="#009900">_</font>lt<font color="#009900">_</font>y<font color="#990000">,</font> cond<font color="#009900">_</font>true<font color="#990000">,</font> cond<font color="#009900">_</font>false<font color="#009900">_</font><font color="#993399">2</font><font color="#990000">)</font>
+bldr<font color="#990000">.</font><b><font color="#000000">position_at_end</font></b> <font color="#990000">(</font>cond_false<font color="#990000">)</font>
+x_lt_y <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">icmp</font></b> <font color="#990000">(</font>IPRED_ULT<font color="#990000">,</font> x<font color="#990000">,</font> y<font color="#990000">,</font> <font color="#FF0000">"tmp"</font><font color="#990000">)</font>
+bldr<font color="#990000">.</font><b><font color="#000000">cbranch</font></b> <font color="#990000">(</font>x_lt_y<font color="#990000">,</font> cond_true<font color="#990000">,</font> cond_false_2<font color="#990000">)</font>
 
-bldr<font color="#990000">.</font><b><font color="#000000">position_at_end </font></b><font color="#990000">(</font>cond<font color="#009900">_</font>true<font color="#990000">)</font>
-y<font color="#009900">_</font>sub<font color="#009900">_</font>x <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">sub </font></b><font color="#990000">(</font>y<font color="#990000">,</font> x<font color="#990000">,</font> <font color="#FF0000">"tmp"</font><font color="#990000">)</font>
-recur<font color="#009900">_</font><font color="#993399">1</font> <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">call </font></b><font color="#990000">(</font>gcd<font color="#990000">,</font> <font color="#990000">(</font>x<font color="#990000">,</font> y<font color="#009900">_</font>sub<font color="#009900">_</font>x<font color="#990000">,),</font> <font color="#FF0000">"tmp"</font><font color="#990000">)</font>
-bldr<font color="#990000">.</font><b><font color="#000000">ret </font></b><font color="#990000">(</font>recur<font color="#009900">_</font><font color="#993399">1</font><font color="#990000">)</font>
+bldr<font color="#990000">.</font><b><font color="#000000">position_at_end</font></b> <font color="#990000">(</font>cond_true<font color="#990000">)</font>
+y_sub_x <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">sub</font></b> <font color="#990000">(</font>y<font color="#990000">,</font> x<font color="#990000">,</font> <font color="#FF0000">"tmp"</font><font color="#990000">)</font>
+recur_1 <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">call</font></b> <font color="#990000">(</font>gcd<font color="#990000">,</font> <font color="#990000">(</font>x<font color="#990000">,</font> y_sub_x<font color="#990000">,),</font> <font color="#FF0000">"tmp"</font><font color="#990000">)</font>
+bldr<font color="#990000">.</font><b><font color="#000000">ret</font></b> <font color="#990000">(</font>recur_1<font color="#990000">)</font>
 
-bldr<font color="#990000">.</font><b><font color="#000000">position_at_end </font></b><font color="#990000">(</font>cond<font color="#009900">_</font>false<font color="#009900">_</font><font color="#993399">2</font><font color="#990000">)</font>
-x<font color="#009900">_</font>sub<font color="#009900">_</font>y <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">sub </font></b><font color="#990000">(</font>x<font color="#990000">,</font> y<font color="#990000">,</font> <font color="#FF0000">"x_sub_y"</font><font color="#990000">)</font>
-recur<font color="#009900">_</font><font color="#993399">2</font> <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">call </font></b><font color="#990000">(</font>gcd<font color="#990000">,</font> <font color="#990000">(</font>x<font color="#009900">_</font>sub<font color="#009900">_</font>y<font color="#990000">,</font> y<font color="#990000">,),</font> <font color="#FF0000">"tmp"</font><font color="#990000">)</font>
-bldr<font color="#990000">.</font><b><font color="#000000">ret </font></b><font color="#990000">(</font>recur<font color="#009900">_</font><font color="#993399">2</font><font color="#990000">)</font>
+bldr<font color="#990000">.</font><b><font color="#000000">position_at_end</font></b> <font color="#990000">(</font>cond_false_2<font color="#990000">)</font>
+x_sub_y <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">sub</font></b> <font color="#990000">(</font>x<font color="#990000">,</font> y<font color="#990000">,</font> <font color="#FF0000">"x_sub_y"</font><font color="#990000">)</font>
+recur_2 <font color="#990000">=</font> bldr<font color="#990000">.</font><b><font color="#000000">call</font></b> <font color="#990000">(</font>gcd<font color="#990000">,</font> <font color="#990000">(</font>x_sub_y<font color="#990000">,</font> y<font color="#990000">,),</font> <font color="#FF0000">"tmp"</font><font color="#990000">)</font>
+bldr<font color="#990000">.</font><b><font color="#000000">ret</font></b> <font color="#990000">(</font>recur_2<font color="#990000">)</font>
 
 <b><font color="#0000FF">print</font></b> module
 </tt></pre>

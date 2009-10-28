@@ -1,23 +1,14 @@
 Download
 ========
 
-The latest release is 0.5, released 22-Nov-2008 (link:#changelog[Changelog]
-below). 0.5 works only with LLVM 2.4, use 0.4 if you have LLVM 2.3.
+The latest release is 0.6, released 28-Oct-2009 (link:#changelog[Changelog]
+below). 0.6 works only with LLVM 2.6.
 
 Download it here:
+- http://llvm-py.googlecode.com/files/llvm-py-0.6.tar.bz2[llvm-py-0.6.tar.bz2] (primary)
+- link:llvm-py-0.6.tar.bz2[llvm-py-0.6.tar.bz2] (mirror)
 
-[frame="all",grid="all"]
-````~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Release,Date,Package,Mirror
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-0.5,22-Nov-2008,http://llvm-py.googlecode.com/files/llvm-py-0.5.tar.bz2[llvm-py-0.5.tar.bz2],link:llvm-py-0.5.tar.bz2[llvm-py-0.5.tar.bz2]
-0.4,21-Nov-2008,http://llvm-py.googlecode.com/files/llvm-py-0.4.tar.bz2[llvm-py-0.4.tar.bz2],link:llvm-py-0.4.tar.bz2[llvm-py-0.4.tar.bz2]
-0.3,8-Sep-2008,http://llvm-py.googlecode.com/files/llvm-py-0.3.tar.bz2[llvm-py-0.3.tar.bz2],link:llvm-py-0.3.tar.bz2[llvm-py-0.3.tar.bz2]
-0.2.1,18-Jun-2008,http://llvm-py.googlecode.com/files/llvm-py-0.2.1.tar.bz2[llvm-py-0.2.1.tar.bz2],link:llvm-py-0.2.1.tar.bz2[llvm-py-0.2.1.tar.bz2]
-0.2,15-Jun-2008,http://llvm-py.googlecode.com/files/llvm-py-0.2.tar.bz2[llvm-py-0.2.tar.bz2],link:llvm-py-0.2.tar.bz2[llvm-py-0.2.tar.bz2]
-0.1,20-May-2008,http://llvm-py.googlecode.com/files/llvm-py-0.1.tar.bz2[llvm-py-0.1.tar.bz2],link:llvm-py-0.1.tar.bz2[llvm-py-0.1.tar.bz2]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+Older versions are available http://llvm-py.googlecode.com/files/[here].
 
 The latest code can be checked out from SVN like so:
 

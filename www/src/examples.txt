@@ -14,7 +14,7 @@ ported to llvm-py. Below are the links to the original LLVM tutorial and
 the corresponding Python code using llvm-py:
 
 .Simple JIT Tutorials
-(These were contributed by Sebastien Binet; thanks!)
+(contributed by Sebastien Binet)
 
 1. A First Function
   http://www.llvm.org/docs/tutorial/JITTutorial1.html[LLVM]

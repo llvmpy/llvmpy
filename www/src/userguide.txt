@@ -19,6 +19,13 @@ Python bindings for LLVM provides a gentler learning curve for working
 with the LLVM APIs. It should also be easier to create working
 prototypes and experimental languages using this medium.
 
+Together with http://clang.llvm.org/[clang] or
+http://llvm.org/cmds/llvmgcc.html[llvm-gcc] it also a provides a means
+to quickly instrument C and C++ sources. For e.g., llvm-gcc can be used to
+generate the LLVM assembly for a given C source file, which can then be
+loaded and manipulated (adding profiling code to every function, say) using
+a llvm-py based Python script.
+
 .License
 Both LLVM and llvm-py are distributed under (different) permissive
 open source licenses. llvm-py uses the
@@ -26,16 +33,16 @@ http://opensource.org/licenses/bsd-license.php[new BSD license]. More
 information is available link:license.html[here].
 
 .Platforms
-Currently, llvm-py has been built and tested only on Linux (i386, amd64)
-and OpenBSD (i386, amd64). However, it should be trivial to build it on
-other unices. Windows is not supported, for a variety of reasons.
+llvm-py has been built/tested/reported to work on various GNU/Linux
+flavours, *BSD, Mac OS X; on i386 and amd64 architectures. Windows is not
+supported, for a variety of reasons. 
 
 .Versions
-llvm-py 0.5 requires verion 2.4 of LLVM. It will not work with previous
+llvm-py 0.6 requires verion 2.6 of LLVM. It will not work with previous
 versions.
 
-llvm-py has been built and tested with Python 2.5. It should work with
-Python 2.4, with minimal changes, if any.
+llvm-py has been built and tested with Python 2.6. It should work with
+Python 2.4 and 2.5. It has not been tried with Python 3.x (patches welcome).
 
 
 [[install]]
@@ -46,19 +53,18 @@ llvm-py is distributed as a source tarball. You'll need to build and
 install it before it can be used. At least the following will be
 required for this:
 
-- C and C\+\+ compilers (gcc/g\+\+)
+- C and C++ compilers (gcc/g++)
 - Python itself
 - Python development files (headers and libraries)
 - LLVM, either installed or built
 
 On debian-based systems, the first three can be installed with the
-command `sudo apt-get install gcc g\+\+ python python-dev`. Note that
-ubuntu repository has an old version of llvm (1.8) which will not work
-with llvm-py.
+command `sudo apt-get install gcc g++ python python-dev`. Ensure that your
+distro's respository has the appropriate version of LLVM!
 
-It does not matter which compiler LLVM itself was built with (g\+\+,
-llvm-g\+\+ or any other); llvm-py can be built with any compiler. It has
-been tried only with gcc/g\+\+ though.
+It does not matter which compiler LLVM itself was built with (g++,
+llvm-g++ or any other); llvm-py can be built with any compiler. It has
+been tried only with gcc/g++ though.
 
 
 LLVM and `--enable-pic`
@@ -73,7 +79,7 @@ independent code). Be sure to use the `--enable-pic` option while
 configuring LLVM (default is no PIC), like this:
 
 ----
-~/llvm-2.4$ ./configure --enable-pic --enable-optimized
+~/llvm$ ./configure --enable-pic --enable-optimized
 ----
 
 
@@ -104,8 +110,8 @@ If you have +llvm-config+ in your path, you can build and install
 llvm-py this way:
 
 -----------------------------------------------------------------------
-$ tar jxvf llvm-py-0.5.tar.bz2
-$ cd llvm-py-0.5
+$ tar jxvf llvm-py-0.6.tar.bz2
+$ cd llvm-py-0.6
 $ sudo python setup.py install
 -----------------------------------------------------------------------
 
@@ -113,8 +119,8 @@ If you need to tell the build script where +llvm-config+ is, do it this
 way:
 
 -----------------------------------------------------------------------
-$ tar jxvf llvm-py-0.5.tar.bz2
-$ cd llvm-py-0.5
+$ tar jxvf llvm-py-0.6.tar.bz2
+$ cd llvm-py-0.6
 $ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Release/bin/llvm-config
 -----------------------------------------------------------------------
 
@@ -122,8 +128,8 @@ To build a debug version of llvm-py, that links against the debug
 libraries of LLVM, use this:
 
 -----------------------------------------------------------------------
-$ tar jxvf llvm-py-0.5.tar.bz2
-$ cd llvm-py-0.5
+$ tar jxvf llvm-py-0.6.tar.bz2
+$ cd llvm-py-0.6
 $ python setup.py build -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
 $ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
 -----------------------------------------------------------------------
@@ -144,12 +150,12 @@ Uninstall
 To get rid of llvm-py completely, if you wish to do so:
 
 ----
-# rm -rf /usr/lib/python2.5/site-packages/llvm
-# rm -f /usr/lib/python2.5/site-packages/llvm_py-0.1.egg-info
+# rm -rf /usr/lib/python2.6/site-packages/llvm
+# rm -f /usr/lib/python2.6/site-packages/llvm_py-0.6-py2.6.egg-info
 ----
 
 - You need to be root to do this. 
-- Paths are for debian-based systems, in other distros it might be different.
+- Python site package path might be different on your system.
 - Note that there are version numbers (both Python's and llvm-py's)
   which you might need to change to suit your system.
 
@@ -263,43 +269,42 @@ source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The corresponding LLVM assembly:
 
 -----------------------------------------------------------------------
-; ModuleID = '/tmp/webcompile/_4940_0.bc'
+; ModuleID = '/tmp/webcompile/_22154_0.bc'
 target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32"
 target triple = "i386-pc-linux-gnu"
 
-define i32 @sum(i32 %n) nounwind  {
+define i32 @sum(i32 %n) nounwind readnone {
 entry:
-	%tmp215 = icmp eq i32 %n, 0		; <i1> [#uses=1]
-	br i1 %tmp215, label %bb10, label %tailrecurse.bb10_crit_edge
+    %0 = icmp eq i32 %n, 0      ; <i1> [#uses=1]
+    br i1 %0, label %bb2, label %bb1
 
-tailrecurse.bb10_crit_edge:		; preds = %entry
-	%tmp = add i32 %n, -1		; <i32> [#uses=3]
-	%tmp17 = mul i32 %tmp, %tmp		; <i32> [#uses=1]
-	%tmp18 = add i32 %tmp17, %n		; <i32> [#uses=1]
-	%tmp. = zext i32 %tmp to i64		; <i64> [#uses=2]
-	%tmp19 = add i64 %tmp., -1		; <i64> [#uses=1]
-	%tmp20 = mul i64 %tmp19, %tmp.		; <i64> [#uses=1]
-	%tmp21 = lshr i64 %tmp20, 1		; <i64> [#uses=1]
-	%tmp.22 = trunc i64 %tmp21 to i32		; <i32> [#uses=1]
-	%tmp24 = sub i32 %tmp18, %tmp.22		; <i32> [#uses=1]
-	ret i32 %tmp24
+bb1:        ; preds = %entry
+    %1 = add i32 %n, -1     ; <i32> [#uses=2]
+    %2 = icmp eq i32 %1, 0      ; <i1> [#uses=1]
+    br i1 %2, label %sum.exit, label %bb1.i
 
-bb10:		; preds = %entry
-	ret i32 0
+bb1.i:      ; preds = %bb1
+    %3 = add i32 %n, -2     ; <i32> [#uses=1]
+    %4 = tail call i32 @sum(i32 %3) nounwind        ; <i32> [#uses=1]
+    %5 = add i32 %4, %1     ; <i32> [#uses=1]
+    br label %sum.exit
+
+sum.exit:       ; preds = %bb1.i, %bb1
+    %6 = phi i32 [ %5, %bb1.i ], [ 0, %bb1 ]        ; <i32> [#uses=1]
+    %7 = add i32 %6, %n     ; <i32> [#uses=1]
+    ret i32 %7
+
+bb2:        ; preds = %entry
+    ret i32 0
 }
 -----------------------------------------------------------------------
 
-Note the usage of SSA form and the total absence of any loop or
-recursion at all! The long string called `target datalayout` is a
+Note the usage of SSA form. The long string called `target datalayout` is a
 specification of the platform ABI (like endianness, sizes of types,
 alignment etc.).
 
 The http://www.llvm.org/docs/LangRef.html[LLVM Language Reference]
 defines the LLVM assembly language including the entire instruction set.
-The table below lists all the LLVM instructions. Each instruction links
-to it's documentation.
-
-include::instrset.inc[]
 
 
 Modules
@@ -341,7 +346,7 @@ loaded and executed by +opt+. (Although llvm-py does not allow you to
 write your own passes, it does allow you to navigate the entire IR at
 any stage, and perform any transforms on it as you like.)
 
-[TODO: pass manager, execution engine, bit code]
+TODO: pass manager, execution engine, bit code
 
 
 The llvm-py Package
@@ -427,7 +432,7 @@ source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This avoids quite some typing. Both conventions work, however.
 
-TIP: Python-style documentation strings (`\_\_doc\_\_`) are present in
+TIP: Python-style documentation strings (`__doc__`) are present in
 llvm-py. You can use the +help()+ of the interactive Python
 interpreter or the +object?+ of http://ipython.scipy.org/moin/[IPython]
 to get online help. (Note: not complete yet!)
@@ -552,10 +557,10 @@ stringifying them (see below).
     object `fileobj`.
 
 .Special Methods
-`\_\_str\_\_`::
+`__str__`::
     `Module` objects can be stringified into it's LLVM assembly language
     representation.
-`\_\_eq\_\_`::
+`__eq__`::
     `Module` objects can be compared for equality. Internally, this
     converts both arguments into their LLVM assembly representations and
     compares the resultant strings.
@@ -589,10 +594,9 @@ The following table lists all the available types along with the static
 method which has to be used to construct it and the name of the class whose
 object is actually returned by the static method.
 
-[frame="all",grid="all"]
-`50`30`20~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[frame="all",grid="all",format="csv",cols="3",options="header"]
+|======================================================================
 Name,Constructor Method,Class
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 integer of bitwidth `n`, +Type.int(n)+, +IntegerType+
 32-bit float, +Type.float()+, +Type+
 64-bit double, +Type.double()+, +Type+
@@ -608,7 +612,7 @@ vector, "+Type.vector(elty, count)+", +VectorType+
 void, +Type.void()+, +Type+
 label, +Type.label()+, +Type+
 opaque, +Type.opaque()+, +Type+
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|======================================================================
 
 The class hierarchy is:
 -----------------------------------------------------------------------
@@ -666,7 +670,7 @@ The class-level documentation follows:
 
 .Properties
 `kind` [read-only]::
-    A value (enum) representing the ``type'' of the object. It will be
+    A value (enum) representing the "type" of the object. It will be
     one of the following constants defined in `llvm.core`:
 +
 [python]
@@ -678,13 +682,14 @@ TYPE_X86_FP80   = 3
 TYPE_FP128      = 4
 TYPE_PPC_FP128  = 5
 TYPE_LABEL      = 6
-TYPE_INTEGER    = 7
-TYPE_FUNCTION   = 8
-TYPE_STRUCT     = 9
-TYPE_ARRAY      = 10
-TYPE_POINTER    = 11
-TYPE_OPAQUE     = 12
-TYPE_VECTOR     = 13
+TYPE_METADATA   = 7
+TYPE_INTEGER    = 8
+TYPE_FUNCTION   = 9
+TYPE_STRUCT     = 10
+TYPE_ARRAY      = 11
+TYPE_POINTER    = 12
+TYPE_OPAQUE     = 13
+TYPE_VECTOR     = 14
 source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 +
 Example:
@@ -701,10 +706,10 @@ source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     of `TypeHandle` objects.
 
 .Special Methods
-`\_\_str\_\_`::
+`__str__`::
     `Type` objects can be stringified into it's LLVM assembly language
     representation.
-`\_\_eq\_\_`::
+`__eq__`::
     `Type` objects can be compared for equality. Internally, this
     converts both arguments into their LLVM assembly representations and
     compares the resultant strings.
@@ -899,7 +904,7 @@ Programmer's Manual section
 http://llvm.org/docs/ProgrammersManual.html#TypeResolve["LLVM Type
 Resolution"]. The TypeHandle class of llvm-py corresponds to
 http://www.llvm.org/doxygen/classllvm_1_1PATypeHolder.html[`llvm::PATypeHolder`]
-in C\+\+. The above example is available as
+in C++. The above example is available as
 http://code.google.com/p/llvm-py/source/browse/trunk/test/typehandle.py[test/typehandle.py]
 in the source distribution.
 
@@ -964,10 +969,10 @@ the `Builder` class. These are also covered separately.
     An `llvm.core.Type` object representing the type of the value.
 
 .Special Methods
-`\_\_str\_\_`::
+`__str__`::
     `Value` objects can be stringified into it's LLVM assembly language
     representation.
-`\_\_eq\_\_`::
+`__eq__`::
     `Value` objects can be compared for equality. Internally, this
     converts both arguments into their LLVM assembly representations and
     compares the resultant strings.
@@ -1003,13 +1008,12 @@ The following constructors (static methods) can be used to create
 constants:
 
 [[constctors]]
-[frame="all",grid="all"]
-`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[frame="all",grid="all",format="csv",cols="2",options="header"]
+|======================================================================
 Constructor Method, What It Creates
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 `null(ty)`, A null value (all zeros) of type `ty`
 `all_ones(ty)`, All 1's value of type `ty`
-`undef(ty)`, An ``undefined'' value of type `ty`
+`undef(ty)`, An "undefined" value of type `ty`
 "`int(ty, value)`", "Integer of type `ty`, with value `value` (a Python int or long)"
 "`int_signextend(ty, value)`", Integer of signed type `ty` (use for signed types)
 "`real(ty, value)`", "Floating point value of type `ty`, with value `value` (a Python float)"
@@ -1020,7 +1024,7 @@ Constructor Method, What It Creates
 "`packed_struct(ty, consts)`", "As `struct(ty, consts)` but packed"
 "`vector(consts)`", "Vector, initialized with `consts` (an iterable yielding `Constant` objects of the appropriate type)"
 "`sizeof(ty)`", "Constant value representing the sizeof the type `ty`"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|======================================================================
 
 The following operations on constants are supported. For more details on
 any operation, consult the
@@ -1028,10 +1032,9 @@ http://www.llvm.org/docs/LangRef.html#constantexprs[Constant Expressions]
 section of the LLVM Language Reference.
 
 [[constops]]
-[frame="all",grid="all"]
-`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[frame="all",grid="all",format="csv",cols="2",options="header"]
+|======================================================================
 Method, Operation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 `k.neg()`, "negation, same as `0 - k`"
 `k.not_()`, "1's complement of `k`. Note trailing underscore."
 `k.add(k2)`, "`k + k2`"
@@ -1068,16 +1071,15 @@ Method, Operation
 `k.extract_element(idx)`, "Extract value at `idx` (integer constant) from a vector constant `k`."
 "`k.insert_element(k2,idx)`", "Insert value `k2` (scalar constant) at index `idx` (integer constant) of vector constant `k`."
 "`k.shuffle_vector(k2,mask)`", "Shuffle vector constant `k` based on vector constants `k2` and `mask`."
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|======================================================================
 
 [[ipred]]
 Predicates for use with `icmp` instruction are listed below. All
 of these are integer constants defined in the `llvm.core` module.
 
-[frame="all",grid="all"]
-`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[frame="all",grid="all",format="csv",cols="2",options="header"]
+|======================================================================
 Value, Meaning
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 `IPRED_EQ`, Equality
 `IPRED_NE`, Inequality
 `IPRED_UGT`, Unsigned greater than
@@ -1088,16 +1090,15 @@ Value, Meaning
 `IPRED_SGE`, Signed greater than or equal
 `IPRED_SLT`, Signed less than
 `IPRED_SLE`, Signed less than or equal
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|======================================================================
 
 [[rpred]]
 Predicates for use with `fcmp` instruction are listed below. All
 of these are integer constants defined in the `llvm.core` module.
 
-[frame="all",grid="all"]
-`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[frame="all",grid="all",format="csv",cols="2",options="header"]
+|======================================================================
 Value, Meaning
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 `RPRED_FALSE`, Always false
 `RPRED_OEQ`, True if ordered and equal
 `RPRED_OGT`, True if ordered and greater than
@@ -1114,7 +1115,7 @@ Value, Meaning
 `RPRED_ULE`, "True if unordered, less than or equal"
 `RPRED_UNE`, True if unordered or not equal
 `RPRED_TRUE `, Always true
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|======================================================================
 
 .llvm.core.Constant
 [caption=""]
@@ -1144,34 +1145,38 @@ llvm.core) as values for `linkage` (see
 http://www.llvm.org/docs/LangRef.html#linkage[LLVM documentaion] for
 details on each):
 
-[frame="all",grid="all"]
-`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[frame="all",grid="all",format="csv",cols="2",options="header"]
+|======================================================================
 Value, Equivalent LLVM Assembly Keyword
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-`LINKAGE_LINKONCE`, `linkonce`
-`LINKAGE_WEAK`, `weak`
+`LINKAGE_EXTERNAL`, `externally_visible`
+`LINKAGE_AVAILABLE_EXTERNALLY`, `available_externally`
+`LINKAGE_LINKONCE_ANY`, `linkonce`
+`LINKAGE_LINKONCE_ODR`, `linkonce_odr`
+`LINKAGE_WEAK_ANY`, `weak`
+`LINKAGE_WEAK_ODR`, `weak_odr`
 `LINKAGE_APPENDING`, `appending`
 `LINKAGE_INTERNAL`, `internal`
+`LINKAGE_PRIVATE`, `private`
+`LINKAGE_LINKER_PRIVATE`, `linker_private`
 `LINKAGE_DLLIMPORT`, `dllimport`
 `LINKAGE_DLLEXPORT`, `dllexport`
-`LINKAGE_EXTERNAL`, `externally visible`
 `LINKAGE_EXTERNAL_WEAK`, `extern_weak`
+`LINKAGE_COMMON`, `common`
 `LINKAGE_GHOST`, Stand-in functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|======================================================================
 
 The `section` property can be assigned strings (like ".rodata"), which
 will be used if the target supports it. Visibility property can be set
 to one of thse constants (from llvm.core, see also
 http://www.llvm.org/docs/LangRef.html#visibility[LLVM docs]):
 
-[frame="all",grid="all"]
-`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[frame="all",grid="all",format="csv",cols="2",options="header"]
+|======================================================================
 Value, Equivalent LLVM Assembly Keyword
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 `VISIBILITY_DEFAULT`, `default`
 `VISIBILITY_HIDDEN`, `hidden`
 `VISIBILITY_PROTECTED`, `protected`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|======================================================================
 
 The `alignment` property can be 0 (default), or can be set to a power of
 2. The read-only property `is_declaration` can be used to check if the
@@ -1345,38 +1350,43 @@ http://www.llvm.org/docs/LangRef.html#int_bswap[llvm.bswap]. The
 integer argument. The list of intrinsic IDs defined as integer constants
 in `llvm.core`. These are:
 
-[frame="all",grid="all"]
-`33`33`33~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-INTR_ANNOTATION,INTR_ATOMIC_CMP_SWAP,INTR_ATOMIC_LOAD_ADD
-INTR_ATOMIC_LOAD_AND,INTR_ATOMIC_LOAD_MAX,INTR_ATOMIC_LOAD_MIN
-INTR_ATOMIC_LOAD_NAND,INTR_ATOMIC_LOAD_OR,INTR_ATOMIC_LOAD_SUB
-INTR_ATOMIC_LOAD_UMAX,INTR_ATOMIC_LOAD_UMIN,INTR_ATOMIC_LOAD_XOR
-INTR_ATOMIC_SWAP,INTR_BSWAP,INTR_COS
-INTR_CTLZ,INTR_CTPOP,INTR_CTTZ
-INTR_DBG_DECLARE,INTR_DBG_FUNC_START,INTR_DBG_REGION_END
-INTR_DBG_REGION_START,INTR_DBG_STOPPOINT,INTR_EH_DWARF_CFA
-INTR_EH_EXCEPTION,INTR_EH_RETURN_I32,INTR_EH_RETURN_I64
-INTR_EH_SELECTOR_I32,INTR_EH_SELECTOR_I64,INTR_EH_TYPEID_FOR_I32
-INTR_EH_TYPEID_FOR_I64,INTR_EH_UNWIND_INIT,INTR_EXP
-INTR_EXP2,INTR_FLT_ROUNDS,INTR_FRAMEADDRESS
-INTR_GCREAD,INTR_GCROOT,INTR_GCWRITE
-INTR_INIT_TRAMPOLINE,INTR_LOG,INTR_LOG10
-INTR_LOG2,INTR_LONGJMP,INTR_MEMCPY_I32
-INTR_MEMCPY_I64,INTR_MEMMOVE_I32,INTR_MEMMOVE_I64
-INTR_MEMORY_BARRIER,INTR_MEMSET_I32,INTR_MEMSET_I64
-INTR_PART_SELECT,INTR_PART_SET,INTR_PCMARKER
-INTR_POW,INTR_POWI,INTR_PREFETCH
-INTR_READCYCLECOUNTER,INTR_RETURNADDRESS,INTR_SETJMP
-INTR_SIGLONGJMP,INTR_SIGSETJMP,INTR_SIN
-INTR_SQRT,INTR_STACKRESTORE,INTR_STACKSAVE
-INTR_TRAP,INTR_VACOPY,INTR_VAEND
-INTR_VAR_ANNOTATION,INTR_VASTART,
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[format="csv",cols="3"]
+|======================================================================
+`INTR_ALPHA_UMULH`,`INTR_ANNOTATION`,`INTR_ATOMIC_CMP_SWAP`
+`INTR_ATOMIC_LOAD_ADD`,`INTR_ATOMIC_LOAD_AND`,`INTR_ATOMIC_LOAD_MAX`
+`INTR_ATOMIC_LOAD_MIN`,`INTR_ATOMIC_LOAD_NAND`,`INTR_ATOMIC_LOAD_OR`
+`INTR_ATOMIC_LOAD_SUB`,`INTR_ATOMIC_LOAD_UMAX`,`INTR_ATOMIC_LOAD_UMIN`
+`INTR_ATOMIC_LOAD_XOR`,`INTR_ATOMIC_SWAP`,`INTR_BSWAP`
+`INTR_CONVERTFF`,`INTR_CONVERTFSI`,`INTR_CONVERTFUI`
+`INTR_CONVERTSIF`,`INTR_CONVERTSS`,`INTR_CONVERTSU`
+`INTR_CONVERTUIF`,`INTR_CONVERTUS`,`INTR_CONVERTUU`
+`INTR_COS`,`INTR_CTLZ`,`INTR_CTPOP`
+`INTR_CTTZ`,`INTR_DBG_DECLARE`,`INTR_DBG_FUNC_START`
+`INTR_DBG_REGION_END`,`INTR_DBG_REGION_START`,`INTR_DBG_STOPPOINT`
+`INTR_EH_DWARF_CFA`,`INTR_EH_EXCEPTION`,`INTR_EH_RETURN_I32`
+`INTR_EH_RETURN_I64`,`INTR_EH_SELECTOR_I32`,`INTR_EH_SELECTOR_I64`
+`INTR_EH_SJLJ_LONGJMP`,`INTR_EH_SJLJ_LSDA`,`INTR_EH_SJLJ_SETJMP`
+`INTR_EH_TYPEID_FOR_I32`,`INTR_EH_TYPEID_FOR_I64`,`INTR_EH_UNWIND_INIT`
+`INTR_EXP`,`INTR_EXP2`,`INTR_FLT_ROUNDS`
+`INTR_FRAMEADDRESS`,`INTR_GCREAD`,`INTR_GCROOT`
+`INTR_GCWRITE`,`INTR_INIT_TRAMPOLINE`,`INTR_LOG`
+`INTR_LOG10`,`INTR_LOG2`,`INTR_LONGJMP`
+`INTR_MEMCPY`,`INTR_MEMMOVE`,`INTR_MEMORY_BARRIER`
+`INTR_MEMSET`,`INTR_PCMARKER`,`INTR_POW`
+`INTR_POWI`,`INTR_PREFETCH`,`INTR_PTR_ANNOTATION`
+`INTR_READCYCLECOUNTER`,`INTR_RETURNADDRESS`,`INTR_SADD_WITH_OVERFLOW`
+`INTR_SETJMP`,`INTR_SIGLONGJMP`,`INTR_SIGSETJMP`
+`INTR_SIN`,`INTR_SMUL_WITH_OVERFLOW`,`INTR_SQRT`
+`INTR_SSUB_WITH_OVERFLOW`,`INTR_STACKPROTECTOR`,`INTR_STACKRESTORE`
+`INTR_STACKSAVE`,`INTR_TRAP`,`INTR_UADD_WITH_OVERFLOW`
+`INTR_UMUL_WITH_OVERFLOW`,`INTR_USUB_WITH_OVERFLOW`,`INTR_VACOPY`
+`INTR_VAEND`,`INTR_VAR_ANNOTATION`,`INTR_VASTART`
+|======================================================================
 
 There are also target-specific intrinsics (which correspond to that
 target's CPU instructions) available, but are omitted here for brevity.
 Full list can be seen from
-http://code.google.com/p/llvm-py/source/browse/trunk/llvm/core.py[`core.py`].
+http://code.google.com/p/llvm-py/source/browse/trunk/llvm/_intrinsic_ids.py[`_intrinsic_ids.py`].
 See the http://www.llvm.org/docs/LangRef.html[LLVM Language Reference]
 for more information on the intrinsics, and the
 http://code.google.com/p/llvm-py/source/browse#svn/trunk/test[test]
@@ -1401,7 +1411,7 @@ Value, Equivalent LLVM Assembly Keyword
 
 See the http://www.llvm.org/docs/LangRef.html#callingconv[LLVM docs] for
 more information on each. Backend-specific numbered conventions can be
-directly set as numbers.
+directly passed as integers.
 
 An arbitrary string identifying which garbage collector to use can be
 set or got with the property `collector`.
@@ -1456,6 +1466,7 @@ should be dropped after `delete` has been called.
 Functions can be verified with the `verify` method. This does not work
 properly yet (aborts on errors), investigation pending.
 
+TODO function attributes
 
 Argument (llvm.core)
 ~~~~~~~~~~~~~~~~~~~~
@@ -1546,6 +1557,9 @@ It is distributed under the new BSD license, the full license text is in
 the file named
 http://code.google.com/p/llvm-py/source/browse/trunk/LICENSE[LICENSE]
 available in the source distribution.
+
+There is an llvm-py mailing list / users group:
+http://groups.google.com/group/llvm-py.
 
 The entire llvm-py website is generated from marked up text files
 using the tool http://www.methods.co.nz/asciidoc/[AsciiDoc]. These text

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.2.6" />
+<meta name="generator" content="AsciiDoc 8.5.0" />
 <meta name="description" content="Python bindings for LLVM" />
 <meta name="keywords" content="llvm python compiler backend bindings" />
 <link rel="stylesheet" href="style/xhtml11.css" type="text/css" />
@@ -33,127 +33,18 @@
 </div>
 <div id="preamble">
 <div class="sectionbody">
-<div class="para"><p>The latest release is 0.5, released 22-Nov-2008 (<a href="#changelog">Changelog</a>
-below). 0.5 works only with LLVM 2.4, use 0.4 if you have LLVM 2.3.</p></div>
-<div class="para"><p>Download it here:</p></div>
-<div class="tableblock">
-<table rules="all"
-frame="border"
-cellspacing="0" cellpadding="4">
-<col width="200" />
-<col width="200" />
-<col width="200" />
-<col width="200" />
-<thead>
-  <tr>
-    <th align="left">
-    Release
-    </th>
-    <th align="left">
-    Date
-    </th>
-    <th align="left">
-    Package
-    </th>
-    <th align="left">
-    Mirror
-    </th>
-  </tr>
-</thead>
-<tbody valign="top">
-  <tr>
-    <td align="left">
-    0.5
-    </td>
-    <td align="left">
-    22-Nov-2008
-    </td>
-    <td align="left">
-    <a href="http://llvm-py.googlecode.com/files/llvm-py-0.5.tar.bz2">llvm-py-0.5.tar.bz2</a>
-    </td>
-    <td align="left">
-    <a href="llvm-py-0.5.tar.bz2">llvm-py-0.5.tar.bz2</a>
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    0.4
-    </td>
-    <td align="left">
-    21-Nov-2008
-    </td>
-    <td align="left">
-    <a href="http://llvm-py.googlecode.com/files/llvm-py-0.4.tar.bz2">llvm-py-0.4.tar.bz2</a>
-    </td>
-    <td align="left">
-    <a href="llvm-py-0.4.tar.bz2">llvm-py-0.4.tar.bz2</a>
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    0.3
-    </td>
-    <td align="left">
-    8-Sep-2008
-    </td>
-    <td align="left">
-    <a href="http://llvm-py.googlecode.com/files/llvm-py-0.3.tar.bz2">llvm-py-0.3.tar.bz2</a>
-    </td>
-    <td align="left">
-    <a href="llvm-py-0.3.tar.bz2">llvm-py-0.3.tar.bz2</a>
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    0.2.1
-    </td>
-    <td align="left">
-    18-Jun-2008
-    </td>
-    <td align="left">
-    <a href="http://llvm-py.googlecode.com/files/llvm-py-0.2.1.tar.bz2">llvm-py-0.2.1.tar.bz2</a>
-    </td>
-    <td align="left">
-    <a href="llvm-py-0.2.1.tar.bz2">llvm-py-0.2.1.tar.bz2</a>
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    0.2
-    </td>
-    <td align="left">
-    15-Jun-2008
-    </td>
-    <td align="left">
-    <a href="http://llvm-py.googlecode.com/files/llvm-py-0.2.tar.bz2">llvm-py-0.2.tar.bz2</a>
-    </td>
-    <td align="left">
-    <a href="llvm-py-0.2.tar.bz2">llvm-py-0.2.tar.bz2</a>
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    0.1
-    </td>
-    <td align="left">
-    20-May-2008
-    </td>
-    <td align="left">
-    <a href="http://llvm-py.googlecode.com/files/llvm-py-0.1.tar.bz2">llvm-py-0.1.tar.bz2</a>
-    </td>
-    <td align="left">
-    <a href="llvm-py-0.1.tar.bz2">llvm-py-0.1.tar.bz2</a>
-    </td>
-  </tr>
-</tbody>
-</table>
-</div>
-<div class="para"><p>The latest code can be checked out from SVN like so:</p></div>
+<div class="paragraph"><p>The latest release is 0.6, released 28-Oct-2009 (<a href="#changelog">Changelog</a>
+below). 0.6 works only with LLVM 2.6.</p></div>
+<div class="paragraph"><p>Download it here:
+- <a href="http://llvm-py.googlecode.com/files/llvm-py-0.6.tar.bz2">llvm-py-0.6.tar.bz2</a> (primary)
+- <a href="llvm-py-0.6.tar.bz2">llvm-py-0.6.tar.bz2</a> (mirror)</p></div>
+<div class="paragraph"><p>Older versions are available <a href="http://llvm-py.googlecode.com/files/">here</a>.</p></div>
+<div class="paragraph"><p>The latest code can be checked out from SVN like so:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>$ svn checkout http://llvm-py.googlecode.com/svn/trunk/ llvm-py</tt></pre>
 </div></div>
-<div class="para"><p>Follow the steps <a href="userguide.html#install">described here</a> to install the
+<div class="paragraph"><p>Follow the steps <a href="userguide.html#install">described here</a> to install the
 package.</p></div>
 </div>
 </div>
@@ -161,7 +52,24 @@ package.</p></div>
 <div class="sectionbody">
 <div class="listingblock">
 <div class="content">
-<pre><tt>0.5, 22-Nov-2008:
+<pre><tt>0.6, in progress:
+
+  * Migrate to LLVM 2.6 (KS Sreeram) (Issue #25).
+  * Inline function (Corrado Zoccolo).
+  * Get pointer to function (Corrado Zoccolo).
+  * More properties/methods for TargetData (Florian Noding) (Issue #16).
+  * Value.uses API.
+  * Fetch operands of instructions (Seth Warn).
+  * Unaliased objects (with Seth Warn).
+  * Value factory, more Constant subclasses.
+  * Module.link_in and Instruction.is_volatile (Seth Warn).
+  * Fix Builder.position_at_beginning crash (Issue #10).
+  * Builds on gentoo.
+  * Code cleanup.
+  * Migrate to LLVM 2.5.
+
+
+0.5, 22-Nov-2008:
 
   * Added vicmp, vfcmp instructions and constant expressions.
   * Builds on FreeBSD.
@@ -221,7 +129,7 @@ package.</p></div>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 2008-11-22.
+Last updated 2009-10-28.
 </div>
 </div>
 </div>
