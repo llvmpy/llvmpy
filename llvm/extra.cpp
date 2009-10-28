@@ -64,6 +64,7 @@
 #include "llvm/Transforms/Instrumentation.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Linker.h"
+#include "llvm/Support/SourceMgr.h"
 
 // LLVM-C includes
 #include "llvm-c/Core.h"
@@ -78,7 +79,8 @@
 template <typename W, typename UW>
 char *do_print(W obj)
 {
-    std::ostringstream buf;
+    std::string s;
+    llvm::raw_string_ostream buf(s);
     UW *p = llvm::unwrap(obj);
     assert(p);
     p->print(buf);
@@ -87,7 +89,8 @@ char *do_print(W obj)
 
 char *LLVMDumpModuleToString(LLVMModuleRef module)
 {
-    std::ostringstream buf;
+    std::string s;
+    llvm::raw_string_ostream buf(s);
     llvm::Module *p = llvm::unwrap(module);
     assert(p);
     p->print(buf, NULL);
@@ -102,66 +105,6 @@ char *LLVMDumpTypeToString(LLVMTypeRef type)
 char *LLVMDumpValueToString(LLVMValueRef value)
 {
     return do_print<LLVMValueRef, llvm::Value>(value);
-}
-
-LLVMValueRef LLVMConstVICmp(LLVMIntPredicate predicate, LLVMValueRef lhs,
-    LLVMValueRef rhs)
-{
-    llvm::Constant *lhsp = llvm::unwrap<llvm::Constant>(lhs);
-    assert(lhsp);
-    llvm::Constant *rhsp = llvm::unwrap<llvm::Constant>(rhs);
-    assert(rhsp);
-
-    llvm::Constant *vicmp =
-        llvm::ConstantExpr::getVICmp(predicate, lhsp, rhsp);
-    return llvm::wrap(vicmp);
-}
-    
-LLVMValueRef LLVMConstVFCmp(LLVMRealPredicate predicate, LLVMValueRef lhs,
-    LLVMValueRef rhs)
-{
-    llvm::Constant *lhsp = llvm::unwrap<llvm::Constant>(lhs);
-    assert(lhsp);
-    llvm::Constant *rhsp = llvm::unwrap<llvm::Constant>(rhs);
-    assert(rhsp);
-
-    llvm::Constant *vfcmp =
-        llvm::ConstantExpr::getVFCmp(predicate, lhsp, rhsp);
-    return llvm::wrap(vfcmp);
-}
-
-LLVMValueRef LLVMBuildVICmp(LLVMBuilderRef builder, LLVMIntPredicate predicate,
-    LLVMValueRef lhs, LLVMValueRef rhs, const char *name)
-{
-    llvm::IRBuilder<> *builderp = llvm::unwrap(builder);
-    assert(builderp);
-
-    llvm::Value *lhsp = llvm::unwrap(lhs);
-    assert(lhsp);
-    llvm::Value *rhsp = llvm::unwrap(rhs);
-    assert(rhsp);
-
-    llvm::Value *inst = builderp->CreateVICmp(
-        static_cast<llvm::CmpInst::Predicate>(predicate),
-        lhsp, rhsp, name);
-    return llvm::wrap(inst);
-}
-
-LLVMValueRef LLVMBuildVFCmp(LLVMBuilderRef builder, LLVMRealPredicate predicate,
-    LLVMValueRef lhs, LLVMValueRef rhs, const char *name)
-{
-    llvm::IRBuilder<> *builderp = llvm::unwrap(builder);
-    assert(builderp);
-
-    llvm::Value *lhsp = llvm::unwrap(lhs);
-    assert(lhsp);
-    llvm::Value *rhsp = llvm::unwrap(rhs);
-    assert(rhsp);
-
-    llvm::Value *inst = builderp->CreateVFCmp(
-        static_cast<llvm::CmpInst::Predicate>(predicate),
-        lhsp, rhsp, name);
-    return llvm::wrap(inst);
 }
 
 unsigned LLVMModuleGetPointerSize(LLVMModuleRef module)
@@ -215,7 +158,6 @@ inst_checkfn(LLVMInstIsLogicalShift,    isLogicalShift)
 inst_checkfn(LLVMInstIsArithmeticShift, isArithmeticShift)
 inst_checkfn(LLVMInstIsAssociative,     isAssociative)
 inst_checkfn(LLVMInstIsCommutative,     isCommutative)
-inst_checkfn(LLVMInstIsTrapping,        isTrapping)
 
 unsigned LLVMInstIsVolatile(LLVMValueRef v)
 {
@@ -405,9 +347,13 @@ LLVMModuleRef LLVMGetModuleFromAssembly(const char *asmtext, unsigned txtlen,
     assert(out);
 
     llvm::Module *modulep;
-    llvm::ParseError error;
-    if (!(modulep = llvm::ParseAssemblyString(asmtext, NULL, error))) {
-        *out = strdup(error.getRawMessage().c_str());
+    llvm::SMDiagnostic error;
+    if (!(modulep = llvm::ParseAssemblyString(asmtext, NULL, error,
+                                              llvm::getGlobalContext()))) {
+        std::string s;
+        llvm::raw_string_ostream buf(s);
+        error.Print("llvm-py", buf);
+        *out = strdup(buf.str().c_str());
         return NULL;
     }
 
@@ -426,7 +372,8 @@ LLVMModuleRef LLVMGetModuleFromBitcode(const char *bitcode, unsigned bclen,
 
     std::string msg;
     llvm::Module *modulep;
-    if (!(modulep = llvm::ParseBitcodeFile(mbp, &msg)))
+    if (!(modulep = llvm::ParseBitcodeFile(mbp, llvm::getGlobalContext(),
+                                           &msg)))
         *out = strdup(msg.c_str());
 
     delete mbp;
@@ -457,7 +404,8 @@ unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, unsigned *lenp)
     assert(modulep);
 
     /* get bc into a string */
-    std::ostringstream buf;
+    std::string s;
+    llvm::raw_string_ostream buf(s);
     llvm::WriteBitcodeToFile(modulep, buf);
     const std::string& bc = buf.str();
 
@@ -530,24 +478,20 @@ void LLVMAdd ## P ## Pass (LLVMPassManagerRef passmgr) { \
     pmp->add( create ## P ## Pass ());                   \
 }
 
-define_pass( AggressiveDCE )
 define_pass( ArgumentPromotion )
 define_pass( BlockPlacement )
 define_pass( BreakCriticalEdges )
 define_pass( CodeGenPrepare )
-define_pass( CondPropagation )
 define_pass( ConstantMerge )
 define_pass( DeadCodeElimination )
 define_pass( DeadArgElimination )
 define_pass( DeadTypeElimination )
 define_pass( DeadInstElimination )
-define_pass( DeadStoreElimination )
 /* define_pass( GCSE ): removed in LLVM 2.4 */
 define_pass( GlobalDCE )
 define_pass( GlobalOptimizer )
 define_pass( GVNPRE )
 define_pass( IndMemRem )
-define_pass( IndVarSimplify )
 define_pass( FunctionInlining )
 define_pass( BlockProfiler )
 define_pass( EdgeProfiler )
@@ -559,34 +503,22 @@ llvm::ModulePass *createInternalizePass() { return llvm::createInternalizePass(t
 define_pass( Internalize )
 define_pass( IPConstantPropagation )
 define_pass( IPSCCP )
-define_pass( JumpThreading )
 define_pass( LCSSA )
-define_pass( LICM )
-define_pass( LoopDeletion )
 define_pass( LoopExtractor )
 define_pass( SingleLoopExtractor )
-define_pass( LoopIndexSplit )
 define_pass( LoopStrengthReduce )
-define_pass( LoopRotate )
-define_pass( LoopUnroll )
-define_pass( LoopUnswitch )
 define_pass( LoopSimplify )
 define_pass( LowerAllocations )
 define_pass( LowerInvoke )
 define_pass( LowerSetJmp )
 define_pass( LowerSwitch )
-define_pass( MemCpyOpt )
 define_pass( UnifyFunctionExitNodes )
 define_pass( PredicateSimplifier )
 define_pass( PruneEH )
 define_pass( RaiseAllocations )
 define_pass( DemoteRegisterToMemory )
-define_pass( ScalarReplAggregates )
-define_pass( SCCP )
-define_pass( SimplifyLibCalls )
 define_pass( StripSymbols )
 define_pass( StripDeadPrototypes )
 define_pass( StructRetPromotion )
-define_pass( TailCallElimination )
 define_pass( TailDuplication )
 

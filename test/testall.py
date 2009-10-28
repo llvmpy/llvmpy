@@ -208,8 +208,6 @@ def do_constant():
     f.fdiv(f).frem(f).fcmp(RPRED_ULT, f)
     vi = Constant.vector([Constant.int(ti,42)]*10)
     vf = Constant.vector([Constant.real(Type.float(), 3.14)]*10)
-    vi.vicmp(IPRED_ULT, vi)
-    vf.vfcmp(RPRED_ULT, vf)
     k.shl(k).lshr(k).ashr(k)
     # TODO gep
     k.trunc(Type.int(1))
@@ -457,8 +455,6 @@ def do_builder():
     b.fcmp(RPRED_ULT, fv, fv)
     vi = Constant.vector([Constant.int(ti,42)]*10)
     vf = Constant.vector([Constant.real(Type.float(), 3.14)]*10)
-    b.vicmp(IPRED_ULT, vi, vi)
-    b.vfcmp(RPRED_ULT, vf, vf)
     # TODO b.getresult(v, 0)
     b.call(f, [v])
     b.select(Constant.int(Type.int(1), 1), blk, blk)
@@ -478,7 +474,6 @@ def do_builder():
     t = i.is_arithmetic_shift == False
     t = i.is_associative == False
     t = i.is_commutative == False
-    t = i.is_trapping == False
     t = i.is_volatile == False
     t = i.opcode
     t = i.opcode_name

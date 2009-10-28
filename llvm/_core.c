@@ -36,6 +36,7 @@
 #include "llvm-c/Analysis.h"
 #include "llvm-c/Transforms/Scalar.h"
 #include "llvm-c/ExecutionEngine.h"
+#include "llvm-c/Target.h"
 
 /* libc includes */
 #include <stdarg.h> /* for malloc(), free() */
@@ -422,8 +423,11 @@ _wrap_obj2obj(LLVMConstNeg, LLVMValueRef, LLVMValueRef)
 _wrap_obj2obj(LLVMConstNot, LLVMValueRef, LLVMValueRef)
 
 _wrap_objobj2obj(LLVMConstAdd, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objobj2obj(LLVMConstFAdd, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMConstSub, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objobj2obj(LLVMConstFSub, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMConstMul, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objobj2obj(LLVMConstFMul, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMConstUDiv, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMConstSDiv, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMConstFDiv, LLVMValueRef, LLVMValueRef, LLVMValueRef)
@@ -436,8 +440,6 @@ _wrap_objobj2obj(LLVMConstXor, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 
 _wrap_enumobjobj2obj(LLVMConstICmp, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_enumobjobj2obj(LLVMConstFCmp, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_enumobjobj2obj(LLVMConstVICmp, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_enumobjobj2obj(LLVMConstVFCmp, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 
 _wrap_objobj2obj(LLVMConstShl, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2obj(LLVMConstLShr, LLVMValueRef, LLVMValueRef, LLVMValueRef)
@@ -556,7 +558,6 @@ _wrap_obj2obj(LLVMInstIsLogicalShift, LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsArithmeticShift, LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsAssociative,  LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsCommutative,  LLVMValueRef, int)
-_wrap_obj2obj(LLVMInstIsTrapping,     LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsVolatile,     LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstGetOpcode,      LLVMValueRef, int)
 _wrap_obj2str(LLVMInstGetOpcodeName,  LLVMValueRef)
@@ -646,8 +647,11 @@ _wrap_objobjobj2none(LLVMAddCase, LLVMValueRef, LLVMValueRef, LLVMBasicBlockRef)
 /* Arithmetic */
 
 _wrap_objobjobjstr2obj(LLVMBuildAdd, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objobjobjstr2obj(LLVMBuildFAdd, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobjobjstr2obj(LLVMBuildSub, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objobjobjstr2obj(LLVMBuildFSub, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobjobjstr2obj(LLVMBuildMul, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objobjobjstr2obj(LLVMBuildFMul, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobjobjstr2obj(LLVMBuildUDiv, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobjobjstr2obj(LLVMBuildSDiv, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobjobjstr2obj(LLVMBuildFDiv, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
@@ -693,8 +697,6 @@ _wrap_objobjobjstr2obj(LLVMBuildBitCast, LLVMBuilderRef, LLVMValueRef, LLVMTypeR
 
 _wrap_objenumobjobjstr2obj(LLVMBuildICmp, LLVMBuilderRef, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objenumobjobjstr2obj(LLVMBuildFCmp, LLVMBuilderRef, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objenumobjobjstr2obj(LLVMBuildVICmp, LLVMBuilderRef, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objenumobjobjstr2obj(LLVMBuildVFCmp, LLVMBuilderRef, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 
 /* Miscellaneous instructions */
 
@@ -1267,8 +1269,6 @@ static PyMethodDef core_methods[] = {
     _method( LLVMConstXor )    
     _method( LLVMConstICmp )    
     _method( LLVMConstFCmp )    
-    _method( LLVMConstVICmp )
-    _method( LLVMConstVFCmp )
     _method( LLVMConstShl )    
     _method( LLVMConstLShr )    
     _method( LLVMConstAShr )    
@@ -1366,7 +1366,6 @@ static PyMethodDef core_methods[] = {
     _method( LLVMInstIsArithmeticShift )
     _method( LLVMInstIsAssociative )
     _method( LLVMInstIsCommutative )
-    _method( LLVMInstIsTrapping )
     _method( LLVMInstIsVolatile )
     _method( LLVMInstGetOpcode )
     _method( LLVMInstGetOpcodeName )
@@ -1456,8 +1455,6 @@ static PyMethodDef core_methods[] = {
     /* Comparisons */
     _method( LLVMBuildICmp )    
     _method( LLVMBuildFCmp )    
-    _method( LLVMBuildVICmp )    
-    _method( LLVMBuildVFCmp )    
 
     /* Miscellaneous instructions */
     _method( LLVMBuildGetResult )    
@@ -1602,5 +1599,8 @@ static PyMethodDef core_methods[] = {
 PyMODINIT_FUNC
 init_core(void)
 {
+    LLVMLinkInJIT();
+    LLVMLinkInInterpreter();
+    LLVMInitializeNativeTarget();
     Py_InitModule("_core", core_methods);
 }

@@ -43,7 +43,7 @@ import llvm._util as _util  # utility functions
 # Enumerations
 #===----------------------------------------------------------------------===
 
-# type kinds
+# type kinds (LLVMTypeKind enum)
 TYPE_VOID       = 0
 TYPE_FLOAT      = 1
 TYPE_DOUBLE     = 2
@@ -58,6 +58,7 @@ TYPE_ARRAY      = 10
 TYPE_POINTER    = 11
 TYPE_OPAQUE     = 12
 TYPE_VECTOR     = 13
+TYPE_METADATA   = 14
 
 # value IDs (llvm::Value::ValueTy enum)
 VALUE_ARGUMENT                  = 0
@@ -74,11 +75,14 @@ VALUE_CONSTANT_ARRAY            = 10
 VALUE_CONSTANT_STRUCT           = 11
 VALUE_CONSTANT_VECTOR           = 12
 VALUE_CONSTANT_POINTER_NULL     = 13
-VALUE_INLINE_ASM                = 14
-VALUE_PSEUDO_SOURCE_VALUE       = 15
-VALUE_INSTRUCTION               = 16
+VALUE_MD_NODE                   = 14
+VALUE_MD_STRING                 = 15
+VALUE_NAMED_MD_NODE             = 16
+VALUE_INLINE_ASM                = 17
+VALUE_PSEUDO_SOURCE_VALUE       = 18
+VALUE_INSTRUCTION               = 19
 
-# instruction opcodes
+# instruction opcodes (from include/llvm/Instruction.def)
 OPCODE_RET            = 1
 OPCODE_BR             = 2
 OPCODE_SWITCH         = 3
@@ -86,53 +90,54 @@ OPCODE_INVOKE         = 4
 OPCODE_UNWIND         = 5
 OPCODE_UNREACHABLE    = 6
 OPCODE_ADD            = 7
-OPCODE_SUB            = 8
-OPCODE_MUL            = 9
-OPCODE_UDIV           = 10
-OPCODE_SDIV           = 11
-OPCODE_FDIV           = 12
-OPCODE_UREM           = 13
-OPCODE_SREM           = 14
-OPCODE_FREM           = 15
-OPCODE_SHL            = 16
-OPCODE_LSHR           = 17
-OPCODE_ASHR           = 18
-OPCODE_AND            = 19
-OPCODE_OR             = 20
-OPCODE_XOR            = 21
-OPCODE_MALLOC         = 22
-OPCODE_FREE           = 23
-OPCODE_ALLOCA         = 24
-OPCODE_LOAD           = 25
-OPCODE_STORE          = 26
-OPCODE_GETELEMENTPTR  = 27
-OPCODE_TRUNC          = 28
-OPCODE_ZEXT           = 29
-OPCODE_SZEXT          = 30
-OPCODE_FPTOUI         = 31
-OPCODE_FPTOSI         = 32
-OPCODE_UITOFP         = 33
-OPCODE_SITOFP         = 34
-OPCODE_FPTRUNC        = 35
-OPCODE_FPEXT          = 36
-OPCODE_PTRTOINT       = 37
-OPCODE_INTTOPTR       = 38
-OPCODE_BITCAST        = 39
-OPCODE_ICMP           = 40
-OPCODE_FCMP           = 41
-OPCODE_PHI            = 42
-OPCODE_CALL           = 43
-OPCODE_SELECT         = 44
-OPCODE_USEROP1        = 45
-OPCODE_USEROP2        = 46
-OPCODE_VAARG          = 47
-OPCODE_EXTRACTELEMENT = 48
-OPCODE_INSERTELEMENT  = 49
-OPCODE_SHUFFLEVECTOR  = 50
-OPCODE_EXTRACTVALUE   = 51
-OPCODE_INSERTVALUE    = 52
-OPCODE_VICMP          = 53
-OPCODE_VFCMP          = 54
+OPCODE_FADD           = 8
+OPCODE_SUB            = 9
+OPCODE_FSUB           = 10
+OPCODE_MUL            = 11
+OPCODE_FMUL           = 12
+OPCODE_UDIV           = 13
+OPCODE_SDIV           = 14
+OPCODE_FDIV           = 15
+OPCODE_UREM           = 16
+OPCODE_SREM           = 17
+OPCODE_FREM           = 18
+OPCODE_SHL            = 19
+OPCODE_LSHR           = 20
+OPCODE_ASHR           = 21
+OPCODE_AND            = 22
+OPCODE_OR             = 23
+OPCODE_XOR            = 24
+OPCODE_MALLOC         = 25
+OPCODE_FREE           = 26
+OPCODE_ALLOCA         = 27
+OPCODE_LOAD           = 28
+OPCODE_STORE          = 29
+OPCODE_GETELEMENTPTR  = 30
+OPCODE_TRUNC          = 31
+OPCODE_ZEXT           = 32
+OPCODE_SEXT           = 33
+OPCODE_FPTOUI         = 34
+OPCODE_FPTOSI         = 35
+OPCODE_UITOFP         = 36
+OPCODE_SITOFP         = 37
+OPCODE_FPTRUNC        = 38
+OPCODE_FPEXT          = 39
+OPCODE_PTRTOINT       = 40
+OPCODE_INTTOPTR       = 41
+OPCODE_BITCAST        = 42
+OPCODE_ICMP           = 43
+OPCODE_FCMP           = 44
+OPCODE_PHI            = 45
+OPCODE_CALL           = 46
+OPCODE_SELECT         = 47
+OPCODE_USEROP1        = 48
+OPCODE_USEROP2        = 49
+OPCODE_VAARG          = 50
+OPCODE_EXTRACTELEMENT = 51
+OPCODE_INSERTELEMENT  = 52
+OPCODE_SHUFFLEVECTOR  = 53
+OPCODE_EXTRACTVALUE   = 54
+OPCODE_INSERTVALUE    = 55
 
 # calling conventions
 CC_C            = 0
@@ -202,16 +207,21 @@ RPRED_UNE       = FCMP_UNE
 RPRED_TRUE      = FCMP_TRUE
 
 # linkages
-LINKAGE_EXTERNAL    = 0
-LINKAGE_LINKONCE    = 1
-LINKAGE_WEAK        = 2
-LINKAGE_APPENDING   = 3
-LINKAGE_INTERNAL    = 4
-LINKAGE_DLLIMPORT   = 5
-LINKAGE_DLLEXPORT   = 6
-LINKAGE_EXTERNAL_WEAK = 7
-LINKAGE_GHOST       = 8
-LINKAGE_COMMON      = 9
+LINKAGE_EXTERNAL             = 0
+LINKAGE_AVAILABLE_EXTERNALLY = 1
+LINKAGE_LINKONCE_ANY         = 2
+LINKAGE_LINKONCE_ODR         = 3
+LINKAGE_WEAK_ANY             = 4
+LINKAGE_WEAK_ODR             = 5
+LINKAGE_APPENDING            = 6
+LINKAGE_INTERNAL             = 7
+LINKAGE_PRIVATE              = 8
+LINKAGE_DLLIMPORT            = 9
+LINKAGE_DLLEXPORT            = 10
+LINKAGE_EXTERNAL_WEAK        = 11
+LINKAGE_GHOST                = 12
+LINKAGE_COMMON               = 13
+LINKAGE_LINKER_PRIVATE       = 14
 
 # visibility
 VISIBILITY_DEFAULT  = 0
@@ -235,8 +245,11 @@ ATTR_ALWAYS_INLINE  = 1<<12
 ATTR_OPTIMIZE_FOR_SIZE = 1<<13
 ATTR_STACK_PROTECT  = 1<<14
 ATTR_STACK_PROTECT_REQ = 1<<15
-ATTR_ALIGNMENT      = 31<<16
 ATTR_NO_CAPTURE     = 1<<21
+ATTR_NO_REDZONE     = 1<<22
+ATTR_NO_IMPLICIT_FLOAT = 1<<23
+ATTR_NAKED          = 1<<24
+ATTR_INLINE_HINT    = 1<<25
 
 # intrinsic IDs
 from llvm._intrinsic_ids import *
@@ -947,13 +960,25 @@ class Constant(User):
         check_is_constant(rhs)
         return _make_value(_core.LLVMConstAdd(self.ptr, rhs.ptr))
 
+    def fadd(self, rhs):
+        check_is_constant(rhs)
+        return _make_value(_core.LLVMConstFAdd(self.ptr, rhs.ptr))
+
     def sub(self, rhs):
         check_is_constant(rhs)
         return _make_value(_core.LLVMConstSub(self.ptr, rhs.ptr))
 
+    def fsub(self, rhs):
+        check_is_constant(rhs)
+        return _make_value(_core.LLVMConstFSub(self.ptr, rhs.ptr))
+
     def mul(self, rhs):
         check_is_constant(rhs)
         return _make_value(_core.LLVMConstMul(self.ptr, rhs.ptr))
+
+    def fmul(self, rhs):
+        check_is_constant(rhs)
+        return _make_value(_core.LLVMConstFMul(self.ptr, rhs.ptr))
 
     def udiv(self, rhs):
         check_is_constant(rhs)
@@ -998,14 +1023,6 @@ class Constant(User):
     def fcmp(self, real_pred, rhs):
         check_is_constant(rhs)
         return _make_value(_core.LLVMConstFCmp(real_pred, self.ptr, rhs.ptr))
-
-    def vicmp(self, int_pred, rhs):
-        check_is_constant(rhs)
-        return _make_value(_core.LLVMConstVICmp(int_pred, self.ptr, rhs.ptr))
-
-    def vfcmp(self, real_pred, rhs):
-        check_is_constant(rhs)
-        return _make_value(_core.LLVMConstVFCmp(real_pred, self.ptr, rhs.ptr))
 
     def shl(self, rhs):
         check_is_constant(rhs)
@@ -1372,10 +1389,6 @@ class Instruction(User):
         return _core.LLVMInstIsCommutative(self.ptr) != 0
 
     @property
-    def is_trapping(self):
-        return _core.LLVMInstIsTrapping(self.ptr) != 0
-
-    @property
     def is_volatile(self):
         """True if this is a volatile load or store."""
         return _core.LLVMInstIsVolatile(self.ptr) != 0
@@ -1619,15 +1632,30 @@ class Builder(object):
         check_is_value(rhs)
         return _make_value(_core.LLVMBuildAdd(self.ptr, lhs.ptr, rhs.ptr, name))
 
+    def fadd(self, lhs, rhs, name=""):
+        check_is_value(lhs)
+        check_is_value(rhs)
+        return _make_value(_core.LLVMBuildFAdd(self.ptr, lhs.ptr, rhs.ptr, name))
+
     def sub(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
         return _make_value(_core.LLVMBuildSub(self.ptr, lhs.ptr, rhs.ptr, name))
 
+    def fsub(self, lhs, rhs, name=""):
+        check_is_value(lhs)
+        check_is_value(rhs)
+        return _make_value(_core.LLVMBuildFSub(self.ptr, lhs.ptr, rhs.ptr, name))
+
     def mul(self, lhs, rhs, name=""):
         check_is_value(lhs)
         check_is_value(rhs)
         return _make_value(_core.LLVMBuildMul(self.ptr, lhs.ptr, rhs.ptr, name))
+
+    def fmul(self, lhs, rhs, name=""):
+        check_is_value(lhs)
+        check_is_value(rhs)
+        return _make_value(_core.LLVMBuildFMul(self.ptr, lhs.ptr, rhs.ptr, name))
 
     def udiv(self, lhs, rhs, name=""):
         check_is_value(lhs)
@@ -1837,18 +1865,6 @@ class Builder(object):
         check_is_value(rhs)
         return _make_value(
             _core.LLVMBuildFCmp(self.ptr, rpred, lhs.ptr, rhs.ptr, name))
-
-    def vicmp(self, ipred, lhs, rhs, name=""):
-        check_is_value(lhs)
-        check_is_value(rhs)
-        return _make_value(
-            _core.LLVMBuildVICmp(self.ptr, ipred, lhs.ptr, rhs.ptr, name))
-
-    def vfcmp(self, rpred, lhs, rhs, name=""):
-        check_is_value(lhs)
-        check_is_value(rhs)
-        return _make_value(
-            _core.LLVMBuildVFCmp(self.ptr, rpred, lhs.ptr, rhs.ptr, name))
 
     # misc
 
