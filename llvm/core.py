@@ -51,14 +51,14 @@ TYPE_X86_FP80   = 3
 TYPE_FP128      = 4
 TYPE_PPC_FP128  = 5
 TYPE_LABEL      = 6
-TYPE_INTEGER    = 7
-TYPE_FUNCTION   = 8
-TYPE_STRUCT     = 9
-TYPE_ARRAY      = 10
-TYPE_POINTER    = 11
-TYPE_OPAQUE     = 12
-TYPE_VECTOR     = 13
-TYPE_METADATA   = 14
+TYPE_METADATA   = 7
+TYPE_INTEGER    = 8
+TYPE_FUNCTION   = 9
+TYPE_STRUCT     = 10
+TYPE_ARRAY      = 11
+TYPE_POINTER    = 12
+TYPE_OPAQUE     = 13
+TYPE_VECTOR     = 14
 
 # value IDs (llvm::Value::ValueTy enum)
 VALUE_ARGUMENT                  = 0
@@ -216,12 +216,12 @@ LINKAGE_WEAK_ODR             = 5
 LINKAGE_APPENDING            = 6
 LINKAGE_INTERNAL             = 7
 LINKAGE_PRIVATE              = 8
-LINKAGE_DLLIMPORT            = 9
-LINKAGE_DLLEXPORT            = 10
-LINKAGE_EXTERNAL_WEAK        = 11
-LINKAGE_GHOST                = 12
-LINKAGE_COMMON               = 13
-LINKAGE_LINKER_PRIVATE       = 14
+LINKAGE_LINKER_PRIVATE       = 9 
+LINKAGE_DLLIMPORT            = 10
+LINKAGE_DLLEXPORT            = 11
+LINKAGE_EXTERNAL_WEAK        = 12
+LINKAGE_GHOST                = 13
+LINKAGE_COMMON               = 14
 
 # visibility
 VISIBILITY_DEFAULT  = 0
@@ -249,7 +249,6 @@ ATTR_NO_CAPTURE     = 1<<21
 ATTR_NO_REDZONE     = 1<<22
 ATTR_NO_IMPLICIT_FLOAT = 1<<23
 ATTR_NAKED          = 1<<24
-ATTR_INLINE_HINT    = 1<<25
 
 # intrinsic IDs
 from llvm._intrinsic_ids import *
