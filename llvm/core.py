@@ -51,93 +51,96 @@ TYPE_X86_FP80   = 3
 TYPE_FP128      = 4
 TYPE_PPC_FP128  = 5
 TYPE_LABEL      = 6
-TYPE_METADATA   = 7
-TYPE_INTEGER    = 8
-TYPE_FUNCTION   = 9
-TYPE_STRUCT     = 10
-TYPE_ARRAY      = 11
-TYPE_POINTER    = 12
-TYPE_OPAQUE     = 13
-TYPE_VECTOR     = 14
+TYPE_INTEGER    = 7
+TYPE_FUNCTION   = 8
+TYPE_STRUCT     = 9
+TYPE_ARRAY      = 10
+TYPE_POINTER    = 11
+TYPE_OPAQUE     = 12
+TYPE_VECTOR     = 13
+TYPE_METADATA   = 14
+TYPE_UNION      = 15
 
 # value IDs (llvm::Value::ValueTy enum)
-VALUE_ARGUMENT                  = 0
-VALUE_BASIC_BLOCK               = 1
-VALUE_FUNCTION                  = 2
-VALUE_GLOBAL_ALIAS              = 3
-VALUE_GLOBAL_VARIABLE           = 4
-VALUE_UNDEF_VALUE               = 5
-VALUE_CONSTANT_EXPR             = 6
-VALUE_CONSTANT_AGGREGATE_ZERO   = 7
-VALUE_CONSTANT_INT              = 8
-VALUE_CONSTANT_FP               = 9
-VALUE_CONSTANT_ARRAY            = 10
-VALUE_CONSTANT_STRUCT           = 11
-VALUE_CONSTANT_VECTOR           = 12
-VALUE_CONSTANT_POINTER_NULL     = 13
-VALUE_MD_NODE                   = 14
-VALUE_MD_STRING                 = 15
-VALUE_NAMED_MD_NODE             = 16
-VALUE_INLINE_ASM                = 17
-VALUE_PSEUDO_SOURCE_VALUE       = 18
-VALUE_INSTRUCTION               = 19
+VALUE_ARGUMENT                          = 0
+VALUE_BASIC_BLOCK                       = 1
+VALUE_FUNCTION                          = 2
+VALUE_GLOBAL_ALIAS                      = 3
+VALUE_GLOBAL_VARIABLE                   = 4
+VALUE_UNDEF_VALUE                       = 5
+VALUE_BLOCK_ADDRESS                     = 6
+VALUE_CONSTANT_EXPR                     = 7
+VALUE_CONSTANT_AGGREGATE_ZERO           = 8
+VALUE_CONSTANT_INT                      = 9
+VALUE_CONSTANT_FP                       = 10
+VALUE_CONSTANT_ARRAY                    = 11
+VALUE_CONSTANT_STRUCT                   = 12
+VALUE_CONSTANT_UNION                    = 13
+VALUE_CONSTANT_VECTOR                   = 14
+VALUE_CONSTANT_POINTER_NULL             = 15
+VALUE_MD_NODE                           = 16
+VALUE_MD_STRING                         = 17
+VALUE_NAMED_MD_NODE                     = 18
+VALUE_INLINE_ASM                        = 19
+VALUE_PSEUDO_SOURCE_VALUE               = 20
+VALUE_FIXED_STACK_PSEUDO_SOURCE_VALUE   = 21
+VALUE_INSTRUCTION                       = 22
 
 # instruction opcodes (from include/llvm/Instruction.def)
 OPCODE_RET            = 1
 OPCODE_BR             = 2
 OPCODE_SWITCH         = 3
-OPCODE_INVOKE         = 4
-OPCODE_UNWIND         = 5
-OPCODE_UNREACHABLE    = 6
-OPCODE_ADD            = 7
-OPCODE_FADD           = 8
-OPCODE_SUB            = 9
-OPCODE_FSUB           = 10
-OPCODE_MUL            = 11
-OPCODE_FMUL           = 12
-OPCODE_UDIV           = 13
-OPCODE_SDIV           = 14
-OPCODE_FDIV           = 15
-OPCODE_UREM           = 16
-OPCODE_SREM           = 17
-OPCODE_FREM           = 18
-OPCODE_SHL            = 19
-OPCODE_LSHR           = 20
-OPCODE_ASHR           = 21
-OPCODE_AND            = 22
-OPCODE_OR             = 23
-OPCODE_XOR            = 24
-OPCODE_MALLOC         = 25
-OPCODE_FREE           = 26
-OPCODE_ALLOCA         = 27
-OPCODE_LOAD           = 28
-OPCODE_STORE          = 29
-OPCODE_GETELEMENTPTR  = 30
-OPCODE_TRUNC          = 31
-OPCODE_ZEXT           = 32
-OPCODE_SEXT           = 33
-OPCODE_FPTOUI         = 34
-OPCODE_FPTOSI         = 35
-OPCODE_UITOFP         = 36
-OPCODE_SITOFP         = 37
-OPCODE_FPTRUNC        = 38
-OPCODE_FPEXT          = 39
-OPCODE_PTRTOINT       = 40
-OPCODE_INTTOPTR       = 41
-OPCODE_BITCAST        = 42
-OPCODE_ICMP           = 43
-OPCODE_FCMP           = 44
-OPCODE_PHI            = 45
-OPCODE_CALL           = 46
-OPCODE_SELECT         = 47
-OPCODE_USEROP1        = 48
-OPCODE_USEROP2        = 49
-OPCODE_VAARG          = 50
-OPCODE_EXTRACTELEMENT = 51
-OPCODE_INSERTELEMENT  = 52
-OPCODE_SHUFFLEVECTOR  = 53
-OPCODE_EXTRACTVALUE   = 54
-OPCODE_INSERTVALUE    = 55
+OPCODE_INDIRECT_BR    = 4
+OPCODE_INVOKE         = 5
+OPCODE_UNWIND         = 6
+OPCODE_UNREACHABLE    = 7
+OPCODE_ADD            = 8
+OPCODE_FADD           = 9
+OPCODE_SUB            = 10
+OPCODE_FSUB           = 11
+OPCODE_MUL            = 12
+OPCODE_FMUL           = 13
+OPCODE_UDIV           = 14
+OPCODE_SDIV           = 15
+OPCODE_FDIV           = 16
+OPCODE_UREM           = 17
+OPCODE_SREM           = 18
+OPCODE_FREM           = 19
+OPCODE_SHL            = 20
+OPCODE_LSHR           = 21
+OPCODE_ASHR           = 22
+OPCODE_AND            = 23
+OPCODE_OR             = 24
+OPCODE_XOR            = 25
+OPCODE_ALLOCA         = 26
+OPCODE_LOAD           = 27
+OPCODE_STORE          = 28
+OPCODE_GETELEMENTPTR  = 29
+OPCODE_TRUNC          = 30
+OPCODE_ZEXT           = 31
+OPCODE_SEXT           = 32
+OPCODE_FPTOUI         = 33
+OPCODE_FPTOSI         = 34
+OPCODE_UITOFP         = 35
+OPCODE_SITOFP         = 36
+OPCODE_FPTRUNC        = 37
+OPCODE_FPEXT          = 38
+OPCODE_PTRTOINT       = 39
+OPCODE_INTTOPTR       = 40
+OPCODE_BITCAST        = 41
+OPCODE_ICMP           = 42
+OPCODE_FCMP           = 43
+OPCODE_PHI            = 44
+OPCODE_CALL           = 45
+OPCODE_SELECT         = 46
+OPCODE_USEROP1        = 47
+OPCODE_USEROP2        = 48
+OPCODE_VAARG          = 59
+OPCODE_EXTRACTELEMENT = 50
+OPCODE_INSERTELEMENT  = 51
+OPCODE_SHUFFLEVECTOR  = 52
+OPCODE_EXTRACTVALUE   = 53
+OPCODE_INSERTVALUE    = 54
 
 # calling conventions
 CC_C            = 0
@@ -206,7 +209,7 @@ RPRED_ULE       = FCMP_ULE
 RPRED_UNE       = FCMP_UNE
 RPRED_TRUE      = FCMP_TRUE
 
-# linkages
+# linkages (see llvm-c/Core.h)
 LINKAGE_EXTERNAL             = 0
 LINKAGE_AVAILABLE_EXTERNALLY = 1
 LINKAGE_LINKONCE_ANY         = 2
@@ -216,39 +219,41 @@ LINKAGE_WEAK_ODR             = 5
 LINKAGE_APPENDING            = 6
 LINKAGE_INTERNAL             = 7
 LINKAGE_PRIVATE              = 8
-LINKAGE_LINKER_PRIVATE       = 9 
-LINKAGE_DLLIMPORT            = 10
-LINKAGE_DLLEXPORT            = 11
-LINKAGE_EXTERNAL_WEAK        = 12
-LINKAGE_GHOST                = 13
-LINKAGE_COMMON               = 14
+LINKAGE_DLLIMPORT            = 9
+LINKAGE_DLLEXPORT            = 10
+LINKAGE_EXTERNAL_WEAK        = 11
+LINKAGE_GHOST                = 12
+LINKAGE_COMMON               = 13
+LINKAGE_LINKER_PRIVATE       = 14
 
-# visibility
-VISIBILITY_DEFAULT  = 0
-VISIBILITY_HIDDEN   = 1
+# visibility (see llvm/GlobalValue.h)
+VISIBILITY_DEFAULT   = 0
+VISIBILITY_HIDDEN    = 1
 VISIBILITY_PROTECTED = 2
 
 # parameter attributes (see llvm/Attributes.h)
-ATTR_ZEXT           = 1
-ATTR_SEXT           = 2
-ATTR_NO_RETURN      = 4
-ATTR_IN_REG         = 8
-ATTR_STRUCT_RET     = 16
-ATTR_NO_UNWIND      = 32
-ATTR_NO_ALIAS       = 64
-ATTR_BY_VAL         = 128
-ATTR_NEST           = 256
-ATTR_READ_NONE      = 512
-ATTR_READONLY       = 1024
-ATTR_NO_INLINE      = 1<<11
-ATTR_ALWAYS_INLINE  = 1<<12
-ATTR_OPTIMIZE_FOR_SIZE = 1<<13
-ATTR_STACK_PROTECT  = 1<<14
-ATTR_STACK_PROTECT_REQ = 1<<15
-ATTR_NO_CAPTURE     = 1<<21
-ATTR_NO_REDZONE     = 1<<22
-ATTR_NO_IMPLICIT_FLOAT = 1<<23
-ATTR_NAKED          = 1<<24
+ATTR_NONE               = 0
+ATTR_ZEXT               = 1
+ATTR_SEXT               = 2
+ATTR_NO_RETURN          = 4
+ATTR_IN_REG             = 8
+ATTR_STRUCT_RET         = 16
+ATTR_NO_UNWIND          = 32
+ATTR_NO_ALIAS           = 64
+ATTR_BY_VAL             = 128
+ATTR_NEST               = 256
+ATTR_READ_NONE          = 512
+ATTR_READONLY           = 1024
+ATTR_NO_INLINE          = 1<<11
+ATTR_ALWAYS_INLINE      = 1<<12
+ATTR_OPTIMIZE_FOR_SIZE  = 1<<13
+ATTR_STACK_PROTECT      = 1<<14
+ATTR_STACK_PROTECT_REQ  = 1<<15
+ATTR_NO_CAPTURE         = 1<<21
+ATTR_NO_REDZONE         = 1<<22
+ATTR_NO_IMPLICIT_FLOAT  = 1<<23
+ATTR_NAKED              = 1<<24
+ATTR_INLINE_HINT        = 1<<25
 
 # intrinsic IDs
 from llvm._intrinsic_ids import *
@@ -438,6 +443,14 @@ class Module(llvm.Ownable, llvm.Cacheable):
         Undoes what add_type_name() does.
         """
         _core.LLVMDeleteTypeName(self.ptr, name)
+
+    def get_type_named(self, name):
+        """Return a Type object with the given name."""
+        ptr  = _core.LLVMGetTypeByName(self.ptr, name)
+        if ptr:
+            kind = _core.LLVMGetTypeKind(ptr)
+            return _make_type(ptr, kind)
+        return None
 
     def add_global_variable(self, ty, name):
         """Add a global variable of given type with given name."""

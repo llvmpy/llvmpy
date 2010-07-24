@@ -12,13 +12,13 @@ Home page:
 
 Versions:
 ---------
-    This package will work only with LLVM 2.6. If you need llvm-py for LLVM
-    2.5, use SVN r82 or older.
+    This package will work only with LLVM 2.7, and Python 2.4 or later,
+    but not 3.x.
 
 
 Quickstart:
 -----------
-    1. Get 2.6 version of LLVM, build it. Make sure '--enable-pic' is passed to
+    1. Get 2.7 version of LLVM, build it. Make sure '--enable-pic' is passed to
        LLVM's 'configure'.
 
     2. Get llvm-py from SVN, install it:

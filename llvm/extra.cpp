@@ -41,6 +41,7 @@
 #include <sstream>
 
 // LLVM includes
+#include "llvm/LLVMContext.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/Casting.h"
@@ -48,7 +49,6 @@
 #include "llvm/DerivedTypes.h"
 #include "llvm/GlobalVariable.h"
 #include "llvm/TypeSymbolTable.h"
-#include "llvm/ModuleProvider.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/IntrinsicInst.h"
@@ -58,6 +58,8 @@
 #include "llvm/PassManager.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/Analysis/LoopPass.h"
+#include "llvm/Analysis/Passes.h"
+#include "llvm/Analysis/DomPrinter.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
@@ -461,13 +463,6 @@ int LLVMInlineFunction(LLVMValueRef call)
 
 /* Passes. A few passes (listed below) are used directly from LLVM-C,
  * rest are defined here.
- *
- *  ConstantPropagation
- *  GVN
- *  InstructionCombining
- *  PromoteMemoryToRegister
- *  Reassociate
- *  CFGSimplification
  */
 
 #define define_pass(P)                                   \
@@ -478,47 +473,62 @@ void LLVMAdd ## P ## Pass (LLVMPassManagerRef passmgr) { \
     pmp->add( create ## P ## Pass ());                   \
 }
 
-define_pass( ArgumentPromotion )
+define_pass( AAEval )
+define_pass( ABCD )
+define_pass( AliasAnalysisCounter )
+define_pass( AlwaysInliner )
+define_pass( BasicAliasAnalysis )
 define_pass( BlockPlacement )
 define_pass( BreakCriticalEdges )
 define_pass( CodeGenPrepare )
-define_pass( ConstantMerge )
+define_pass( DbgInfoPrinter )
 define_pass( DeadCodeElimination )
-define_pass( DeadArgElimination )
-define_pass( DeadTypeElimination )
 define_pass( DeadInstElimination )
-/* define_pass( GCSE ): removed in LLVM 2.4 */
-define_pass( GlobalDCE )
-define_pass( GlobalOptimizer )
-define_pass( GVNPRE )
-define_pass( IndMemRem )
-define_pass( FunctionInlining )
-define_pass( BlockProfiler )
+define_pass( DemoteRegisterToMemory )
+define_pass( DomOnlyPrinter )
+define_pass( DomOnlyViewer )
+define_pass( DomPrinter )
+define_pass( DomViewer )
 define_pass( EdgeProfiler )
-define_pass( FunctionProfiler )
-define_pass( NullProfilerRS )
-define_pass( RSProfiling )
+define_pass( GEPSplitter )
+define_pass( GlobalsModRef )
+define_pass( InstCount )
+define_pass( InstructionNamer )
+define_pass( IPSCCP )
+define_pass( LazyValueInfo )
+define_pass( LCSSA )
+define_pass( LiveValues )
+define_pass( LoopDependenceAnalysis )
+define_pass( LoopExtractor )
+define_pass( LoopSimplify )
+define_pass( LoopStrengthReduce )
+define_pass( LowerInvoke )
+define_pass( LowerSwitch )
+define_pass( MergeFunctions )
+define_pass( NoAA )
+define_pass( NoProfileInfo )
+define_pass( OptimalEdgeProfiler )
+define_pass( PartialInlining )
+define_pass( PartialSpecialization )
+define_pass( PostDomOnlyPrinter )
+define_pass( PostDomOnlyViewer )
+define_pass( PostDomPrinter )
+define_pass( PostDomViewer )
+define_pass( ProfileEstimator )
+define_pass( ProfileLoader )
+define_pass( ProfileVerifier )
+define_pass( ScalarEvolutionAliasAnalysis )
+define_pass( SCCVN )
+define_pass( SimplifyHalfPowrLibCalls )
+define_pass( SingleLoopExtractor )
+define_pass( SSI )
+define_pass( SSIEverything )
+define_pass( StripNonDebugSymbols )
+define_pass( StructRetPromotion )
+define_pass( TailDuplication )
+define_pass( UnifyFunctionExitNodes )
+
 /* we support only internalize(true) */
 llvm::ModulePass *createInternalizePass() { return llvm::createInternalizePass(true); }
 define_pass( Internalize )
-define_pass( IPConstantPropagation )
-define_pass( IPSCCP )
-define_pass( LCSSA )
-define_pass( LoopExtractor )
-define_pass( SingleLoopExtractor )
-define_pass( LoopStrengthReduce )
-define_pass( LoopSimplify )
-define_pass( LowerAllocations )
-define_pass( LowerInvoke )
-define_pass( LowerSetJmp )
-define_pass( LowerSwitch )
-define_pass( UnifyFunctionExitNodes )
-define_pass( PredicateSimplifier )
-define_pass( PruneEH )
-define_pass( RaiseAllocations )
-define_pass( DemoteRegisterToMemory )
-define_pass( StripSymbols )
-define_pass( StripDeadPrototypes )
-define_pass( StructRetPromotion )
-define_pass( TailDuplication )
 

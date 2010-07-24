@@ -1,6 +1,7 @@
 
 0.6, in progress:
 
+  * Migrate to LLVM 2.7.
   * Migrate to LLVM 2.6 (KS Sreeram) (Issue #25).
   * Inline function (Corrado Zoccolo).
   * Get pointer to function (Corrado Zoccolo).

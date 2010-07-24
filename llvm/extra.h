@@ -183,77 +183,68 @@ void *LLVMGetPointerToFunction(LLVMExecutionEngineRef ee, LLVMValueRef fn);
  * containing the call is still in a proper state (not changed). */
 int LLVMInlineFunction(LLVMValueRef call);
 
-/* Passes. A few passes (listed below) are used directly from LLVM-C,
- * rest are declared here.
- *
- *  ConstantPropagation
- *  GVN
- *  InstructionCombining
- *  PromoteMemoryToRegister
- *  Reassociate
- *  CFGSimplification
- */
+/* Passes. Some passes are used directly from LLVM-C, rest are declared
+ * here. */
 
 #define declare_pass(P) \
     void LLVMAdd ## P ## Pass (LLVMPassManagerRef PM);
 
-declare_pass( AggressiveDCE )
-declare_pass( ArgumentPromotion )
+declare_pass( AAEval )
+declare_pass( ABCD )
+declare_pass( AliasAnalysisCounter )
+declare_pass( AlwaysInliner )
+declare_pass( BasicAliasAnalysis )
 declare_pass( BlockPlacement )
 declare_pass( BreakCriticalEdges )
 declare_pass( CodeGenPrepare )
-declare_pass( CondPropagation )
-declare_pass( ConstantMerge )
+declare_pass( DbgInfoPrinter )
 declare_pass( DeadCodeElimination )
-declare_pass( DeadArgElimination )
-declare_pass( DeadTypeElimination )
 declare_pass( DeadInstElimination )
-declare_pass( DeadStoreElimination )
-/* declare_pass( GCSE ): removed in LLVM 2.4. */
-declare_pass( GlobalDCE )
-declare_pass( GlobalOptimizer )
-declare_pass( GVNPRE )
-declare_pass( IndMemRem )
-declare_pass( IndVarSimplify )
-declare_pass( FunctionInlining )
-declare_pass( BlockProfiler )
-declare_pass( EdgeProfiler )
-declare_pass( FunctionProfiler )
-declare_pass( NullProfilerRS )
-declare_pass( RSProfiling )
-declare_pass( Internalize )
-declare_pass( IPConstantPropagation )
-declare_pass( IPSCCP )
-declare_pass( JumpThreading )
-declare_pass( LCSSA )
-declare_pass( LICM )
-declare_pass( LoopDeletion )
-declare_pass( LoopExtractor )
-declare_pass( SingleLoopExtractor )
-declare_pass( LoopIndexSplit )
-declare_pass( LoopStrengthReduce )
-declare_pass( LoopRotate )
-declare_pass( LoopUnroll )
-declare_pass( LoopUnswitch )
-declare_pass( LoopSimplify )
-declare_pass( LowerAllocations )
-declare_pass( LowerInvoke )
-declare_pass( LowerSetJmp )
-declare_pass( LowerSwitch )
-declare_pass( MemCpyOpt )
-declare_pass( UnifyFunctionExitNodes )
-declare_pass( PredicateSimplifier )
-declare_pass( PruneEH )
-declare_pass( RaiseAllocations )
 declare_pass( DemoteRegisterToMemory )
-declare_pass( ScalarReplAggregates )
-declare_pass( SCCP )
-declare_pass( SimplifyLibCalls )
-declare_pass( StripSymbols )
-declare_pass( StripDeadPrototypes )
+declare_pass( DomOnlyPrinter )
+declare_pass( DomOnlyViewer )
+declare_pass( DomPrinter )
+declare_pass( DomViewer )
+declare_pass( EdgeProfiler )
+declare_pass( GEPSplitter )
+declare_pass( GlobalsModRef )
+declare_pass( InstCount )
+declare_pass( InstructionNamer )
+declare_pass( IPSCCP )
+declare_pass( LazyValueInfo )
+declare_pass( LCSSA )
+declare_pass( LiveValues )
+declare_pass( LoopDependenceAnalysis )
+declare_pass( LoopExtractor )
+declare_pass( LoopSimplify )
+declare_pass( LoopStrengthReduce )
+declare_pass( LowerInvoke )
+declare_pass( LowerSwitch )
+declare_pass( MergeFunctions )
+declare_pass( NoAA )
+declare_pass( NoProfileInfo )
+declare_pass( OptimalEdgeProfiler )
+declare_pass( PartialInlining )
+declare_pass( PartialSpecialization )
+declare_pass( PostDomOnlyPrinter )
+declare_pass( PostDomOnlyViewer )
+declare_pass( PostDomPrinter )
+declare_pass( PostDomViewer )
+declare_pass( ProfileEstimator )
+declare_pass( ProfileLoader )
+declare_pass( ProfileVerifier )
+declare_pass( ScalarEvolutionAliasAnalysis )
+declare_pass( SCCVN )
+declare_pass( SimplifyHalfPowrLibCalls )
+declare_pass( SingleLoopExtractor )
+declare_pass( SSI )
+declare_pass( SSIEverything )
+declare_pass( StripNonDebugSymbols )
 declare_pass( StructRetPromotion )
-declare_pass( TailCallElimination )
 declare_pass( TailDuplication )
+declare_pass( UnifyFunctionExitNodes )
+
+declare_pass( Internalize )
 
 #ifdef __cplusplus
 } /* extern "C" */
