@@ -17,14 +17,9 @@ builder = Builder.new(bb)
 tmp = builder.add(f_sum.args[0], f_sum.args[1], "tmp")
 builder.ret(tmp)
 
-# Create a module provider object first. Modules can come from
-# in-memory IRs like what we created now, or from bitcode (.bc)
-# files. The module provider abstracts this detail.
-mp = ModuleProvider.new(my_module)
-
 # Create an execution engine object. This will create a JIT compiler
 # on platforms that support it, or an interpreter otherwise.
-ee = ExecutionEngine.new(mp)
+ee = ExecutionEngine.new(my_module)
 
 # The arguments needs to be passed as "GenericValue" objects.
 arg1 = GenericValue.int(ty_int, 100)

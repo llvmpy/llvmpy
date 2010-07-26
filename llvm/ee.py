@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2008, Mahadevan R All rights reserved.
+# Copyright (c) 2008-10, Mahadevan R All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -33,7 +33,7 @@
 """
 
 import llvm                 # top-level, for common stuff
-import llvm.core as core    # module provider, function etc.
+import llvm.core as core    # module, function etc.
 import llvm._core as _core  # C wrappers
 import llvm._util as _util  # utility functions
 
@@ -180,17 +180,17 @@ def _unpack_generic_values(objlist):
 class ExecutionEngine(object):
 
     @staticmethod
-    def new(mp, force_interpreter=False):
-        core.check_is_module_provider(mp)
-        _util.check_is_unowned(mp)
-        ret = _core.LLVMCreateExecutionEngine(mp.ptr, int(force_interpreter))
+    def new(module, force_interpreter=False):
+        core.check_is_module(module)
+        _util.check_is_unowned(module)
+        ret = _core.LLVMCreateExecutionEngine(module.ptr, int(force_interpreter))
         if isinstance(ret, str):
             raise llvm.LLVMException, ret
-        return ExecutionEngine(ret, mp)
+        return ExecutionEngine(ret, module)
 
-    def __init__(self, ptr, mp):
+    def __init__(self, ptr, module):
         self.ptr = ptr
-        mp._own(self)
+        module._own(self)
 
     def __del__(self):
         _core.LLVMDisposeExecutionEngine(self.ptr)
@@ -215,10 +215,19 @@ class ExecutionEngine(object):
         core.check_is_function(fn)
         _core.LLVMFreeMachineCodeForFunction(self.ptr, fn.ptr)
 
-    def add_module_provider(self, mp):
-        core.check_is_module_provider(mp)
-        _core.LLVMAddModuleProvider(self.ptr, mp.ptr)
-        mp._own(self)
+    def add_module(self, module):
+        core.check_is_module(module)
+        _core.LLVMAddModule(self.ptr, module.ptr)
+        module._own(self)
+
+    def remove_module(self, module):
+        core.check_is_module(module)
+        if module.owner != self:
+            raise llvm.LLVMException, "module is not owned by self"
+        ret = _core.LLVMRemoveModule2(self.ptr, module.ptr)
+        if isinstance(ret, str):
+            raise llvm.LLVMException, ret
+        return core.Module(ret)
 
     @property
     def target_data(self):

@@ -270,7 +270,6 @@ def check_is_constant(obj):     _util.check_gen(obj, Constant)
 def check_is_function(obj):     _util.check_gen(obj, Function)
 def check_is_basic_block(obj):  _util.check_gen(obj, BasicBlock)
 def check_is_module(obj):       _util.check_gen(obj, Module)
-def check_is_module_provider(obj): _util.check_gen(obj, ModuleProvider)
 
 def unpack_types(objlst):     return _util.unpack_gen(objlst, check_is_type)
 def unpack_values(objlst):    return _util.unpack_gen(objlst, check_is_value)
@@ -1931,27 +1930,6 @@ class Builder(object):
         return _make_value(
             _core.LLVMBuildShuffleVector(self.ptr,
                 vecA.ptr, vecB.ptr, mask.ptr, name))
-
-
-#===----------------------------------------------------------------------===
-# Module provider
-#===----------------------------------------------------------------------===
-
-class ModuleProvider(llvm.Ownable):
-
-    @staticmethod
-    def new(module):
-        check_is_module(module)
-        _util.check_is_unowned(module)
-        return ModuleProvider(
-            _core.LLVMCreateModuleProviderForExistingModule(module.ptr),
-            module)
-
-    def __init__(self, ptr, module):
-        llvm.Ownable.__init__(self, ptr, _core.LLVMDisposeModuleProvider)
-        module._own(self)
-        # a module provider is both a owner (of modules) and an ownable
-        # (can be owned by execution engines)
 
 
 #===----------------------------------------------------------------------===

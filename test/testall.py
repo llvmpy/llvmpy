@@ -483,12 +483,6 @@ def do_builder():
     t = i.opcode_name
 
 
-def do_moduleprovider():
-    print "    Testing class ModuleProvider"
-    m = Module.new('a')
-    mp = ModuleProvider.new(m)
-
-
 def do_llvm_core():
     print "  Testing module llvm.core"
     do_module()
@@ -507,7 +501,6 @@ def do_llvm_core():
     do_switchinstruction()
     do_basicblock()
     do_builder()
-    do_moduleprovider()
 
 
 def do_targetdata():
@@ -545,8 +538,7 @@ def do_genericvalue():
 def do_executionengine():
     print "    Testing class ExecutionEngine"
     m = Module.new('a')
-    mp = ModuleProvider.new(m)
-    ee = ExecutionEngine.new(mp, True)
+    ee = ExecutionEngine.new(m, True)
     ft = Type.function(ti, [])
     f = m.add_function(ft, 'func')
     bb = f.append_basic_block('entry')
@@ -559,11 +551,15 @@ def do_executionengine():
     ee.free_machine_code_for(f)
     t = ee.target_data
     m2 = Module.new('b')
-    mp2 = ModuleProvider.new(m2)
-    ee.add_module_provider(mp2)
+    ee.add_module(m2)
     m3 = Module.new('c')
-    mp3 = ModuleProvider.new(m3)
-    ee2 = ExecutionEngine.new(mp3, False)
+    ee2 = ExecutionEngine.new(m3, False)
+    m4 = Module.new('d')
+    m5 = Module.new('e')
+    ee3 = ExecutionEngine.new(m4, False)
+    ee3.add_module(m5)
+    x = ee3.remove_module(m5)
+    check_is_module(x)
 
 
 def do_llvm_ee():
@@ -587,16 +583,14 @@ def do_passmanager():
 def do_functionpassmanager():
     print "    Testing class FunctionPassManager"
     m = Module.new('a')
-    mp = ModuleProvider.new(m)
     ft = Type.function(ti, [])
     f = m.add_function(ft, 'func')
     bb = f.append_basic_block('entry')
     b = Builder.new(bb)
     b.ret(Constant.int(ti, 42))
-    fpm = FunctionPassManager.new(mp)
+    fpm = FunctionPassManager.new(m)
     fpm.add(TargetData.new(''))
-    # to be fixed.
-    # fpm.add(PASS_FUNCTION_INLINING)
+    fpm.add(PASS_AGGRESSIVE_DCE)
     fpm.initialize()
     fpm.run(f)
     fpm.finalize()

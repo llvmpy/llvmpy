@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from llvm.core import Module,Type,Builder,ModuleProvider
+from llvm.core import Module,Type,Builder
 from llvm.ee import ExecutionEngine
 import llvm.core
 import ctypes
@@ -45,8 +45,7 @@ def test_jit_ctypes():
         print my_module
 
     # compile the function
-    mp = ModuleProvider.new(my_module)
-    ee = ExecutionEngine.new(mp)
+    ee = ExecutionEngine.new(my_module)
 
     # let ctypes know about the function
     func_ptr_int = ee.get_pointer_to_function( mult )

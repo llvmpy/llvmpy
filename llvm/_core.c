@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Mahadevan R All rights reserved.
+ * Copyright (c) 2008-10, Mahadevan R All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -712,14 +712,6 @@ _wrap_objobjobjobjstr2obj(LLVMBuildShuffleVector, LLVMBuilderRef, LLVMValueRef, 
 
 
 /*===----------------------------------------------------------------------===*/
-/* Modules Providers                                                          */
-/*===----------------------------------------------------------------------===*/
-
-_wrap_obj2obj(LLVMCreateModuleProviderForExistingModule, LLVMModuleRef, LLVMModuleProviderRef)
-_wrap_obj2none(LLVMDisposeModuleProvider, LLVMModuleProviderRef)
-
-
-/*===----------------------------------------------------------------------===*/
 /* Memory Buffer                                                              */
 /*===----------------------------------------------------------------------===*/
 
@@ -769,7 +761,7 @@ _wrap_obj2none(LLVMDisposeMemoryBuffer, LLVMMemoryBufferRef)
 /*===----------------------------------------------------------------------===*/
 
 _wrap_none2obj(LLVMCreatePassManager, LLVMPassManagerRef)
-_wrap_obj2obj(LLVMCreateFunctionPassManager, LLVMModuleProviderRef, LLVMPassManagerRef)
+_wrap_obj2obj(LLVMCreateFunctionPassManagerForModule, LLVMModuleRef, LLVMPassManagerRef)
 _wrap_objobj2obj(LLVMRunPassManager, LLVMPassManagerRef, LLVMModuleRef, int)
 _wrap_obj2obj(LLVMInitializeFunctionPassManager, LLVMPassManagerRef, int)
 _wrap_objobj2obj(LLVMRunFunctionPassManager, LLVMPassManagerRef, LLVMValueRef, int)
@@ -928,23 +920,23 @@ _wrap_objobjint2obj(LLVMOffsetOfElement, LLVMTargetDataRef, LLVMTypeRef,
 static PyObject *
 _wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
 {
-    LLVMModuleProviderRef mp;
+    LLVMModuleRef mod;
     PyObject *obj;
     int force_interpreter;
     LLVMExecutionEngineRef ee;
-    char *outmsg;
+    char *outmsg = 0;
     PyObject *ret;
     int error;
 
     if (!PyArg_ParseTuple(args, "Oi", &obj, &force_interpreter))
         return NULL;
 
-    mp = (LLVMModuleProviderRef) PyCObject_AsVoidPtr(obj);
+    mod = (LLVMModuleRef) PyCObject_AsVoidPtr(obj);
 
     if (force_interpreter)
-        error = LLVMCreateInterpreter(&ee, mp, &outmsg);
+        error = LLVMCreateInterpreterForModule(&ee, mod, &outmsg);
     else
-        error = LLVMCreateJITCompiler(&ee, mp, 1 /*fast*/, &outmsg);
+        error = LLVMCreateJITCompilerForModule(&ee, mod, 1 /*fast*/, &outmsg);
 
     if (error) {
         ret = PyString_FromString(outmsg);
@@ -980,6 +972,38 @@ LLVMGenericValueRef LLVMRunFunction2(LLVMExecutionEngineRef EE,
     return LLVMRunFunction(EE, F, NumArgs, Args);
 }
 
+static PyObject *
+_wLLVMRemoveModule2(PyObject *self, PyObject *args)
+{
+    PyObject *obj_ee;
+    PyObject *obj_mod;
+    LLVMExecutionEngineRef ee;
+    LLVMModuleRef mod, mod_new = 0;
+    char *outmsg = 0;
+    PyObject *ret;
+    int error;
+
+    if (!PyArg_ParseTuple(args, "OO", &obj_ee, &obj_mod))
+        return NULL;
+
+    ee = (LLVMExecutionEngineRef) PyCObject_AsVoidPtr(obj_ee);
+    mod = (LLVMModuleRef) PyCObject_AsVoidPtr(obj_mod);
+
+    LLVMRemoveModule(ee, mod, &mod_new, &outmsg);
+    if (mod_new) {
+        ret = ctor_LLVMModuleRef(mod_new);
+    } else {
+        if (outmsg) {
+            ret = PyString_FromString(outmsg);
+            LLVMDisposeMessage(outmsg);
+        } else {
+            ret = PyString_FromString("error");
+        }
+    }
+
+    return ret;
+}
+
 _wrap_obj2none(LLVMDisposeExecutionEngine, LLVMExecutionEngineRef)
 _wrap_objobjlist2obj(LLVMRunFunction2, LLVMExecutionEngineRef,
     LLVMValueRef, LLVMGenericValueRef, LLVMGenericValueRef)
@@ -989,8 +1013,8 @@ _wrap_obj2none(LLVMRunStaticConstructors, LLVMExecutionEngineRef)
 _wrap_obj2none(LLVMRunStaticDestructors, LLVMExecutionEngineRef)
 _wrap_objobj2none(LLVMFreeMachineCodeForFunction, LLVMExecutionEngineRef,
     LLVMValueRef)
-_wrap_objobj2none(LLVMAddModuleProvider, LLVMExecutionEngineRef,
-    LLVMModuleProviderRef)
+_wrap_objobj2none(LLVMAddModule, LLVMExecutionEngineRef,
+    LLVMModuleRef)
 
 
 /*===----------------------------------------------------------------------===*/
@@ -1501,10 +1525,6 @@ static PyMethodDef core_methods[] = {
     _method( LLVMBuildInsertElement )    
     _method( LLVMBuildShuffleVector )    
 
-    /* Modules Providers */
-    _method( LLVMCreateModuleProviderForExistingModule )    
-    _method( LLVMDisposeModuleProvider )
-
     /* Memory Buffer */
     _method( LLVMCreateMemoryBufferWithContentsOfFile )
     _method( LLVMCreateMemoryBufferWithSTDIN )
@@ -1512,7 +1532,7 @@ static PyMethodDef core_methods[] = {
 
     /* Pass Manager */
     _method( LLVMCreatePassManager )    
-    _method( LLVMCreateFunctionPassManager )    
+    _method( LLVMCreateFunctionPassManagerForModule )    
     _method( LLVMRunPassManager )    
     _method( LLVMInitializeFunctionPassManager )    
     _method( LLVMRunFunctionPassManager )    
@@ -1638,7 +1658,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMRunStaticConstructors )
     _method( LLVMRunStaticDestructors )
     _method( LLVMFreeMachineCodeForFunction )
-    _method( LLVMAddModuleProvider )
+    _method( LLVMAddModule )
+    _method( LLVMRemoveModule2 )
 
     /* Generic Value */
     _method( LLVMCreateGenericValueOfInt )

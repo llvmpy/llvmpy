@@ -36,7 +36,6 @@ entry:
 }
 """
 m = Module.from_assembly(strstream(asm))
-mp = ModuleProvider.new(m)
 print "-"*72
 print m
 
@@ -62,7 +61,7 @@ print m
 
 # Let's run a DCE pass on the the function 'test1' now. First create a
 # function pass manager.
-fpm = FunctionPassManager.new(mp)
+fpm = FunctionPassManager.new(m)
 
 # Add the target data as first "pass". This is mandatory.
 fpm.add( TargetData.new('') )

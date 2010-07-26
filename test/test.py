@@ -13,65 +13,6 @@ class TestModule(unittest.TestCase):
     def setUp(self):
         pass
 
-    def testmodule_and_moduleprovider(self):
-        """Ownership issues between Module and ModuleProvider objects."""
-
-        def temp_mp(m):
-            mp = ModuleProvider.new(m)
-            del mp
-
-        def temp_m():
-            m = Module.new("temp_m")
-            return ModuleProvider.new(m)
-
-        # check basic ownership and deletion
-        m = Module.new("test1.1")
-        self.assertEqual(m.owner, None)
-        mp = ModuleProvider.new(m)
-        self.assertEqual(m.owner, mp)
-        mp_repr = repr(mp)
-        mp = None
-        self.assertNotEqual(m.owner, None)
-        self.assertEqual(repr(m.owner), mp_repr)
-        m = None
-        # This doesn't work. Looks like there are leaks elsewhere
-        # too (unittest module?).
-        #gc.collect()
-        #self.assertEqual(gc.garbage, [])
-
-        # delete a module which was owned by a module provider that has
-        # gone out of scope
-        m2 = Module.new("test1.2")
-        temp_mp(m2)
-        del m2
-        #self.assertEqual(gc.garbage, [])
-
-        # delete a module provider object which owned a module that has
-        # gone out of scope
-        mp3 = temp_m()
-        mp3 = None
-
-        # check ref counts
-        m4 = Module.new("test1.4")
-        self.assertEqual(sys.getrefcount(m4), 1+1)
-        mp4 = ModuleProvider.new(m4)
-        self.assertEqual(sys.getrefcount(m4), 1+1)
-        self.assertEqual(sys.getrefcount(mp4), 2+1)
-        m4 = None
-        self.assertEqual(sys.getrefcount(mp4), 1+1)
-        mp4 = None
-
-        # cannot create a second module provider object for the same
-        # module
-        works = False
-        m5 = Module.new("test1.5")
-        mp5 = ModuleProvider.new(m5)
-        try:
-            mp5_2 = ModuleProvider.new(m5)
-        except LLVMException:
-            works = True
-        self.assertEqual(works, True)
-
 
     def testdata_layout(self):
         """Data layout property."""
