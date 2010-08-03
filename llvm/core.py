@@ -1349,6 +1349,12 @@ class Function(GlobalValue):
     def viewCFG(self):
         return _core.LLVMViewFunctionCFG(self.ptr)
 
+    def add_attribute(self, attr):
+        _core.LLVMAddFunctionAttr(self.ptr, attr)
+
+    def remove_attribute(self, attr):
+        _core.LLVMRemoveFunctionAttr(self.ptr, attr)
+
     def viewCFGOnly(self):
         return _core.LLVMViewFunctionCFGOnly(self.ptr)
 

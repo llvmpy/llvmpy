@@ -295,6 +295,9 @@ def do_function():
     g = f.append_basic_block('a')
     g = f.get_entry_basic_block()
     g = list(f.basic_blocks)
+    f.add_attribute(ATTR_NO_RETURN)
+    f.add_attribute(ATTR_ALWAYS_INLINE)
+    f.remove_attribute(ATTR_NO_RETURN)
     # LLVM misbehaves:
     #try:
     #    f.verify()

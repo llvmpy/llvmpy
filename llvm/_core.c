@@ -512,6 +512,9 @@ _wrap_obj2obj(LLVMGetDoesNotThrow, LLVMValueRef, int)
 _wrap_objint2none(LLVMSetDoesNotThrow, LLVMValueRef)
 _wrap_obj2none(LLVMViewFunctionCFG, LLVMValueRef)
 _wrap_obj2none(LLVMViewFunctionCFGOnly, LLVMValueRef)
+_wrap_objenum2none(LLVMAddFunctionAttr, LLVMValueRef, LLVMAttribute)
+_wrap_objenum2none(LLVMRemoveFunctionAttr, LLVMValueRef, LLVMAttribute)
+
 
 static PyObject *
 _wLLVMVerifyFunction(PyObject *self, PyObject *args)
@@ -1390,6 +1393,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMVerifyFunction )
     _method( LLVMViewFunctionCFG )
     _method( LLVMViewFunctionCFGOnly )
+    _method( LLVMAddFunctionAttr )
+    _method( LLVMRemoveFunctionAttr )
 
     /* Arguments */
     _method( LLVMCountParams )    
