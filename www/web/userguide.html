@@ -182,9 +182,10 @@ the "egg" can be removed like so:</p></div>
 <div class="paragraph"><p>See the <a href="http://docs.python.org/install/index.html">Python
 documentation</a> for more information.</p></div>
 </div>
-<h2 id="_the_concepts">The Concepts</h2>
+<h2 id="_llvm_concepts">LLVM Concepts</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This section explains a few concepts related to LLVM.</p></div>
+<div class="paragraph"><p>This section explains a few concepts related to LLVM, not specific
+to llvm-py.</p></div>
 <h3 id="_intermediate_representation">Intermediate Representation</h3><div style="clear:left"></div>
 <div class="paragraph"><p>The intermediate representation, or IR for short, is an in-memory data
 structure that represents executable code. The IR data structures allow
@@ -357,7 +358,9 @@ global type aliases (typedef-s)
 </li>
 </ul></div>
 <div class="paragraph"><p>Modules are top-level containers; all executable code representation is
-contained within modules.</p></div>
+contained within modules. Modules may be combined (linked) together to
+give a bigger resultant module. During this process LLVM attempts to
+reconcile the references between the combined modules.</p></div>
 <h3 id="_optimization_and_passes">Optimization and Passes</h3><div style="clear:left"></div>
 <div class="paragraph"><p>LLVM provides quite a few optimization algorithms that work on the IR.
 These algorithms are organized as <em>passes</em>. Each pass does something
@@ -377,7 +380,14 @@ can write your own passes (in C/C++, as a shared library). This can be
 loaded and executed by <tt>opt</tt>. (Although llvm-py does not allow you to
 write your own passes, it does allow you to navigate the entire IR at
 any stage, and perform any transforms on it as you like.)</p></div>
-<div class="paragraph"><p>TODO: pass manager, execution engine, bit code</p></div>
+<div class="paragraph"><p>A "pass manager" is responsible for loading passes, selecting the
+correct objects to run them on (for example, a pass may work only
+on functions, individually) and actually runs them. <tt>opt</tt> is a
+command-line wrapper for the pass manager.</p></div>
+<h3 id="_bit_code">Bit code</h3><div style="clear:left"></div>
+<div class="paragraph"><p>TODO</p></div>
+<h3 id="_execution_engine_jit_and_interpreter">Execution Engine, JIT and Interpreter</h3><div style="clear:left"></div>
+<div class="paragraph"><p>TODO</p></div>
 </div>
 <h2 id="_the_llvm_py_package">The llvm-py Package</h2>
 <div class="sectionbody">
@@ -1506,27 +1516,44 @@ associated with it (an object of <tt>llvm.core.Type</tt>).</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>Value
-  Constant
-    GlobalValue
-      GlobalVariable
-      Function
+  User
+    Constant
+      ConstantExpr
+      ConstantAggregateZero
+      ConstantInt
+      ConstantFP
+      ConstantArray
+      ConstantStruct
+      ConstantVector
+      ConstantPointerNull
+      UndefValue
+      GlobalValue
+        GlobalVariable
+        Function
+    Instruction
+      CallOrInvokeInstruction
+      PHINode
+      SwitchInstruction
+      CompareInstruction
   Argument
-  Instruction
-    CallOrInvokeInstruction
-    PHINode
-    SwitchInstruction
   BasicBlock</tt></pre>
 </div></div>
-<div class="paragraph"><p>The <tt>Value</tt> class is abstract, it&#8217;s not meant to be instantiated.
-<tt>Constant</tt>-s represent constants that appear within code or as
+<div class="paragraph"><p>The <tt>Value</tt> class is abstract, it&#8217;s not meant to be instantiated. <tt>User</tt>
+is a <tt>Value</tt> that in turn uses (i.e., can refer to) other values (for
+e.g., a constant expression 1+2 refers to two constant values 1 and 2).</p></div>
+<div class="paragraph"><p><tt>Constant</tt>-s represent constants that appear within code or as
 initializers of globals. They are constructed using static methods of
-<tt>Constant</tt>. The <tt>Constant</tt> class is covered in a separate section below.
-The <tt>Function</tt> object represents an instance of a function type. Such
-objects contain <tt>Argument</tt> objects, which represent the actual,
+<tt>Constant</tt>. Various types of constants are represented by various
+subclasses of <tt>Constant</tt>. However, most of them are empty and do
+not provide any additional attributes or methods over <tt>Constant</tt>.</p></div>
+<div class="paragraph"><p>The <tt>Function</tt> object represents an instance of a function type.
+Such objects contain <tt>Argument</tt> objects, which represent the actual,
 local-variable-like arguments of the function (not to be confused with
 the arguments returned by a function <em>type</em> object&#8201;&#8212;&#8201;these represent
-the <em>type</em> of the arguments). The various <tt>Instruction</tt>-s are created by
-the <tt>Builder</tt> class. These are also covered separately.</p></div>
+the <em>type</em> of the arguments).</p></div>
+<div class="paragraph"><p>The various <tt>Instruction</tt>-s are created by the <tt>Builder</tt> class. Most
+instructions are represented by <tt>Instruction</tt> itself, but there are
+a few subclasses that represent interesting instructions.</p></div>
 <div class="paragraph"><p><tt>Value</tt> objects have a type (read-only), and a name (read-write).</p></div>
 <div class="exampleblock">
 <div class="title">llvm.core.Value</div>
@@ -1548,6 +1575,32 @@ the <tt>Builder</tt> class. These are also covered separately.</p></div>
     An <tt>llvm.core.Type</tt> object representing the type of the value.
 </p>
 </dd>
+<dt class="hdlist1">
+<tt>uses</tt> [read-only]
+</dt>
+<dd>
+<p>
+    The list of values (<tt>llvm.core.Value</tt>) that use this value.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>use_count</tt> [read-only]
+</dt>
+<dd>
+<p>
+    The number of values that use (refer) this value. Same as
+    <tt>len(val.uses)</tt> but faster if you just want the count.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>value_id</tt> [read-only]
+</dt>
+<dd>
+<p>
+    Returns <tt>llvm::Value::getValueID()</tt>. Refer LLVM documentation
+    for more info.
+</p>
+</dd>
 </dl></div>
 <div class="dlist"><div class="title">Special Methods</div><dl>
 <dt class="hdlist1">
@@ -1567,6 +1620,42 @@ the <tt>Builder</tt> class. These are also covered separately.</p></div>
     <tt>Value</tt> objects can be compared for equality. Internally, this
     converts both arguments into their LLVM assembly representations and
     compares the resultant strings.
+</p>
+</dd>
+</dl></div>
+</div></div>
+<h3 id="_user_llvm_core">User (llvm.core)</h3><div style="clear:left"></div>
+<div class="paragraph"><p><tt>User</tt>-s are values that refer to other values. The values so refered
+can be retrived by the properties of <tt>User</tt>. This is the reverse of
+the <tt>Value.uses</tt>. Together these can be used to traverse the use-def
+chains of the SSA.</p></div>
+<div class="exampleblock">
+<div class="title">llvm.core.User</div>
+<div class="exampleblock-content">
+<div class="ulist"><div class="title">Base Class</div><ul>
+<li>
+<p>
+<tt>llvm.core.Value</tt>
+</p>
+</li>
+</ul></div>
+<div class="dlist"><div class="title">Properties</div><dl>
+<dt class="hdlist1">
+<tt>operands</tt> [read-only]
+</dt>
+<dd>
+<p>
+    The list of operands (values, of type <tt>llvm.core.Value</tt>) that this
+    value refers to.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>operand_count</tt> [read-only]
+</dt>
+<dd>
+<p>
+    The number of operands that this value referes to. Same as
+    <tt>len(uses.operands)</tt> but faster if you just want the count.
 </p>
 </dd>
 </dl></div>
@@ -1692,15 +1781,27 @@ cellspacing="0" cellpadding="4">
 </tr>
 <tr>
 <td align="left" valign="top"><p class="table"><tt>k.add(k2)</tt></p></td>
-<td align="left" valign="top"><p class="table"><tt>k + k2</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>k + k2</tt>, where <tt>k</tt> and <tt>k2</tt> are integers.</p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>k.fadd(k2)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>k + k2</tt>, where <tt>k</tt> and <tt>k2</tt> are floating-point.</p></td>
 </tr>
 <tr>
 <td align="left" valign="top"><p class="table"><tt>k.sub(k2)</tt></p></td>
-<td align="left" valign="top"><p class="table"><tt>k - k2</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>k - k2</tt>, where <tt>k</tt> and <tt>k2</tt> are integers.</p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>k.fsub(k2)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>k - k2</tt>, where <tt>k</tt> and <tt>k2</tt> are floating-point.</p></td>
 </tr>
 <tr>
 <td align="left" valign="top"><p class="table"><tt>k.mul(k2)</tt></p></td>
-<td align="left" valign="top"><p class="table"><tt>k * k2</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>k * k2</tt>, where <tt>k</tt> and <tt>k2</tt> are integers.</p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>k.fmul(k2)</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>k * k2</tt>, where <tt>k</tt> and <tt>k2</tt> are floating-point.</p></td>
 </tr>
 <tr>
 <td align="left" valign="top"><p class="table"><tt>k.udiv(k2)</tt></p></td>
@@ -1760,7 +1861,7 @@ cellspacing="0" cellpadding="4">
 </tr>
 <tr>
 <td align="left" valign="top"><p class="table"><tt>k.gep(indices)</tt></p></td>
-<td align="left" valign="top"><p class="table">TODO</p></td>
+<td align="left" valign="top"><p class="table">GEP, see <a href="http://www.llvm.org/docs/GetElementPtr.html">LLVM docs</a>.</p></td>
 </tr>
 <tr>
 <td align="left" valign="top"><p class="table"><tt>k.trunc(ty)</tt></p></td>
@@ -1985,6 +2086,85 @@ cellspacing="0" cellpadding="4">
 <div class="paragraph"><div class="title">Methods</div><p>See table of operations <a href="#constops">above</a> for full list. There are no other
 methods.</p></div>
 </div></div>
+<h3 id="_other_constant_classes_llvm_core">Other Constant* Classes (llvm.core)</h3><div style="clear:left"></div>
+<div class="paragraph"><p>The following subclasses of <tt>Constant</tt> do not provide additional
+methods, they serve only to provide richer type information.</p></div>
+<div class="tableblock">
+<table rules="all"
+width="100%"
+frame="border"
+cellspacing="0" cellpadding="4">
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+<thead>
+<tr>
+<th align="left" valign="top">Subclass</th>
+<th align="left" valign="top">LLVM C++ Class</th>
+<th align="left" valign="top">Remarks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>ConstantExpr</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>llvm::ConstantExpr</tt></p></td>
+<td align="left" valign="top"><p class="table">A constant expression</p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>ConstantAggregateZero</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>llvm::ConstantAggregateZero</tt></p></td>
+<td align="left" valign="top"><p class="table">All-zero constant</p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>ConstantInt</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>llvm::ConstantInt</tt></p></td>
+<td align="left" valign="top"><p class="table">An integer constant</p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>ConstantFP</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>llvm::ConstantFP</tt></p></td>
+<td align="left" valign="top"><p class="table">A floating-point constant</p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>ConstantArray</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>llvm::ConstantArray</tt></p></td>
+<td align="left" valign="top"><p class="table">An array constant</p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>ConstantStruct</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>llvm::ConstantStruct</tt></p></td>
+<td align="left" valign="top"><p class="table">A structure constant</p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>ConstantVector</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>llvm::ConstantVector</tt></p></td>
+<td align="left" valign="top"><p class="table">A vector constant</p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>ConstantPointerNull</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>llvm::ConstantPointerNull</tt></p></td>
+<td align="left" valign="top"><p class="table">All-zero pointer constant</p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table"><tt>UndefValue</tt></p></td>
+<td align="left" valign="top"><p class="table"><tt>llvm::UndefValue</tt></p></td>
+<td align="left" valign="top"><p class="table">corresponds to <tt>undef</tt> of LLVM IR</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="paragraph"><p>These types are helpful in <tt>isinstance</tt> checks, like so:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.3
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>ti <span style="color: #990000">=</span> Type<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(</span><span style="color: #993399">32</span><span style="color: #990000">)</span>
+k1 <span style="color: #990000">=</span> Constant<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(</span>ti<span style="color: #990000">,</span> <span style="color: #993399">42</span><span style="color: #990000">)</span>           <span style="font-style: italic"><span style="color: #9A1900"># int32_t k1 = 42;</span></span>
+k2 <span style="color: #990000">=</span> Constant<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">array</span></span><span style="color: #990000">(</span>ti<span style="color: #990000">,</span> <span style="color: #990000">[</span>k1<span style="color: #990000">,</span> k1<span style="color: #990000">])</span>   <span style="font-style: italic"><span style="color: #9A1900"># int32_t k2[] = { k1, k1 };</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">assert</span></span> <span style="font-weight: bold"><span style="color: #000000">isinstance</span></span><span style="color: #990000">(</span>k1<span style="color: #990000">,</span> ConstantInt<span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">assert</span></span> <span style="font-weight: bold"><span style="color: #000000">isinstance</span></span><span style="color: #990000">(</span>k2<span style="color: #990000">,</span> ConstantArray<span style="color: #990000">)</span></tt></pre></div></div>
 <h3 id="_global_value_llvm_core">Global Value (llvm.core)</h3><div style="clear:left"></div>
 <div class="paragraph"><p>The class <tt>llvm.core.GlobalValue</tt> represents module-scope aliases, variables
 and functions. Global variables are represented by the sub-class
@@ -2319,7 +2499,7 @@ f4 <span style="color: #990000">=</span> Function<span style="color: #990000">.<
 <span style="font-style: italic"><span style="color: #9A1900"># list all function names in a module</span></span>
 <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> f <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> module_obj<span style="color: #990000">.</span>functions<span style="color: #990000">:</span>
     <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> f<span style="color: #990000">.</span>name</tt></pre></div></div>
-<div class="paragraph"><p>References to intrinsic functions can be got via the static constructor
+<div class="paragraph" id="intrinsic"><p>References to intrinsic functions can be got via the static constructor
 <tt>intrinsic</tt>. This returns a <tt>Function</tt> object, calling which is
 equivalent to invoking the intrinsic. The <tt>intrinsic</tt> method has to be
 called with a module object, an instrinic ID (which is a numeric
@@ -2342,7 +2522,7 @@ the LLVM intrinsic
 integer argument. The list of intrinsic IDs defined as integer constants
 in <tt>llvm.core</tt>. These are:</p></div>
 <div class="tableblock">
-<table rules="all"
+<table rules="none"
 width="100%"
 frame="border"
 cellspacing="0" cellpadding="4">
@@ -2485,8 +2665,7 @@ cellspacing="0" cellpadding="4">
 </tbody>
 </table>
 </div>
-<div class="paragraph"><p><tt>ATTR_ZEXT</tt>, <tt>zeroext</tt>
-There are also target-specific intrinsics (which correspond to that
+<div class="paragraph"><p>There are also target-specific intrinsics (which correspond to that
 target&#8217;s CPU instructions) available, but are omitted here for brevity.
 Full list can be seen from
 <a href="http://code.google.com/p/llvm-py/source/browse/trunk/llvm/_intrinsic_ids.py"><tt>_intrinsic_ids.py</tt></a>.
@@ -2496,7 +2675,7 @@ for more information on the intrinsics, and the
 directory in the source distribution for more examples. The intrinsic ID
 can be retrieved from a function object with the read-only property
 <tt>intrinsic_id</tt>.</p></div>
-<div class="paragraph"><p>The function&#8217;s calling convention can be set using the
+<div class="paragraph" id="callconv"><p>The function&#8217;s calling convention can be set using the
 <tt>calling_convention</tt> property. The following (integer) constants defined
 in <tt>llvm.core</tt> can be used as values:</p></div>
 <div class="tableblock">
@@ -2612,7 +2791,11 @@ from their containing module. All references to the function object
 should be dropped after <tt>delete</tt> has been called.</p></div>
 <div class="paragraph"><p>Functions can be verified with the <tt>verify</tt> method. Note that this may
 not work properly (aborts on errors).</p></div>
-<div class="paragraph"><p>TODO function attributes</p></div>
+<div class="paragraph"><p>Function attributes, as documented
+<a href="http://www.llvm.org/docs/LangRef.html#fnattrs">here</a>, can be
+set on functions using the methods <tt>add_attribute</tt> and
+<tt>remove_attribute</tt>. The following values may be used to refer to the
+LLVM attributes:</p></div>
 <div class="tableblock">
 <table rules="all"
 frame="border"
@@ -2626,13 +2809,6 @@ cellspacing="0" cellpadding="4">
     </td>
     <td align="left">
     Equivalent LLVM Assembly Keyword
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-    <sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>~<sub>~</sub>a
-    </td>
-    <td align="left">
     </td>
   </tr>
   <tr>
@@ -2742,6 +2918,215 @@ cellspacing="0" cellpadding="4">
 </tbody>
 </table>
 </div>
+<div class="paragraph"><p>Here is how attributes can be set and removed:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.3
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># create a function</span></span>
+ti <span style="color: #990000">=</span> Type<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(</span><span style="color: #993399">32</span><span style="color: #990000">)</span>
+tf <span style="color: #990000">=</span> Type<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">function</span></span><span style="color: #990000">(</span>ti<span style="color: #990000">,</span> <span style="color: #990000">[</span>ti<span style="color: #990000">,</span> ti<span style="color: #990000">])</span>
+m <span style="color: #990000">=</span> Module<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">new</span></span><span style="color: #990000">(</span><span style="color: #FF0000">'mod'</span><span style="color: #990000">)</span>
+f <span style="color: #990000">=</span> m<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">add_function</span></span><span style="color: #990000">(</span>tf<span style="color: #990000">,</span> <span style="color: #FF0000">'sum'</span><span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">print</span></span> f
+<span style="font-style: italic"><span style="color: #9A1900">#   declare i32 @sum(i32, i32)</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900"># add a couple of attributes</span></span>
+f<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">add_attribute</span></span><span style="color: #990000">(</span>ATTR_NO_UNWIND<span style="color: #990000">)</span>
+f<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">add_attribute</span></span><span style="color: #990000">(</span>ATTR_READONLY<span style="color: #990000">)</span>
+<span style="font-weight: bold"><span style="color: #0000FF">print</span></span> f
+<span style="font-style: italic"><span style="color: #9A1900">#   declare i32 @sum(i32, i32) nounwind readonly</span></span></tt></pre></div></div>
+<div class="exampleblock">
+<div class="title">llvm.core.Function</div>
+<div class="exampleblock-content">
+<div class="ulist"><div class="title">Base Class</div><ul>
+<li>
+<p>
+<tt>llvm.core.GlobalValue</tt>
+</p>
+</li>
+</ul></div>
+<div class="dlist"><div class="title">Static Constructors</div><dl>
+<dt class="hdlist1">
+<tt>new(module_obj, func_ty, name)</tt>
+</dt>
+<dd>
+<p>
+    Create a function named <tt>name</tt> of type <tt>func_ty</tt> in the module
+    <tt>module_obj</tt> and return a <tt>Function</tt> object that represents it.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>get(module_obj, name)</tt>
+</dt>
+<dd>
+<p>
+    Return a <tt>Function</tt> object to represent the function
+    named <tt>name</tt> in the module <tt>module_obj</tt> or raise <tt>LLVMException</tt> if
+    such a function does not exist.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>get_or_insert(module_obj, func_ty, name)</tt>
+</dt>
+<dd>
+<p>
+    Similar to <tt>get</tt>, except that if the function does not exist it
+    is added first, as though with <tt>new</tt>.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>intrinsic(module_obj, intrinsic_id, types)</tt>
+</dt>
+<dd>
+<p>
+    Create and return a <tt>Function</tt> object that refers to an intrinsic
+    function, as described <a href="#intrinsic">above</a>.
+</p>
+</dd>
+</dl></div>
+<div class="dlist"><div class="title">Properties</div><dl>
+<dt class="hdlist1">
+<tt>calling_convention</tt>
+</dt>
+<dd>
+<p>
+    The calling convention for the function, as listed
+    <a href="#callconv">abov</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>collector</tt>
+</dt>
+<dd>
+<p>
+    A string holding the name of the garbage collection algorithm.
+    See <a href="http://www.llvm.org/docs/LangRef.html#gc">LLVM docs</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>does_not_throw</tt>
+</dt>
+<dd>
+<p>
+    Setting to True sets the <tt>ATTR_NO_UNWIND</tt> attribute, False
+    removes it. Shortcut to using <tt>f.add_attribute(ATTR_NO_UNWIND)</tt>
+    and <tt>f.remove_attribute(ATTR_NO_UNWIND)</tt>.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>args</tt> [read-only]
+</dt>
+<dd>
+<p>
+    List of <tt>llvm.core.Argument</tt> objects representing the formal
+    arguments of the function.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>basic_block_count</tt> [read-only]
+</dt>
+<dd>
+<p>
+    Number of basic blocks belonging to this function. Same as
+    <tt>len(f.basic_blocks)</tt> but faster if you just want the count.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>entry_basic_block</tt> [read-only]
+</dt>
+<dd>
+<p>
+    The <tt>llvm.core.BasicBlock</tt> object representing the entry
+    basic block for this function, or <tt>None</tt> if there are no
+    basic blocks.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>basic_blocks</tt> [read-only]
+</dt>
+<dd>
+<p>
+    List of <tt>llvm.core.BasicBlock</tt> objects representing the
+    basic blocks belonging to this function.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>intrinsic_id</tt> [read-only]
+</dt>
+<dd>
+<p>
+    Returns the ID of the intrinsic if this object represents an
+    intrinsic instruction. Otherwise 0.
+</p>
+</dd>
+</dl></div>
+<div class="dlist"><div class="title">Methods</div><dl>
+<dt class="hdlist1">
+<tt>delete()</tt>
+</dt>
+<dd>
+<p>
+    Deletes the function from it&#8217;s module. _Do not hold any
+    references to this object after calling <tt>delete</tt> on it.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>append_basic_block(name)</tt>
+</dt>
+<dd>
+<p>
+    Add a new basic block named <tt>name</tt>, and return a corresponding
+    <tt>llvm.core.BasicBlock</tt> object. Note that if this is not the
+    entry basic block, you&#8217;ll have to add appropriate branch
+    instructions from other basic blocks yourself.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>add_attribute(attr)</tt>
+</dt>
+<dd>
+<p>
+    Add an attribute <tt>attr</tt> to the function, from the set listed above.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>remove_attribute(attr)</tt>
+</dt>
+<dd>
+<p>
+    Remove the attribute <tt>attr</tt> of the function.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>viewCFG()</tt>
+</dt>
+<dd>
+<p>
+    Displays the control flow graph using the GraphViz tool.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>viewCFGOnly()</tt>
+</dt>
+<dd>
+<p>
+    Displays the control flow graph using the GraphViz tool, but
+    omitting function bodies.
+</p>
+</dd>
+<dt class="hdlist1">
+<tt>verify()</tt>
+</dt>
+<dd>
+<p>
+    Verifies the function. See
+    <a href="http://llvm.org/docs/Passes.html#verify">LLVM docs</a>.
+</p>
+</dd>
+</dl></div>
+</div></div>
 <h3 id="_argument_llvm_core">Argument (llvm.core)</h3><div style="clear:left"></div>
 <div class="paragraph"><p>The <tt>args</tt> property of <tt>llvm.core.Function</tt> objects yields
 <tt>llvm.core.Argument</tt> objects. This allows for setting attributes for

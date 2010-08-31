@@ -164,10 +164,11 @@ See the http://docs.python.org/install/index.html[Python
 documentation] for more information.
 
 
-The Concepts
-------------
+LLVM Concepts
+-------------
 
-This section explains a few concepts related to LLVM.
+This section explains a few concepts related to LLVM, not specific
+to llvm-py.
 
 
 Intermediate Representation
@@ -322,7 +323,9 @@ file (.c file). A module contains:
 - global type aliases (typedef-s)
 
 Modules are top-level containers; all executable code representation is
-contained within modules.
+contained within modules. Modules may be combined (linked) together to
+give a bigger resultant module. During this process LLVM attempts to
+reconcile the references between the combined modules.
 
 
 Optimization and Passes
@@ -350,7 +353,20 @@ loaded and executed by +opt+. (Although llvm-py does not allow you to
 write your own passes, it does allow you to navigate the entire IR at
 any stage, and perform any transforms on it as you like.)
 
-TODO: pass manager, execution engine, bit code
+A "pass manager" is responsible for loading passes, selecting the
+correct objects to run them on (for example, a pass may work only
+on functions, individually) and actually runs them. `opt` is a
+command-line wrapper for the pass manager.
+
+Bit code
+~~~~~~~~
+
+TODO
+
+Execution Engine, JIT and Interpreter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO
 
 
 The llvm-py Package
@@ -954,28 +970,48 @@ associated with it (an object of `llvm.core.Type`).
 The class hierarchy is:
 -----------------------------------------------------------------------
 Value
-  Constant
-    GlobalValue
-      GlobalVariable
-      Function
+  User
+    Constant
+      ConstantExpr
+      ConstantAggregateZero
+      ConstantInt
+      ConstantFP
+      ConstantArray
+      ConstantStruct
+      ConstantVector
+      ConstantPointerNull
+      UndefValue
+      GlobalValue
+        GlobalVariable
+        Function
+    Instruction
+      CallOrInvokeInstruction
+      PHINode
+      SwitchInstruction
+      CompareInstruction
   Argument
-  Instruction
-    CallOrInvokeInstruction
-    PHINode
-    SwitchInstruction
   BasicBlock
 -----------------------------------------------------------------------
 
-The `Value` class is abstract, it's not meant to be instantiated.
+The `Value` class is abstract, it's not meant to be instantiated. `User`
+is a `Value` that in turn uses (i.e., can refer to) other values (for
+e.g., a constant expression 1+2 refers to two constant values 1 and 2).
+
 `Constant`-s represent constants that appear within code or as
 initializers of globals. They are constructed using static methods of
-`Constant`. The `Constant` class is covered in a separate section below.
-The `Function` object represents an instance of a function type. Such
-objects contain `Argument` objects, which represent the actual,
+`Constant`. Various types of constants are represented by various
+subclasses of `Constant`. However, most of them are empty and do
+not provide any additional attributes or methods over `Constant`.
+
+The `Function` object represents an instance of a function type.
+Such objects contain `Argument` objects, which represent the actual,
 local-variable-like arguments of the function (not to be confused with
 the arguments returned by a function _type_ object -- these represent
-the _type_ of the arguments). The various `Instruction`-s are created by
-the `Builder` class. These are also covered separately.
+the _type_ of the arguments). 
+
+The various `Instruction`-s are created by the `Builder` class. Most
+instructions are represented by `Instruction` itself, but there are
+a few subclasses that represent interesting instructions.
 
 `Value` objects have a type (read-only), and a name (read-write).
 
@@ -987,6 +1023,14 @@ the `Builder` class. These are also covered separately.
     The name of the value.
 `type` [read-only]::
     An `llvm.core.Type` object representing the type of the value.
+`uses` [read-only]::
+    The list of values (`llvm.core.Value`) that use this value.
+`use_count` [read-only]::
+    The number of values that use (refer) this value. Same as
+    `len(val.uses)` but faster if you just want the count.
+`value_id` [read-only]::
+    Returns `llvm::Value::getValueID()`. Refer LLVM documentation
+    for more info.
 
 .Special Methods
 `__str__`::
@@ -996,6 +1040,30 @@ the `Builder` class. These are also covered separately.
     `Value` objects can be compared for equality. Internally, this
     converts both arguments into their LLVM assembly representations and
     compares the resultant strings.
+=======================================================================
+
+
+User (llvm.core)
+~~~~~~~~~~~~~~~~
+
+`User`-s are values that refer to other values. The values so refered
+can be retrived by the properties of `User`. This is the reverse of
+the `Value.uses`. Together these can be used to traverse the use-def
+chains of the SSA.
+
+.llvm.core.User
+[caption=""]
+=======================================================================
+.Base Class
+- `llvm.core.Value`
+
+.Properties
+`operands` [read-only]::
+    The list of operands (values, of type `llvm.core.Value`) that this
+    value refers to.
+`operand_count` [read-only]::
+    The number of operands that this value referes to. Same as
+    `len(uses.operands)` but faster if you just want the count.
 =======================================================================
 
 
@@ -1057,9 +1125,12 @@ section of the LLVM Language Reference.
 Method, Operation
 `k.neg()`, "negation, same as `0 - k`"
 `k.not_()`, "1's complement of `k`. Note trailing underscore."
-`k.add(k2)`, "`k + k2`"
-`k.sub(k2)`, "`k - k2`"
-`k.mul(k2)`, "`k * k2`"
+`k.add(k2)`, "`k + k2`, where `k` and `k2` are integers."
+`k.fadd(k2)`, "`k + k2`, where `k` and `k2` are floating-point."
+`k.sub(k2)`, "`k - k2`, where `k` and `k2` are integers."
+`k.fsub(k2)`, "`k - k2`, where `k` and `k2` are floating-point."
+`k.mul(k2)`, "`k * k2`, where `k` and `k2` are integers."
+`k.fmul(k2)`, "`k * k2`, where `k` and `k2` are floating-point."
 `k.udiv(k2)`, "Quotient of unsigned division of `k` with `k2`"
 `k.sdiv(k2)`, "Quotient of signed division of `k` with `k2`"
 `k.fdiv(k2)`, "Quotient of floating point division of `k` with `k2`"
@@ -1074,7 +1145,7 @@ Method, Operation
 `k.shl(k2)`, "Shift `k` left by `k2` bits."
 `k.lshr(k2)`, "Shift `k` logically right by `k2` bits (new bits are 0s)."
 `k.ashr(k2)`, "Shift `k` arithmetically right by `k2` bits (new bits are same as previous sign bit)."
-`k.gep(indices)`, "TODO"
+`k.gep(indices)`, "GEP, see http://www.llvm.org/docs/GetElementPtr.html[LLVM docs]."
 `k.trunc(ty)`, "Truncate `k` to a type `ty` of lower bitwidth."
 `k.sext(ty)`, "Sign extend `k` to a type `ty` of higher bitwidth, while extending the sign bit."
 `k.zext(ty)`, "Sign extend `k` to a type `ty` of higher bitwidth, all new bits are 0s."
@@ -1150,6 +1221,37 @@ See table of constructors link:#constctors[above] for full list.
 See table of operations link:#constops[above] for full list. There are no other
 methods.
 =======================================================================
+
+Other Constant* Classes (llvm.core)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following subclasses of `Constant` do not provide additional
+methods, they serve only to provide richer type information.
+
+[frame="all",grid="all",format="csv",cols="3",options="header"]
+|======================================================================
+Subclass, LLVM C++ Class, Remarks
+`ConstantExpr`, `llvm::ConstantExpr`, A constant expression
+`ConstantAggregateZero`, `llvm::ConstantAggregateZero`, All-zero constant
+`ConstantInt`, `llvm::ConstantInt`, An integer constant
+`ConstantFP`, `llvm::ConstantFP`, A floating-point constant
+`ConstantArray`, `llvm::ConstantArray`, An array constant
+`ConstantStruct`, `llvm::ConstantStruct`, A structure constant
+`ConstantVector`, `llvm::ConstantVector`, A vector constant
+`ConstantPointerNull`, `llvm::ConstantPointerNull`, All-zero pointer constant
+`UndefValue`, `llvm::UndefValue`, corresponds to `undef` of LLVM IR
+|======================================================================
+
+These types are helpful in `isinstance` checks, like so:
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ti = Type.int(32)
+k1 = Constant.int(ti, 42)           # int32_t k1 = 42;
+k2 = Constant.array(ti, [k1, k1])   # int32_t k2[] = { k1, k1 };
+
+assert isinstance(k1, ConstantInt)
+assert isinstance(k2, ConstantArray)
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 Global Value (llvm.core)
@@ -1347,6 +1449,7 @@ for f in module_obj.functions:
     print f.name
 source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+[[intrinsic]]
 References to intrinsic functions can be got via the static constructor
 `intrinsic`. This returns a `Function` object, calling which is
 equivalent to invoking the intrinsic. The `intrinsic` method has to be
@@ -1370,12 +1473,11 @@ http://www.llvm.org/docs/LangRef.html#int_bswap[llvm.bswap]. The
 integer argument. The list of intrinsic IDs defined as integer constants
 in `llvm.core`. These are:
 
-[format="csv",cols="4"]
+[format="csv",cols="4",grid="none"]
 |======================================================================
 include::intrinsics.csv[]
 |======================================================================
 
-`ATTR_ZEXT`, `zeroext`
 There are also target-specific intrinsics (which correspond to that
 target's CPU instructions) available, but are omitted here for brevity.
 Full list can be seen from
@@ -1387,6 +1489,7 @@ directory in the source distribution for more examples. The intrinsic ID
 can be retrieved from a function object with the read-only property
 `intrinsic_id`.
 
+[[callconv]]
 The function's calling convention can be set using the
 `calling_convention` property. The following (integer) constants defined
 in `llvm.core` can be used as values:
@@ -1459,12 +1562,15 @@ should be dropped after `delete` has been called.
 Functions can be verified with the `verify` method. Note that this may
 not work properly (aborts on errors).
 
-TODO function attributes
+Function attributes, as documented
+http://www.llvm.org/docs/LangRef.html#fnattrs[here], can be
+set on functions using the methods `add_attribute` and
+`remove_attribute`. The following values may be used to refer to the
+LLVM attributes:
 
 [frame="all",grid="all"]
 `25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Value, Equivalent LLVM Assembly Keyword
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~a
 `ATTR_ALWAYS_INLINE`,`alwaysinline`
 `ATTR_INLINE_HINT`,`inlinehint`
 `ATTR_NO_INLINE`,`noinline`
@@ -1479,6 +1585,98 @@ Value, Equivalent LLVM Assembly Keyword
 `ATTR_NO_IMPLICIT_FLOAT`,`noimplicitfloat`
 `ATTR_NAKED`,`naked`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here is how attributes can be set and removed:
+
+[python]
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# create a function
+ti = Type.int(32)
+tf = Type.function(ti, [ti, ti])
+m = Module.new('mod')
+f = m.add_function(tf, 'sum')
+print f
+#   declare i32 @sum(i32, i32)
+
+# add a couple of attributes
+f.add_attribute(ATTR_NO_UNWIND)
+f.add_attribute(ATTR_READONLY)
+print f
+#   declare i32 @sum(i32, i32) nounwind readonly
+source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.llvm.core.Function
+[caption=""]
+=======================================================================
+.Base Class
+- `llvm.core.GlobalValue`
+
+.Static Constructors
+`new(module_obj, func_ty, name)`::
+    Create a function named `name` of type `func_ty` in the module
+    `module_obj` and return a `Function` object that represents it.
+`get(module_obj, name)`::
+    Return a `Function` object to represent the function
+    named `name` in the module `module_obj` or raise `LLVMException` if
+    such a function does not exist.
+`get_or_insert(module_obj, func_ty, name)`::
+    Similar to `get`, except that if the function does not exist it
+    is added first, as though with `new`.
+`intrinsic(module_obj, intrinsic_id, types)`::
+    Create and return a `Function` object that refers to an intrinsic
+    function, as described link:#intrinsic[above].
+
+.Properties
+`calling_convention`::
+    The calling convention for the function, as listed
+    link:#callconv[above].
+`collector`::
+    A string holding the name of the garbage collection algorithm.
+    See http://www.llvm.org/docs/LangRef.html#gc[LLVM docs].
+`does_not_throw`::
+    Setting to True sets the `ATTR_NO_UNWIND` attribute, False
+    removes it. Shortcut to using `f.add_attribute(ATTR_NO_UNWIND)`
+    and `f.remove_attribute(ATTR_NO_UNWIND)`.
+`args` [read-only]::
+    List of `llvm.core.Argument` objects representing the formal
+    arguments of the function.
+`basic_block_count` [read-only]::
+    Number of basic blocks belonging to this function. Same as
+    `len(f.basic_blocks)` but faster if you just want the count.
+`entry_basic_block` [read-only]::
+    The `llvm.core.BasicBlock` object representing the entry
+    basic block for this function, or `None` if there are no
+    basic blocks.
+`basic_blocks` [read-only]::
+    List of `llvm.core.BasicBlock` objects representing the
+    basic blocks belonging to this function.
+`intrinsic_id` [read-only]::
+    Returns the ID of the intrinsic if this object represents an
+    intrinsic instruction. Otherwise 0.
+
+.Methods
+`delete()`::
+    Deletes the function from it's module. _Do not hold any
+    references to this object after calling `delete` on it.
+`append_basic_block(name)`::
+    Add a new basic block named `name`, and return a corresponding
+    `llvm.core.BasicBlock` object. Note that if this is not the
+    entry basic block, you'll have to add appropriate branch
+    instructions from other basic blocks yourself.
+`add_attribute(attr)`::
+    Add an attribute `attr` to the function, from the set listed above.
+`remove_attribute(attr)`::
+    Remove the attribute `attr` of the function.
+`viewCFG()`::
+    Displays the control flow graph using the GraphViz tool.
+`viewCFGOnly()`::
+    Displays the control flow graph using the GraphViz tool, but
+    omitting function bodies.
+`verify()`::
+    Verifies the function. See
+    http://llvm.org/docs/Passes.html#verify[LLVM docs].
+=======================================================================
+
 
 Argument (llvm.core)
 ~~~~~~~~~~~~~~~~~~~~
