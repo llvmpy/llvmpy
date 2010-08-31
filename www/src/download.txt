@@ -1,12 +1,12 @@
 Download
 ========
 
-The latest release is 0.6, released 28-Oct-2009 (link:#changelog[Changelog]
-below). 0.6 works only with LLVM 2.6.
+The latest release is 0.6, released 31-Aug-2010 (link:#changelog[Changelog]
+below). 0.6 works only with LLVM 2.7.
 
 Download it here:
-- http://llvm-py.googlecode.com/files/llvm-py-0.6.tar.bz2[llvm-py-0.6.tar.bz2] (primary)
-- link:llvm-py-0.6.tar.bz2[llvm-py-0.6.tar.bz2] (mirror)
+* http://llvm-py.googlecode.com/files/llvm-py-0.6.tar.bz2[llvm-py-0.6.tar.bz2] (primary)
+* link:llvm-py-0.6.tar.bz2[llvm-py-0.6.tar.bz2] (mirror)
 
 Older versions are available http://llvm-py.googlecode.com/files/[here].
 

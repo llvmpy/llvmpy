@@ -2,7 +2,7 @@ About
 =====
 
 llvm-py is developed and maintained by Mahadevan R, with contributions from
-many users all over the world. He can be reached at mdevan.foobar@gmail.com,
+many users all over the world. He can be reached at mdevan@mdevan.org,
 on the llvm-dev mailing list and (sometimes) as mdevan on irc.oftc.net#llvm.
 
 Many thanks to the guys over at LLVM for all the nifty software, for all

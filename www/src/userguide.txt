@@ -38,7 +38,7 @@ flavours, *BSD, Mac OS X; on i386 and amd64 architectures. Windows is not
 supported, for a variety of reasons. 
 
 .Versions
-llvm-py 0.6 requires verion 2.6 of LLVM. It will not work with previous
+llvm-py 0.6 requires verion 2.7 of LLVM. It will not work with previous
 versions.
 
 llvm-py has been built and tested with Python 2.6. It should work with
@@ -112,7 +112,7 @@ llvm-py this way:
 -----------------------------------------------------------------------
 $ tar jxvf llvm-py-0.6.tar.bz2
 $ cd llvm-py-0.6
-$ sudo python setup.py install
+$ python setup.py install --user
 -----------------------------------------------------------------------
 
 If you need to tell the build script where +llvm-config+ is, do it this
@@ -121,7 +121,7 @@ way:
 -----------------------------------------------------------------------
 $ tar jxvf llvm-py-0.6.tar.bz2
 $ cd llvm-py-0.6
-$ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Release/bin/llvm-config
+$ python setup.py install --user --llvm-config=/home/mdevan/llvm/Release/bin/llvm-config
 -----------------------------------------------------------------------
 
 To build a debug version of llvm-py, that links against the debug
@@ -131,7 +131,7 @@ libraries of LLVM, use this:
 $ tar jxvf llvm-py-0.6.tar.bz2
 $ cd llvm-py-0.6
 $ python setup.py build -g --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
-$ sudo python setup.py install --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
+$ python setup.py install --user --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config
 -----------------------------------------------------------------------
 
 Be warned that debug binaries will be huge (100MB+) ! They are required
@@ -147,17 +147,21 @@ Python Modules] for more information on such scripts.
 Uninstall
 ~~~~~~~~~
 
-To get rid of llvm-py completely, if you wish to do so:
+If you'd installed llvm-py with the `--user` option, then llvm-py
+would be present under `~/.local/lib/python2.6/site-packages`.
+Otherwise, it might be under `/usr/lib/python2.6/site-packages`
+or `/usr/local/lib/python2.6/site-packages`. The directory would
+vary with your Python version and OS flavour. Look around.
+
+Once you've located the site-packages directory, the modules and
+the "egg" can be removed like so:
 
 ----
-# rm -rf /usr/lib/python2.6/site-packages/llvm
-# rm -f /usr/lib/python2.6/site-packages/llvm_py-0.6-py2.6.egg-info
+$ rm -rf <site-packages>/llvm <site-packages>/llvm_py-0.6-py2.6.egg-info
 ----
 
-- You need to be root to do this. 
-- Python site package path might be different on your system.
-- Note that there are version numbers (both Python's and llvm-py's)
-  which you might need to change to suit your system.
+See the http://docs.python.org/install/index.html[Python
+documentation] for more information.
 
 
 The Concepts
@@ -269,33 +273,33 @@ source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The corresponding LLVM assembly:
 
 -----------------------------------------------------------------------
-; ModuleID = '/tmp/webcompile/_22154_0.bc'
-target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32"
-target triple = "i386-pc-linux-gnu"
+; ModuleID = '/tmp/webcompile/_7149_0.bc'
+target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64"
+target triple = "x86_64-linux-gnu"
 
 define i32 @sum(i32 %n) nounwind readnone {
 entry:
-    %0 = icmp eq i32 %n, 0      ; <i1> [#uses=1]
-    br i1 %0, label %bb2, label %bb1
+  %0 = icmp eq i32 %n, 0                          ; <i1> [#uses=1]
+  br i1 %0, label %bb2, label %bb1
 
-bb1:        ; preds = %entry
-    %1 = add i32 %n, -1     ; <i32> [#uses=2]
-    %2 = icmp eq i32 %1, 0      ; <i1> [#uses=1]
-    br i1 %2, label %sum.exit, label %bb1.i
+bb1:                                              ; preds = %entry
+  %1 = add i32 %n, -1                             ; <i32> [#uses=2]
+  %2 = icmp eq i32 %1, 0                          ; <i1> [#uses=1]
+  br i1 %2, label %sum.exit, label %bb1.i
 
-bb1.i:      ; preds = %bb1
-    %3 = add i32 %n, -2     ; <i32> [#uses=1]
-    %4 = tail call i32 @sum(i32 %3) nounwind        ; <i32> [#uses=1]
-    %5 = add i32 %4, %1     ; <i32> [#uses=1]
-    br label %sum.exit
+bb1.i:                                            ; preds = %bb1
+  %3 = add i32 %n, -2                             ; <i32> [#uses=1]
+  %4 = tail call i32 @sum(i32 %3) nounwind        ; <i32> [#uses=1]
+  %5 = add i32 %4, %1                             ; <i32> [#uses=1]
+  br label %sum.exit
 
-sum.exit:       ; preds = %bb1.i, %bb1
-    %6 = phi i32 [ %5, %bb1.i ], [ 0, %bb1 ]        ; <i32> [#uses=1]
-    %7 = add i32 %6, %n     ; <i32> [#uses=1]
-    ret i32 %7
+sum.exit:                                         ; preds = %bb1.i, %bb1
+  %6 = phi i32 [ %5, %bb1.i ], [ 0, %bb1 ]        ; <i32> [#uses=1]
+  %7 = add i32 %6, %n                             ; <i32> [#uses=1]
+  ret i32 %7
 
-bb2:        ; preds = %entry
-    ret i32 0
+bb2:                                              ; preds = %entry
+  ret i32 0
 }
 -----------------------------------------------------------------------
 
@@ -398,7 +402,7 @@ Here is a quick overview of the contents of each package:
   manager
 - constants +TYPE_*+ that represents various types
 - constants +CC_*+ that represent calling conventions
-- constants +IPRED_*+ and +RPRED_*+ that represent integer and real
+- constants +ICMP_*+ and +FCMP_*+ that represent integer and real
   comparison predicates (like less than, greater than etc.)
 - constants +LINKAGE_*+ that represent linkage of symbols (external,
   internal etc.)
@@ -524,6 +528,9 @@ stringifying them (see below).
     A string representing the ABI of the platform.
 `target`::
     A string like `i386-pc-linux-gnu` or `i386-pc-solaris2.8`.
+`pointer_size` [read-only]::
+    The size in bits of pointers, of the target platform. A value of
+    zero represents `llvm::Module::AnyPointerSize`.
 `global_variables` [read-only]::
     An iterable that yields `GlobalVariable` objects, that represent
     the global variables of the module.
@@ -532,6 +539,8 @@ stringifying them (see below).
     in the module.
 
 .Methods
+`get_type_named(name)`::
+    Return a `Type` object for the given alias name (typedef).
 `add_type_name(name, ty)`::
     Add an alias (typedef) for the type `ty` with the name `name`.
 `delete_type_name(name)`::
@@ -549,12 +558,20 @@ stringifying them (see below).
 `get_function_named(name)`::
     Get a `Function` object corresponding to the function with the name
     `name`. Raises `LLVMException` if such a function does not exist.
+`get_or_insert_function(ty, name)`::
+    Like `get_function_named`, but adds the function first, if not
+    present (like `add_function`).
 `verify()`::
     Verify the correctness of the module. Raises `LLVMException` on
     errors.
 `to_bitcode(fileobj)`::
     Write the bitcode representation of the module to the file-like
     object `fileobj`.
+`link_in(other)`::
+    Link in another module `other` into this module. Global variables,
+    functions etc. are matched and resolved. The `other` module is no
+    longer valid and should not be used after this operation. This API
+    might be replaced with a full-fledged Linker class in the future.
 
 .Special Methods
 `__str__`::
@@ -570,7 +587,7 @@ stringifying them (see below).
 .Convention
 =======================================================================
 *All* llvm-py objects (where it makes sense), when stringified, return
-the LLVM assembly representation. `` `print module_obj` '' for example,
+the LLVM assembly representation. `print module_obj` for example,
 prints the LLVM assembly form of the entire module.
 
 Such objects, when compared for equality, internally compare these
@@ -675,6 +692,7 @@ The class-level documentation follows:
 +
 [python]
 source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Warning: do not rely on actual numerical values!
 TYPE_VOID       = 0
 TYPE_FLOAT      = 1
 TYPE_DOUBLE     = 2
@@ -682,14 +700,15 @@ TYPE_X86_FP80   = 3
 TYPE_FP128      = 4
 TYPE_PPC_FP128  = 5
 TYPE_LABEL      = 6
-TYPE_METADATA   = 7
-TYPE_INTEGER    = 8
-TYPE_FUNCTION   = 9
-TYPE_STRUCT     = 10
-TYPE_ARRAY      = 11
-TYPE_POINTER    = 12
-TYPE_OPAQUE     = 13
-TYPE_VECTOR     = 14
+TYPE_INTEGER    = 7
+TYPE_FUNCTION   = 8
+TYPE_STRUCT     = 9
+TYPE_ARRAY      = 10
+TYPE_POINTER    = 11
+TYPE_OPAQUE     = 12
+TYPE_VECTOR     = 13
+TYPE_METADATA   = 14
+TYPE_UNION      = 15
 source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 +
 Example:
@@ -811,7 +830,7 @@ source~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 `address_space` [read-only]::
     The address space of the pointer.
 `pointee` [read-only]::
-    TODO *missing*
+    A `Type` object representing the type of the value pointed to.
 =======================================================================
 
 
@@ -896,7 +915,8 @@ which gives the output:
 
 -----------------------------------------------------------------------
 ; ModuleID = 'mod1'
-	%struct.node = type { i32, %struct.node* }
+
+%struct.node = type { i32, %struct.node* }
 -----------------------------------------------------------------------
 
 For more details on what is going on here, please refer the LLVM
@@ -1049,8 +1069,8 @@ Method, Operation
 `k.and_(k2)`, "Bitwise and of `k` and `k2`. Note trailing underscore."
 `k.or_(k2)`, "Bitwise or of `k` and `k2`. Note trailing underscore."
 `k.xor(k2)`, "Bitwise exclusive-or of `k` and `k2`."
-"`k.icmp(ipred, k2)`", "Compare `k` with `k2` using the predicate `ipred`. See table link:#ipred[below] for list of predicates for integer operands."
-"`k.fcmp(rpred, k2)`", "Compare `k` with `k2` using the predicate `rpred`. See table link:#rpred[below] for list of predicates for real operands."
+"`k.icmp(icmp, k2)`", "Compare `k` with `k2` using the predicate `icmp`. See table link:#icmp[below] for list of predicates for integer operands."
+"`k.fcmp(fcmp, k2)`", "Compare `k` with `k2` using the predicate `fcmp`. See table link:#fcmp[below] for list of predicates for real operands."
 `k.shl(k2)`, "Shift `k` left by `k2` bits."
 `k.lshr(k2)`, "Shift `k` logically right by `k2` bits (new bits are 0s)."
 `k.ashr(k2)`, "Shift `k` arithmetically right by `k2` bits (new bits are same as previous sign bit)."
@@ -1073,48 +1093,48 @@ Method, Operation
 "`k.shuffle_vector(k2,mask)`", "Shuffle vector constant `k` based on vector constants `k2` and `mask`."
 |======================================================================
 
-[[ipred]]
+[[icmp]]
 Predicates for use with `icmp` instruction are listed below. All
 of these are integer constants defined in the `llvm.core` module.
 
 [frame="all",grid="all",format="csv",cols="2",options="header"]
 |======================================================================
 Value, Meaning
-`IPRED_EQ`, Equality
-`IPRED_NE`, Inequality
-`IPRED_UGT`, Unsigned greater than
-`IPRED_UGE`, Unsigned greater than or equal
-`IPRED_ULT`, Unsigned less than
-`IPRED_ULE`, Unsigned less than or equal
-`IPRED_SGT`, Signed greater than
-`IPRED_SGE`, Signed greater than or equal
-`IPRED_SLT`, Signed less than
-`IPRED_SLE`, Signed less than or equal
+`ICMP_EQ`, Equality
+`ICMP_NE`, Inequality
+`ICMP_UGT`, Unsigned greater than
+`ICMP_UGE`, Unsigned greater than or equal
+`ICMP_ULT`, Unsigned less than
+`ICMP_ULE`, Unsigned less than or equal
+`ICMP_SGT`, Signed greater than
+`ICMP_SGE`, Signed greater than or equal
+`ICMP_SLT`, Signed less than
+`ICMP_SLE`, Signed less than or equal
 |======================================================================
 
-[[rpred]]
+[[fcmp]]
 Predicates for use with `fcmp` instruction are listed below. All
 of these are integer constants defined in the `llvm.core` module.
 
 [frame="all",grid="all",format="csv",cols="2",options="header"]
 |======================================================================
 Value, Meaning
-`RPRED_FALSE`, Always false
-`RPRED_OEQ`, True if ordered and equal
-`RPRED_OGT`, True if ordered and greater than
-`RPRED_OGE`, True if ordered and greater than or equal
-`RPRED_OLT`, True if ordered and less than
-`RPRED_OLE`, True if ordered and less than or equal
-`RPRED_ONE`, True if ordered and operands are unequal
-`RPRED_ORD`, True if ordered (no NaNs)
-`RPRED_UNO`, True if unordered: `isnan(X) | isnan(Y)`
-`RPRED_UEQ`, True if unordered or equal
-`RPRED_UGT`, True if unordered or greater than
-`RPRED_UGE`, "True if unordered, greater than or equal"
-`RPRED_ULT`, "True if unordered, or less than"
-`RPRED_ULE`, "True if unordered, less than or equal"
-`RPRED_UNE`, True if unordered or not equal
-`RPRED_TRUE `, Always true
+`FCMP_FALSE`, Always false
+`FCMP_OEQ`, True if ordered and equal
+`FCMP_OGT`, True if ordered and greater than
+`FCMP_OGE`, True if ordered and greater than or equal
+`FCMP_OLT`, True if ordered and less than
+`FCMP_OLE`, True if ordered and less than or equal
+`FCMP_ONE`, True if ordered and operands are unequal
+`FCMP_ORD`, True if ordered (no NaNs)
+`FCMP_UNO`, True if unordered: `isnan(X) | isnan(Y)`
+`FCMP_UEQ`, True if unordered or equal
+`FCMP_UGT`, True if unordered or greater than
+`FCMP_UGE`, "True if unordered, greater than or equal"
+`FCMP_ULT`, "True if unordered, or less than"
+`FCMP_ULE`, "True if unordered, less than or equal"
+`FCMP_UNE`, True if unordered or not equal
+`FCMP_TRUE `, Always true
 |======================================================================
 
 .llvm.core.Constant
@@ -1157,12 +1177,12 @@ Value, Equivalent LLVM Assembly Keyword
 `LINKAGE_APPENDING`, `appending`
 `LINKAGE_INTERNAL`, `internal`
 `LINKAGE_PRIVATE`, `private`
-`LINKAGE_LINKER_PRIVATE`, `linker_private`
 `LINKAGE_DLLIMPORT`, `dllimport`
 `LINKAGE_DLLEXPORT`, `dllexport`
 `LINKAGE_EXTERNAL_WEAK`, `extern_weak`
+`LINKAGE_GHOST`, deprecated -- do not use
 `LINKAGE_COMMON`, `common`
-`LINKAGE_GHOST`, Stand-in functions
+`LINKAGE_LINKER_PRIVATE`, `linker_private`
 |======================================================================
 
 The `section` property can be assigned strings (like ".rodata"), which
@@ -1350,39 +1370,12 @@ http://www.llvm.org/docs/LangRef.html#int_bswap[llvm.bswap]. The
 integer argument. The list of intrinsic IDs defined as integer constants
 in `llvm.core`. These are:
 
-[format="csv",cols="3"]
+[format="csv",cols="4"]
 |======================================================================
-`INTR_ALPHA_UMULH`,`INTR_ANNOTATION`,`INTR_ATOMIC_CMP_SWAP`
-`INTR_ATOMIC_LOAD_ADD`,`INTR_ATOMIC_LOAD_AND`,`INTR_ATOMIC_LOAD_MAX`
-`INTR_ATOMIC_LOAD_MIN`,`INTR_ATOMIC_LOAD_NAND`,`INTR_ATOMIC_LOAD_OR`
-`INTR_ATOMIC_LOAD_SUB`,`INTR_ATOMIC_LOAD_UMAX`,`INTR_ATOMIC_LOAD_UMIN`
-`INTR_ATOMIC_LOAD_XOR`,`INTR_ATOMIC_SWAP`,`INTR_BSWAP`
-`INTR_CONVERTFF`,`INTR_CONVERTFSI`,`INTR_CONVERTFUI`
-`INTR_CONVERTSIF`,`INTR_CONVERTSS`,`INTR_CONVERTSU`
-`INTR_CONVERTUIF`,`INTR_CONVERTUS`,`INTR_CONVERTUU`
-`INTR_COS`,`INTR_CTLZ`,`INTR_CTPOP`
-`INTR_CTTZ`,`INTR_DBG_DECLARE`,`INTR_DBG_FUNC_START`
-`INTR_DBG_REGION_END`,`INTR_DBG_REGION_START`,`INTR_DBG_STOPPOINT`
-`INTR_EH_DWARF_CFA`,`INTR_EH_EXCEPTION`,`INTR_EH_RETURN_I32`
-`INTR_EH_RETURN_I64`,`INTR_EH_SELECTOR_I32`,`INTR_EH_SELECTOR_I64`
-`INTR_EH_SJLJ_LONGJMP`,`INTR_EH_SJLJ_LSDA`,`INTR_EH_SJLJ_SETJMP`
-`INTR_EH_TYPEID_FOR_I32`,`INTR_EH_TYPEID_FOR_I64`,`INTR_EH_UNWIND_INIT`
-`INTR_EXP`,`INTR_EXP2`,`INTR_FLT_ROUNDS`
-`INTR_FRAMEADDRESS`,`INTR_GCREAD`,`INTR_GCROOT`
-`INTR_GCWRITE`,`INTR_INIT_TRAMPOLINE`,`INTR_LOG`
-`INTR_LOG10`,`INTR_LOG2`,`INTR_LONGJMP`
-`INTR_MEMCPY`,`INTR_MEMMOVE`,`INTR_MEMORY_BARRIER`
-`INTR_MEMSET`,`INTR_PCMARKER`,`INTR_POW`
-`INTR_POWI`,`INTR_PREFETCH`,`INTR_PTR_ANNOTATION`
-`INTR_READCYCLECOUNTER`,`INTR_RETURNADDRESS`,`INTR_SADD_WITH_OVERFLOW`
-`INTR_SETJMP`,`INTR_SIGLONGJMP`,`INTR_SIGSETJMP`
-`INTR_SIN`,`INTR_SMUL_WITH_OVERFLOW`,`INTR_SQRT`
-`INTR_SSUB_WITH_OVERFLOW`,`INTR_STACKPROTECTOR`,`INTR_STACKRESTORE`
-`INTR_STACKSAVE`,`INTR_TRAP`,`INTR_UADD_WITH_OVERFLOW`
-`INTR_UMUL_WITH_OVERFLOW`,`INTR_USUB_WITH_OVERFLOW`,`INTR_VACOPY`
-`INTR_VAEND`,`INTR_VAR_ANNOTATION`,`INTR_VASTART`
+include::intrinsics.csv[]
 |======================================================================
 
+`ATTR_ZEXT`, `zeroext`
 There are also target-specific intrinsics (which correspond to that
 target's CPU instructions) available, but are omitted here for brevity.
 Full list can be seen from
@@ -1463,10 +1456,29 @@ Functions can be deleted using the method `delete`. This deletes them
 from their containing module. All references to the function object
 should be dropped after `delete` has been called.
 
-Functions can be verified with the `verify` method. This does not work
-properly yet (aborts on errors), investigation pending.
+Functions can be verified with the `verify` method. Note that this may
+not work properly (aborts on errors).
 
 TODO function attributes
+
+[frame="all",grid="all"]
+`25`75~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Value, Equivalent LLVM Assembly Keyword
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~a
+`ATTR_ALWAYS_INLINE`,`alwaysinline`
+`ATTR_INLINE_HINT`,`inlinehint`
+`ATTR_NO_INLINE`,`noinline`
+`ATTR_OPTIMIZE_FOR_SIZE`,`optsize`
+`ATTR_NO_RETURN`,`noreturn`
+`ATTR_NO_UNWIND`,`nounwind`
+`ATTR_READ_NONE`,`readnone`
+`ATTR_READONLY`,`readonly`
+`ATTR_STACK_PROTECT`,`ssp`
+`ATTR_STACK_PROTECT_REQ`,`sspreq`
+`ATTR_NO_REDZONE`,`noredzone`
+`ATTR_NO_IMPLICIT_FLOAT`,`noimplicitfloat`
+`ATTR_NAKED`,`naked`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Argument (llvm.core)
 ~~~~~~~~~~~~~~~~~~~~
@@ -1485,23 +1497,20 @@ Value, Equivalent LLVM Assembly Keyword
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 `ATTR_ZEXT`, `zeroext`
 `ATTR_SEXT`, `signext`
-`ATTR_NO_RETURN`, `noreturn`
 `ATTR_IN_REG`, `inreg`
-`ATTR_STRUCT_RET`, `sret`
-`ATTR_NO_UNWIND`, `nounwind`
-`ATTR_NO_ALIAS`, `noalias`
 `ATTR_BY_VAL`, `byval`
+`ATTR_STRUCT_RET`, `sret`
+`ATTR_NO_ALIAS`, `noalias`
+`ATTR_NO_CAPTURE`, `nocapture`
 `ATTR_NEST`, `nest`
-`ATTR_READ_NONE`, `readnone`
-`ATTR_READONLY`, `readonly`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The corresponding
 http://www.llvm.org/docs/LangRef.html#paramattrs[LLVM docs]
 provide more information.
 
-The alignment of any parameter can also be set via `set_argument(a)`
-where `a` is a power of 2.
+The alignment of any parameter can be set via the `alignment`
+property, to any power of 2.
 
 Basic Block (llvm.core)
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -1521,12 +1530,6 @@ Instructions (llvm.core)
 TODO
 
 
-Module Provider (llvm.core)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-TODO
-
-
 Target Data (llvm.ee)
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -1539,8 +1542,8 @@ Execution Engine (llvm.ee)
 TODO. For now, see `test/example-jit.py`.
 
 
-Pass Managers and Passes (llvm.passes)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Pass Manager and Passes (llvm.passes)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 TODO. For now, see `test/passes.py`.
 
@@ -1549,7 +1552,7 @@ About the llvm-py Project
 ---------------------------
 
 llvm-py lives at
-http://mdevan.nfshost.com/llvm-py/[http://mdevan.nfshost.com/llvm-py/].
+http://www.mdevan.org/llvm-py/[http://www.mdevan.org/llvm-py/].
 The code (subversion repository) and the issue tracker are hosted on the
 Google code hosting service, at
 http://code.google.com/p/llvm-py/[http://code.google.com/p/llvm-py/].
@@ -1571,5 +1574,5 @@ are most welcome. You can checkout the latest SVN HEAD from
 http://code.google.com/p/llvm-py/source/checkout[here].
 
 Mahadevan R wrote llvm-py and works on it in his spare time. He can be
-reached at _mdevan.foobar@gmail.com_.
+reached at _mdevan@mdevan.org_.
 

@@ -1,6 +1,8 @@
 
-0.6, in progress:
+0.6, 31-Aug-2010:
 
+  * Add and remove function attributes (Krzysztof Goj) (Issue #21).
+  * Wrap fadd,fsub,fmul (Aaron S Lav) (Issue #31).
   * Migrate to LLVM 2.7.
   * Migrate to LLVM 2.6 (KS Sreeram) (Issue #25).
   * Inline function (Corrado Zoccolo).

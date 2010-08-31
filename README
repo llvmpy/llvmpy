@@ -13,7 +13,7 @@ Home page:
 Versions:
 ---------
     This package will work only with LLVM 2.7, and Python 2.4 or later,
-    but not 3.x.
+    (not Python 3.x).
 
 
 Quickstart:
@@ -21,12 +21,13 @@ Quickstart:
     1. Get 2.7 version of LLVM, build it. Make sure '--enable-pic' is passed to
        LLVM's 'configure'.
 
-    2. Get llvm-py from SVN, install it:
+    2. Get llvm-py and install it:
 
-        $ svn co http://llvm-py.googlecode.com/svn/trunk/ llvm-py
+        $ wget http://llvm-py.googlecode.com/files/llvm-py-0.6.tar.bz2
+        $ tar jxvf llvm-py-0.6.tar.bz2
         $ cd llvm-py
         # Locate llvm-config, usually under <llvm>/Release/bin
-        $ sudo python setup.py install --llvm-config=/path/to/llvm-config
+        $ python setup.py install --user --llvm-config=/path/to/llvm-config
 
     3. See examples under 'test' directory.
 

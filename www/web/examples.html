@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.5.0" />
+<meta name="generator" content="AsciiDoc 8.5.3" />
 <meta name="description" content="Python bindings for LLVM" />
 <meta name="keywords" content="llvm python compiler backend bindings" />
 <link rel="stylesheet" href="style/xhtml11.css" type="text/css" />
@@ -37,7 +37,7 @@
 <div class="paragraph"><p>Let&#8217;s create a (LLVM) module containing a single function, corresponding
 to the <tt>C</tt> function:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1
+<div class="content"><!-- Generator: GNU source-highlight 3.1.3
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -47,7 +47,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">}</span></tt></pre></div></div>
 <div class="paragraph"><p>Here&#8217;s how it looks like:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1
+<div class="content"><!-- Generator: GNU source-highlight 3.1.3
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -109,7 +109,7 @@ entry:
 <h3 id="_adding_jit_compilation">Adding JIT Compilation</h3><div style="clear:left"></div>
 <div class="paragraph"><p>Let&#8217;s compile this function in-memory and run it.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1
+<div class="content"><!-- Generator: GNU source-highlight 3.1.3
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -132,14 +132,9 @@ builder <span style="color: #990000">=</span> Builder<span style="color: #990000
 tmp <span style="color: #990000">=</span> builder<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">add</span></span><span style="color: #990000">(</span>f_sum<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">],</span> f_sum<span style="color: #990000">.</span>args<span style="color: #990000">[</span><span style="color: #993399">1</span><span style="color: #990000">],</span> <span style="color: #FF0000">"tmp"</span><span style="color: #990000">)</span>
 builder<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">ret</span></span><span style="color: #990000">(</span>tmp<span style="color: #990000">)</span>
 
-<span style="font-style: italic"><span style="color: #9A1900"># Create a module provider object first. Modules can come from</span></span>
-<span style="font-style: italic"><span style="color: #9A1900"># in-memory IRs like what we created now, or from bitcode (.bc)</span></span>
-<span style="font-style: italic"><span style="color: #9A1900"># files. The module provider abstracts this detail.</span></span>
-mp <span style="color: #990000">=</span> ModuleProvider<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">new</span></span><span style="color: #990000">(</span>my_module<span style="color: #990000">)</span>
-
 <span style="font-style: italic"><span style="color: #9A1900"># Create an execution engine object. This will create a JIT compiler</span></span>
 <span style="font-style: italic"><span style="color: #9A1900"># on platforms that support it, or an interpreter otherwise.</span></span>
-ee <span style="color: #990000">=</span> ExecutionEngine<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">new</span></span><span style="color: #990000">(</span>mp<span style="color: #990000">)</span>
+ee <span style="color: #990000">=</span> ExecutionEngine<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">new</span></span><span style="color: #990000">(</span>my_module<span style="color: #990000">)</span>
 
 <span style="font-style: italic"><span style="color: #9A1900"># The arguments needs to be passed as "GenericValue" objects.</span></span>
 arg1 <span style="color: #990000">=</span> GenericValue<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(</span>ty_int<span style="color: #990000">,</span> <span style="color: #993399">100</span><span style="color: #990000">)</span>
@@ -224,7 +219,7 @@ Conclusion and other useful LLVM tidbits (TODO)
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 2009-10-28.
+Last updated 2010-08-31.
 </div>
 </div>
 </div>
