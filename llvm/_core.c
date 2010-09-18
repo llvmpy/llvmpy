@@ -37,6 +37,7 @@
 #include "llvm-c/Transforms/Scalar.h"
 #include "llvm-c/ExecutionEngine.h"
 #include "llvm-c/Target.h"
+#include "llvm-c/Transforms/IPO.h"
 
 /* libc includes */
 #include <stdarg.h> /* for malloc(), free() */
@@ -984,7 +985,6 @@ _wLLVMRemoveModule2(PyObject *self, PyObject *args)
     LLVMModuleRef mod, mod_new = 0;
     char *outmsg = 0;
     PyObject *ret;
-    int error;
 
     if (!PyArg_ParseTuple(args, "OO", &obj_ee, &obj_mod))
         return NULL;
