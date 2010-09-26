@@ -1,0 +1,999 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+                      "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head>
+  <title>Kaleidoscope: Adding JIT and Optimizer Support</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="author" content="Chris Lattner">
+  <meta name="author" content="Max Shawabkeh">
+  <link rel="stylesheet"
+        href="http://www.llvm.org/docs/llvm.css"
+        type="text/css">
+</head>
+
+<body>
+
+<div class="doc_title">Kaleidoscope: Adding JIT and Optimizer Support</div>
+
+<ul>
+<li>
+  <a href="http://www.llvm.org/docs/tutorial/index.html">
+    Up to Tutorial Index
+  </a>
+</li>
+<li>Chapter 4
+  <ol>
+    <li><a href="#intro">Chapter 4 Introduction</a></li>
+    <li><a href="#trivialconstfold">Trivial Constant Folding</a></li>
+    <li><a href="#optimizerpasses">LLVM Optimization Passes</a></li>
+    <li><a href="#jit">Adding a JIT Compiler</a></li>
+    <li><a href="#code">Full Code Listing</a></li>
+  </ol>
+</li>
+<li><a href="PythonLangImpl5.html">Chapter 5</a>: Extending the Language:
+Control Flow</li>
+</ul>
+
+<div class="doc_author">
+  <p>Written by <a href="mailto:sabre@nondot.org">Chris Lattner</a>
+    and <a href="http://max99x.com">Max Shawabkeh</a>
+  </p>
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="intro">Chapter 4 Introduction</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>Welcome to Chapter 4 of the
+"<a href="http://www.llvm.org/docs/tutorial/index.html">Implementing a language
+with LLVM</a>" tutorial.  Chapters 1-3 described the implementation of a simple
+language and added support for generating LLVM IR.  This chapter describes
+two new techniques: adding optimizer support to your language, and adding JIT
+compiler support.  These additions will demonstrate how to get nice, efficient
+code for the Kaleidoscope language.</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="trivialconstfold">Trivial Constant
+Folding</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>
+Our demonstration for Chapter 3 is elegant and easy to extend.  Unfortunately,
+it does not produce wonderful code.  The LLVM Builder, however, does give us
+obvious optimizations when compiling simple code:</p>
+
+<div class="doc_code">
+<pre>
+ready&gt; <b>def test(x) 1+2+x</b>
+Read function definition:
+define double @test(double %x) {
+entry:
+        %addtmp = fadd double 3.000000e+00, %x
+        ret double %addtmp
+}
+</pre>
+</div>
+
+<p>This code is not a literal transcription of the AST built by parsing the
+input. That would be:
+
+<div class="doc_code">
+<pre>
+ready&gt; <b>def test(x) 1+2+x</b>
+Read function definition:
+define double @test(double %x) {
+entry:
+        %addtmp = fadd double 2.000000e+00, 1.000000e+00
+        %addtmp1 = fadd double %addtmp, %x
+        ret double %addtmp1
+}
+</pre>
+</div>
+
+<p>Constant folding, as seen above, in particular, is a very common and very
+important optimization: so much so that many language implementors implement
+constant folding support in their AST representation.</p>
+
+<p>With LLVM, you don't need this support in the AST.  Since all calls to build
+LLVM IR go through the LLVM IR builder, the builder itself checked to see if
+there was a constant folding opportunity when you call it.  If so, it just does
+the constant fold and return the constant instead of creating an instruction.
+
+<p>Well, that was easy :).  In practice, we recommend always using
+<tt>llvm.core.Builder</tt> when generating code like this.  It has no
+"syntactic overhead" for its use (you don't have to uglify your compiler with
+constant checks everywhere) and it can dramatically reduce the amount of
+LLVM IR that is generated in some cases (particular for languages with a macro
+preprocessor or that use a lot of constants).</p>
+
+<p>On the other hand, the <tt>Builder</tt> is limited by the fact that it does
+all of its analysis inline with the code as it is built.  If you take a slightly
+more complex example:</p>
+
+<div class="doc_code">
+<pre>
+ready&gt; <b>def test(x) (1+2+x)*(x+(1+2))</b>
+Read a function definition:
+define double @test(double %x) {
+entry:
+  %addtmp = fadd double 3.000000e+00, %x          ; &lt;double&gt; [#uses=1]
+  %addtmp1 = fadd double %x, 3.000000e+00         ; &lt;double&gt; [#uses=1]
+  %multmp = fmul double %addtmp, %addtmp1         ; &lt;double&gt; [#uses=1]
+  ret double %multmp
+}
+</pre>
+</div>
+
+<p>In this case, the LHS and RHS of the multiplication are the same value.  We'd
+really like to see this generate "<tt>tmp = x+3; result = tmp*tmp;</tt>" instead
+of computing "<tt>x+3</tt>" twice.</p>
+
+<p>Unfortunately, no amount of local analysis will be able to detect and correct
+this.  This requires two transformations: reassociation of expressions (to
+make the add's lexically identical) and Common Subexpression Elimination (CSE)
+to  delete the redundant add instruction.  Fortunately, LLVM provides a broad
+range of optimizations that you can use, in the form of "passes".</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="optimizerpasses">LLVM Optimization
+ Passes</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>LLVM provides many optimization passes, which do many different sorts of
+things and have different tradeoffs.  Unlike other systems, LLVM doesn't hold
+to the mistaken notion that one set of optimizations is right for all languages
+and for all situations.  LLVM allows a compiler implementor to make complete
+decisions about what optimizations to use, in which order, and in what
+situation.</p>
+
+<p>As a concrete example, LLVM supports both "whole module" passes, which look
+across as large of body of code as they can (often a whole file, but if run
+at link time, this can be a substantial portion of the whole program).  It also
+supports and includes "per-function" passes which just operate on a single
+function at a time, without looking at other functions.  For more information
+on passes and how they are run, see the
+<a href="http://www.llvm.org/docs/WritingAnLLVMPass.html">How to Write a
+Pass</a> document and the <a href="http://www.llvm.org/docs/Passes.html">List of
+LLVM Passes</a>.</p>
+
+<p>For Kaleidoscope, we are currently generating functions on the fly, one at
+a time, as the user types them in.  We aren't shooting for the ultimate
+optimization experience in this setting, but we also want to catch the easy and
+quick stuff where possible.  As such, we will choose to run a few per-function
+optimizations as the user types the function in.  If we wanted to make a "static
+Kaleidoscope compiler", we would use exactly the code we have now, except that
+we would defer running the optimizer until the entire file has been parsed.</p>
+
+<p>In order to get per-function optimizations going, we need to set up a
+<a href="http://www.llvm.org/docs/WritingAnLLVMPass.html#passmanager">
+FunctionPassManager</a> to hold and organize the LLVM optimizations that we want
+to run.  Once we have that, we can add a set of optimizations to run.  The code
+looks like this:</p>
+
+<div class="doc_code">
+<pre>
+# The function optimization passes manager.
+g_llvm_pass_manager = FunctionPassManager.new(g_llvm_module)
+
+# The LLVM execution engine.
+g_llvm_executor = ExecutionEngine.new(g_llvm_module)
+
+...
+
+def main():
+  # Set up the optimizer pipeline. Start with registering info about how the
+  # target lays out data structures.
+  g_llvm_pass_manager.add(g_llvm_executor.target_data)
+  # Do simple "peephole" optimizations and bit-twiddling optzns.
+  g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING)
+  # Reassociate expressions.
+  g_llvm_pass_manager.add(PASS_REASSOCIATE)
+  # Eliminate Common SubExpressions.
+  g_llvm_pass_manager.add(PASS_GVN)
+  # Simplify the control flow graph (deleting unreachable blocks, etc).
+  g_llvm_pass_manager.add(PASS_CFG_SIMPLIFICATION)
+
+  g_llvm_pass_manager.initialize()
+</pre>
+</div>
+
+<p>This code defines a <tt>FunctionPassManager</tt>,
+<tt>g_llvm_pass_manager</tt>.  Once it is set up, we use a series of "add" calls
+to add a bunch of LLVM passes.  The first pass is basically boilerplate, it adds
+a pass so that later optimizations know how the data structures in the program
+are laid out.  (The "<tt>g_llvm_executor</tt>" variable is related to the JIT,
+which we will get to in the next section.)  In this case, we choose to add 4
+optimization passes.  The passes we chose here are a pretty standard set of
+"cleanup" optimizations that are useful for a wide variety of code.  I won't
+delve into what they do but, believe me, they are a good starting place :).</p>
+
+<p>Once the pass manager is set up, we need to make use of it.  We do this by
+running it after our newly created function is constructed (in
+<tt>FunctionNode.CodeGen</tt>), but before it is returned to the client:</p>
+
+<div class="doc_code">
+<pre>
+      return_value = self.body.CodeGen()
+      g_llvm_builder.ret(return_value)
+
+      # Validate the generated code, checking for consistency.
+      function.verify()
+
+      <b># Optimize the function.
+      g_llvm_pass_manager.run(function)</b>
+</pre>
+</div>
+
+<p>As you can see, this is pretty straightforward.  The
+<tt>FunctionPassManager</tt> optimizes and updates the LLVM Function in place,
+improving (hopefully) its body.  With this in place, we can try our test above
+again:</p>
+
+<div class="doc_code">
+<pre>
+ready&gt; <b>def test(x) (1+2+x)*(x+(1+2))</b>
+Read a function definition:
+define double @test(double %x) {
+entry:
+  %addtmp = fadd double %x, 3.000000e+00          ; &lt;double&gt; [#uses=2]
+  %multmp = fmul double %addtmp, %addtmp          ; &lt;double&gt; [#uses=1]
+  ret double %multmp
+}
+</pre>
+</div>
+
+<p>As expected, we now get our nicely optimized code, saving a floating point
+add instruction from every execution of this function.</p>
+
+<p>LLVM provides a wide variety of optimizations that can be used in certain
+circumstances.  Some
+<a href="http://www.llvm.org/docs/Passes.html">documentation about the various
+passes</a> is available, but it isn't very complete.  Another good source of
+ideas can come from looking at the passes that <tt>llvm-gcc</tt> or
+<tt>llvm-ld</tt> run to get started.  The "<tt>opt</tt>" tool allows you to
+experiment with passes from the command line, so you can see if they do
+anything.</p>
+
+<p>Now that we have reasonable code coming out of our front-end, lets talk about
+executing it!</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="jit">Adding a JIT Compiler</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>Code that is available in LLVM IR can have a wide variety of tools
+applied to it.  For example, you can run optimizations on it (as we did above),
+you can dump it out in textual or binary forms, you can compile the code to an
+assembly file (.s) for some target, or you can JIT compile it.  The nice thing
+about the LLVM IR representation is that it is the "common currency" between
+many different parts of the compiler.
+</p>
+
+<p>In this section, we'll add JIT compiler support to our interpreter.  The
+basic idea that we want for Kaleidoscope is to have the user enter function
+bodies as they do now, but immediately evaluate the top-level expressions they
+type in.  For example, if they type in "1 + 2", we should evaluate and print
+out 3.  If they define a function, they should be able to call it from the
+command line.</p>
+
+<p>In order to do this, we first declare and initialize the JIT.  This is done
+by adding and initializing a global variable:</p>
+
+<div class="doc_code">
+<pre>
+# The LLVM execution engine.
+g_llvm_executor = ExecutionEngine.new(g_llvm_module)
+</pre>
+</div>
+
+<p>This creates an abstract "Execution Engine" which can be either a JIT
+compiler or the LLVM interpreter.  LLVM will automatically pick a JIT compiler
+for you if one is available for your platform, otherwise it will fall back to
+the interpreter.</p>
+
+<p>Once the <tt>ExecutionEngine</tt> is created, the JIT is ready to be used.
+We can use the <tt>run_function</tt> method of the execution engine to execute
+a compiled function and get its return value.  In our case, this means that we
+can change the code that parses a top-level expression to look like this:</p>
+
+<div class="doc_code">
+<pre>
+  def HandleTopLevelExpression(self):
+    try:
+      function = self.ParseTopLevelExpr().CodeGen()
+      result = g_llvm_executor.run_function(function, [])
+      print 'Evaluated to:', result.as_real(Type.double())
+    except Exception, e:
+      print 'Error:', e
+      try:
+        self.Next() # Skip for error recovery.
+      except:
+        pass
+</pre>
+</div>
+
+<p>Recall that we compile top-level expressions into a self-contained LLVM
+function that takes no arguments and returns the computed double.</p>
+
+<p>With just these two changes, lets see how Kaleidoscope works now!</p>
+
+<div class="doc_code">
+<pre>
+ready&gt; <b>4+5</b>
+Read a top level expression:
+define double @0() {
+entry:
+  ret double 9.000000e+00
+}
+
+Evaluated to: 9.0
+</pre>
+</div>
+
+<p>Well this looks like it is basically working.  The dump of the function
+shows the "no argument function that always returns double" that we synthesize
+for each top-level expression that is typed in.  This demonstrates very basic
+functionality, but can we do more?</p>
+
+<div class="doc_code">
+<pre>
+ready&gt; <b>def testfunc(x y) x + y*2</b>
+Read a function definition:
+define double @testfunc(double %x, double %y) {
+entry:
+  %multmp = fmul double %y, 2.000000e+00          ; &lt;double&gt; [#uses=1]
+  %addtmp = fadd double %multmp, %x               ; &lt;double&gt; [#uses=1]
+  ret double %addtmp
+}
+
+ready&gt; <b>testfunc(4, 10)</b>
+Read a top level expression:
+define double @0() {
+entry:
+  %calltmp = call double @testfunc(double 4.000000e+00, double 1.000000e+01) ; &lt;double&gt; [#uses=1]
+  ret double %calltmp
+}
+
+<em>Evaluated to: 24.0</em>
+</pre>
+</div>
+
+<p>This illustrates that we can now call user code, but there is something a bit
+subtle going on here.  Note that we only invoke the JIT on the anonymous
+functions that <em>call testfunc</em>, but we never invoked it
+on <em>testfunc</em> itself.  What actually happened here is that the JIT
+scanned for all non-JIT'd functions transitively called from the anonymous
+function and compiled all of them before returning from <tt>run_function()</tt>.
+</p>
+
+<p>The JIT provides a number of other more advanced interfaces for things like
+freeing allocated machine code, rejit'ing functions to update them, etc.
+However, even with this simple code, we get some surprisingly powerful
+capabilities - check this out (I removed the dump of the anonymous functions,
+you should get the idea by now :) :</p>
+
+<div class="doc_code">
+<pre>
+ready&gt; <b>extern sin(x)</b>
+Read an extern:
+declare double @sin(double)
+
+ready&gt; <b>extern cos(x)</b>
+Read an extern:
+declare double @cos(double)
+
+ready&gt; <b>sin(1.0)</b>
+<em>Evaluated to: 0.841470984808</em>
+
+ready&gt; <b>def foo(x) sin(x)*sin(x) + cos(x)*cos(x)</b>
+Read a function definition:
+define double @foo(double %x) {
+entry:
+  %calltmp = call double @sin(double %x)          ; &lt;double&gt; [#uses=1]
+  %calltmp1 = call double @sin(double %x)         ; &lt;double&gt; [#uses=1]
+  %multmp = fmul double %calltmp, %calltmp1       ; &lt;double&gt; [#uses=1]
+  %calltmp2 = call double @cos(double %x)         ; &lt;double&gt; [#uses=1]
+  %calltmp3 = call double @cos(double %x)         ; &lt;double&gt; [#uses=1]
+  %multmp4 = fmul double %calltmp2, %calltmp3     ; &lt;double&gt; [#uses=1]
+  %addtmp = fadd double %multmp, %multmp4         ; &lt;double&gt; [#uses=1]
+  ret double %addtmp
+}
+
+ready&gt; <b>foo(4.0)</b>
+<em>Evaluated to: 1.000000</em>
+</pre>
+</div>
+
+<p>Whoa, how does the JIT know about sin and cos?  The answer is surprisingly
+simple: in this example, the JIT started execution of a function and got to a
+function call.  It realized that the function was not yet JIT compiled and
+invoked the standard set of routines to resolve the function.  In this case,
+there is no body defined for the function, so the JIT ended up calling
+"<tt>dlsym("sin")</tt>" on the Python process that is hosting our Kaleidoscope
+prompt. Since "<tt>sin</tt>" is defined within the JIT's address space, it
+simply patches up calls in the module to call the libm version of <tt>sin</tt>
+directly.</p>
+
+<p>One interesting application of this is that we can now extend the language
+by writing arbitrary C++ code to implement operations.  For example, we can
+create a C file with the following simple function:
+</p>
+
+<div class="doc_code">
+<pre>
+#include &lt;stdio.h&gt;
+
+double putchard(double x) {
+  putchar((char)x);
+  return 0;
+}
+</pre>
+</div>
+
+<p>We can then compile this into a shared library with GCC:</p>
+
+<div class="doc_code">
+<pre>
+gcc -shared -fPIC -o putchard.so  putchard.c
+</pre>
+</div>
+
+<p>Now we can load this library into the Python process using
+<tt>llvm.core.load_library_permanently</tt> and access it from Kaleidoscope to
+produce simple output to the console:</p>
+
+<div class="doc_code">
+<pre>
+>>> <b>import llvm.core</b>
+>>> <b>llvm.core.load_library_permanently('/home/max/llvm-py-tutorial/putchard.so')</b>
+>>> <b>import kaleidoscope</b>
+>>> <b>kaleidoscope.main()</b>
+ready&gt; <b>extern putchard(x)</b>
+Read an extern:
+declare double @putchard(double)
+
+ready&gt; <b>putchard(65) + putchard(66) + putchard(67) + putchard(10)</b>
+<em>ABC</em>
+Evaluated to: 0.0
+</pre>
+</div>
+
+<p>Similar code could be used to implement file I/O, console input, and many
+other capabilities in Kaleidoscope.</p>
+
+<p>This completes the JIT and optimizer chapter of the Kaleidoscope tutorial. At
+this point, we can compile a non-Turing-complete programming language, optimize
+and JIT compile it in a user-driven way.  Next up we'll look into <a
+href="PythonLangImpl5.html">extending the language with control flow
+constructs</a>, tackling some interesting LLVM IR issues along the way.</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="code">Full Code Listing</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>
+Here is the complete code listing for our running example, enhanced with the
+LLVM JIT and optimizer:
+</p>
+
+<div class="doc_code">
+<pre>
+#!/usr/bin/env python
+
+import re
+from llvm.core import Module, Constant, Type, Function, Builder, FCMP_ULT
+from llvm.ee import ExecutionEngine, TargetData
+from llvm.passes import FunctionPassManager
+from llvm.passes import (PASS_INSTRUCTION_COMBINING,
+                         PASS_REASSOCIATE,
+                         PASS_GVN,
+                         PASS_CFG_SIMPLIFICATION)
+
+################################################################################
+## Globals
+################################################################################
+
+# The LLVM module, which holds all the IR code.
+g_llvm_module = Module.new('my cool jit')
+
+# The LLVM instruction builder. Created whenever a new function is entered.
+g_llvm_builder = None
+
+# A dictionary that keeps track of which values are defined in the current scope
+# and what their LLVM representation is.
+g_named_values = {}
+
+# The function optimization passes manager.
+g_llvm_pass_manager = FunctionPassManager.new(g_llvm_module)
+
+# The LLVM execution engine.
+g_llvm_executor = ExecutionEngine.new(g_llvm_module)
+
+################################################################################
+## Lexer
+################################################################################
+
+# The lexer yields one of these types for each token.
+class EOFToken(object):
+  pass
+
+class DefToken(object):
+  pass
+
+class ExternToken(object):
+  pass
+
+class IdentifierToken(object):
+  def __init__(self, name): self.name = name
+
+class NumberToken(object):
+  def __init__(self, value): self.value = value
+
+class CharacterToken(object):
+  def __init__(self, char): self.char = char
+  def __eq__(self, other):
+    return isinstance(other, CharacterToken) and self.char == other.char
+  def __ne__(self, other): return not self == other
+
+# Regular expressions that tokens and comments of our language.
+REGEX_NUMBER = re.compile('[0-9]+(?:\.[0-9]+)?')
+REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9]*')
+REGEX_COMMENT = re.compile('#.*')
+
+def Tokenize(string):
+  while string:
+    # Skip whitespace.
+    if string[0].isspace():
+      string = string[1:]
+      continue
+
+    # Run regexes.
+    comment_match = REGEX_COMMENT.match(string)
+    number_match = REGEX_NUMBER.match(string)
+    identifier_match = REGEX_IDENTIFIER.match(string)
+
+    # Check if any of the regexes matched and yield the appropriate result.
+    if comment_match:
+      comment = comment_match.group(0)
+      string = string[len(comment):]
+    elif number_match:
+      number = number_match.group(0)
+      yield NumberToken(float(number))
+      string = string[len(number):]
+    elif identifier_match:
+      identifier = identifier_match.group(0)
+      # Check if we matched a keyword.
+      if identifier == 'def':
+        yield DefToken()
+      elif identifier == 'extern':
+        yield ExternToken()
+      else:
+        yield IdentifierToken(identifier)
+      string = string[len(identifier):]
+    else:
+      # Yield the ASCII value of the unknown character.
+      yield CharacterToken(string[0])
+      string = string[1:]
+
+  yield EOFToken()
+
+################################################################################
+## Abstract Syntax Tree (aka Parse Tree)
+################################################################################
+
+# Base class for all expression nodes.
+class ExpressionNode(object):
+  pass
+
+# Expression class for numeric literals like "1.0".
+class NumberExpressionNode(ExpressionNode):
+
+  def __init__(self, value):
+    self.value = value
+
+  def CodeGen(self):
+    return Constant.real(Type.double(), self.value)
+
+# Expression class for referencing a variable, like "a".
+class VariableExpressionNode(ExpressionNode):
+
+  def __init__(self, name):
+    self.name = name
+
+  def CodeGen(self):
+    if self.name in g_named_values:
+      return g_named_values[self.name]
+    else:
+      raise RuntimeError('Unknown variable name: ' + self.name)
+
+# Expression class for a binary operator.
+class BinaryOperatorExpressionNode(ExpressionNode):
+
+  def __init__(self, operator, left, right):
+    self.operator = operator
+    self.left = left
+    self.right = right
+
+  def CodeGen(self):
+    left = self.left.CodeGen()
+    right = self.right.CodeGen()
+
+    if self.operator == '+':
+      return g_llvm_builder.fadd(left, right, 'addtmp')
+    elif self.operator == '-':
+      return g_llvm_builder.fsub(left, right, 'subtmp')
+    elif self.operator == '*':
+      return g_llvm_builder.fmul(left, right, 'multmp')
+    elif self.operator == '&lt;':
+      result = g_llvm_builder.fcmp(FCMP_ULT, left, right, 'cmptmp')
+      # Convert bool 0 or 1 to double 0.0 or 1.0.
+      return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
+    else:
+      raise RuntimeError('Unknown binary operator.')
+
+# Expression class for function calls.
+class CallExpressionNode(ExpressionNode):
+
+  def __init__(self, callee, args):
+    self.callee = callee
+    self.args = args
+
+  def CodeGen(self):
+    # Look up the name in the global module table.
+    callee = g_llvm_module.get_function_named(self.callee)
+
+    # Check for argument mismatch error.
+    if len(callee.args) != len(self.args):
+      raise RuntimeError('Incorrect number of arguments passed.')
+
+    arg_values = [i.CodeGen() for i in self.args]
+
+    return g_llvm_builder.call(callee, arg_values, 'calltmp')
+
+# This class represents the "prototype" for a function, which captures its name,
+# and its argument names (thus implicitly the number of arguments the function
+# takes).
+class PrototypeNode(object):
+
+  def __init__(self, name, args):
+    self.name = name
+    self.args = args
+
+  def CodeGen(self):
+    # Make the function type, eg. double(double,double).
+    funct_type = Type.function(
+      Type.double(), [Type.double()] * len(self.args), False)
+
+    function = Function.new(g_llvm_module, funct_type, self.name)
+
+    # If the name conflicted, there was already something with the same name.
+    # If it has a body, don't allow redefinition or reextern.
+    if function.name != self.name:
+      function.delete()
+      function = g_llvm_module.get_function_named(self.name)
+
+      # If the function already has a body, reject this.
+      if not function.is_declaration:
+        raise RuntimeError('Redefinition of function.')
+
+      # If F took a different number of args, reject.
+      if len(callee.args) != len(self.args):
+        raise RuntimeError('Redeclaration of a function with different number '
+                           'of args.')
+
+    # Set names for all arguments and add them to the variables symbol table.
+    for arg, arg_name in zip(function.args, self.args):
+      arg.name = arg_name
+      # Add arguments to variable symbol table.
+      g_named_values[arg_name] = arg
+
+    return function
+
+# This class represents a function definition itself.
+class FunctionNode(object):
+
+  def __init__(self, prototype, body):
+    self.prototype = prototype
+    self.body = body
+
+  def CodeGen(self):
+    # Clear scope.
+    g_named_values.clear()
+
+    # Create a function object.
+    function = self.prototype.CodeGen()
+
+    # Create a new basic block to start insertion into.
+    block = function.append_basic_block('entry')
+    global g_llvm_builder
+    g_llvm_builder = Builder.new(block)
+
+    # Finish off the function.
+    try:
+      return_value = self.body.CodeGen()
+      g_llvm_builder.ret(return_value)
+
+      # Validate the generated code, checking for consistency.
+      function.verify()
+
+      # Optimize the function.
+      g_llvm_pass_manager.run(function)
+    except:
+      function.delete()
+      raise
+
+    return function
+
+
+################################################################################
+## Parser
+################################################################################
+
+class Parser(object):
+
+  def __init__(self, tokens, binop_precedence):
+    self.tokens = tokens
+    self.binop_precedence = binop_precedence
+    self.Next()
+
+  # Provide a simple token buffer. Parser.current is the current token the
+  # parser is looking at. Parser.Next() reads another token from the lexer and
+  # updates Parser.current with its results.
+  def Next(self):
+    self.current = self.tokens.next()
+
+  # Gets the precedence of the current token, or -1 if the token is not a binary
+  # operator.
+  def GetCurrentTokenPrecedence(self):
+    if isinstance(self.current, CharacterToken):
+      return self.binop_precedence.get(self.current.char, -1)
+    else:
+      return -1
+
+  # identifierexpr ::= identifier | identifier '(' expression* ')'
+  def ParseIdentifierExpr(self):
+    identifier_name = self.current.name
+    self.Next()  # eat identifier.
+
+    if self.current != CharacterToken('('):  # Simple variable reference.
+      return VariableExpressionNode(identifier_name)
+
+    # Call.
+    self.Next()  # eat '('.
+    args = []
+    if self.current != CharacterToken(')'):
+      while True:
+        args.append(self.ParseExpression())
+        if self.current == CharacterToken(')'):
+          break
+        elif self.current != CharacterToken(','):
+          raise RuntimeError('Expected ")" or "," in argument list.')
+        self.Next()
+
+    self.Next()  # eat ')'.
+    return CallExpressionNode(identifier_name, args)
+
+  # numberexpr ::= number
+  def ParseNumberExpr(self):
+    result = NumberExpressionNode(self.current.value)
+    self.Next()  # consume the number.
+    return result
+
+  # parenexpr ::= '(' expression ')'
+  def ParseParenExpr(self):
+    self.Next()  # eat '('.
+
+    contents = self.ParseExpression()
+
+    if self.current != CharacterToken(')'):
+      raise RuntimeError('Expected ")".')
+    self.Next()  # eat ')'.
+
+    return contents
+
+  # primary ::= identifierexpr | numberexpr | parenexpr
+  def ParsePrimary(self):
+    if isinstance(self.current, IdentifierToken):
+      return self.ParseIdentifierExpr()
+    elif isinstance(self.current, NumberToken):
+      return self.ParseNumberExpr()
+    elif self.current == CharacterToken('('):
+      return self.ParseParenExpr()
+    else:
+      raise RuntimeError('Unknown token when expecting an expression.')
+
+  # binoprhs ::= (operator primary)*
+  def ParseBinOpRHS(self, left, left_precedence):
+    # If this is a binary operator, find its precedence.
+    while True:
+      precedence = self.GetCurrentTokenPrecedence()
+
+      # If this is a binary operator that binds at least as tightly as the
+      # current one, consume it; otherwise we are done.
+      if precedence &lt; left_precedence:
+        return left
+
+      binary_operator = self.current.char
+      self.Next()  # eat the operator.
+
+      # Parse the primary expression after the binary operator.
+      right = self.ParsePrimary()
+
+      # If binary_operator binds less tightly with right than the operator after
+      # right, let the pending operator take right as its left.
+      next_precedence = self.GetCurrentTokenPrecedence()
+      if precedence &lt; next_precedence:
+        right = self.ParseBinOpRHS(right, precedence + 1)
+
+      # Merge left/right.
+      left = BinaryOperatorExpressionNode(binary_operator, left, right)
+
+  # expression ::= primary binoprhs
+  def ParseExpression(self):
+    left = self.ParsePrimary()
+    return self.ParseBinOpRHS(left, 0)
+
+  # prototype ::= id '(' id* ')'
+  def ParsePrototype(self):
+    if not isinstance(self.current, IdentifierToken):
+      raise RuntimeError('Expected function name in prototype.')
+
+    function_name = self.current.name
+    self.Next()  # eat function name.
+
+    if self.current != CharacterToken('('):
+      raise RuntimeError('Expected "(" in prototype.')
+    self.Next()  # eat '('.
+
+    arg_names = []
+    while isinstance(self.current, IdentifierToken):
+      arg_names.append(self.current.name)
+      self.Next()
+
+    if self.current != CharacterToken(')'):
+      raise RuntimeError('Expected ")" in prototype.')
+
+    # Success.
+    self.Next()  # eat ')'.
+
+    return PrototypeNode(function_name, arg_names)
+
+  # definition ::= 'def' prototype expression
+  def ParseDefinition(self):
+    self.Next()  # eat def.
+    proto = self.ParsePrototype()
+    body = self.ParseExpression()
+    return FunctionNode(proto, body)
+
+  # toplevelexpr ::= expression
+  def ParseTopLevelExpr(self):
+    proto = PrototypeNode('', [])
+    return FunctionNode(proto, self.ParseExpression())
+
+  # external ::= 'extern' prototype
+  def ParseExtern(self):
+    self.Next()  # eat extern.
+    return self.ParsePrototype()
+
+  # Top-Level parsing
+  def HandleDefinition(self):
+    self.Handle(self.ParseDefinition, 'Read a function definition:')
+
+  def HandleExtern(self):
+    self.Handle(self.ParseExtern, 'Read an extern:')
+
+  def HandleTopLevelExpression(self):
+    try:
+      function = self.ParseTopLevelExpr().CodeGen()
+      result = g_llvm_executor.run_function(function, [])
+      print 'Evaluated to:', result.as_real(Type.double())
+    except Exception, e:
+      print 'Error:', e
+      try:
+        self.Next() # Skip for error recovery.
+      except:
+        pass
+
+  def Handle(self, function, message):
+    try:
+      print message, function().CodeGen()
+    except Exception, e:
+      print 'Error:', e
+      try:
+        self.Next() # Skip for error recovery.
+      except:
+        pass
+
+################################################################################
+## Main driver code.
+################################################################################
+
+def main():
+  # Set up the optimizer pipeline. Start with registering info about how the
+  # target lays out data structures.
+  g_llvm_pass_manager.add(g_llvm_executor.target_data)
+  # Do simple "peephole" optimizations and bit-twiddling optzns.
+  g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING)
+  # Reassociate expressions.
+  g_llvm_pass_manager.add(PASS_REASSOCIATE)
+  # Eliminate Common SubExpressions.
+  g_llvm_pass_manager.add(PASS_GVN)
+  # Simplify the control flow graph (deleting unreachable blocks, etc).
+  g_llvm_pass_manager.add(PASS_CFG_SIMPLIFICATION)
+
+  g_llvm_pass_manager.initialize()
+
+  # Install standard binary operators.
+  # 1 is lowest possible precedence. 40 is the highest.
+  operator_precedence = {
+    '&lt;': 10,
+    '+': 20,
+    '-': 20,
+    '*': 40
+  }
+
+  # Run the main "interpreter loop".
+  while True:
+    print 'ready&gt;',
+    try:
+      raw = raw_input()
+    except KeyboardInterrupt:
+      break
+
+    parser = Parser(Tokenize(raw), operator_precedence)
+    while True:
+      # top ::= definition | external | expression | EOF
+      if isinstance(parser.current, EOFToken):
+        break
+      if isinstance(parser.current, DefToken):
+        parser.HandleDefinition()
+      elif isinstance(parser.current, ExternToken):
+        parser.HandleExtern()
+      else:
+        parser.HandleTopLevelExpression()
+
+  # Print out all of the generated code.
+  print '\n', g_llvm_module
+
+if __name__ == '__main__':
+  main()
+</pre>
+</div>
+
+<a href="PythonLangImpl5.html">Next: Extending the language: control flow</a>
+</div>
+
+<!-- *********************************************************************** -->
+<hr>
+<address>
+  <a href="http://jigsaw.w3.org/css-validator/check/referer"><img
+  src="http://jigsaw.w3.org/css-validator/images/vcss" alt="Valid CSS!"></a>
+  <a href="http://validator.w3.org/check/referer"><img
+  src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML 4.01!"></a>
+
+  <a href="mailto:sabre@nondot.org">Chris Lattner</a><br>
+  <a href="http://max99x.com">Max Shawabkeh</a><br>
+  <a href="http://llvm.org">The LLVM Compiler Infrastructure</a><br>
+  Last modified: $Date$
+</address>
+</body>
+</html>

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.5.3" />
+<meta name="generator" content="AsciiDoc 8.6.1" />
 <meta name="description" content="Python bindings for LLVM" />
 <meta name="keywords" content="llvm python compiler backend bindings" />
 <link rel="stylesheet" href="style/xhtml11.css" type="text/css" />
@@ -48,6 +48,7 @@ you can setup and use it. A working knowledge of Python and a basic idea
 of LLVM is assumed.</p></div>
 </div>
 </div>
+<div class="sect1">
 <h2 id="_introduction">Introduction</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="http://www.llvm.org/">LLVM</a> (Low-Level Virtual Machine) provides enough
@@ -76,6 +77,8 @@ versions.</p></div>
 <div class="paragraph"><p>llvm-py has been built and tested with Python 2.6. It should work with
 Python 2.4 and 2.5. It has not been tried with Python 3.x (patches welcome).</p></div>
 </div>
+</div>
+<div class="sect1">
 <h2 id="install">Installation</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>llvm-py is distributed as a source tarball. You&#8217;ll need to build and
@@ -109,7 +112,8 @@ distro&#8217;s respository has the appropriate version of LLVM!</p></div>
 <div class="paragraph"><p>It does not matter which compiler LLVM itself was built with (g<tt>,
 llvm-g</tt> or any other); llvm-py can be built with any compiler. It has
 been tried only with gcc/g++ though.</p></div>
-<h3 id="_llvm_and_tt_enable_pic_tt">LLVM and <tt>--enable-pic</tt></h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_llvm_and_tt_enable_pic_tt">LLVM and <tt>--enable-pic</tt></h3>
 <div class="paragraph"><p>The result of an LLVM build is a set of static libraries and object
 files. The llvm-py contains an extension package that is built into a
 shared object (_core.so) which links to these static libraries and
@@ -121,7 +125,9 @@ configuring LLVM (default is no PIC), like this:</p></div>
 <div class="content">
 <pre><tt>~/llvm$ ./configure --enable-pic --enable-optimized</tt></pre>
 </div></div>
-<h3 id="_llvm_config">llvm-config</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_llvm_config">llvm-config</h3>
 <div class="paragraph"><p>Inorder to build llvm-py, it&#8217;s build script needs to know from where it
 can invoke the llvm helper program, <tt>llvm-config</tt>. If you&#8217;ve installed
 LLVM, then this will be available in your <tt>PATH</tt>, and nothing further
@@ -131,7 +137,9 @@ of <tt>llvm-config</tt> to the build script.</p></div>
 <div class="paragraph"><p>You&#8217;ll need to be <em>root</em> to install llvm-py. Remember that your <tt>PATH</tt>
 is different from that of <em>root</em>, so even if <tt>llvm-config</tt> is in your
 <tt>PATH</tt>, it may not be available when you do <tt>sudo</tt>.</p></div>
-<h3 id="_steps">Steps</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_steps">Steps</h3>
 <div class="paragraph"><p>The commands illustrated below assume that the LLVM source is available
 under <tt>/home/mdevan/llvm</tt>. If you&#8217;ve a previous version of llvm-py
 installed, it is recommended to remove it first, as described
@@ -167,7 +175,9 @@ only if you need to debug into LLVM also.</p></div>
 documentation regarding <a href="http://docs.python.org/inst/inst.html">Installing
 Python Modules</a> and <a href="http://docs.python.org/dist/dist.html">Distributing
 Python Modules</a> for more information on such scripts.</p></div>
-<h3 id="uninstall">Uninstall</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="uninstall">Uninstall</h3>
 <div class="paragraph"><p>If you&#8217;d installed llvm-py with the <tt>--user</tt> option, then llvm-py
 would be present under <tt>~/.local/lib/python2.6/site-packages</tt>.
 Otherwise, it might be under <tt>/usr/lib/python2.6/site-packages</tt>
@@ -182,11 +192,15 @@ the "egg" can be removed like so:</p></div>
 <div class="paragraph"><p>See the <a href="http://docs.python.org/install/index.html">Python
 documentation</a> for more information.</p></div>
 </div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_llvm_concepts">LLVM Concepts</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>This section explains a few concepts related to LLVM, not specific
 to llvm-py.</p></div>
-<h3 id="_intermediate_representation">Intermediate Representation</h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_intermediate_representation">Intermediate Representation</h3>
 <div class="paragraph"><p>The intermediate representation, or IR for short, is an in-memory data
 structure that represents executable code. The IR data structures allow
 for creation of types, constants, functions, function arguments,
@@ -242,7 +256,9 @@ level than the usual assembly language; for example there are
 instructions related to variable argument handling, exception handling,
 and garbage collection. These allow high-level languages to be
 represented cleanly in the IR.</p></div>
-<h3 id="_ssa_form_and_phi_nodes">SSA Form and PHI Nodes</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_ssa_form_and_phi_nodes">SSA Form and PHI Nodes</h3>
 <div class="paragraph"><p>All LLVM instructions are represented in the <em>Static Single Assignment</em>
 (SSA) form. Essentially, this means that any variable can be assigned to
 only once. Such a representation facilitates better optimization, among
@@ -274,7 +290,9 @@ reached the PHI node. The argument <tt>a1</tt> of the PHI node is associated
 with the block <tt>"a1 = 1;"</tt> and <tt>a2</tt> with the block <tt>"a2 = 2;"</tt>.</p></div>
 <div class="paragraph"><p>PHI nodes have to be explicitly created in the LLVM IR. Accordingly the
 LLVM instruction set has an instruction called <tt>phi</tt>.</p></div>
-<h3 id="_llvm_assembly_language">LLVM Assembly Language</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_llvm_assembly_language">LLVM Assembly Language</h3>
 <div class="paragraph"><p>The LLVM IR can be represented offline in two formats
 - a textual, human-readable form, similar to assembly language, called
   the LLVM assembly language (files with .ll extension)
@@ -337,7 +355,9 @@ specification of the platform ABI (like endianness, sizes of types,
 alignment etc.).</p></div>
 <div class="paragraph"><p>The <a href="http://www.llvm.org/docs/LangRef.html">LLVM Language Reference</a>
 defines the LLVM assembly language including the entire instruction set.</p></div>
-<h3 id="_modules">Modules</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_modules">Modules</h3>
 <div class="paragraph"><p>Modules, in the LLVM IR, are similar to a single <tt>C</tt> language source
 file (.c file). A module contains:</p></div>
 <div class="ulist"><ul>
@@ -361,7 +381,9 @@ global type aliases (typedef-s)
 contained within modules. Modules may be combined (linked) together to
 give a bigger resultant module. During this process LLVM attempts to
 reconcile the references between the combined modules.</p></div>
-<h3 id="_optimization_and_passes">Optimization and Passes</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_optimization_and_passes">Optimization and Passes</h3>
 <div class="paragraph"><p>LLVM provides quite a few optimization algorithms that work on the IR.
 These algorithms are organized as <em>passes</em>. Each pass does something
 specific, like combining redundant instructions. Passes need not always
@@ -384,11 +406,18 @@ any stage, and perform any transforms on it as you like.)</p></div>
 correct objects to run them on (for example, a pass may work only
 on functions, individually) and actually runs them. <tt>opt</tt> is a
 command-line wrapper for the pass manager.</p></div>
-<h3 id="_bit_code">Bit code</h3><div style="clear:left"></div>
-<div class="paragraph"><p>TODO</p></div>
-<h3 id="_execution_engine_jit_and_interpreter">Execution Engine, JIT and Interpreter</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_bit_code">Bit code</h3>
 <div class="paragraph"><p>TODO</p></div>
 </div>
+<div class="sect2">
+<h3 id="_execution_engine_jit_and_interpreter">Execution Engine, JIT and Interpreter</h3>
+<div class="paragraph"><p>TODO</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_the_llvm_py_package">The llvm-py Package</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The llvm-py is a Python package, consisting of 6 modules, that wrap
@@ -575,7 +604,8 @@ interpreter or the <tt>object?</tt> of <a href="http://ipython.scipy.org/moin/">
 to get online help. (Note: not complete yet!)</td>
 </tr></table>
 </div>
-<h3 id="_module_llvm_core">Module (llvm.core)</h3><div style="clear:left"></div>
+<div class="sect2">
+<h3 id="_module_llvm_core">Module (llvm.core)</h3>
 <div class="paragraph"><p>Modules are top-level container objects. You need to create a module
 object first, before you can add global variables, aliases or functions.
 Modules are created using the static method <tt>Module.new</tt>:</p></div>
@@ -644,7 +674,7 @@ my_module <span style="color: #990000">=</span> Module<span style="color: #99000
 stringifying them (see below).</p></div>
 <div class="exampleblock">
 <div class="title">llvm.core.Module</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="dlist"><div class="title">Static Constructors</div><dl>
 <dt class="hdlist1">
 <tt>new(module_id)</tt>
@@ -857,7 +887,9 @@ string representations.</p></div>
 </td>
 </tr></table>
 </div>
-<h3 id="_types_llvm_core">Types (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_types_llvm_core">Types (llvm.core)</h3>
 <div class="paragraph"><p>Types are what you think they are. A instance of <tt>llvm.core.Type</tt>, or
 one of its derived classes, represent a type. llvm-py does not use as
 many classes to represent types as does LLVM itself. Some types are
@@ -977,7 +1009,7 @@ cellspacing="0" cellpadding="4">
 <div class="paragraph"><p>The class-level documentation follows:</p></div>
 <div class="exampleblock">
 <div class="title">llvm.core.Type</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="dlist"><div class="title">Static Constructors</div><dl>
 <dt class="hdlist1">
 <tt>int(n)</tt>
@@ -1176,7 +1208,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="exampleblock">
 <div class="title">llvm.core.IntegerType</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="ulist"><div class="title">Base Class</div><ul>
 <li>
 <p>
@@ -1197,7 +1229,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="exampleblock">
 <div class="title">llvm.core.FunctionType</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="ulist"><div class="title">Base Class</div><ul>
 <li>
 <p>
@@ -1254,7 +1286,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="exampleblock">
 <div class="title">llvm.core.StructType</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="ulist"><div class="title">Base Class</div><ul>
 <li>
 <p>
@@ -1303,7 +1335,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="exampleblock">
 <div class="title">llvm.core.ArrayType</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="ulist"><div class="title">Base Class</div><ul>
 <li>
 <p>
@@ -1332,7 +1364,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="exampleblock">
 <div class="title">llvm.core.PointerType</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="ulist"><div class="title">Base Class</div><ul>
 <li>
 <p>
@@ -1361,7 +1393,7 @@ http://www.gnu.org/software/src-highlite -->
 </div></div>
 <div class="exampleblock">
 <div class="title">llvm.core.VectorType</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="ulist"><div class="title">Base Class</div><ul>
 <li>
 <p>
@@ -1430,7 +1462,9 @@ f3 <span style="color: #990000">=</span> Type<span style="color: #990000">.</spa
 fnargs <span style="color: #990000">=</span> <span style="color: #990000">[</span> Type<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pointer</span></span><span style="color: #990000">(</span> Type<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(</span><span style="color: #993399">8</span><span style="color: #990000">)</span> <span style="color: #990000">)</span> <span style="color: #990000">]</span>
 printf <span style="color: #990000">=</span> Type<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">function</span></span><span style="color: #990000">(</span> Type<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(),</span> fnargs<span style="color: #990000">,</span> True <span style="color: #990000">)</span>
     <span style="font-style: italic"><span style="color: #9A1900"># variadic function</span></span></tt></pre></div></div>
-<h3 id="_typehandle_llvm_core">TypeHandle (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_typehandle_llvm_core">TypeHandle (llvm.core)</h3>
 <div class="paragraph"><p>TypeHandle objects are used to create recursive types, like this linked
 list node structure in C:</p></div>
 <div class="listingblock">
@@ -1483,7 +1517,7 @@ in C++. The above example is available as
 in the source distribution.</p></div>
 <div class="exampleblock">
 <div class="title">llvm.core.TypeHandle</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="dlist"><div class="title">Static Constructors</div><dl>
 <dt class="hdlist1">
 <tt>new(abstract_ty)</tt>
@@ -1508,7 +1542,9 @@ in the source distribution.</p></div>
 </dd>
 </dl></div>
 </div></div>
-<h3 id="_values_llvm_core">Values (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_values_llvm_core">Values (llvm.core)</h3>
 <div class="paragraph"><p><tt>llvm.core.Value</tt> is the base class of all values computed by a program
 that may be used as operands to other values. A value has a type
 associated with it (an object of <tt>llvm.core.Type</tt>).</p></div>
@@ -1557,7 +1593,7 @@ a few subclasses that represent interesting instructions.</p></div>
 <div class="paragraph"><p><tt>Value</tt> objects have a type (read-only), and a name (read-write).</p></div>
 <div class="exampleblock">
 <div class="title">llvm.core.Value</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="dlist"><div class="title">Properties</div><dl>
 <dt class="hdlist1">
 <tt>name</tt>
@@ -1624,14 +1660,16 @@ a few subclasses that represent interesting instructions.</p></div>
 </dd>
 </dl></div>
 </div></div>
-<h3 id="_user_llvm_core">User (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_user_llvm_core">User (llvm.core)</h3>
 <div class="paragraph"><p><tt>User</tt>-s are values that refer to other values. The values so refered
 can be retrived by the properties of <tt>User</tt>. This is the reverse of
 the <tt>Value.uses</tt>. Together these can be used to traverse the use-def
 chains of the SSA.</p></div>
 <div class="exampleblock">
 <div class="title">llvm.core.User</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="ulist"><div class="title">Base Class</div><ul>
 <li>
 <p>
@@ -1660,7 +1698,9 @@ chains of the SSA.</p></div>
 </dd>
 </dl></div>
 </div></div>
-<h3 id="_constants_llvm_core">Constants (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_constants_llvm_core">Constants (llvm.core)</h3>
 <div class="paragraph"><p><tt>Constant</tt>-s represents constants that appear within the code. The
 values of such objects are known at creation time. Constants can be
 created from Python constants. A constant expression is also a constant&#8201;&#8212;&#8201;given a <tt>Constant</tt> object, an operation (like addition, subtraction
@@ -2074,7 +2114,7 @@ cellspacing="0" cellpadding="4">
 </div>
 <div class="exampleblock">
 <div class="title">llvm.core.Constant</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="ulist"><div class="title">Base Class</div><ul>
 <li>
 <p>
@@ -2086,7 +2126,9 @@ cellspacing="0" cellpadding="4">
 <div class="paragraph"><div class="title">Methods</div><p>See table of operations <a href="#constops">above</a> for full list. There are no other
 methods.</p></div>
 </div></div>
-<h3 id="_other_constant_classes_llvm_core">Other Constant* Classes (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_other_constant_classes_llvm_core">Other Constant* Classes (llvm.core)</h3>
 <div class="paragraph"><p>The following subclasses of <tt>Constant</tt> do not provide additional
 methods, they serve only to provide richer type information.</p></div>
 <div class="tableblock">
@@ -2165,7 +2207,9 @@ k2 <span style="color: #990000">=</span> Constant<span style="color: #990000">.<
 
 <span style="font-weight: bold"><span style="color: #0000FF">assert</span></span> <span style="font-weight: bold"><span style="color: #000000">isinstance</span></span><span style="color: #990000">(</span>k1<span style="color: #990000">,</span> ConstantInt<span style="color: #990000">)</span>
 <span style="font-weight: bold"><span style="color: #0000FF">assert</span></span> <span style="font-weight: bold"><span style="color: #000000">isinstance</span></span><span style="color: #990000">(</span>k2<span style="color: #990000">,</span> ConstantArray<span style="color: #990000">)</span></tt></pre></div></div>
-<h3 id="_global_value_llvm_core">Global Value (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_global_value_llvm_core">Global Value (llvm.core)</h3>
 <div class="paragraph"><p>The class <tt>llvm.core.GlobalValue</tt> represents module-scope aliases, variables
 and functions. Global variables are represented by the sub-class
 <tt>llvm.core.GlobalVariable</tt> and functions by <tt>llvm.core.Function</tt>.</p></div>
@@ -2290,7 +2334,7 @@ global is a declaration or not. The module to which the global belongs
 to can be retrieved using the <tt>module</tt> property (read-only).</p></div>
 <div class="exampleblock">
 <div class="title">llvm.core.GlobalValue</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="ulist"><div class="title">Base Class</div><ul>
 <li>
 <p>
@@ -2352,7 +2396,9 @@ to can be retrieved using the <tt>module</tt> property (read-only).</p></div>
 </dd>
 </dl></div>
 </div></div>
-<h3 id="_global_variable_llvm_core">Global Variable (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_global_variable_llvm_core">Global Variable (llvm.core)</h3>
 <div class="paragraph"><p>Global variables (<tt>llvm.core.GlobalVariable</tt>) are subclasses of
 <tt>llvm.core.GlobalValue</tt> and represent module-level variables. These can
 have optional initializers and can be marked as constants. Global
@@ -2407,7 +2453,7 @@ gv<span style="color: #990000">.</span><span style="font-weight: bold"><span sty
 gv <span style="color: #990000">=</span> None</tt></pre></div></div>
 <div class="exampleblock">
 <div class="title">llvm.core.GlobalVariable</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="ulist"><div class="title">Base Class</div><ul>
 <li>
 <p>
@@ -2467,7 +2513,9 @@ gv <span style="color: #990000">=</span> None</tt></pre></div></div>
 </dd>
 </dl></div>
 </div></div>
-<h3 id="_function_llvm_core">Function (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_function_llvm_core">Function (llvm.core)</h3>
 <div class="paragraph"><p>Functions are represented by <tt>llvm.core.Function</tt> objects. They are
 contained within modules, and can be created either with the method
 <tt>module_obj.add_function</tt> or the static constructor <tt>Function.new</tt>.
@@ -2939,7 +2987,7 @@ f<span style="color: #990000">.</span><span style="font-weight: bold"><span styl
 <span style="font-style: italic"><span style="color: #9A1900">#   declare i32 @sum(i32, i32) nounwind readonly</span></span></tt></pre></div></div>
 <div class="exampleblock">
 <div class="title">llvm.core.Function</div>
-<div class="exampleblock-content">
+<div class="content">
 <div class="ulist"><div class="title">Base Class</div><ul>
 <li>
 <p>
@@ -2993,7 +3041,7 @@ f<span style="color: #990000">.</span><span style="font-weight: bold"><span styl
 <dd>
 <p>
     The calling convention for the function, as listed
-    <a href="#callconv">abov</a>.
+    <a href="#callconv">above</a>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3127,7 +3175,9 @@ f<span style="color: #990000">.</span><span style="font-weight: bold"><span styl
 </dd>
 </dl></div>
 </div></div>
-<h3 id="_argument_llvm_core">Argument (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_argument_llvm_core">Argument (llvm.core)</h3>
 <div class="paragraph"><p>The <tt>args</tt> property of <tt>llvm.core.Function</tt> objects yields
 <tt>llvm.core.Argument</tt> objects. This allows for setting attributes for
 functions arguments. <tt>Argument</tt> objects cannot be constructed from user
@@ -3223,19 +3273,34 @@ cellspacing="0" cellpadding="4">
 provide more information.</p></div>
 <div class="paragraph"><p>The alignment of any parameter can be set via the <tt>alignment</tt>
 property, to any power of 2.</p></div>
-<h3 id="_basic_block_llvm_core">Basic Block (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_basic_block_llvm_core">Basic Block (llvm.core)</h3>
 <div class="paragraph"><p>TODO</p></div>
-<h3 id="_builder_llvm_core">Builder (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_builder_llvm_core">Builder (llvm.core)</h3>
 <div class="paragraph"><p>TODO</p></div>
-<h3 id="_instructions_llvm_core">Instructions (llvm.core)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_instructions_llvm_core">Instructions (llvm.core)</h3>
 <div class="paragraph"><p>TODO</p></div>
-<h3 id="_target_data_llvm_ee">Target Data (llvm.ee)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_target_data_llvm_ee">Target Data (llvm.ee)</h3>
 <div class="paragraph"><p>TODO</p></div>
-<h3 id="_execution_engine_llvm_ee">Execution Engine (llvm.ee)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_execution_engine_llvm_ee">Execution Engine (llvm.ee)</h3>
 <div class="paragraph"><p>TODO. For now, see <tt>test/example-jit.py</tt>.</p></div>
-<h3 id="_pass_manager_and_passes_llvm_passes">Pass Manager and Passes (llvm.passes)</h3><div style="clear:left"></div>
+</div>
+<div class="sect2">
+<h3 id="_pass_manager_and_passes_llvm_passes">Pass Manager and Passes (llvm.passes)</h3>
 <div class="paragraph"><p>TODO. For now, see <tt>test/passes.py</tt>.</p></div>
 </div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_about_the_llvm_py_project">About the llvm-py Project</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>llvm-py lives at
@@ -3259,10 +3324,11 @@ are most welcome. You can checkout the latest SVN HEAD from
 <div class="paragraph"><p>Mahadevan R wrote llvm-py and works on it in his spare time. He can be
 reached at <em>mdevan@mdevan.org</em>.</p></div>
 </div>
+</div>
 <div id="footer">
 <div id="footer-text">
 Web pages &copy; Mahadevan R. Generated with <a href="http://www.methods.co.nz/asciidoc/">asciidoc</a>.
-Last updated 2010-08-31.
+Last updated 2010-09-26.
 </div>
 </div>
 </div>

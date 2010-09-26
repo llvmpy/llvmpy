@@ -1,0 +1,1097 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+                      "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head>
+  <title>Kaleidoscope: Implementing a Parser and AST</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="author" content="Chris Lattner">
+  <meta name="author" content="Max Shawabkeh">
+  <link rel="stylesheet"
+        href="http://www.llvm.org/docs/llvm.css"
+        type="text/css">
+</head>
+
+<body>
+
+<div class="doc_title">Kaleidoscope: Implementing a Parser and AST</div>
+
+<ul>
+<li>
+  <a href="http://www.llvm.org/docs/tutorial/index.html">
+    Up to Tutorial Index
+  </a>
+</li>
+<li>Chapter 2
+  <ol>
+    <li><a href="#intro">Chapter 2 Introduction</a></li>
+    <li><a href="#ast">The Abstract Syntax Tree (AST)</a></li>
+    <li><a href="#parserbasics">Parser Basics</a></li>
+    <li><a href="#parserprimexprs">Basic Expression Parsing</a></li>
+    <li><a href="#parserbinops">Binary Expression Parsing</a></li>
+    <li><a href="#parsertop">Parsing the Rest</a></li>
+    <li><a href="#driver">The Driver</a></li>
+    <li><a href="#conclusions">Conclusions</a></li>
+    <li><a href="#code">Full Code Listing</a></li>
+  </ol>
+</li>
+<li><a href="PythonLangImpl3.html">Chapter 3</a>: Code generation to LLVM IR</li>
+</ul>
+
+<div class="doc_author">
+  <p>Written by <a href="mailto:sabre@nondot.org">Chris Lattner</a>
+    and <a href="http://max99x.com">Max Shawabkeh</a>
+  </p>
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="intro">Chapter 2 Introduction</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>Welcome to Chapter 2 of the
+"<a href="http://www.llvm.org/docs/tutorial/index.html">Implementing a language
+with LLVM</a>" tutorial.  This chapter shows you how to use the lexer, built in
+<a href="PythonLangImpl1.html">Chapter 1</a>, to build a full <a
+href="http://en.wikipedia.org/wiki/Parsing">parser</a> for
+our Kaleidoscope language.  Once we have a parser, we'll define and build an <a
+href="http://en.wikipedia.org/wiki/Abstract_syntax_tree">Abstract Syntax
+Tree</a> (AST).</p>
+
+<p>The parser we will build uses a combination of <a
+href="http://en.wikipedia.org/wiki/Recursive_descent_parser">Recursive Descent
+Parsing</a> and <a href=
+"http://en.wikipedia.org/wiki/Operator-precedence_parser">Operator-Precedence
+Parsing</a> to parse the Kaleidoscope language (the latter for
+binary expressions and the former for everything else).  Before we get to
+parsing though, lets talk about the output of the parser: the Abstract Syntax
+Tree.</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="ast">The Abstract Syntax Tree (AST)</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>The AST for a program captures its behavior in such a way that it is easy for
+later stages of the compiler (e.g. code generation) to interpret.  We basically
+want one object for each construct in the language, and the AST should closely
+model the language.  In Kaleidoscope, we have expressions, a prototype, and a
+function object.  We'll start with expressions first:</p>
+
+<div class="doc_code">
+<pre>
+# Base class for all expression nodes.
+class ExpressionNode(object):
+  pass
+
+# Expression class for numeric literals like "1.0".
+class NumberExpressionNode(ExpressionNode):
+  def __init__(self, value):
+    self.value = value
+</pre>
+</div>
+
+<p>The code above shows the definition of the base ExpressionNode class and one
+subclass which we use for numeric literals.  The important thing to note about
+this code is that the NumberExpressionNode class captures the numeric value of
+the literal as an instance variable. This allows later phases of the compiler to
+know what the stored numeric value is.</p>
+
+<p>Right now we only create the AST,  so there are no useful methods on them.
+It would be very easy to add a virtual method to pretty print the code, for
+example.  Here are the other expression AST node definitions that we'll use
+in the basic form of the Kaleidoscope language:
+</p>
+
+<div class="doc_code">
+<pre>
+# Expression class for referencing a variable, like "a".
+class VariableExpressionNode(ExpressionNode):
+  def __init__(self, name):
+    self.name = name
+
+# Expression class for a binary operator.
+class BinaryOperatorExpressionNode(ExpressionNode):
+  def __init__(self, operator, left, right):
+    self.operator = operator
+    self.left = left
+    self.right = right
+
+# Expression class for function calls.
+class CallExpressionNode(ExpressionNode):
+  def __init__(self, callee, args):
+    self.callee = callee
+    self.args = args
+</pre>
+</div>
+
+<p>This is all (intentionally) rather straight-forward: variables capture the
+variable name, binary operators capture their opcode (e.g. '+'), and calls
+capture a function name as well as a list of any argument expressions.  One thing
+that is nice about our AST is that it captures the language features without
+talking about the syntax of the language.  Note that there is no discussion about
+precedence of binary operators, lexical structure, etc.</p>
+
+<p>For our basic language, these are all of the expression nodes we'll define.
+Because it doesn't have conditional control flow, it isn't Turing-complete;
+we'll fix that in a later installment.  The two things we need next are a way
+to talk about the interface to a function, and a way to talk about functions
+themselves:</p>
+
+<div class="doc_code">
+<pre>
+# This class represents the "prototype" for a function, which captures its name,
+# and its argument names (thus implicitly the number of arguments the function
+# takes).
+class PrototypeNode(object):
+  def __init__(self, name, args):
+    self.name = name
+    self.args = args
+
+# This class represents a function definition itself.
+class FunctionNode(object):
+  def __init__(self, prototype, body):
+    self.prototype = prototype
+    self.body = body
+</pre>
+</div>
+
+<p>In Kaleidoscope, functions are typed with just a count of their arguments.
+Since all values are double precision floating point, the type of each argument
+doesn't need to be stored anywhere.  In a more aggressive and realistic
+language, the <tt>ExpressionNode</tt> class would probably have a type field.
+</p>
+
+<p>With this scaffolding, we can now talk about parsing expressions and function
+bodies in Kaleidoscope.</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="parserbasics">Parser Basics</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>Now that we have an AST to build, we need to define the parser code to build
+it.  The idea here is that we want to parse something like <tt>"x+y"</tt> (which
+is returned as three tokens by the lexer) into an AST that could be generated
+with calls like this:</p>
+
+<div class="doc_code">
+<pre>
+  x = VariableExpressionNode('x')
+  y = VariableExpressionNode('y')
+  result = BinaryOperatorExpressionNode('+', x, y)
+</pre>
+</div>
+
+<p>In order to do this, we'll start by defining a lightweight <tt>Parser</tt>
+class with some basic helper routines:</p>
+
+<div class="doc_code">
+<pre>
+class Parser(object):
+
+  def __init__(self, tokens, binop_precedence):
+    self.tokens = tokens
+    self.binop_precedence = binop_precedence
+    self.Next()
+
+  # Provide a simple token buffer. Parser.current is the current token the
+  # parser is looking at. Parser.Next() reads another token from the lexer and
+  # updates Parser.current with its results.
+  def Next(self):
+    self.current = self.tokens.next()
+</pre>
+</div>
+
+<p>
+This implements a simple token buffer around the lexer.  This allows
+us to look one token ahead at what the lexer is returning.  Every function in
+our parser will assume that <tt>self.current</tt> is the current token that
+needs to be parsed. Note that the first token is read as soon as the parser is
+instantiated. Let us ignore the <tt>binop_precedence</tt> parameter for now. It
+will be explained when we start <a href="#parserbinops">parsing binary
+operators</a>.</p>
+
+<p>With these basic helper functions, we can implement the first
+piece of our grammar: numeric literals.</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="parserprimexprs">Basic Expression
+ Parsing</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>We start with numeric literals, because they are the simplest to process.
+For each production in our grammar, we'll define a function which parses that
+production.  For numeric literals, we have:
+</p>
+
+<div class="doc_code">
+<pre>
+  # numberexpr ::= number
+  def ParseNumberExpr(self):
+    result = NumberExpressionNode(self.current.value)
+    self.Next()  # consume the number.
+    return result
+</pre>
+</div>
+
+<p>This method is very simple: it expects to be called when the current token
+is a <tt>NumberToken</tt>.  It takes the current number value, creates a
+<tt>NumberExpressionNode</tt>, advances to the next token, and finally returns.
+</p>
+
+<p>There are some interesting aspects to this.  The most important one is that
+this routine eats all of the tokens that correspond to the production and
+returns the lexer buffer with the next token (which is not part of the grammar
+production) ready to go.  This is a fairly standard way to go for recursive
+descent parsers.  For a better example, the parenthesis operator is defined like
+this:</p>
+
+<div class="doc_code">
+<pre>
+  # parenexpr ::= '(' expression ')'
+  def ParseParenExpr(self):
+    self.Next()  # eat '('.
+
+    contents = self.ParseExpression()
+
+    if self.current != CharacterToken(')'):
+      raise RuntimeError('Expected ")".')
+    self.Next()  # eat ')'.
+
+    return contents
+</pre>
+</div>
+
+<p>This function illustrates an interesting aspect of the parser. The function
+uses recursion by calling <tt>ParseExpression</tt> (we will soon see that
+<tt>ParseExpression</tt> can call <tt>ParseParenExpr</tt>).  This is powerful
+because it allows us to handle recursive grammars, and keeps each production
+very simple.  Note that parentheses do not cause construction of AST nodes
+themselves.  While we could do it this way, the most important role of
+parentheses are to guide the parser and provide grouping.  Once the parser
+constructs the AST, parentheses are not needed.</p>
+
+<p>The next simple production is for handling variable references and function
+calls:</p>
+
+<div class="doc_code">
+<pre>
+  # identifierexpr ::= identifier | identifier '(' expression* ')'
+  def ParseIdentifierExpr(self):
+    identifier_name = self.current.name
+    self.Next()  # eat identifier.
+
+    if self.current != CharacterToken('('):  # Simple variable reference.
+      return VariableExpressionNode(identifier_name);
+
+    # Call.
+    self.Next()  # eat '('.
+    args = []
+    if self.current != CharacterToken(')'):
+      while True:
+        args.append(self.ParseExpression())
+        if self.current == CharacterToken(')'):
+          break
+        elif self.current != CharacterToken(','):
+          raise RuntimeError('Expected ")" or "," in argument list.')
+        self.Next()
+
+    self.Next()  # eat ')'.
+    return CallExpressionNode(identifier_name, args)
+</pre>
+</div>
+
+<p>This routine follows the same style as the other routines.  It expects to be
+called if the current token is an <tt>IdentifierToken</tt>.  It also has
+recursion and error handling.  One interesting aspect of this is that it uses
+<em>look-ahead</em> to determine if the current identifier is a stand alone
+variable reference or if it is a function call expression.  It handles this by
+checking to see if the token after the identifier is a '(' token, constructing
+either a <tt>VariableExpressionNode</tt> or <tt>CallExpressionNode</tt> as
+appropriate.</p>
+
+<p>Now that we have all of our simple expression-parsing logic in place, we can
+define a helper function to wrap it together into one entry point.  We call this
+class of expressions "primary" expressions, for reasons that will become more
+clear <a href="PythonLangImpl6.html#unary">later in the tutorial</a>.  In order
+to parse an arbitrary primary expression, we need to determine what sort of
+expression it is:</p>
+
+<div class="doc_code">
+<pre>
+  # primary ::= identifierexpr | numberexpr | parenexpr
+  def ParsePrimary(self):
+    if isinstance(self.current, IdentifierToken):
+      return self.ParseIdentifierExpr()
+    elif isinstance(self.current, NumberToken):
+      return self.ParseNumberExpr();
+    elif self.current == CharacterToken('('):
+      return self.ParseParenExpr()
+    else:
+      raise RuntimeError('Unknown token when expecting an expression.')
+</pre>
+</div>
+
+<p>Now that you see the definition of this function, it is more obvious why we
+can assume the state of <tt>Parser.current</tt> in the various functions.  This
+uses look-ahead to determine which sort of expression is being inspected, and
+then parses it with a function call.</p>
+
+<p>Now that basic expressions are handled, we need to handle binary expressions.
+They are a bit more complex.</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="parserbinops">Binary Expression
+ Parsing</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>Binary expressions are significantly harder to parse because they are often
+ambiguous.  For example, when given the string "x+y*z", the parser can choose
+to parse it as either "(x+y)*z" or "x+(y*z)".  With common definitions from
+mathematics, we expect the later parse, because "*" (multiplication) has
+higher <em>precedence</em> than "+" (addition).</p>
+
+<p>There are many ways to handle this, but an elegant and efficient way is to
+use <a href=
+"http://en.wikipedia.org/wiki/Operator-precedence_parser">Operator-Precedence
+Parsing</a>.  This parsing technique uses the precedence of binary operators to
+guide recursion.  To start with, we need a table of precedences. Remember the
+<tt>binop_precedence</tt> parameter we passed to the <tt>Parser</tt>
+constructor? Now is the time to use it:</p>
+
+<div class="doc_code">
+<pre>
+def main():
+  # Install standard binary operators.
+  # 1 is lowest possible precedence. 40 is the highest.
+  operator_precedence = {
+    '&lt;': 10,
+    '+': 20,
+    '-': 20,
+    '*': 40
+  }
+
+  # Run the main "interpreter loop".
+  while True:
+
+    ...
+
+    parser = Parser(Tokenize(raw), operator_precedence)
+</pre>
+</div>
+
+<p>For the basic form of Kaleidoscope, we will only support 4 binary operators
+(this can obviously be extended by you, our brave and intrepid reader). Having a
+dictionary makes it easy to add new operators and makes it clear that the
+algorithm doesn't depend on the specific operators involved, but it would be
+easy enough to eliminate the map and hardcode the comparisons.<p>
+
+<p>We also define a helper function to get the precedence of the current token,
+or -1 if the token is not a binary operator:
+</p>
+
+<div class="doc_code">
+<pre>
+  # Gets the precedence of the current token, or -1 if the token is not a binary
+  # operator.
+  def GetCurrentTokenPrecedence(self):
+    if isinstance(self.current, CharacterToken):
+      return self.binop_precedence.get(self.current.char, -1)
+    else:
+      return -1
+</pre>
+</div>
+
+<p>With the helper above defined, we can now start parsing binary expressions.
+The basic idea of operator precedence parsing is to break down an expression
+with potentially ambiguous binary operators into pieces.  Consider, for example,
+the expression "a+b+(c+d)*e*f+g".  Operator precedence parsing considers this
+as a stream of primary expressions separated by binary operators.  As such,
+it will first parse the leading primary expression "a", then it will see the
+pairs [+, b] [+, (c+d)] [*, e] [*, f] and [+, g].  Note that because parentheses
+are primary expressions, the binary expression parser doesn't need to worry
+about nested subexpressions like (c+d) at all.
+</p>
+
+<p>
+To start, an expression is a primary expression potentially followed by a
+sequence of [binop,primaryexpr] pairs:</p>
+
+<div class="doc_code">
+<pre>
+  # expression ::= primary binoprhs
+  def ParseExpression(self):
+    left = self.ParsePrimary()
+    return self.ParseBinOpRHS(left, 0)
+</pre>
+</div>
+
+<p><tt>ParseBinOpRHS</tt> is the function that parses the sequence of pairs for
+us.  It takes a precedence and a pointer to an expression for the part that has
+been parsed so far.   Note that "x" is a perfectly valid expression: As such,
+"binoprhs" is allowed to be empty, in which case it returns the expression that
+is passed into it. In our example above, the code passes the expression for "a"
+into <tt>ParseBinOpRHS</tt> and the current token is "+".</p>
+
+<p>The precedence value passed into <tt>ParseBinOpRHS</tt> indicates the <em>
+minimal operator precedence</em> that the function is allowed to eat.  For
+example, if the current pair stream is [+, x] and <tt>ParseBinOpRHS</tt> is
+passed in a precedence of 40, it will not consume any tokens (because the
+precedence of '+' is only 20).  With this in mind, <tt>ParseBinOpRHS</tt> starts
+with:</p>
+
+<div class="doc_code">
+<pre>
+  # binoprhs ::= (operator primary)*
+  def ParseBinOpRHS(self, left, left_precedence):
+    # If this is a binary operator, find its precedence.
+    while True:
+      precedence = self.GetCurrentTokenPrecedence()
+
+      # If this is a binary operator that binds at least as tightly as the
+      # current one, consume it; otherwise we are done.
+      if precedence &lt; left_precedence:
+        return left
+</pre>
+</div>
+
+<p>This code gets the precedence of the current token and checks to see if if is
+too low.  Because we defined invalid tokens to have a precedence of -1, this
+check implicitly knows that the pair-stream ends when the token stream runs out
+of binary operators.  If this check succeeds, we know that the token is a binary
+operator and that it will be included in this expression:</p>
+
+<div class="doc_code">
+<pre>
+      binary_operator = self.current.char
+      self.Next()  # eat the operator.
+
+      # Parse the primary expression after the binary operator.
+      right = self.ParsePrimary()
+</pre>
+</div>
+
+<p>As such, this code eats (and remembers) the binary operator and then parses
+the primary expression that follows.  This builds up the whole pair, the first of
+which is [+, b] for the running example.</p>
+
+<p>Now that we parsed the left-hand side of an expression and one pair of the
+RHS sequence, we have to decide which way the expression associates.  In
+particular, we could have "(a+b) binop unparsed"  or "a + (b binop unparsed)".
+To determine this, we look ahead at "binop" to determine its precedence and
+compare it to BinOp's precedence (which is '+' in this case):</p>
+
+<div class="doc_code">
+<pre>
+      # If binary_operator binds less tightly with right than the operator after
+      # right, let the pending operator take right as its left.
+      next_precedence = self.GetCurrentTokenPrecedence()
+      if precedence &lt; next_precedence:
+</pre>
+</div>
+
+<p>If the precedence of the binop to the right of "RHS" is lower or equal to the
+precedence of our current operator, then we know that the parentheses associate
+as "(a+b) binop ...".  In our example, the current operator is "+" and the next
+operator is "+", we know that they have the same precedence.  In this case we'll
+create the AST node for "a+b", and then continue parsing:</p>
+
+<div class="doc_code">
+<pre>
+      if precedence &lt; next_precedence:
+        ... if body omitted ...
+
+      # Merge left/right.
+      left = BinaryOperatorExpressionNode(binary_operator, left, right);
+</pre>
+</div>
+
+<p>In our example above, this will turn "a+b+" into "(a+b)" and execute the next
+iteration of the loop, with "+" as the current token.  The code above will eat,
+remember, and parse "(c+d)" as the primary expression, which makes the
+current pair equal to [+, (c+d)].  It will then evaluate the 'if' conditional
+above with "*" as the binop to the right of the primary.  In this case, the
+precedence of "*" is higher than the precedence of "+" so the if condition will
+be entered.</p>
+
+<p>The critical question left here is "how can the if condition parse the right
+hand side in full"?  In particular, to build the AST correctly for our example,
+it needs to get all of "(c+d)*e*f" as the RHS expression variable.  The code to
+do this is surprisingly simple (code from the above two blocks duplicated for
+context):</p>
+
+<div class="doc_code">
+<pre>
+      # If binary_operator binds less tightly with right than the operator after
+      # right, let the pending operator take right as its left.
+      next_precedence = self.GetCurrentTokenPrecedence()
+      if precedence &lt; next_precedence:
+        right = self.ParseBinOpRHS(right, precedence + 1)
+
+      # Merge left/right.
+      left = BinaryOperatorExpressionNode(binary_operator, left, right)
+</pre>
+</div>
+
+<p>At this point, we know that the binary operator to the RHS of our primary
+has higher precedence than the binop we are currently parsing.  As such, we know
+that any sequence of pairs whose operators are all higher precedence than "+"
+should be parsed together and returned as "RHS".  To do this, we recursively
+invoke the <tt>ParseBinOpRHS</tt> function specifying "precedence + 1" as the
+minimum precedence required for it to continue.  In our example above, this
+will cause it to return the AST node for "(c+d)*e*f" as RHS, which is then set
+as the RHS of the '+' expression.</p>
+
+<p>Finally, on the next iteration of the while loop, the "+g" piece is parsed
+and added to the AST.  With this little bit of code (11 non-trivial lines), we
+correctly handle fully general binary expression parsing in a very elegant way.
+This was a whirlwind tour of this code, and it is somewhat subtle.  I recommend
+running through it with a few tough examples to see how it works.
+</p>
+
+<p>This wraps up handling of expressions.  At this point, we can point the
+parser at an arbitrary token stream and build an expression from it, stopping
+at the first token that is not part of the expression.  Next up we need to
+handle function definitions, etc.</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="parsertop">Parsing the Rest</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>
+The next thing missing is handling of function prototypes.  In Kaleidoscope,
+these are used both for 'extern' function declarations as well as function body
+definitions.  The code to do this is straight-forward and not very interesting
+(once you've survived expressions):
+</p>
+
+<div class="doc_code">
+<pre>
+  # prototype ::= id '(' id* ')'
+  def ParsePrototype(self):
+    if not isinstance(self.current, IdentifierToken):
+      raise RuntimeError('Expected function name in prototype.')
+
+    function_name = self.current.name
+    self.Next()  # eat function name.
+
+    if self.current != CharacterToken('('):
+      raise RuntimeError('Expected "(" in prototype.')
+    self.Next()  # eat '('.
+
+    arg_names = []
+    while isinstance(self.current, IdentifierToken):
+      arg_names.append(self.current.name)
+      self.Next()
+
+    if self.current != CharacterToken(')'):
+      raise RuntimeError('Expected ")" in prototype.')
+
+    # Success.
+    self.Next()  # eat ')'.
+
+    return PrototypeNode(function_name, arg_names)
+</pre>
+</div>
+
+<p>Given this, a function definition is very simple, just a prototype plus
+an expression to implement the body:</p>
+
+<div class="doc_code">
+<pre>
+  # definition ::= 'def' prototype expression
+  def ParseDefinition(self):
+    self.Next()  # eat def.
+    proto = self.ParsePrototype()
+    body = self.ParseExpression()
+    return FunctionNode(proto, body)
+</pre>
+</div>
+
+<p>In addition, we support 'extern' to declare functions like 'sin' and 'cos' as
+well as to support forward declaration of user functions.  These 'extern's are
+just prototypes with no body:</p>
+
+<div class="doc_code">
+<pre>
+  # external ::= 'extern' prototype
+  def ParseExtern(self):
+    self.Next()  # eat extern.
+    return self.ParsePrototype()
+</pre>
+</div>
+
+<p>Finally, we'll also let the user type in arbitrary top-level expressions and
+evaluate them on the fly.  We will handle this by defining anonymous nullary
+(zero argument) functions for them:</p>
+
+<div class="doc_code">
+<pre>
+  # toplevelexpr ::= expression
+  def ParseTopLevelExpr(self):
+    proto = PrototypeNode('', [])
+    return FunctionNode(proto, self.ParseExpression())
+</pre>
+</div>
+
+<p>Now that we have all the pieces, let's build a little driver that will let us
+actually <em>execute</em> this code we've built!</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="driver">The Driver</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>The driver for this simply invokes all of the parsing pieces with a top-level
+dispatch loop.  There isn't much interesting here, so I'll just include the
+top-level loop.  See <a href="#code">below</a> for full code.</p>
+
+<div class="doc_code">
+<pre>
+  # Run the main "interpreter loop".
+  while True:
+    print 'ready&gt;',
+    try:
+      raw = raw_input()
+    except KeyboardInterrupt:
+      return
+
+    parser = Parser(Tokenize(raw), operator_precedence)
+    while True:
+      # top ::= definition | external | expression | EOF
+      if isinstance(parser.current, EOFToken):
+        break
+      if isinstance(parser.current, DefToken):
+        parser.HandleDefinition()
+      elif isinstance(parser.current, ExternToken):
+        parser.HandleExtern()
+      else:
+        parser.HandleTopLevelExpression()
+</pre>
+</div>
+
+<p>Here we create a new <tt>Parser</tt> for each line read, and try to parse out
+all the expressions, declarations and definitions in the line. We also allow the
+user to quit using Ctrl+C.</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="conclusions">Conclusions</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>With just under 330 lines of commented code (200 lines of non-comment,
+non-blank code), we fully defined our minimal language, including a lexer,
+parser, and AST builder.  With this done, the executable will validate
+Kaleidoscope code and tell us if it is grammatically invalid.  For
+example, here is a sample interaction:</p>
+
+<div class="doc_code">
+<pre>
+$ <b>python kaleidoscope.py</b>
+ready&gt; <b>def foo(x y) x+foo(y, 4.0)</b>
+Parsed a function definition.
+ready&gt; <b>def foo(x y) x+y y</b>
+Parsed a function definition.
+Parsed a top-level expression.
+ready&gt; <b>def foo(x y) x+y )</b>
+Parsed a function definition.
+Error: Unknown token when expecting an expression.
+ready&gt; <b>extern sin(a);</b>
+Parsed an extern.
+ready&gt; <b>^C</b>
+$
+</pre>
+</div>
+
+<p>There is a lot of room for extension here.  You can define new AST nodes,
+extend the language in many ways, etc.  In the
+<a href="PythonLangImpl3.html">next installment</a>, we will describe how to
+generate LLVM Intermediate Representation (IR) from the AST.</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="code">Full Code Listing</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>
+Here is the complete code listing for this and the previous chapter.
+Note that it is fully self-contained: you don't need LLVM or any external
+libraries at all for this.</p>
+
+<div class="doc_code">
+<pre>
+#!/usr/bin/env python
+
+import re
+
+################################################################################
+## Lexer
+################################################################################
+
+# The lexer yields one of these types for each token.
+class EOFToken(object):
+  pass
+
+class DefToken(object):
+  pass
+
+class ExternToken(object):
+  pass
+
+class IdentifierToken(object):
+  def __init__(self, name): self.name = name
+
+class NumberToken(object):
+  def __init__(self, value): self.value = value
+
+class CharacterToken(object):
+  def __init__(self, char): self.char = char
+  def __eq__(self, other):
+    return isinstance(other, CharacterToken) and self.char == other.char
+  def __ne__(self, other): return not self == other
+
+# Regular expressions that tokens and comments of our language.
+REGEX_NUMBER = re.compile('[0-9]+(?:\.[0-9]+)?')
+REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9]*')
+REGEX_COMMENT = re.compile('#.*')
+
+def Tokenize(string):
+  while string:
+    # Skip whitespace.
+    if string[0].isspace():
+      string = string[1:]
+      continue
+
+    # Run regexes.
+    comment_match = REGEX_COMMENT.match(string)
+    number_match = REGEX_NUMBER.match(string)
+    identifier_match = REGEX_IDENTIFIER.match(string)
+
+    # Check if any of the regexes matched and yield the appropriate result.
+    if comment_match:
+      comment = comment_match.group(0)
+      string = string[len(comment):]
+    elif number_match:
+      number = number_match.group(0)
+      yield NumberToken(float(number))
+      string = string[len(number):]
+    elif identifier_match:
+      identifier = identifier_match.group(0)
+      # Check if we matched a keyword.
+      if identifier == 'def':
+        yield DefToken()
+      elif identifier == 'extern':
+        yield ExternToken()
+      else:
+        yield IdentifierToken(identifier)
+      string = string[len(identifier):]
+    else:
+      # Yield the ASCII value of the unknown character.
+      yield CharacterToken(string[0])
+      string = string[1:]
+
+  yield EOFToken()
+
+################################################################################
+## Abstract Syntax Tree (aka Parse Tree)
+################################################################################
+
+# Base class for all expression nodes.
+class ExpressionNode(object):
+  pass
+
+# Expression class for numeric literals like "1.0".
+class NumberExpressionNode(ExpressionNode):
+  def __init__(self, value):
+    self.value = value
+
+# Expression class for referencing a variable, like "a".
+class VariableExpressionNode(ExpressionNode):
+  def __init__(self, name):
+    self.name = name
+
+# Expression class for a binary operator.
+class BinaryOperatorExpressionNode(ExpressionNode):
+  def __init__(self, operator, left, right):
+    self.operator = operator
+    self.left = left
+    self.right = right
+
+# Expression class for function calls.
+class CallExpressionNode(ExpressionNode):
+  def __init__(self, callee, args):
+    self.callee = callee
+    self.args = args
+
+# This class represents the "prototype" for a function, which captures its name,
+# and its argument names (thus implicitly the number of arguments the function
+# takes).
+class PrototypeNode(object):
+  def __init__(self, name, args):
+    self.name = name
+    self.args = args
+
+# This class represents a function definition itself.
+class FunctionNode(object):
+  def __init__(self, prototype, body):
+    self.prototype = prototype
+    self.body = body
+
+
+################################################################################
+## Parser
+################################################################################
+
+class Parser(object):
+
+  def __init__(self, tokens, binop_precedence):
+    self.tokens = tokens
+    self.binop_precedence = binop_precedence
+    self.Next()
+
+  # Provide a simple token buffer. Parser.current is the current token the
+  # parser is looking at. Parser.Next() reads another token from the lexer and
+  # updates Parser.current with its results.
+  def Next(self):
+    self.current = self.tokens.next()
+
+  # Gets the precedence of the current token, or -1 if the token is not a binary
+  # operator.
+  def GetCurrentTokenPrecedence(self):
+    if isinstance(self.current, CharacterToken):
+      return self.binop_precedence.get(self.current.char, -1)
+    else:
+      return -1
+
+  # identifierexpr ::= identifier | identifier '(' expression* ')'
+  def ParseIdentifierExpr(self):
+    identifier_name = self.current.name
+    self.Next()  # eat identifier.
+
+    if self.current != CharacterToken('('):  # Simple variable reference.
+      return VariableExpressionNode(identifier_name)
+
+    # Call.
+    self.Next()  # eat '('.
+    args = []
+    if self.current != CharacterToken(')'):
+      while True:
+        args.append(self.ParseExpression())
+        if self.current == CharacterToken(')'):
+          break
+        elif self.current != CharacterToken(','):
+          raise RuntimeError('Expected ")" or "," in argument list.')
+        self.Next()
+
+    self.Next()  # eat ')'.
+    return CallExpressionNode(identifier_name, args)
+
+  # numberexpr ::= number
+  def ParseNumberExpr(self):
+    result = NumberExpressionNode(self.current.value)
+    self.Next()  # consume the number.
+    return result
+
+  # parenexpr ::= '(' expression ')'
+  def ParseParenExpr(self):
+    self.Next()  # eat '('.
+
+    contents = self.ParseExpression()
+
+    if self.current != CharacterToken(')'):
+      raise RuntimeError('Expected ")".')
+    self.Next()  # eat ')'.
+
+    return contents
+
+  # primary ::= identifierexpr | numberexpr | parenexpr
+  def ParsePrimary(self):
+    if isinstance(self.current, IdentifierToken):
+      return self.ParseIdentifierExpr()
+    elif isinstance(self.current, NumberToken):
+      return self.ParseNumberExpr()
+    elif self.current == CharacterToken('('):
+      return self.ParseParenExpr()
+    else:
+      raise RuntimeError('Unknown token when expecting an expression.')
+
+  # binoprhs ::= (operator primary)*
+  def ParseBinOpRHS(self, left, left_precedence):
+    # If this is a binary operator, find its precedence.
+    while True:
+      precedence = self.GetCurrentTokenPrecedence()
+
+      # If this is a binary operator that binds at least as tightly as the
+      # current one, consume it; otherwise we are done.
+      if precedence &lt; left_precedence:
+        return left
+
+      binary_operator = self.current.char
+      self.Next()  # eat the operator.
+
+      # Parse the primary expression after the binary operator.
+      right = self.ParsePrimary()
+
+      # If binary_operator binds less tightly with right than the operator after
+      # right, let the pending operator take right as its left.
+      next_precedence = self.GetCurrentTokenPrecedence()
+      if precedence &lt; next_precedence:
+        right = self.ParseBinOpRHS(right, precedence + 1)
+
+      # Merge left/right.
+      left = BinaryOperatorExpressionNode(binary_operator, left, right)
+
+  # expression ::= primary binoprhs
+  def ParseExpression(self):
+    left = self.ParsePrimary()
+    return self.ParseBinOpRHS(left, 0)
+
+  # prototype ::= id '(' id* ')'
+  def ParsePrototype(self):
+    if not isinstance(self.current, IdentifierToken):
+      raise RuntimeError('Expected function name in prototype.')
+
+    function_name = self.current.name
+    self.Next()  # eat function name.
+
+    if self.current != CharacterToken('('):
+      raise RuntimeError('Expected "(" in prototype.')
+    self.Next()  # eat '('.
+
+    arg_names = []
+    while isinstance(self.current, IdentifierToken):
+      arg_names.append(self.current.name)
+      self.Next()
+
+    if self.current != CharacterToken(')'):
+      raise RuntimeError('Expected ")" in prototype.')
+
+    # Success.
+    self.Next()  # eat ')'.
+
+    return PrototypeNode(function_name, arg_names)
+
+  # definition ::= 'def' prototype expression
+  def ParseDefinition(self):
+    self.Next()  # eat def.
+    proto = self.ParsePrototype()
+    body = self.ParseExpression()
+    return FunctionNode(proto, body)
+
+  # toplevelexpr ::= expression
+  def ParseTopLevelExpr(self):
+    proto = PrototypeNode('', [])
+    return FunctionNode(proto, self.ParseExpression())
+
+  # external ::= 'extern' prototype
+  def ParseExtern(self):
+    self.Next()  # eat extern.
+    return self.ParsePrototype()
+
+  # Top-Level parsing
+  def HandleDefinition(self):
+    self.Handle(self.ParseDefinition, 'Parsed a function definition.')
+
+  def HandleExtern(self):
+    self.Handle(self.ParseExtern, 'Parsed an extern.')
+
+  def HandleTopLevelExpression(self):
+    self.Handle(self.ParseTopLevelExpr, 'Parsed a top-level expression.')
+
+  def Handle(self, function, message):
+    try:
+      function()
+      print message
+    except Exception, e:
+      print 'Error:', e
+      try:
+        self.Next() # Skip for error recovery.
+      except:
+        pass
+
+################################################################################
+## Main driver code.
+################################################################################
+
+def main():
+  # Install standard binary operators.
+  # 1 is lowest possible precedence. 40 is the highest.
+  operator_precedence = {
+    '&lt;': 10,
+    '+': 20,
+    '-': 20,
+    '*': 40
+  }
+
+  # Run the main "interpreter loop".
+  while True:
+    print 'ready&gt;',
+    try:
+      raw = raw_input()
+    except KeyboardInterrupt:
+      return
+
+    parser = Parser(Tokenize(raw), operator_precedence)
+    while True:
+      # top ::= definition | external | expression | EOF
+      if isinstance(parser.current, EOFToken):
+        break
+      if isinstance(parser.current, DefToken):
+        parser.HandleDefinition()
+      elif isinstance(parser.current, ExternToken):
+        parser.HandleExtern()
+      else:
+        parser.HandleTopLevelExpression()
+
+if __name__ == '__main__':
+  main()
+</pre>
+</div>
+
+<a href="PythonLangImpl3.html">Next: Implementing Code Generation to LLVM IR</a>
+</div>
+
+<!-- *********************************************************************** -->
+<hr>
+<address>
+  <a href="http://jigsaw.w3.org/css-validator/check/referer"><img
+  src="http://jigsaw.w3.org/css-validator/images/vcss" alt="Valid CSS!"></a>
+  <a href="http://validator.w3.org/check/referer"><img
+  src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML 4.01!"></a>
+
+  <a href="mailto:sabre@nondot.org">Chris Lattner</a><br>
+  <a href="http://max99x.com">Max Shawabkeh</a><br>
+  <a href="http://llvm.org">The LLVM Compiler Infrastructure</a><br>
+  Last modified: $Date$
+</address>
+</body>
+</html>

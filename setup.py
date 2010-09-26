@@ -32,7 +32,7 @@
 import sys, os
 from distutils.core import setup, Extension
 
-LLVM_PY_VERSION = '0.6'
+LLVM_PY_VERSION = '0.7'
 
 
 def _run(cmd):
@@ -106,8 +106,8 @@ def call_setup(llvm_config):
         version=LLVM_PY_VERSION,
         description='Python Bindings for LLVM',
         author='Mahadevan R',
-        author_email='mdevan.foobar@gmail.com',
-        url='http://mdevan.nfshost.com/llvm-py/',
+        author_email='mdevan@mdevan.org',
+        url='http://www.mdevan.org/llvm-py/',
         packages=['llvm'],
         py_modules = [ 'llvm.core' ],
         ext_modules = [ ext_core ],)

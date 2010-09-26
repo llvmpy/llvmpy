@@ -9,27 +9,25 @@ include::example.inc[]
 LLVM Tutorials
 --------------
 
-The http://www.llvm.org/docs/tutorial/[LLVM tutorials] have been
-ported to llvm-py. Below are the links to the original LLVM tutorial and
-the corresponding Python code using llvm-py:
-
 .Simple JIT Tutorials
-(contributed by Sebastien Binet)
 
-1. A First Function
-  http://www.llvm.org/docs/tutorial/JITTutorial1.html[LLVM]
-  link:examples/JITTutorial1.html[llvm-py]
-2. A More Complicated Function
-  http://www.llvm.org/docs/tutorial/JITTutorial2.html[LLVM]
-  link:examples/JITTutorial2.html[llvm-py]
+The following JIT tutorials were contributed by Sebastien Binet.
+
+1. link:examples/JITTutorial1.html[A First Function]
+2. link:examples/JITTutorial2.html[A More Complicated Function]
 
 
+[[kaleidoscope]]
 .Kaleidoscope: Implementing a Language with LLVM
-1. Tutorial Introduction and the Lexer (TODO)
-2. Implementing a Parser and AST (TODO)
-3. Implementing Code Generation to LLVM IR (TODO)
-4. Adding JIT and Optimizer Support (TODO)
-5. Extending the language: control flow (TODO)
-6. Extending the language: user-defined operators (TODO)
-7. Extending the language: mutable variables / SSA construction (TODO)
-8. Conclusion and other useful LLVM tidbits (TODO)
+
+The LLVM http://www.llvm.org/docs/tutorial/[Kaleidoscope] tutorial
+has been ported to llvm-py by Max Shawabkeh.
+
+1. link:kaleidoscope/PythonLangImpl1.html[Tutorial Introduction and the Lexer]
+2. link:kaleidoscope/PythonLangImpl2.html[Implementing a Parser and AST]
+3. link:kaleidoscope/PythonLangImpl3.html[Implementing Code Generation to LLVM IR]
+4. link:kaleidoscope/PythonLangImpl4.html[Adding JIT and Optimizer Support]
+5. link:kaleidoscope/PythonLangImpl5.html[Extending the language: control flow]
+6. link:kaleidoscope/PythonLangImpl6.html[Extending the language: user-defined operators]
+7. link:kaleidoscope/PythonLangImpl7.html[Extending the language: mutable variables / SSA construction]
+8. link:kaleidoscope/PythonLangImpl8.html[Conclusion and other useful LLVM tidbits]

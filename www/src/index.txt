@@ -18,6 +18,9 @@ a patch.
 News
 ----
 
+26-Sep-2010::
+    LLVM tutorial link:examples.html#kaleidoscope[ported] by Max Shawabkeh!
+
 31-Aug-2010::
     0.6 released, works with LLVM 2.7.
 

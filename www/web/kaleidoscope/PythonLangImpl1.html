@@ -1,0 +1,389 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+                      "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head>
+  <title>Kaleidoscope: Tutorial Introduction and the Lexer</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="author" content="Chris Lattner">
+  <meta name="author" content="Max Shawabkeh">
+  <link rel="stylesheet"
+        href="http://www.llvm.org/docs/llvm.css"
+        type="text/css">
+</head>
+
+<body>
+
+<div class="doc_title">Kaleidoscope: Tutorial Introduction and the Lexer</div>
+
+<ul>
+<li>
+  <a href="http://www.llvm.org/docs/tutorial/index.html">
+    Up to Tutorial Index
+  </a>
+</li>
+<li>Chapter 1
+  <ol>
+    <li><a href="#intro">Tutorial Introduction</a></li>
+    <li><a href="#language">The Basic Language</a></li>
+    <li><a href="#lexer">The Lexer</a></li>
+  </ol>
+</li>
+<li><a href="PythonLangImpl2.html">Chapter 2</a>: Implementing a Parser and
+AST</li>
+</ul>
+
+<div class="doc_author">
+	<p>
+		Written by <a href="mailto:sabre@nondot.org">Chris Lattner</a>
+		and <a href="http://max99x.com">Max Shawabkeh</a>
+	</p>
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="intro">Tutorial Introduction</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>
+Welcome to the "Implementing a language with LLVM" tutorial.  This tutorial
+runs through the implementation of a simple language, showing how fun and
+easy it can be.  This tutorial will get you up and started as well as help to
+build a framework you can extend to other languages.  The code in this tutorial
+can also be used as a playground to hack on other LLVM specific things.
+</p>
+
+<p>The goal of this tutorial is to progressively unveil our language, describing
+how it is built up over time.  This will let us cover a fairly broad range of
+language design and LLVM-specific usage issues, showing and explaining the code
+for it all along the way, without overwhelming you with tons of details up
+front.</p>
+
+<p>It is useful to point out ahead of time that this tutorial is really about
+teaching compiler techniques and LLVM specifically, <em>not</em> about teaching
+modern and sane software engineering principles.  In practice, this means that
+we'll take a number of shortcuts to simplify the exposition. If you dig in and
+use the code as a basis for future projects, fixing its deficiencies shouldn't
+be hard.</p>
+
+<p>We've tried to put this tutorial together in a way that makes chapters easy
+to skip over if you are already familiar with or are uninterested in the various
+pieces.  The structure of the tutorial is:</p>
+
+<ul>
+<li><b><a href="#language">Chapter #1</a>: Introduction to the Kaleidoscope
+language, and the definition of its Lexer</b> - This shows where we are going
+and the basic functionality that we want it to do.  In order to make this
+tutorial maximally understandable and hackable, we choose to implement
+everything in Python instead of using lexer and parser generators. LLVM
+obviously works just fine with such tools, feel free to use one if you prefer.
+</li>
+<li><b><a href="PythonLangImpl2.html">Chapter #2</a>: Implementing a Parser and
+AST</b> - With the lexer in place, we can talk about parsing techniques and
+basic AST construction.  This tutorial describes recursive descent parsing and
+operator precedence parsing.  Nothing in Chapters 1 or 2 is LLVM-specific,
+the code doesn't even import the LLVM modules at this point. :)</li>
+<li><b><a href="PythonLangImpl3.html">Chapter #3</a>: Code generation to LLVM
+IR</b> - With the AST ready, we can show off how easy generation of LLVM IR
+really is.</li>
+<li><b><a href="PythonLangImpl4.html">Chapter #4</a>: Adding JIT and Optimizer
+Support</b> - Because a lot of people are interested in using LLVM as a JIT,
+we'll dive right into it and show you the 3 lines it takes to add JIT support.
+LLVM is also useful in many other ways, but this is one simple and "sexy" way
+to shows off its power. :)</li>
+<li><b><a href="PythonLangImpl5.html">Chapter #5</a>: Extending the Language:
+Control Flow</b> - With the language up and running, we show how to extend it
+with control flow operations (if/then/else and a 'for' loop).  This gives us a
+chance to talk about simple SSA construction and control flow.</li>
+<li><b><a href="PythonLangImpl6.html">Chapter #6</a>: Extending the Language:
+User-defined Operators</b> - This is a silly but fun chapter that talks about
+extending the language to let the user program define their own arbitrary
+unary and binary operators (with assignable precedence!).  This lets us build a
+significant piece of the "language" as library routines.</li>
+<li><b><a href="PythonLangImpl7.html">Chapter #7</a>: Extending the Language:
+Mutable Variables</b> - This chapter talks about adding user-defined local
+variables along with an assignment operator.  The interesting part about this
+is how easy and trivial it is to construct SSA form in LLVM: no, LLVM does
+<em>not</em> require your front-end to construct SSA form!</li>
+<li><b><a href="PythonLangImpl8.html">Chapter #8</a>: Conclusion and other
+useful LLVM tidbits</b> - This chapter wraps up the series by talking about
+potential ways to extend the language, but also includes a bunch of pointers to
+info about "special topics" like adding garbage collection support, exceptions,
+debugging, support for "spaghetti stacks", and a bunch of other tips and
+tricks.</li>
+
+</ul>
+
+<p>By the end of the tutorial, we'll have written a bit less than 540 lines of
+non-comment, non-blank, lines of code.  With this small amount of code, we'll
+have built up a very reasonable compiler for a non-trivial language including
+a hand-written lexer, parser, AST, as well as code generation support with a JIT
+compiler.  While other systems may have interesting "hello world" tutorials,
+I think the breadth of this tutorial is a great testament to the strengths of
+LLVM and why you should consider it if you're interested in language or compiler
+design.</p>
+
+<p>A note about this tutorial: we expect you to extend the language and play
+with it on your own.  Take the code and go crazy hacking away at it, compilers
+don't need to be scary creatures - it can be a lot of fun to play with
+languages!</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="language">The Basic Language</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>This tutorial will be illustrated with a toy language that we'll call
+"<a href="http://en.wikipedia.org/wiki/Kaleidoscope">Kaleidoscope</a>" (derived
+from "meaning beautiful, form, and view").
+Kaleidoscope is a procedural language that allows you to define functions, use
+conditionals, math, etc.  Over the course of the tutorial, we'll extend
+Kaleidoscope to support the if/then/else construct, a for loop, user defined
+operators, JIT compilation with a simple command line interface, etc.</p>
+
+<p>Because we want to keep things simple, the only datatype in Kaleidoscope is a
+64-bit floating point type.  As such, all values are implicitly double precision
+and the language doesn't require type declarations.  This gives the language a
+very nice and simple syntax.  For example, the following simple example computes
+<a href="http://en.wikipedia.org/wiki/Fibonacci_number">Fibonacci numbers:</a>
+</p>
+
+<div class="doc_code">
+<pre>
+# Compute the x'th fibonacci number.
+def fib(x)
+  if x &lt; 3 then
+    1
+  else
+    fib(x-1)+fib(x-2)
+
+# This expression will compute the 40th number.
+fib(40)
+</pre>
+</div>
+
+<p>We also allow Kaleidoscope to call into standard library functions (the LLVM
+JIT makes this completely trivial).  This means that you can use the 'extern'
+keyword to define a function before you use it (this is also useful for mutually
+recursive functions).  For example:</p>
+
+<div class="doc_code">
+<pre>
+extern sin(arg);
+extern cos(arg);
+extern atan2(arg1 arg2);
+
+atan2(sin(0.4), cos(42))
+</pre>
+</div>
+
+<p>A more interesting example is included in Chapter 6 where we write a little
+Kaleidoscope application that <a href="PythonLangImpl6.html#example">displays
+a Mandelbrot Set</a> at various levels of magnification.</p>
+
+<p>Lets dive into the implementation of this language!</p>
+
+</div>
+
+<!-- *********************************************************************** -->
+<div class="doc_section"><a name="lexer">The Lexer</a></div>
+<!-- *********************************************************************** -->
+
+<div class="doc_text">
+
+<p>When it comes to implementing a language, the first thing needed is
+the ability to process a text file and recognize what it says.  The traditional
+way to do this is to use a "<a
+href="http://en.wikipedia.org/wiki/Lexical_analysis">lexer</a>" (aka 'scanner')
+to break the input up into "tokens".  Each token returned by the lexer includes
+a token type and potentially some metadata (e.g. the numeric value of a number).
+First, we define the possibilities:</p>
+
+<div class="doc_code">
+<pre>
+# The lexer yields one of these types for each token.
+class EOFToken(object):
+  pass
+
+class DefToken(object):
+  pass
+
+class ExternToken(object):
+  pass
+
+class IdentifierToken(object):
+  def __init__(self, name): self.name = name
+
+class NumberToken(object):
+  def __init__(self, value): self.value = value
+
+class CharacterToken(object):
+  def __init__(self, char): self.char = char
+  def __eq__(self, other):
+    return isinstance(other, CharacterToken) and self.char == other.char
+  def __ne__(self, other): return not self == other
+</pre>
+</div>
+
+<p>Each token yielded by our lexer will be of one of the above types. For simple
+tokens that are always the same, like the "def" keyword, the lexer will yield
+<tt>DefToken()</tt>. Identifiers, numbers and characters, on the other
+hand, have extra data, so when the lexer encounteres the number 123.45, it will
+emit it as <tt>NumberToken(123.45)</tt>. An identifier <tt>foo</tt> will be
+emitted as <tt>IdentifierToken('foo')</tt>. And finally, an unknown character
+like '+' will be returned as <tt>CharacterToken('+')</tt>. You may notice that
+we overload the equality and inequality operators for the characters; this will
+later simplify character comparisons in the parser code.</p>
+
+<p>The actual implementation of the lexer is a single function called
+<tt>Tokenize</tt>, which takes a string and
+<a href="http://docs.python.org/reference/simple_stmts.html#the-yield-statement">yields</a>
+tokens. For simplicity, we will use
+<a href="http://docs.python.org/library/re.html">regular
+expressions</a> to parse out the tokens. This is terribly inefficient, but
+perfectly sufficient for our needs.</p>
+
+<p>First, we define the regular expressions for our tokens. Numbers and strings
+of digits, optionally followed by a period and another string of digits.
+Identifiers (and keywords) are alphanumeric string starting with a letter and
+comments are anything between a hash (<tt>#</tt>) and the end of the line.
+
+<div class="doc_code">
+<pre>
+import re
+
+...
+
+# Regular expressions that tokens and comments of our language.
+REGEX_NUMBER = re.compile('[0-9]+(?:\.[0-9]+)?')
+REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9]*')
+REGEX_COMMENT = re.compile('#.*')
+</pre>
+</div>
+
+<p>
+Next, let's start defining the <tt>Tokenize</tt> function itself. The first
+thing we need to do is set up a loop that scans the string, while ignoring
+whitespace between tokens:</p>
+
+<div class="doc_code">
+<pre>
+def Tokenize(string):
+  while string:
+    # Skip whitespace.
+    if string[0].isspace():
+      string = string[1:]
+      continue
+
+    ...
+</pre>
+</div>
+
+<p>Next we want to find out what the next token is. For this we run the regexes
+we defined above on the remainder of the string. To simplify the rest of the
+code, we run all three regexes each time. As mentioned above, inefficiencies are
+ignored for the purpose of this tutorial:<p>
+
+<div class="doc_code">
+<pre>
+    # Run regexes.
+    comment_match = REGEX_COMMENT.match(string)
+    number_match = REGEX_NUMBER.match(string)
+    identifier_match = REGEX_IDENTIFIER.match(string)
+</pre>
+</div>
+
+<p>Now se check if any of the regexes matched. For comments, we simply
+ignore the captured match:</p>
+
+<div class="doc_code">
+<pre>
+    # Check if any of the regexes matched and yield the appropriate result.
+    if comment_match:
+      comment = comment_match.group(0)
+      string = string[len(comment):]
+</pre>
+</div>
+
+<p>For numbers, we yield the captured match, converted to a float and tagged
+with the appropriate token type:</p>
+
+<div class="doc_code">
+<pre>
+    elif number_match:
+      number = number_match.group(0)
+      yield NumberToken(float(number))
+      string = string[len(number):]
+</pre>
+</div>
+
+<p>The identifier case is a little more complex. We have to check for keywords
+to decide whether we have captured an identifier or a keyword:</p>
+
+<div class="doc_code">
+<pre>
+    elif identifier_match:
+      identifier = identifier_match.group(0)
+      # Check if we matched a keyword.
+      if identifier == 'def':
+        yield DefToken()
+      elif identifier == 'extern':
+        yield ExternToken()
+      else:
+        yield IdentifierToken(identifier)
+      string = string[len(identifier):]
+</pre>
+</div>
+
+<p>Finally, if we haven't recognized a comment, a number of an identifier, we
+yield the current character as an "unknown character" token. This is used, for
+example, for operators like <tt>+</tt> or <tt>*</tt>:</p>
+
+<div class="doc_code">
+<pre>
+    else:
+      # Yield the unknown character.
+      yield CharacterToken(string[0])
+      string = string[1:]
+</pre>
+</div>
+
+<p>Once we're done with the
+loop, we return a final end-of-file token:</p>
+
+<div class="doc_code">
+<pre>
+  yield EOFToken()
+</pre>
+</div>
+
+<p>With this, we have the complete lexer for the basic Kaleidoscope language
+(the <a href="PythonLangImpl2.html#code">full code listing</a> for the Lexer is
+available in the <a href="PythonLangImpl2.html">next chapter</a> of the
+tutorial).  Next we'll <a href="PythonLangImpl2.html">build a simple parser that
+uses this to build an Abstract Syntax Tree</a>.  When we have that, we'll
+include a driver so that you can use the lexer and parser together.
+</p>
+
+<a href="PythonLangImpl2.html">Next: Implementing a Parser and AST</a>
+</div>
+
+<!-- *********************************************************************** -->
+<hr>
+<address>
+  <a href="http://jigsaw.w3.org/css-validator/check/referer"><img
+  src="http://jigsaw.w3.org/css-validator/images/vcss" alt="Valid CSS!"></a>
+  <a href="http://validator.w3.org/check/referer"><img
+  src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML 4.01!"></a>
+
+  <a href="mailto:sabre@nondot.org">Chris Lattner</a><br>
+  <a href="http://max99x.com">Max Shawabkeh</a><br>
+  <a href="http://llvm.org">The LLVM Compiler Infrastructure</a><br>
+  Last modified: $Date$
+</address>
+</body>
+</html>
