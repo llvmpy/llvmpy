@@ -87,6 +87,8 @@ def call_setup(llvm_config):
     std_libs    = [ 'pthread', 'm', 'stdc++' ]
     if not ("openbsd" in sys.platform or "freebsd" in sys.platform):
         std_libs.append("dl")
+    if "darwin" in sys.platform:
+        std_libs.append("ffi")
 
     ext_core = Extension(
         'llvm._core',
