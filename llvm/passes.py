@@ -43,7 +43,6 @@ import llvm._core as _core  # C wrappers
 
 # passes
 PASS_AAEVAL                          = 1
-PASS_ABCD                            = 2
 PASS_AGGRESSIVE_DCE                  = 3
 PASS_ALIAS_ANALYSIS_COUNTER          = 4
 PASS_ALWAYS_INLINER                  = 5
@@ -116,13 +115,10 @@ PASS_PRUNE_EH                        = 71
 PASS_REASSOCIATE                     = 72
 PASS_SCALAR_EVOLUTION_ALIAS_ANALYSIS = 73
 PASS_SCALAR_REPL_AGGREGATES          = 74
-PASS_SCCVN                           = 75
 PASS_SCCP                            = 76
 PASS_SIMPLIFY_HALF_POWR_LIB_CALLS    = 77
 PASS_SIMPLIFY_LIB_CALLS              = 78
 PASS_SINGLE_LOOP_EXTRACTOR           = 79
-PASS_SSI                             = 80
-PASS_SSI_EVERYTHING                  = 81
 PASS_STRIP_DEAD_PROTOTYPES           = 82
 PASS_STRIP_NON_DEBUG_SYMBOLS         = 83
 PASS_STRIP_SYMBOLS                   = 84
@@ -140,7 +136,6 @@ PASS_INTERNALIZE                     = 89
 
 _pass_creator = {
     PASS_AAEVAL                          : _core.LLVMAddAAEvalPass,
-    PASS_ABCD                            : _core.LLVMAddABCDPass,
     PASS_AGGRESSIVE_DCE                  : _core.LLVMAddAggressiveDCEPass,
     PASS_ALIAS_ANALYSIS_COUNTER          : _core.LLVMAddAliasAnalysisCounterPass,
     PASS_ALWAYS_INLINER                  : _core.LLVMAddAlwaysInlinerPass,
@@ -213,13 +208,10 @@ _pass_creator = {
     PASS_REASSOCIATE                     : _core.LLVMAddReassociatePass,
     PASS_SCALAR_EVOLUTION_ALIAS_ANALYSIS : _core.LLVMAddScalarEvolutionAliasAnalysisPass,
     PASS_SCALAR_REPL_AGGREGATES          : _core.LLVMAddScalarReplAggregatesPass,
-    PASS_SCCVN                           : _core.LLVMAddSCCVNPass,
     PASS_SCCP                            : _core.LLVMAddSCCPPass,
     PASS_SIMPLIFY_HALF_POWR_LIB_CALLS    : _core.LLVMAddSimplifyHalfPowrLibCallsPass,
     PASS_SIMPLIFY_LIB_CALLS              : _core.LLVMAddSimplifyLibCallsPass,
     PASS_SINGLE_LOOP_EXTRACTOR           : _core.LLVMAddSingleLoopExtractorPass,
-    PASS_SSI                             : _core.LLVMAddSSIPass,
-    PASS_SSI_EVERYTHING                  : _core.LLVMAddSSIEverythingPass,
     PASS_STRIP_DEAD_PROTOTYPES           : _core.LLVMAddStripDeadPrototypesPass,
     PASS_STRIP_NON_DEBUG_SYMBOLS         : _core.LLVMAddStripNonDebugSymbolsPass,
     PASS_STRIP_SYMBOLS                   : _core.LLVMAddStripSymbolsPass,
@@ -227,7 +219,7 @@ _pass_creator = {
     PASS_TAIL_CALL_ELIMINATION           : _core.LLVMAddTailCallEliminationPass,
     PASS_TAIL_DUPLICATION                : _core.LLVMAddTailDuplicationPass,
     PASS_UNIFY_FUNCTION_EXIT_NODES       : _core.LLVMAddUnifyFunctionExitNodesPass,
-    PASS_INTERNALIZE                     : _core.LLVMAddInternalizePass,
+    PASS_INTERNALIZE                     : _core.LLVMAddInternalize2Pass,
 }
 
 

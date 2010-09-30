@@ -36,7 +36,7 @@ def test_jit_ctypes():
 
     bb = mult.append_basic_block("entry")
     builder = Builder.new(bb)
-    tmp = builder.mul( mult.args[0], mult.args[1] )
+    tmp = builder.fmul( mult.args[0], mult.args[1] )
     builder.store( tmp, mult.args[2] )
     builder.ret(llvm.core.Constant.int(ty_errcode, 0))
 

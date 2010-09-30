@@ -190,7 +190,6 @@ int LLVMInlineFunction(LLVMValueRef call);
     void LLVMAdd ## P ## Pass (LLVMPassManagerRef PM);
 
 declare_pass( AAEval )
-declare_pass( ABCD )
 declare_pass( AliasAnalysisCounter )
 declare_pass( AlwaysInliner )
 declare_pass( BasicAliasAnalysis )
@@ -210,7 +209,6 @@ declare_pass( GEPSplitter )
 declare_pass( GlobalsModRef )
 declare_pass( InstCount )
 declare_pass( InstructionNamer )
-declare_pass( IPSCCP )
 declare_pass( LazyValueInfo )
 declare_pass( LCSSA )
 declare_pass( LiveValues )
@@ -234,17 +232,14 @@ declare_pass( ProfileEstimator )
 declare_pass( ProfileLoader )
 declare_pass( ProfileVerifier )
 declare_pass( ScalarEvolutionAliasAnalysis )
-declare_pass( SCCVN )
 declare_pass( SimplifyHalfPowrLibCalls )
 declare_pass( SingleLoopExtractor )
-declare_pass( SSI )
-declare_pass( SSIEverything )
 declare_pass( StripNonDebugSymbols )
 declare_pass( StructRetPromotion )
 declare_pass( TailDuplication )
 declare_pass( UnifyFunctionExitNodes )
 
-declare_pass( Internalize )
+declare_pass( Internalize2 )
 
 #ifdef __cplusplus
 } /* extern "C" */

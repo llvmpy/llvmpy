@@ -368,8 +368,10 @@ LLVMModuleRef LLVMGetModuleFromBitcode(const char *bitcode, unsigned bclen,
     assert(bitcode);
     assert(out);
 
+    llvm::StringRef as_str(bitcode, bclen);
+
     llvm::MemoryBuffer *mbp;
-    if (!(mbp = llvm::MemoryBuffer::getMemBufferCopy(bitcode, bitcode+bclen)))
+    if (!(mbp = llvm::MemoryBuffer::getMemBufferCopy(as_str)))
         return NULL;
 
     std::string msg;
@@ -457,7 +459,8 @@ int LLVMInlineFunction(LLVMValueRef call)
 
     llvm::CallSite cs = llvm::CallSite::get(callp);
 
-    return llvm::InlineFunction(cs);
+    llvm::InlineFunctionInfo unused;
+    return llvm::InlineFunction(cs, unused);
 }
 
 
@@ -474,7 +477,6 @@ void LLVMAdd ## P ## Pass (LLVMPassManagerRef passmgr) { \
 }
 
 define_pass( AAEval )
-define_pass( ABCD )
 define_pass( AliasAnalysisCounter )
 define_pass( AlwaysInliner )
 define_pass( BasicAliasAnalysis )
@@ -494,7 +496,6 @@ define_pass( GEPSplitter )
 define_pass( GlobalsModRef )
 define_pass( InstCount )
 define_pass( InstructionNamer )
-define_pass( IPSCCP )
 define_pass( LazyValueInfo )
 define_pass( LCSSA )
 define_pass( LiveValues )
@@ -518,17 +519,14 @@ define_pass( ProfileEstimator )
 define_pass( ProfileLoader )
 define_pass( ProfileVerifier )
 define_pass( ScalarEvolutionAliasAnalysis )
-define_pass( SCCVN )
 define_pass( SimplifyHalfPowrLibCalls )
 define_pass( SingleLoopExtractor )
-define_pass( SSI )
-define_pass( SSIEverything )
 define_pass( StripNonDebugSymbols )
 define_pass( StructRetPromotion )
 define_pass( TailDuplication )
 define_pass( UnifyFunctionExitNodes )
 
 /* we support only internalize(true) */
-llvm::ModulePass *createInternalizePass() { return llvm::createInternalizePass(true); }
-define_pass( Internalize )
+llvm::ModulePass *createInternalize2Pass() { return llvm::createInternalizePass(true); }
+define_pass( Internalize2 )
 

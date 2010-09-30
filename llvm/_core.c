@@ -855,12 +855,9 @@ _wrap_pass( Reassociate )
 _wrap_pass( ScalarEvolutionAliasAnalysis )
 _wrap_pass( ScalarReplAggregates )
 _wrap_pass( SCCP )
-_wrap_pass( SCCVN )
 _wrap_pass( SimplifyHalfPowrLibCalls )
 _wrap_pass( SimplifyLibCalls )
 _wrap_pass( SingleLoopExtractor )
-_wrap_pass( SSI )
-_wrap_pass( SSIEverything )
 _wrap_pass( StripDeadPrototypes )
 _wrap_pass( StripNonDebugSymbols )
 _wrap_pass( StripSymbols )
@@ -869,7 +866,7 @@ _wrap_pass( TailCallElimination )
 _wrap_pass( TailDuplication )
 _wrap_pass( UnifyFunctionExitNodes )
 
-_wrap_pass( Internalize )
+_wrap_pass( Internalize2 )
 
 /*===----------------------------------------------------------------------===*/
 /* Target Data                                                                */
@@ -1546,7 +1543,6 @@ static PyMethodDef core_methods[] = {
 
     /* Passes */
     _pass( AAEval )
-    _pass( ABCD )
     _pass( AggressiveDCE )
     _pass( AliasAnalysisCounter )
     _pass( AlwaysInliner )
@@ -1620,12 +1616,9 @@ static PyMethodDef core_methods[] = {
     _pass( ScalarEvolutionAliasAnalysis )
     _pass( ScalarReplAggregates )
     _pass( SCCP )
-    _pass( SCCVN )
     _pass( SimplifyHalfPowrLibCalls )
     _pass( SimplifyLibCalls )
     _pass( SingleLoopExtractor )
-    _pass( SSI )
-    _pass( SSIEverything )
     _pass( StripDeadPrototypes )
     _pass( StripNonDebugSymbols )
     _pass( StripSymbols )
@@ -1634,7 +1627,7 @@ static PyMethodDef core_methods[] = {
     _pass( TailDuplication )
     _pass( UnifyFunctionExitNodes )
 
-    _pass( Internalize )
+    _pass( Internalize2 )
 
     /* Target Data */
     _method( LLVMCreateTargetData )

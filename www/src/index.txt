@@ -18,6 +18,9 @@ a patch.
 News
 ----
 
+30-Sep-2010::
+    SVN r96 now works with LLVM 2.8rc2. Please test.
+
 26-Sep-2010::
     LLVM tutorial link:examples.html#kaleidoscope[ported] by Max Shawabkeh!
 

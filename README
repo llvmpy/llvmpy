@@ -7,34 +7,41 @@ llvm-py provides Python bindings for LLVM.
 
 Home page:
 ----------
-    http://mdevan.nfshost.com/llvm-py/
+    http://www.mdevan.org/llvm-py/
 
 
 Versions:
 ---------
-    This package will work only with LLVM 2.7, and Python 2.4 or later,
-    (not Python 3.x).
+    This package will work only with LLVM 2.8rc2, and Python 2.4 or later,
+    (not Python 3.x). Note that LLVM 2.8 is not released yet, and neither
+    is this package.
 
 
 Quickstart:
 -----------
-    1. Get 2.7 version of LLVM, build it. Make sure '--enable-pic' is passed to
-       LLVM's 'configure'.
+    1. Get 2.8rc2 version of LLVM, build it. Make sure '--enable-pic' is
+       passed to LLVM's 'configure'.
 
     2. Get llvm-py and install it:
 
-        $ wget http://llvm-py.googlecode.com/files/llvm-py-0.6.tar.bz2
-        $ tar jxvf llvm-py-0.6.tar.bz2
+        # To get from SVN:
+        $ svn checkout http://llvm-py.googlecode.com/svn/trunk/ llvm-py
+
+        # To get the stable release X.Y:
+        $ wget http://llvm-py.googlecode.com/files/llvm-py-X.Y.tar.bz2
+        $ tar jxvf llvm-py-X.Y.tar.bz2
+
+        # To build and install:
         $ cd llvm-py
         # Locate llvm-config, usually under <llvm>/Release/bin
         $ python setup.py install --user --llvm-config=/path/to/llvm-config
 
-    3. See examples under 'test' directory.
+    3. See documentation at 'www/src/index.html' and examples under 'test'.
 
 
 LICENSE:
 --------
     llvm-py is distributed under the new BSD license, which is similar to
-    the LLVM license itself. See the file called LICENSE for the full license
-    text.
+    the LLVM license itself. See the file called LICENSE for the full 
+    license text.
 

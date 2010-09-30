@@ -576,10 +576,11 @@ def do_passmanager():
     print "    Testing class PassManager"
     pm = PassManager.new()
     pm.add(TargetData.new(''))
-    for i in range(1, 90):
-        if i not in (PASS_OPTIMAL_EDGE_PROFILER,
-           PASS_EDGE_PROFILER, PASS_PROFILE_LOADER, PASS_AAEVAL):
-            pm.add(i)
+    for i in [getattr(llvm.passes, x) for x in \
+        dir(llvm.passes) if x.startswith('PASS_') and x not in \
+        ('PASS_OPTIMAL_EDGE_PROFILER', 'PASS_EDGE_PROFILER', \
+        'PASS_PROFILE_LOADER', 'PASS_AAEVAL')]:
+        pm.add(i)
     pm.run(Module.new('a'))
 
 

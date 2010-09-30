@@ -59,7 +59,6 @@ TYPE_POINTER    = 11
 TYPE_OPAQUE     = 12
 TYPE_VECTOR     = 13
 TYPE_METADATA   = 14
-TYPE_UNION      = 15
 
 # value IDs (llvm::Value::ValueTy enum)
 VALUE_ARGUMENT                          = 0
@@ -75,16 +74,14 @@ VALUE_CONSTANT_INT                      = 9
 VALUE_CONSTANT_FP                       = 10
 VALUE_CONSTANT_ARRAY                    = 11
 VALUE_CONSTANT_STRUCT                   = 12
-VALUE_CONSTANT_UNION                    = 13
-VALUE_CONSTANT_VECTOR                   = 14
-VALUE_CONSTANT_POINTER_NULL             = 15
-VALUE_MD_NODE                           = 16
-VALUE_MD_STRING                         = 17
-VALUE_NAMED_MD_NODE                     = 18
-VALUE_INLINE_ASM                        = 19
-VALUE_PSEUDO_SOURCE_VALUE               = 20
-VALUE_FIXED_STACK_PSEUDO_SOURCE_VALUE   = 21
-VALUE_INSTRUCTION                       = 22
+VALUE_CONSTANT_VECTOR                   = 13
+VALUE_CONSTANT_POINTER_NULL             = 14
+VALUE_MD_NODE                           = 15
+VALUE_MD_STRING                         = 16
+VALUE_INLINE_ASM                        = 17
+VALUE_PSEUDO_SOURCE_VALUE               = 18
+VALUE_FIXED_STACK_PSEUDO_SOURCE_VALUE   = 19
+VALUE_INSTRUCTION                       = 20
 
 # instruction opcodes (from include/llvm/Instruction.def)
 OPCODE_RET            = 1
@@ -135,7 +132,7 @@ OPCODE_CALL           = 45
 OPCODE_SELECT         = 46
 OPCODE_USEROP1        = 47
 OPCODE_USEROP2        = 48
-OPCODE_VAARG          = 59
+OPCODE_VAARG          = 49
 OPCODE_EXTRACTELEMENT = 50
 OPCODE_INSERTELEMENT  = 51
 OPCODE_SHUFFLEVECTOR  = 52
@@ -210,21 +207,23 @@ RPRED_UNE       = FCMP_UNE
 RPRED_TRUE      = FCMP_TRUE
 
 # linkages (see llvm-c/Core.h)
-LINKAGE_EXTERNAL             = 0
-LINKAGE_AVAILABLE_EXTERNALLY = 1
-LINKAGE_LINKONCE_ANY         = 2
-LINKAGE_LINKONCE_ODR         = 3
-LINKAGE_WEAK_ANY             = 4
-LINKAGE_WEAK_ODR             = 5
-LINKAGE_APPENDING            = 6
-LINKAGE_INTERNAL             = 7
-LINKAGE_PRIVATE              = 8
-LINKAGE_DLLIMPORT            = 9
-LINKAGE_DLLEXPORT            = 10
-LINKAGE_EXTERNAL_WEAK        = 11
-LINKAGE_GHOST                = 12
-LINKAGE_COMMON               = 13
-LINKAGE_LINKER_PRIVATE       = 14
+LINKAGE_EXTERNAL                        = 0
+LINKAGE_AVAILABLE_EXTERNALLY            = 1
+LINKAGE_LINKONCE_ANY                    = 2
+LINKAGE_LINKONCE_ODR                    = 3
+LINKAGE_WEAK_ANY                        = 4
+LINKAGE_WEAK_ODR                        = 5
+LINKAGE_APPENDING                       = 6
+LINKAGE_INTERNAL                        = 7
+LINKAGE_PRIVATE                         = 8
+LINKAGE_DLLIMPORT                       = 9
+LINKAGE_DLLEXPORT                       = 10
+LINKAGE_EXTERNAL_WEAK                   = 11
+LINKAGE_GHOST                           = 12
+LINKAGE_COMMON                          = 13
+LINKAGE_LINKER_PRIVATE                  = 14
+LINKAGE_LINKER_PRIVATE_WEAK             = 15
+LINKAGE_LINKER_PRIVATE_WEAK_DEF_AUTO    = 16
 
 # visibility (see llvm/GlobalValue.h)
 VISIBILITY_DEFAULT   = 0

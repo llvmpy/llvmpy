@@ -1,6 +1,8 @@
 
 0.7, in progress:
 
+  * Migrate to LLVM 2.8.
+  * Fix ffi link issue on darwin (Albert Mietus) (Issue #29).
   * LLVM tutorial ported (Max Shawabkeh) (Issue #33).
 
 
