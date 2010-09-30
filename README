@@ -36,7 +36,7 @@ Quickstart:
         # Locate llvm-config, usually under <llvm>/Release/bin
         $ python setup.py install --user --llvm-config=/path/to/llvm-config
 
-    3. See documentation at 'www/src/index.html' and examples under 'test'.
+    3. See documentation at 'www/web/index.html' and examples under 'test'.
 
 
 LICENSE:
