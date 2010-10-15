@@ -1260,8 +1260,14 @@ class Argument(Value):
     def remove_attribute(self, attr):
         _core.LLVMRemoveAttribute(self.ptr, attr)
 
-    def set_alignment(self, align):
+    def _set_alignment(self, align):
         _core.LLVMSetParamAlignment(self.ptr, align)
+
+    def _get_alignment(self):
+        return _core.LLVMGetParamAlignment(self.ptr)
+
+    alignment = \
+        property(_get_alignment, _set_alignment)
 
 
 class Function(GlobalValue):

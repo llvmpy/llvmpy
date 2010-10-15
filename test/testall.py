@@ -267,7 +267,8 @@ def do_argument():
     a = f.args[0]
     a.add_attribute(ATTR_ZEXT)
     a.remove_attribute(ATTR_ZEXT)
-    a.set_alignment(4)
+    a.alignment = 16
+    a1 = a.alignment
 
 
 def do_function():
