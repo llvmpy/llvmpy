@@ -782,7 +782,6 @@ _wrap_obj2none(LLVMDisposePassManager, LLVMPassManagerRef)
 _wrap_obj2none( LLVMAdd ## P ## Pass, LLVMPassManagerRef)
 
 _wrap_pass( AAEval )
-_wrap_pass( ABCD )
 _wrap_pass( AggressiveDCE )
 _wrap_pass( AliasAnalysisCounter )
 _wrap_pass( AlwaysInliner )
