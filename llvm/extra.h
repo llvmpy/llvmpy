@@ -183,6 +183,10 @@ void *LLVMGetPointerToFunction(LLVMExecutionEngineRef ee, LLVMValueRef fn);
  * containing the call is still in a proper state (not changed). */
 int LLVMInlineFunction(LLVMValueRef call);
 
+/* Wraps llvm::getAlignmentFromAttrs from Attributes.h. Compliments the
+ * already available LLVMSetParamAlignment(). */
+unsigned LLVMGetParamAlignment(LLVMValueRef arg);
+
 /* Passes. Some passes are used directly from LLVM-C, rest are declared
  * here. */
 

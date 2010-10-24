@@ -538,6 +538,7 @@ _wrap_obj2obj(LLVMGetParamParent, LLVMValueRef, LLVMValueRef)
 _wrap_objenum2none(LLVMAddAttribute, LLVMValueRef, LLVMAttribute)
 _wrap_objenum2none(LLVMRemoveAttribute, LLVMValueRef, LLVMAttribute)
 _wrap_objenum2none(LLVMSetParamAlignment, LLVMValueRef, LLVMAttribute)
+_wrap_obj2obj(LLVMGetParamAlignment, LLVMValueRef, int)
 
 /*===-- Basic Blocks -----------------------------------------------------===*/
 
@@ -1401,6 +1402,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMAddAttribute )
     _method( LLVMRemoveAttribute )
     _method( LLVMSetParamAlignment )    
+    _method( LLVMGetParamAlignment )    
 
     /* Basic Blocks */
     _method( LLVMGetBasicBlockParent )    

@@ -463,6 +463,15 @@ int LLVMInlineFunction(LLVMValueRef call)
     return llvm::InlineFunction(cs, unused);
 }
 
+unsigned LLVMGetParamAlignment(LLVMValueRef arg)
+{
+    llvm::Argument *argp = llvm::unwrap<llvm::Argument>(arg);
+    assert(argp);
+
+    unsigned argno = argp->getArgNo();
+
+    return argp->getParent()->getParamAlignment(argno + 1);
+}
 
 /* Passes. A few passes (listed below) are used directly from LLVM-C,
  * rest are defined here.

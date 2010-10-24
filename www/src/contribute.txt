@@ -12,9 +12,9 @@ You can make a difference, just by:
 
 Useful links:
 
-- Google code hosting: http://code.google.com/p/llvm-py/[http://code.google.com/p/llvm-py/]
 - Browse SVN: http://code.google.com/p/llvm-py/source/browse/[http://code.google.com/p/llvm-py/source/browse]
 - Issues tracker: http://code.google.com/p/llvm-py/issues/list[http://code.google.com/p/llvm-py/issues/list]
+- Discussions: http://groups.google.com/group/llvm-py[http://groups.google.com/group/llvm-py]
 
 SVN HEAD can be checked out like so:
 
