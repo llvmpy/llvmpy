@@ -1890,10 +1890,13 @@ class Builder(object):
 
     # misc
 
-    def getresult(self, retval, idx, name=""):
+    def extract_value(self, retval, idx, name=""):
         check_is_value(retval)
         return _make_value(
             _core.LLVMBuildGetResult(self.ptr, retval.ptr, idx, name))
+
+    # obsolete synonym for extract_value
+    getresult = extract_value
 
     def phi(self, ty, name=""):
         check_is_type(ty)

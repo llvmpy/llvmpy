@@ -388,8 +388,8 @@ def _do_builder_mrv():
     blk = f.append_basic_block('b')
     b = Builder.new(blk)
     v = b.call(f, [Constant.int(ti, 1)])
-    v1 = b.getresult(v, 0)
-    v2 = b.getresult(v, 1)
+    v1 = b.extract_value(v, 0)
+    v2 = b.extract_value(v, 1)
     b.ret_many([v1, v2])
     #print f
 
@@ -463,7 +463,7 @@ def do_builder():
     b.fcmp(RPRED_ULT, fv, fv)
     vi = Constant.vector([Constant.int(ti,42)]*10)
     vf = Constant.vector([Constant.real(Type.float(), 3.14)]*10)
-    # TODO b.getresult(v, 0)
+    # TODO b.extract_value(v, 0)
     b.call(f, [v])
     b.select(Constant.int(Type.int(1), 1), blk, blk)
     b.vaarg(v, Type.int())
