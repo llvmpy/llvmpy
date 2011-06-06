@@ -68,7 +68,7 @@ PASS_DOM_VIEWER                      = 24
 PASS_EDGE_PROFILER                   = 25
 PASS_FUNCTION_ATTRS                  = 26
 PASS_FUNCTION_INLINING               = 27
-PASS_GEP_SPLITTER                    = 28
+#PASS_GEP_SPLITTER                    = 28
 PASS_GLOBAL_DCE                      = 29
 PASS_GLOBAL_OPTIMIZER                = 30
 PASS_GLOBALS_MOD_REF                 = 31
@@ -83,11 +83,11 @@ PASS_JUMP_THREADING                  = 39
 PASS_LAZY_VALUE_INFO                 = 40
 PASS_LCSSA                           = 41
 PASS_LICM                            = 42
-PASS_LIVE_VALUES                     = 43
+#PASS_LIVE_VALUES                     = 43
 PASS_LOOP_DELETION                   = 44
 PASS_LOOP_DEPENDENCE_ANALYSIS        = 45
 PASS_LOOP_EXTRACTOR                  = 46
-PASS_LOOP_INDEX_SPLIT                = 47
+#PASS_LOOP_INDEX_SPLIT                = 47
 PASS_LOOP_ROTATE                     = 48
 PASS_LOOP_SIMPLIFY                   = 49
 PASS_LOOP_STRENGTH_REDUCE            = 50
@@ -102,11 +102,11 @@ PASS_NO_AA                           = 58
 PASS_NO_PROFILE_INFO                 = 59
 PASS_OPTIMAL_EDGE_PROFILER           = 60
 PASS_PARTIAL_INLINING                = 61
-PASS_PARTIAL_SPECIALIZATION          = 62
-PASS_POST_DOM_ONLY_PRINTER           = 63
-PASS_POST_DOM_ONLY_VIEWER            = 64
-PASS_POST_DOM_PRINTER                = 65
-PASS_POST_DOM_VIEWER                 = 66
+#PASS_PARTIAL_SPECIALIZATION          = 62
+#PASS_POST_DOM_ONLY_PRINTER           = 63
+#PASS_POST_DOM_ONLY_VIEWER            = 64
+#PASS_POST_DOM_PRINTER                = 65
+#PASS_POST_DOM_VIEWER                 = 66
 PASS_PROFILE_ESTIMATOR               = 67
 PASS_PROFILE_LOADER                  = 68
 PASS_PROFILE_VERIFIER                = 69
@@ -116,7 +116,7 @@ PASS_REASSOCIATE                     = 72
 PASS_SCALAR_EVOLUTION_ALIAS_ANALYSIS = 73
 PASS_SCALAR_REPL_AGGREGATES          = 74
 PASS_SCCP                            = 76
-PASS_SIMPLIFY_HALF_POWR_LIB_CALLS    = 77
+#PASS_SIMPLIFY_HALF_POWR_LIB_CALLS    = 77
 PASS_SIMPLIFY_LIB_CALLS              = 78
 PASS_SINGLE_LOOP_EXTRACTOR           = 79
 PASS_STRIP_DEAD_PROTOTYPES           = 82
@@ -161,7 +161,7 @@ _pass_creator = {
     PASS_EDGE_PROFILER                   : _core.LLVMAddEdgeProfilerPass,
     PASS_FUNCTION_ATTRS                  : _core.LLVMAddFunctionAttrsPass,
     PASS_FUNCTION_INLINING               : _core.LLVMAddFunctionInliningPass,
-    PASS_GEP_SPLITTER                    : _core.LLVMAddGEPSplitterPass,
+#    PASS_GEP_SPLITTER                    : _core.LLVMAddGEPSplitterPass,
     PASS_GLOBAL_DCE                      : _core.LLVMAddGlobalDCEPass,
     PASS_GLOBAL_OPTIMIZER                : _core.LLVMAddGlobalOptimizerPass,
     PASS_GLOBALS_MOD_REF                 : _core.LLVMAddGlobalsModRefPass,
@@ -176,11 +176,11 @@ _pass_creator = {
     PASS_LAZY_VALUE_INFO                 : _core.LLVMAddLazyValueInfoPass,
     PASS_LCSSA                           : _core.LLVMAddLCSSAPass,
     PASS_LICM                            : _core.LLVMAddLICMPass,
-    PASS_LIVE_VALUES                     : _core.LLVMAddLiveValuesPass,
+#    PASS_LIVE_VALUES                     : _core.LLVMAddLiveValuesPass,
     PASS_LOOP_DELETION                   : _core.LLVMAddLoopDeletionPass,
     PASS_LOOP_DEPENDENCE_ANALYSIS        : _core.LLVMAddLoopDependenceAnalysisPass,
     PASS_LOOP_EXTRACTOR                  : _core.LLVMAddLoopExtractorPass,
-    PASS_LOOP_INDEX_SPLIT                : _core.LLVMAddLoopIndexSplitPass,
+#    PASS_LOOP_INDEX_SPLIT                : _core.LLVMAddLoopIndexSplitPass,
     PASS_LOOP_ROTATE                     : _core.LLVMAddLoopRotatePass,
     PASS_LOOP_SIMPLIFY                   : _core.LLVMAddLoopSimplifyPass,
     PASS_LOOP_STRENGTH_REDUCE            : _core.LLVMAddLoopStrengthReducePass,
@@ -195,11 +195,11 @@ _pass_creator = {
     PASS_NO_PROFILE_INFO                 : _core.LLVMAddNoProfileInfoPass,
     PASS_OPTIMAL_EDGE_PROFILER           : _core.LLVMAddOptimalEdgeProfilerPass,
     PASS_PARTIAL_INLINING                : _core.LLVMAddPartialInliningPass,
-    PASS_PARTIAL_SPECIALIZATION          : _core.LLVMAddPartialSpecializationPass,
-    PASS_POST_DOM_ONLY_PRINTER           : _core.LLVMAddPostDomOnlyPrinterPass,
-    PASS_POST_DOM_ONLY_VIEWER            : _core.LLVMAddPostDomOnlyViewerPass,
-    PASS_POST_DOM_PRINTER                : _core.LLVMAddPostDomPrinterPass,
-    PASS_POST_DOM_VIEWER                 : _core.LLVMAddPostDomViewerPass,
+#    PASS_PARTIAL_SPECIALIZATION          : _core.LLVMAddPartialSpecializationPass,
+#    PASS_POST_DOM_ONLY_PRINTER           : _core.LLVMAddPostDomOnlyPrinterPass,
+#    PASS_POST_DOM_ONLY_VIEWER            : _core.LLVMAddPostDomOnlyViewerPass,
+#    PASS_POST_DOM_PRINTER                : _core.LLVMAddPostDomPrinterPass,
+#    PASS_POST_DOM_VIEWER                 : _core.LLVMAddPostDomViewerPass,
     PASS_PROFILE_ESTIMATOR               : _core.LLVMAddProfileEstimatorPass,
     PASS_PROFILE_LOADER                  : _core.LLVMAddProfileLoaderPass,
     PASS_PROFILE_VERIFIER                : _core.LLVMAddProfileVerifierPass,
@@ -209,7 +209,7 @@ _pass_creator = {
     PASS_SCALAR_EVOLUTION_ALIAS_ANALYSIS : _core.LLVMAddScalarEvolutionAliasAnalysisPass,
     PASS_SCALAR_REPL_AGGREGATES          : _core.LLVMAddScalarReplAggregatesPass,
     PASS_SCCP                            : _core.LLVMAddSCCPPass,
-    PASS_SIMPLIFY_HALF_POWR_LIB_CALLS    : _core.LLVMAddSimplifyHalfPowrLibCallsPass,
+#    PASS_SIMPLIFY_HALF_POWR_LIB_CALLS    : _core.LLVMAddSimplifyHalfPowrLibCallsPass,
     PASS_SIMPLIFY_LIB_CALLS              : _core.LLVMAddSimplifyLibCallsPass,
     PASS_SINGLE_LOOP_EXTRACTOR           : _core.LLVMAddSingleLoopExtractorPass,
     PASS_STRIP_DEAD_PROTOTYPES           : _core.LLVMAddStripDeadPrototypesPass,

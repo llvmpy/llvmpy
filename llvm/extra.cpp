@@ -54,7 +54,7 @@
 #include "llvm/IntrinsicInst.h"
 #include "llvm/Analysis/Verifier.h"
 #include "llvm/Assembly/Parser.h"
-#include "llvm/System/DynamicLibrary.h"
+#include "llvm/Support/DynamicLibrary.h"
 #include "llvm/PassManager.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/Analysis/LoopPass.h"
@@ -452,12 +452,19 @@ void *LLVMGetPointerToFunction(LLVMExecutionEngineRef ee, LLVMValueRef fn)
     return eep->getPointerToFunction(fnp);
 }
 
+
 int LLVMInlineFunction(LLVMValueRef call)
 {
     llvm::Value *callp = llvm::unwrap(call);
     assert(callp);
 
-    llvm::CallSite cs = llvm::CallSite::get(callp);
+//    llvm::CallSite cs = llvm::CallSite::get(callp);
+    llvm::CallSite cs;
+    llvm::Instruction *II = llvm::dyn_cast<llvm::Instruction>(callp);
+    if (II->getOpcode() == llvm::Instruction::Call)
+        cs = llvm::CallSite(static_cast<llvm::CallInst*>(II));
+    else if (II->getOpcode() == llvm::Instruction::Invoke)
+        cs = llvm::CallSite(static_cast<llvm::InvokeInst*>(II));
 
     llvm::InlineFunctionInfo unused;
     return llvm::InlineFunction(cs, unused);
@@ -501,13 +508,13 @@ define_pass( DomOnlyViewer )
 define_pass( DomPrinter )
 define_pass( DomViewer )
 define_pass( EdgeProfiler )
-define_pass( GEPSplitter )
+//define_pass( GEPSplitter )
 define_pass( GlobalsModRef )
 define_pass( InstCount )
 define_pass( InstructionNamer )
 define_pass( LazyValueInfo )
 define_pass( LCSSA )
-define_pass( LiveValues )
+//define_pass( LiveValues )
 define_pass( LoopDependenceAnalysis )
 define_pass( LoopExtractor )
 define_pass( LoopSimplify )
@@ -519,7 +526,7 @@ define_pass( NoAA )
 define_pass( NoProfileInfo )
 define_pass( OptimalEdgeProfiler )
 define_pass( PartialInlining )
-define_pass( PartialSpecialization )
+//define_pass( PartialSpecialization )
 define_pass( PostDomOnlyPrinter )
 define_pass( PostDomOnlyViewer )
 define_pass( PostDomPrinter )
@@ -528,7 +535,7 @@ define_pass( ProfileEstimator )
 define_pass( ProfileLoader )
 define_pass( ProfileVerifier )
 define_pass( ScalarEvolutionAliasAnalysis )
-define_pass( SimplifyHalfPowrLibCalls )
+//define_pass( SimplifyHalfPowrLibCalls )
 define_pass( SingleLoopExtractor )
 define_pass( StripNonDebugSymbols )
 define_pass( StructRetPromotion )

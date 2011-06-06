@@ -51,14 +51,16 @@ TYPE_X86_FP80   = 3
 TYPE_FP128      = 4
 TYPE_PPC_FP128  = 5
 TYPE_LABEL      = 6
-TYPE_INTEGER    = 7
-TYPE_FUNCTION   = 8
-TYPE_STRUCT     = 9
-TYPE_ARRAY      = 10
-TYPE_POINTER    = 11
-TYPE_OPAQUE     = 12
-TYPE_VECTOR     = 13
-TYPE_METADATA   = 14
+TYPE_METADATA   = 7
+TYPE_X86_MMX    = 8
+TYPE_INTEGER    = 9
+TYPE_FUNCTION   = 10
+TYPE_STRUCT     = 11
+TYPE_ARRAY      = 12
+TYPE_POINTER    = 13
+TYPE_OPAQUE     = 14
+TYPE_VECTOR     = 15
+
 
 # value IDs (llvm::Value::ValueTy enum)
 VALUE_ARGUMENT                          = 0
@@ -140,11 +142,22 @@ OPCODE_EXTRACTVALUE   = 53
 OPCODE_INSERTVALUE    = 54
 
 # calling conventions
-CC_C            = 0
-CC_FASTCALL     = 8
-CC_COLDCALL     = 9
-CC_X86_STDCALL  = 64
-CC_X86_FASTCALL = 65
+CC_C             = 0
+CC_FASTCALL      = 8
+CC_COLDCALL      = 9
+CC_GHC           = 10
+CC_X86_STDCALL   = 64
+CC_X86_FASTCALL  = 65
+CC_ARM_APCS      = 66
+CC_ARM_AAPCS     = 67
+CC_ARM_AAPCS_VFP = 68
+CC_MSP430_INTR   = 69
+CC_X86_THISCALL  = 70
+CC_PTX_KERNEL    = 71
+CC_PTX_DEVICE    = 72
+CC_MBLAZE_INTR   = 73
+CC_MBLAZE_SVOL   = 74
+
 
 # int predicates
 ICMP_EQ         = 32
@@ -248,11 +261,14 @@ ATTR_ALWAYS_INLINE      = 1<<12
 ATTR_OPTIMIZE_FOR_SIZE  = 1<<13
 ATTR_STACK_PROTECT      = 1<<14
 ATTR_STACK_PROTECT_REQ  = 1<<15
+ATTR_ALIGNMENT          = 1<<16
 ATTR_NO_CAPTURE         = 1<<21
 ATTR_NO_REDZONE         = 1<<22
 ATTR_NO_IMPLICIT_FLOAT  = 1<<23
 ATTR_NAKED              = 1<<24
 ATTR_INLINE_HINT        = 1<<25
+ATTR_STACK_ALIGNMENT    = 7<<26
+ATTR_HOTPATCH           = 1<<29
 
 # intrinsic IDs
 from llvm._intrinsic_ids import *

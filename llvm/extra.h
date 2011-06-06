@@ -181,7 +181,7 @@ void *LLVMGetPointerToFunction(LLVMExecutionEngineRef ee, LLVMValueRef fn);
 /* Wraps llvm::InlineFunction(). Inlines a function. C is the call 
  * instruction, created by LLVMBuildCall. Even if it fails, the Function 
  * containing the call is still in a proper state (not changed). */
-int LLVMInlineFunction(LLVMValueRef call);
+//int LLVMInlineFunction(LLVMValueRef call);
 
 /* Wraps llvm::getAlignmentFromAttrs from Attributes.h. Compliments the
  * already available LLVMSetParamAlignment(). */
@@ -209,13 +209,13 @@ declare_pass( DomOnlyViewer )
 declare_pass( DomPrinter )
 declare_pass( DomViewer )
 declare_pass( EdgeProfiler )
-declare_pass( GEPSplitter )
+//declare_pass( GEPSplitter )
 declare_pass( GlobalsModRef )
 declare_pass( InstCount )
 declare_pass( InstructionNamer )
 declare_pass( LazyValueInfo )
 declare_pass( LCSSA )
-declare_pass( LiveValues )
+//declare_pass( LiveValues )
 declare_pass( LoopDependenceAnalysis )
 declare_pass( LoopExtractor )
 declare_pass( LoopSimplify )
@@ -227,7 +227,7 @@ declare_pass( NoAA )
 declare_pass( NoProfileInfo )
 declare_pass( OptimalEdgeProfiler )
 declare_pass( PartialInlining )
-declare_pass( PartialSpecialization )
+//declare_pass( PartialSpecialization )
 declare_pass( PostDomOnlyPrinter )
 declare_pass( PostDomOnlyViewer )
 declare_pass( PostDomPrinter )
