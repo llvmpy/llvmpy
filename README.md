@@ -5,8 +5,7 @@ llvm-py provides Python bindings for LLVM.
 
 Home page:
 ----------
-    http://www.mdevan.org/llvm-py/
-
+    https://github.com/AndrewBC/llvm-py
 
 Versions:
 ---------
