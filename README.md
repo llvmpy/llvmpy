@@ -10,9 +10,11 @@ This package has only been tested with LLVM 2.9, and Python 2.7, (not Python 3.x
 ## Quickstart ##
 1.  Get 2.9 version of LLVM, build it. Make sure '--enable-pic' is passed to LLVM's 'configure'.
 2.  Get llvm-py and install it:
-        $ git clone git@github.com:AndrewBC/llvm-py.git
-        $ cd llvm-py
-        $ python setup.py install
+    ```
+    $ git clone git@github.com:AndrewBC/llvm-py.git
+    $ cd llvm-py
+    $ python setup.py install
+    ```
 3.  See documentation at 'www/web/index.html' and examples under 'test'.
 
 ## LICENSE ##
