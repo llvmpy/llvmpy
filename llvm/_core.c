@@ -67,9 +67,18 @@ _wLLVMModuleCreateWithName(PyObject *self, PyObject *args)
     const char *s;
     LLVMModuleRef module;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    PyObject *s_;
+    if (!PyArg_ParseTuple(args, "U:LLVMModuleCreateWithName", &s_)) {
+        return NULL;
+    }
+    
+    s = PyUnicode_AS_DATA(s_);
+#else
     if (!PyArg_ParseTuple(args, "s", &s))
         return NULL;
-
+#endif
+    
     module = LLVMModuleCreateWithName(s);
     return ctor_LLVMModuleRef(module);
 }
@@ -430,9 +439,18 @@ _wLLVMConstString(PyObject *self, PyObject *args)
     const char *s;
     int dont_null_terminate;
     LLVMValueRef val;
+
+#ifdef LLVM_PY_USE_PYCAPSULE
+    PyObject *s_;
+    if (!PyArg_ParseTuple(args, "Ui:LLVMConstString", &s_, &dont_null_terminate)) {
+        return NULL;
+    }
     
+    s = PyUnicode_AS_DATA(s_);
+#else    
     if (!PyArg_ParseTuple(args, "si", &s, &dont_null_terminate))
         return NULL;
+#endif
     
     val = LLVMConstString(s, strlen(s), dont_null_terminate);
     return ctor_LLVMValueRef(val);
@@ -648,8 +666,17 @@ _wLLVMBuildInvoke(PyObject *self, PyObject *args)
     LLVMBasicBlockRef then_blk, catch_blk;
     LLVMValueRef inst;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    PyObject *name_;
+    if (!PyArg_ParseTuple(args, "OOOOOU:LLVMBuildInvoke", &obj1, &obj2, &obj3, &obj4, &obj5, &name_)) {
+        return NULL;
+    }
+    
+    name = PyUnicode_AS_DATA(name_);
+#else
     if (!PyArg_ParseTuple(args, "OOOOOs", &obj1, &obj2, &obj3, &obj4, &obj5, &name))
         return NULL;
+#endif    
 
 #ifdef LLVM_PY_USE_PYCAPSULE
     builder = (LLVMBuilderRef) PyCapsule_GetPointer(obj1, NULL);
@@ -764,9 +791,18 @@ _wLLVMCreateMemoryBufferWithContentsOfFile(PyObject *self, PyObject *args)
     char *outmsg;
     PyObject *ret;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    PyObject *path_;
+    if (!PyArg_ParseTuple(args, "U:LLVMCreateMemoryBufferWithContentsOfFile", &path_)) {
+        return NULL;
+    }
+    
+    path = PyUnicode_AS_DATA(path_);
+#else
     if (!PyArg_ParseTuple(args, "s", &path))
         return NULL;
-
+#endif
+    
     if (!LLVMCreateMemoryBufferWithContentsOfFile(path, &ref, &outmsg)) {
         ret = ctor_LLVMMemoryBufferRef(ref);
     } else {
@@ -1217,14 +1253,22 @@ _wrap_objintlist2obj(LLVMGetIntrinsic, LLVMModuleRef, LLVMTypeRef,
 static PyObject *
 _wLLVMLoadLibraryPermanently(PyObject *self, PyObject *args)
 {
-    // XXX TODO: Figure out why this is segfaulting
     const char *filename;
     char *outmsg;
     PyObject *ret;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    PyObject *filename_;
+    if (!PyArg_ParseTuple(args, "U:LLVMLoadLibraryPermanently", &filename_)) {
+        return NULL;
+    }
+    
+    filename = PyUnicode_AS_DATA(filename_);
+#else
     if (!PyArg_ParseTuple(args, "s", &filename)) {
         return NULL;
     }
+#endif
 
     outmsg = 0;
     if (!LLVMLoadLibraryPermanently(filename, &outmsg)) {
