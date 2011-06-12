@@ -30,22 +30,36 @@
 
 #include "wrap.h"
 
+/* Project-wide setting */
+#if (PY_MAJOR_VERSION >= 3) 
+#define LLVM_PY_USE_PYCAPSULE
+#endif
+
 /*===----------------------------------------------------------------------===*/
 /* Helper functions/macros                                                    */
 /*===----------------------------------------------------------------------===*/
+
+#ifdef LLVM_PY_USE_PYCAPSULE 
 
 #define _define_std_ctor(typ)                   \
 PyObject * ctor_ ## typ ( typ p)                \
 {                                               \
     if (p)                                      \
-#ifdef LLVM_PY_USE_PYCAPSULE                    \
         return PyCapsule_New(p, NULL, NULL);    \
-#else                                           \
-        return PyCObject_FromVoidPtr(p, NULL);  \
-#endif                                          \
     Py_RETURN_NONE;                             \
 }
 
+#else
+
+#define _define_std_ctor(typ)                   \
+PyObject * ctor_ ## typ ( typ p)                \
+{                                               \
+    if (p)                                      \
+        return PyCObject_FromVoidPtr(p, NULL);  \
+    Py_RETURN_NONE;                             \
+}
+
+#endif
 
 /*===----------------------------------------------------------------------===*/
 /* Type ctor/dtor                                                             */

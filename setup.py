@@ -85,10 +85,13 @@ def call_setup(llvm_config):
          'asmparser', 'linker', 'support'])
 
     std_libs    = [ 'pthread', 'm', 'stdc++' ]
+    extra_link_args = ["-fPIC"]
     if not ("openbsd" in sys.platform or "freebsd" in sys.platform):
         std_libs.append("dl")
     if "darwin" in sys.platform:
         std_libs.append("ffi")
+        extra_link_args += ['-framework', 'Python']
+        
 
     ext_core = Extension(
         'llvm._core',
@@ -101,7 +104,7 @@ def call_setup(llvm_config):
         library_dirs = [libdir],
         libraries = std_libs + libs_core,
         extra_objects = objs_core,
-        extra_link_args = ["-fPIC"])
+        extra_link_args = extra_link_args)
 
     setup(
         name='llvm-py',

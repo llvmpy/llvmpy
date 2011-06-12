@@ -32,6 +32,11 @@
 #include "wrap.h"
 #include "extra.h"
 
+/* Project-wide setting */
+#if (PY_MAJOR_VERSION >= 3) 
+#define LLVM_PY_USE_PYCAPSULE
+#endif
+
 // Python include
 #include "Python.h"
 
@@ -1027,12 +1032,10 @@ _wLLVMRemoveModule2(PyObject *self, PyObject *args)
 
 #ifdef LLVM_PY_USE_PYCAPSULE
     ee = (LLVMExecutionEngineRef) PyCapsule_GetPointer(obj_ee, NULL);
-    fn = (LLVMValueRef) PyCapsule_GetPointer(obj_fn, NULL);
-#error "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Using capsule"
+    mod = (LLVMValueRef) PyCapsule_GetPointer(obj_mod, NULL);
 #else
     ee = (LLVMExecutionEngineRef) PyCObject_AsVoidPtr(obj_ee);
     mod = (LLVMModuleRef) PyCObject_AsVoidPtr(obj_mod);
-#error "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Using pycobject"
 #endif
 
     LLVMRemoveModule(ee, mod, &mod_new, &outmsg);
@@ -1749,11 +1752,37 @@ static PyMethodDef core_methods[] = {
     { NULL }
 };
 
+// Module main function, hairy because of py3k port
+
+#if (PY_MAJOR_VERSION >= 3)
+struct PyModuleDef module_def = {
+    PyModuleDef_HEAD_INIT,
+    "_core",
+    NULL,
+    -1,
+    core_methods,
+    NULL, NULL, NULL, NULL
+};
+#define INITERROR return NULL
+PyObject *
+PyInit__core(void)
+#else
+#define INITERROR return
 PyMODINIT_FUNC
 init_core(void)
+#endif
 {
     LLVMLinkInJIT();
     LLVMLinkInInterpreter();
     LLVMInitializeNativeTarget();
-    Py_InitModule("_core", core_methods);
+#if PY_MAJOR_VERSION >= 3
+    PyObject *module = PyModule_Create( &module_def );
+#else
+    PyObject *module = Py_InitModule("_core", core_methods);
+#endif
+    if (module == NULL)
+        INITERROR;
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
 }
