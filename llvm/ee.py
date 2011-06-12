@@ -103,12 +103,11 @@ class TargetData(llvm.Ownable):
             return _core.LLVMPreferredAlignmentOfGlobal(self.ptr,
                     ty_or_gv.ptr)
         else:
-            raise core.LLVMException, \
-                "argument is neither a type nor a global variable"
+            raise core.LLVMException("argument is neither a type nor a global variable")
 
     def element_at_offset(self, ty, ofs):
         core.check_is_type_struct(ty)
-        ofs = long(ofs) # ofs is unsigned long long
+        ofs = int(ofs) # ofs is unsigned long long
         return _core.LLVMElementAtOffset(self.ptr, ty.ptr, ofs)
 
     def offset_of_element(self, ty, el):
@@ -185,7 +184,7 @@ class ExecutionEngine(object):
         _util.check_is_unowned(module)
         ret = _core.LLVMCreateExecutionEngine(module.ptr, int(force_interpreter))
         if isinstance(ret, str):
-            raise llvm.LLVMException, ret
+            raise llvm.LLVMException(ret)
         return ExecutionEngine(ret, module)
 
     def __init__(self, ptr, module):
@@ -223,10 +222,10 @@ class ExecutionEngine(object):
     def remove_module(self, module):
         core.check_is_module(module)
         if module.owner != self:
-            raise llvm.LLVMException, "module is not owned by self"
+            raise llvm.LLVMException("module is not owned by self")
         ret = _core.LLVMRemoveModule2(self.ptr, module.ptr)
         if isinstance(ret, str):
-            raise llvm.LLVMException, ret
+            raise llvm.LLVMException(ret)
         return core.Module(ret)
 
     @property

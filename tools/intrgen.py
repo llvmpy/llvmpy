@@ -26,7 +26,7 @@ def gen(f):
     idx = 1
     for i in intr:
         s = 'INTR_' + i.upper()
-        print '%s = %d' % (s.ljust(maxw), idx)
+        print('%s = %d' % (s.ljust(maxw), idx))
         idx += 1
 
 gen(sys.argv[1])

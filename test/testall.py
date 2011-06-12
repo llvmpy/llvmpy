@@ -15,12 +15,12 @@ ti = Type.int()
 
 
 def do_llvmexception():
-    print "    Testing class LLVMException"
+    print("    Testing class LLVMException")
     e = LLVMException()
 
 
 def do_ownable():
-    print "    Testing class Ownable"
+    print("    Testing class Ownable")
     o = Ownable(None, lambda x: None)
     try:
         o._own(None)
@@ -30,7 +30,7 @@ def do_ownable():
 
 
 def do_misc():
-    print "    Testing miscellaneous functions"
+    print("    Testing miscellaneous functions")
     try:
         load_library_permanently("/usr/lib/libm.so")
     except LLVMException:
@@ -42,14 +42,14 @@ def do_misc():
 
 
 def do_llvm():
-    print "  Testing module llvm"
+    print("  Testing module llvm")
     do_llvmexception()
     do_ownable()
     do_misc()
 
 
 def do_module():
-    print "    Testing class Module"
+    print("    Testing class Module")
     m = Module.new('test')
     m.target = 'a'
     a = m.target
@@ -101,7 +101,7 @@ def do_module():
 
 
 def do_type():
-    print "    Testing class Type"
+    print("    Testing class Type")
     for i in range(1,100):
         Type.int(i)
     Type.float()
@@ -151,14 +151,14 @@ def do_type():
 
 
 def do_typehandle():
-    print "    Testing class TypeHandle"
+    print("    Testing class TypeHandle")
     th = TypeHandle.new(Type.opaque())
     ts = Type.struct([ Type.int(), Type.pointer(th.type) ])
     th.type.refine(ts)
 
 
 def do_value():
-    print "    Testing class Value"
+    print("    Testing class Value")
     k = Constant.int(ti, 42)
     k.name = 'a'
     s = k.name
@@ -186,7 +186,7 @@ def do_user():
 
 
 def do_constant():
-    print "    Testing class Constant"
+    print("    Testing class Constant")
     Constant.null(ti)
     Constant.all_ones(ti)
     Constant.undef(ti)
@@ -231,7 +231,7 @@ def do_constant():
 
 
 def do_global_value():
-    print "    Testing class GlobalValue"
+    print("    Testing class GlobalValue")
     m = Module.new('a')
     gv = GlobalVariable.new(m, Type.int(), 'b')
     s = gv.is_declaration
@@ -247,7 +247,7 @@ def do_global_value():
 
 
 def do_global_variable():
-    print "    Testing class GlobalVariable"
+    print("    Testing class GlobalVariable")
     m = Module.new('a')
     gv = GlobalVariable.new(m, Type.int(), 'b')
     gv = GlobalVariable.get(m, 'b')
@@ -260,7 +260,7 @@ def do_global_variable():
 
 
 def do_argument():
-    print "    Testing class Argument"
+    print("    Testing class Argument")
     m = Module.new('a')
     ft = Type.function(ti, [ti])
     f = Function.new(m, ft, 'func')
@@ -272,7 +272,7 @@ def do_argument():
 
 
 def do_function():
-    print "    Testing class Function"
+    print("    Testing class Function")
     ft = Type.function(ti, [ti]*20)
     zz = Function.new(Module.new('z'), ft, 'foobar')
     del zz
@@ -307,7 +307,7 @@ def do_function():
 
 
 def do_instruction():
-    print "    Testing class Instruction"
+    print("    Testing class Instruction")
     m = Module.new('a')
     ft = Type.function(ti, [ti]*20)
     f = Function.new(m, ft, 'func')
@@ -320,7 +320,7 @@ def do_instruction():
 
 
 def do_callorinvokeinstruction():
-    print "    Testing class CallOrInvokeInstruction"
+    print("    Testing class CallOrInvokeInstruction")
     m = Module.new('a')
     ft = Type.function(ti, [ti])
     f = Function.new(m, ft, 'func')
@@ -337,7 +337,7 @@ def do_callorinvokeinstruction():
 
 
 def do_phinode():
-    print "    Testing class PhiNode"
+    print("    Testing class PhiNode")
     m = Module.new('a')
     ft = Type.function(ti, [ti])
     f = Function.new(m, ft, 'func')
@@ -354,7 +354,7 @@ def do_phinode():
 
 
 def do_switchinstruction():
-    print "    Testing class SwitchInstruction"
+    print("    Testing class SwitchInstruction")
     m = Module.new('a')
     ft = Type.function(ti, [ti])
     f = Function.new(m, ft, 'func')
@@ -365,7 +365,7 @@ def do_switchinstruction():
 
 
 def do_basicblock():
-    print "    Testing class BasicBlock"
+    print("    Testing class BasicBlock")
     m = Module.new('a')
     ft = Type.function(ti, [ti])
     f = Function.new(m, ft, 'func')
@@ -395,7 +395,7 @@ def _do_builder_mrv():
 
 
 def do_builder():
-    print "    Testing class Builder"
+    print("    Testing class Builder")
     m = Module.new('a')
     ft = Type.function(ti, [ti])
     f = Function.new(m, ft, 'func')
@@ -488,7 +488,7 @@ def do_builder():
 
 
 def do_llvm_core():
-    print "  Testing module llvm.core"
+    print("  Testing module llvm.core")
     do_module()
     do_type()
     do_typehandle()
@@ -508,7 +508,7 @@ def do_llvm_core():
 
 
 def do_targetdata():
-    print "    Testing class TargetData"
+    print("    Testing class TargetData")
     t = TargetData.new('')
     v = str(t)
     v = t.byte_order
@@ -530,7 +530,7 @@ def do_targetdata():
 
 
 def do_genericvalue():
-    print "    Testing class GenericValue"
+    print("    Testing class GenericValue")
     v = GenericValue.int(ti, 1)
     v = GenericValue.int_signed(ti, 1)
     v = GenericValue.real(Type.float(), 3.14)
@@ -540,7 +540,7 @@ def do_genericvalue():
 
 
 def do_executionengine():
-    print "    Testing class ExecutionEngine"
+    print("    Testing class ExecutionEngine")
     m = Module.new('a')
     ee = ExecutionEngine.new(m, True)
     ft = Type.function(ti, [])
@@ -567,14 +567,14 @@ def do_executionengine():
 
 
 def do_llvm_ee():
-    print "  Testing module llvm.ee"
+    print("  Testing module llvm.ee")
     do_targetdata()
     do_genericvalue()
     do_executionengine()
 
 
 def do_passmanager():
-    print "    Testing class PassManager"
+    print("    Testing class PassManager")
     pm = PassManager.new()
     pm.add(TargetData.new(''))
     for i in [getattr(llvm.passes, x) for x in \
@@ -586,7 +586,7 @@ def do_passmanager():
 
 
 def do_functionpassmanager():
-    print "    Testing class FunctionPassManager"
+    print("    Testing class FunctionPassManager")
     m = Module.new('a')
     ft = Type.function(ti, [])
     f = m.add_function(ft, 'func')
@@ -602,13 +602,13 @@ def do_functionpassmanager():
 
 
 def do_llvm_passes():
-    print "  Testing module llvm.passes"
+    print("  Testing module llvm.passes")
     do_passmanager()
     do_functionpassmanager()
 
 
 def main():
-    print "Testing package llvm"
+    print("Testing package llvm")
     do_llvm()
     do_llvm_core()
     do_llvm_ee()

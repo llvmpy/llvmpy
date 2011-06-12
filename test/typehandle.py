@@ -16,4 +16,4 @@ m = Module.new('mod1')
 m.add_type_name("struct.node", th.type)
 
 # show what we created
-print m
+print(m)

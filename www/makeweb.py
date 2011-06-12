@@ -52,7 +52,7 @@ def _is_older(inp, outp):
 
 
 def _rmtree_warn(fn, path, excinfo):
-    print "** WARNING **: error while doing %s on %s" % (fn, path)
+    print("** WARNING **: error while doing %s on %s" % (fn, path))
 
 
 def _can_skip(opts, infile, outfile):
@@ -67,14 +67,14 @@ def process_file(opts, infile, outfile):
             cmd = cmdfn(opts, infile, outfile_actual)
             if _can_skip(opts, infile, outfile_actual):
                 if opts.verbose >= 2:
-                    print "up to date %s -> %s" % (infile, outfile_actual)
+                    print("up to date %s -> %s" % (infile, outfile_actual))
                 return
             if cmd:
                 # do cmd
                 if opts.verbose:
-                    print "process %s -> %s" % (infile, outfile_actual)
+                    print("process %s -> %s" % (infile, outfile_actual))
                 if opts.verbose >= 3:
-                    print "command is [%s]" % cmd
+                    print("command is [%s]" % cmd)
                 if not opts.dryrun:
                     os.system(cmd)
             # else if cmd is None, do nothing
@@ -83,7 +83,7 @@ def process_file(opts, infile, outfile):
     # nothing matched, default action is to copy
     if not _can_skip(opts, infile, outfile):
         if opts.verbose:
-            print "copying %s -> %s" % (infile, outfile)
+            print("copying %s -> %s" % (infile, outfile))
         if not opts.dryrun:
             shutil.copy(infile, outfile)
 
@@ -95,14 +95,14 @@ def make(opts, indir, outdir):
 
     # if it exists, it must be a dir!
     if odexists and not os.path.isdir(outdir):
-        print "** WARNING **: output dir '%s' exists but is " \
-            "not a dir, skipping" % outdir
+        print("** WARNING **: output dir '%s' exists but is " \
+            "not a dir, skipping" % outdir)
         return
 
     # make outdir if not existing
     if not odexists:
         if opts.verbose:
-            print "creating %s" % outdir
+            print("creating %s" % outdir)
         if not opts.dryrun:
             os.mkdir(outdir)
 
@@ -114,8 +114,8 @@ def make(opts, indir, outdir):
         # process files
         if os.path.isfile(inp):
             if os.path.exists(outp) and not os.path.isfile(outp):
-                print "** WARNING **: output '%s' corresponding to " \
-                    "input '%s' is not a file, skipping" % (outp, inp)
+                print("** WARNING **: output '%s' corresponding to " \
+                    "input '%s' is not a file, skipping" % (outp, inp))
             else:
                 process_file(opts, inp, outp)
 
@@ -124,15 +124,15 @@ def make(opts, indir, outdir):
             # if dir is in skip list, silently ignore
             if elem in DIR_SKIP_TBL:
                 if opts.verbose >= 3:
-                    print "skipping %s" % inp
+                    print("skipping %s" % inp)
                 continue
             # just recurse
             make(opts, inp, outp)
 
         # neither a file nor a dir
         else:
-            print "** WARNING **: input '%s' is neither file nor " \
-                "dir, skipping" % inp
+            print("** WARNING **: input '%s' is neither file nor " \
+                "dir, skipping" % inp)
 
 
 def get_opts():
@@ -173,14 +173,14 @@ def get_opts():
 def main():
     opts, src, dest = get_opts()
     if opts.verbose >= 3:
-        print ("running with options:\nsrc = [%s]\ndest = [%s]\nverbose = [%d]\n" +\
+        print(("running with options:\nsrc = [%s]\ndest = [%s]\nverbose = [%d]\n" +\
             "dry-run = [%d]\nclean-first = [%d]\nforce = [%d]") %\
-            (src, dest, opts.verbose, opts.dryrun, opts.clean, opts.force)
+            (src, dest, opts.verbose, opts.dryrun, opts.clean, opts.force))
     if opts.dryrun and opts.verbose == 0:
         opts.verbose = 1
     if opts.clean:
         if opts.dryrun or opts.verbose:
-            print "removing tree %s" % dest
+            print("removing tree %s" % dest)
         if not opts.dryrun:
             os.rmtree(dest, True, _rmtree_warn)
     make(opts, src, dest)

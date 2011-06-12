@@ -45,11 +45,11 @@ def check_gen(obj, typ):
     if not isinstance(obj, typ):
         typ_str = typ.__name__
         msg = "argument not an instance of llvm.core.%s" % typ_str
-        raise TypeError, msg
+        raise TypeError(msg)
 
 def check_is_unowned(ownable):
     if ownable.owner:
-        raise llvm.LLVMException, "object is already owned"
+        raise llvm.LLVMException("object is already owned")
 
 
 #===----------------------------------------------------------------------===

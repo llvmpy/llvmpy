@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from llvm.core import *
-from cStringIO import StringIO
+from io import StringIO
 
 
 def make_module():

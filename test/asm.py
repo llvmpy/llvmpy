@@ -9,9 +9,9 @@ m.add_global_variable(Type.int(), 'i')
 
 # write it's assembly representation to a file
 asm = str(m)
-print >> file("/tmp/testasm.ll", "w"), asm
+print(asm, file=file("/tmp/testasm.ll", "w"))
 
 # read it back into a module
 m2 = Module.from_assembly(file("/tmp/testasm.ll"))
-print m2
+print(m2)
 

@@ -69,7 +69,7 @@ def main():
 
     # done
     if gc.garbage:
-        print "garbage = ", gc.garbage
+        print("garbage = ", gc.garbage)
 
 
 main()

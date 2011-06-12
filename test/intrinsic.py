@@ -16,7 +16,7 @@ b      = Builder.new(block)
 val   = Constant.int(Type.int(), 42)
 bswap = Function.intrinsic(mod, INTR_BSWAP, [Type.int()])
 b.call(bswap, [val])
-print mod
+print(mod)
 
 # the output is:
 #
@@ -50,7 +50,7 @@ cos2 = b.call(pow, [cosx, Constant.int(Type.int(), 2)], "cos2")
 onemc2 = b.sub(one, cos2, "onemc2")
 sin  = b.call(sqrt, [onemc2], "sin")
 b.ret(sin)
-print mod
+print(mod)
 
 #
 #   ; ModuleID = 'test'

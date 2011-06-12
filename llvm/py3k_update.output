@@ -1,0 +1,62 @@
+C:\Users\AndrewBC\src\llvm-py>python "C:\Program Files\Python27\Tools\Scripts\2to3.py" -w -f all -f idioms . > llvm/py3k_update.diff
+RefactoringTool: Skipping implicit fixer: buffer
+RefactoringTool: Skipping implicit fixer: set_literal
+RefactoringTool: Skipping implicit fixer: ws_comma
+RefactoringTool: Refactored .\setup-win32.py
+RefactoringTool: Refactored .\setup.py
+RefactoringTool: Refactored .\llvm\__init__.py
+RefactoringTool: Refactored .\llvm\_util.py
+RefactoringTool: Refactored .\llvm\core.py
+RefactoringTool: Refactored .\llvm\ee.py
+RefactoringTool: Refactored .\llvm\passes.py
+RefactoringTool: Refactored .\test\JITTutorial1.py
+RefactoringTool: Refactored .\test\JITTutorial2.py
+RefactoringTool: Refactored .\test\asm.py
+RefactoringTool: Refactored .\test\call-jit-ctypes.py
+RefactoringTool: Refactored .\test\example-jit.py
+RefactoringTool: Refactored .\test\example.py
+RefactoringTool: Refactored .\test\intrinsic.py
+RefactoringTool: Refactored .\test\objcache.py
+RefactoringTool: Refactored .\test\operands.py
+RefactoringTool: Refactored .\test\passes.py
+RefactoringTool: Refactored .\test\test.py
+RefactoringTool: Refactored .\test\testall.py
+RefactoringTool: Refactored .\test\testattrs.py
+RefactoringTool: Refactored .\test\typehandle.py
+RefactoringTool: Refactored .\test\uses.py
+RefactoringTool: Refactored .\tools\intrgen.py
+RefactoringTool: Refactored .\tools\intrs_for_doc.py
+RefactoringTool: Refactored .\www\makeweb.py
+RefactoringTool: Can't parse .\www\src\examples\JITTutorial1.py: ParseError: bad input: type=17, value=u'/', context=('', (1, 2))
+RefactoringTool: Can't parse .\www\src\examples\JITTutorial2.py: ParseError: bad input: type=17, value=u'/', context=('', (1, 2))
+RefactoringTool: Files that need to be modified:
+RefactoringTool: .\setup-win32.py
+RefactoringTool: .\setup.py
+RefactoringTool: .\llvm\__init__.py
+RefactoringTool: .\llvm\_util.py
+RefactoringTool: .\llvm\core.py
+RefactoringTool: .\llvm\ee.py
+RefactoringTool: .\llvm\passes.py
+RefactoringTool: .\test\JITTutorial1.py
+RefactoringTool: .\test\JITTutorial2.py
+RefactoringTool: .\test\asm.py
+RefactoringTool: .\test\call-jit-ctypes.py
+RefactoringTool: .\test\example-jit.py
+RefactoringTool: .\test\example.py
+RefactoringTool: .\test\intrinsic.py
+RefactoringTool: .\test\objcache.py
+RefactoringTool: .\test\operands.py
+RefactoringTool: .\test\passes.py
+RefactoringTool: .\test\test.py
+RefactoringTool: .\test\testall.py
+RefactoringTool: .\test\testattrs.py
+RefactoringTool: .\test\typehandle.py
+RefactoringTool: .\test\uses.py
+RefactoringTool: .\tools\intrgen.py
+RefactoringTool: .\tools\intrs_for_doc.py
+RefactoringTool: .\www\makeweb.py
+RefactoringTool: There were 2 errors:
+RefactoringTool: Can't parse .\www\src\examples\JITTutorial1.py: ParseError: bad input: type=17, value=u'/', context=('', (1, 2))
+RefactoringTool: Can't parse .\www\src\examples\JITTutorial2.py: ParseError: bad input: type=17, value=u'/', context=('', (1, 2))
+
+C:\Users\AndrewBC\src\llvm-py>

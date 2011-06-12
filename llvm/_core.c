@@ -32,6 +32,9 @@
 #include "wrap.h"
 #include "extra.h"
 
+// Python include
+#include "Python.h"
+
 /* LLVM includes */
 #include "llvm-c/Analysis.h"
 #include "llvm-c/Transforms/Scalar.h"

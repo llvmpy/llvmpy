@@ -28,4 +28,4 @@ tmp_2 = bldr.add (tmp_1, z, "tmp_2")
 
 bldr.ret (tmp_2)
 
-print module
+print(module)

@@ -297,7 +297,7 @@ def check_is_callable(obj):
     if isinstance(typ, PointerType) and \
         isinstance(typ.pointee, FunctionType):
         return
-    raise TypeError, "argument is neither a function nor a function pointer"
+    raise TypeError("argument is neither a function nor a function pointer")
 
 def _to_int(v):
     if v:
@@ -341,9 +341,9 @@ class Module(llvm.Ownable, llvm.Cacheable):
         data = fileobj.read()
         ret = _core.LLVMGetModuleFromBitcode(data)
         if not ret:
-            raise llvm.LLVMException, "Unable to create module from bitcode"
+            raise llvm.LLVMException("Unable to create module from bitcode")
         elif isinstance(ret, str):
-            raise llvm.LLVMException, ret
+            raise llvm.LLVMException(ret)
         else:
             return Module(ret)
 
@@ -355,10 +355,9 @@ class Module(llvm.Ownable, llvm.Cacheable):
         data = fileobj.read()
         ret = _core.LLVMGetModuleFromAssembly(data)
         if not ret:
-            raise llvm.LLVMException, \
-                "Unable to create module from assembly"
+            raise llvm.LLVMException("Unable to create module from assembly")
         elif isinstance(ret, str):
-            raise llvm.LLVMException, ret
+            raise llvm.LLVMException(ret)
         else:
             return Module(ret)
 
@@ -437,7 +436,7 @@ class Module(llvm.Ownable, llvm.Cacheable):
         other.forget() # remove it from object cache
         ret = _core.LLVMLinkModules(self.ptr, other.ptr)
         if isinstance(ret, str):
-            raise llvm.LLVMException, ret
+            raise llvm.LLVMException(ret)
         # Do not try to destroy the other module's llvm::Module*.
         other._own(llvm.DummyOwner())
 
@@ -506,7 +505,7 @@ class Module(llvm.Ownable, llvm.Cacheable):
         error."""
         ret = _core.LLVMVerifyModule(self.ptr)
         if ret != "":
-            raise llvm.LLVMException, ret
+            raise llvm.LLVMException(ret)
 
     def to_bitcode(self, fileobj):
         """Write bitcode representation of module to given file-like
@@ -514,7 +513,7 @@ class Module(llvm.Ownable, llvm.Cacheable):
 
         data = _core.LLVMGetBitcodeFromModule(self.ptr)
         if not data:
-            raise llvm.LLVMException, "Unable to create bitcode"
+            raise llvm.LLVMException("Unable to create bitcode")
         fileobj.write(data)
 
 
@@ -1236,7 +1235,7 @@ class GlobalVariable(GlobalValue):
         check_is_module(module)
         ptr = _core.LLVMGetNamedGlobal(module.ptr, name)
         if not ptr:
-            raise llvm.LLVMException, ("no global named `%s`" % name)
+            raise llvm.LLVMException("no global named `%s`" % name)
         return _make_value(ptr)
 
     def delete(self):
@@ -1307,7 +1306,7 @@ class Function(GlobalValue):
         check_is_module(module)
         ptr = _core.LLVMGetNamedFunction(module.ptr, name)
         if not ptr:
-            raise llvm.LLVMException, ("no function named `%s`" % name)
+            raise llvm.LLVMException("no function named `%s`" % name)
         return _make_value(ptr)
 
     @staticmethod
@@ -2006,7 +2005,7 @@ def load_library_permanently(filename):
 
     ret = _core.LLVMLoadLibraryPermanently(filename)
     if isinstance(ret, str):
-        raise llvm.LLVMException, ret
+        raise llvm.LLVMException(ret)
 
 def inline_function(call):
     check_is_value(call)

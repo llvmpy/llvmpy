@@ -36,8 +36,8 @@ entry:
 }
 """
 m = Module.from_assembly(strstream(asm))
-print "-"*72
-print m
+print("-"*72)
+print(m)
 
 # Let's run a module-level inlining pass. First, create a pass manager.
 pm = PassManager.new()
@@ -55,8 +55,8 @@ pm.run(m)
 del pm
 
 # Print the result. Note the change in @test2.
-print "-"*72
-print m
+print("-"*72)
+print(m)
 
 
 # Let's run a DCE pass on the the function 'test1' now. First create a
@@ -73,5 +73,5 @@ fpm.add( PASS_AGGRESSIVE_DCE )
 fpm.run( m.get_function_named('test1') )
 
 # Print the result. Note the change in @test1.
-print "-"*72
-print m
+print("-"*72)
+print(m)

@@ -1,21 +1,21 @@
 #!/usr/bin/env python
-#
-# Copyright (c) 2008-10, Mahadevan R All rights reserved.
-#
+# 
+# Copyright (c) 2008, Mahadevan R All rights reserved.
+# 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-#
+# 
 #  * Redistributions of source code must retain the above copyright notice,
 #    this list of conditions and the following disclaimer.
-#
+# 
 #  * Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions and the following disclaimer in the documentation
 #    and/or other materials provided with the distribution.
-#
-#  * Neither the name of this software, nor the names of its
+# 
+#  * Neither the name of this software, nor the names of its 
 #    contributors may be used to endorse or promote products derived from
 #    this software without specific prior written permission.
-#
+# 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -30,78 +30,104 @@
 #
 
 import sys, os
+import os.path
 from distutils.core import setup, Extension
 
 LLVM_PY_VERSION = '0.7'
 
 
-def _run(cmd):
-    return os.popen(cmd).read().rstrip()
-
-
-def get_libs_and_objs(llvm_config, components):
-    parts = _run(llvm_config + ' --libs ' + ' '.join(components)).split()
-    libs = []
-    objs = []
-    for part in parts:
-        if part.startswith('-l'):
-            libs.append(part[2:])
-        elif part.endswith('.o'):
-#            objs.append(part[:-2])
-            objs.append(part) # eh, looks like we need the .o after all
-    return (libs, objs)
+def get_libs_and_objs(llvm_lib_dir):
+    # Libraries that are not included in the build
+    not_required_libs = """
+BrainF
+bugpoint
+Fibonacci
+HowToUseJIT
+Kaleidoscope
+llc
+lli
+llvm-as
+llvm-bcanalyzer
+llvm-extract
+llvm-ld
+llvm-link
+llvm-mc
+LLVMArchive
+LLVMAsmPrinter
+LLVMHello
+LLVMDebugger
+LLVMX86AsmPrinter
+llvm_headers_do_not_build
+ModuleMaker
+opt
+tblgen
+"""
+    libs = """
+LLVMAnalysis
+LLVMAsmParser
+LLVMAsmPrinter
+LLVMBitReader
+LLVMBitWriter
+LLVMCodeGen
+LLVMCore
+LLVMExecutionEngine
+LLVMInstrumentation
+LLVMInterpreter
+LLVMipa
+LLVMipo
+LLVMJIT
+LLVMLinker
+LLVMMC
+LLVMScalarOpts
+LLVMSelectionDAG
+LLVMSupport
+LLVMSystem
+LLVMTarget
+LLVMTransformUtils
+LLVMX86AsmParser
+LLVMX86CodeGen
+LLVMX86Info
+""".split()
+    return (libs, [])
 
 
 def get_llvm_config():
 
     # get from command-line, or use default
-    lc = 'llvm-config'
+    llvm_dir = '../llvm-2.9'
+    llvm_build_dir = None
     i = 0
     while i < len(sys.argv):
         arg = sys.argv[i]
-        if arg.startswith('--llvm-config='):
+        if arg.startswith('--llvm-dir='):
             del sys.argv[i]
-            lc = arg.split('=')[1]
+            llvm_dir = arg.split('=')[1]
+        elif arg.startswith('--llvm-build-dir='):
+            del sys.argv[i]
+            llvm_build_dir = arg.split('=')[1]
         else:
             i += 1
-
-    # see if it works
-    version = _run(lc + ' --version')
-    if version == '':
-        return (lc, False) # didn't work
-
-    return (lc, True)
+    if llvm_build_dir is None:
+        llvm_build_dir = os.path.join( llvm_dir, 'build' )
+    good = os.path.isdir( llvm_dir ) and os.path.isdir( llvm_build_dir )
+    return (llvm_dir, llvm_build_dir, good)
 
 
-def call_setup(llvm_config):
+def call_setup(llvm_dir, llvm_build_dir):
+    incdirs = [os.path.join( llvm_dir, 'include' ),
+               os.path.join( llvm_build_dir, 'include') ]
+    libdir = os.path.join( llvm_build_dir, 'lib', 'Release' )
 
-    incdir      = _run(llvm_config + ' --includedir')
-    libdir      = _run(llvm_config + ' --libdir')
-    ldflags     = _run(llvm_config + ' --ldflags')
-    libs_core, objs_core = get_libs_and_objs(llvm_config,
-        ['core', 'analysis', 'scalaropts', 'executionengine',
-         'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
-         'instrumentation', 'ipa', 'ipo', 'transformutils',
-         'asmparser', 'linker', 'support'])
-
-    std_libs    = [ 'pthread', 'm', 'stdc++' ]
-    if not ("openbsd" in sys.platform or "freebsd" in sys.platform):
-        std_libs.append("dl")
-    if "darwin" in sys.platform:
-        std_libs.append("ffi")
+    libs_core, objs_core = get_libs_and_objs(libdir)
+    std_libs = []
 
     ext_core = Extension(
         'llvm._core',
         ['llvm/_core.c', 'llvm/wrap.c', 'llvm/extra.cpp'],
-        define_macros = [
-            ('__STDC_CONSTANT_MACROS', None),
-            ('__STDC_LIMIT_MACROS', None),
-            ('_GNU_SOURCE', None)],
-        include_dirs = [incdir],
+        include_dirs = incdirs,
         library_dirs = [libdir],
         libraries = std_libs + libs_core,
-        extra_objects = objs_core,
-        extra_link_args = ["-fPIC"])
+        language = 'c++' )
 
     setup(
         name='llvm-py',
@@ -118,16 +144,15 @@ def call_setup(llvm_config):
 def main():
 
     # get llvm config
-    llvm_config, is_good = get_llvm_config()
-    if is_good:
-        print("Using llvm-config=" + llvm_config)
-    else:
-        print("Cannot invoke llvm-config (tried '%s')." % llvm_config)
-        print("Try again with --llvm-config=/path/to/llvm-config.")
+    llvm_dir, llvm_build_dir, is_good = get_llvm_config()
+    print("Using llvm-dir=" + llvm_dir + " and llvm-build-dir=" + llvm_build_dir)
+    if not is_good:
+        print("Cannot find llvm-dir or llvm-build-dir")
+        print("Try again with --llvm-dir=/path/to/llvm-top-dir --llvm-build-dir=/path/to/llvm/cmake/dir.")
         return 1
 
     # setup
-    call_setup(llvm_config)
+    call_setup(llvm_dir, llvm_build_dir)
 
     # done
     return 0
@@ -135,4 +160,3 @@ def main():
 
 ev = main()
 sys.exit(ev)
-

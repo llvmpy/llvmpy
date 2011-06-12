@@ -32,7 +32,7 @@
 
 """
 
-VERSION = '0.6'
+VERSION = '0.7'
 
 from weakref import WeakValueDictionary
 
@@ -68,12 +68,12 @@ class Ownable(object):
 
     def _own(self, owner):
         if self.owner:
-            raise LLVMException, "object already owned"
+            raise LLVMException("object already owned")
         self.owner = owner
 
     def _disown(self):
         if not self.owner:
-            raise LLVMException, "not owned"
+            raise LLVMException("not owned")
         self.owner = None
 
     def __del__(self):
@@ -135,14 +135,12 @@ class _ObjectCache(type):
 # Cacheables
 #===----------------------------------------------------------------------===
 
-class Cacheable(object):
+class Cacheable(object, metaclass=_ObjectCache):
     """Objects that can be cached.
 
     Objects that wrap a PyCObject are cached to avoid "aliasing", i.e.,
     two Python objects each containing a PyCObject which internally points
     to the same C pointer."""
-
-    __metaclass__ = _ObjectCache
 
     def forget(self):
         _ObjectCache.forget(self)

@@ -1,0 +1,973 @@
+--- .\setup-win32.py	(original)
++++ .\setup-win32.py	(refactored)
+@@ -145,10 +145,10 @@
+ 
+     # get llvm config
+     llvm_dir, llvm_build_dir, is_good = get_llvm_config()
+-    print "Using llvm-dir=" + llvm_dir + " and llvm-build-dir=" + llvm_build_dir
++    print("Using llvm-dir=" + llvm_dir + " and llvm-build-dir=" + llvm_build_dir)
+     if not is_good:
+-        print "Cannot find llvm-dir or llvm-build-dir"
+-        print "Try again with --llvm-dir=/path/to/llvm-top-dir --llvm-build-dir=/path/to/llvm/cmake/dir."
++        print("Cannot find llvm-dir or llvm-build-dir")
++        print("Try again with --llvm-dir=/path/to/llvm-top-dir --llvm-build-dir=/path/to/llvm/cmake/dir.")
+         return 1
+ 
+     # setup
+--- .\setup.py	(original)
++++ .\setup.py	(refactored)
+@@ -120,10 +120,10 @@
+     # get llvm config
+     llvm_config, is_good = get_llvm_config()
+     if is_good:
+-        print "Using llvm-config=" + llvm_config
++        print("Using llvm-config=" + llvm_config)
+     else:
+-        print "Cannot invoke llvm-config (tried '%s')." % llvm_config
+-        print "Try again with --llvm-config=/path/to/llvm-config."
++        print("Cannot invoke llvm-config (tried '%s')." % llvm_config)
++        print("Try again with --llvm-config=/path/to/llvm-config.")
+         return 1
+ 
+     # setup
+--- .\llvm\__init__.py	(original)
++++ .\llvm\__init__.py	(refactored)
+@@ -68,12 +68,12 @@
+ 
+     def _own(self, owner):
+         if self.owner:
+-            raise LLVMException, "object already owned"
++            raise LLVMException("object already owned")
+         self.owner = owner
+ 
+     def _disown(self):
+         if not self.owner:
+-            raise LLVMException, "not owned"
++            raise LLVMException("not owned")
+         self.owner = None
+ 
+     def __del__(self):
+@@ -135,15 +135,13 @@
+ # Cacheables
+ #===----------------------------------------------------------------------===
+ 
+-class Cacheable(object):
++class Cacheable(object, metaclass=_ObjectCache):
+     """Objects that can be cached.
+ 
+     Objects that wrap a PyCObject are cached to avoid "aliasing", i.e.,
+     two Python objects each containing a PyCObject which internally points
+     to the same C pointer."""
+ 
+-    __metaclass__ = _ObjectCache
+-
+     def forget(self):
+         _ObjectCache.forget(self)
+ 
+--- .\llvm\_util.py	(original)
++++ .\llvm\_util.py	(refactored)
+@@ -45,11 +45,11 @@
+     if not isinstance(obj, typ):
+         typ_str = typ.__name__
+         msg = "argument not an instance of llvm.core.%s" % typ_str
+-        raise TypeError, msg
++        raise TypeError(msg)
+ 
+ def check_is_unowned(ownable):
+     if ownable.owner:
+-        raise llvm.LLVMException, "object is already owned"
++        raise llvm.LLVMException("object is already owned")
+ 
+ 
+ #===----------------------------------------------------------------------===
+--- .\llvm\core.py	(original)
++++ .\llvm\core.py	(refactored)
+@@ -297,7 +297,7 @@
+     if isinstance(typ, PointerType) and \
+         isinstance(typ.pointee, FunctionType):
+         return
+-    raise TypeError, "argument is neither a function nor a function pointer"
++    raise TypeError("argument is neither a function nor a function pointer")
+ 
+ def _to_int(v):
+     if v:
+@@ -341,9 +341,9 @@
+         data = fileobj.read()
+         ret = _core.LLVMGetModuleFromBitcode(data)
+         if not ret:
+-            raise llvm.LLVMException, "Unable to create module from bitcode"
++            raise llvm.LLVMException("Unable to create module from bitcode")
+         elif isinstance(ret, str):
+-            raise llvm.LLVMException, ret
++            raise llvm.LLVMException(ret)
+         else:
+             return Module(ret)
+ 
+@@ -355,10 +355,9 @@
+         data = fileobj.read()
+         ret = _core.LLVMGetModuleFromAssembly(data)
+         if not ret:
+-            raise llvm.LLVMException, \
+-                "Unable to create module from assembly"
++            raise llvm.LLVMException("Unable to create module from assembly")
+         elif isinstance(ret, str):
+-            raise llvm.LLVMException, ret
++            raise llvm.LLVMException(ret)
+         else:
+             return Module(ret)
+ 
+@@ -437,7 +436,7 @@
+         other.forget() # remove it from object cache
+         ret = _core.LLVMLinkModules(self.ptr, other.ptr)
+         if isinstance(ret, str):
+-            raise llvm.LLVMException, ret
++            raise llvm.LLVMException(ret)
+         # Do not try to destroy the other module's llvm::Module*.
+         other._own(llvm.DummyOwner())
+ 
+@@ -506,7 +505,7 @@
+         error."""
+         ret = _core.LLVMVerifyModule(self.ptr)
+         if ret != "":
+-            raise llvm.LLVMException, ret
++            raise llvm.LLVMException(ret)
+ 
+     def to_bitcode(self, fileobj):
+         """Write bitcode representation of module to given file-like
+@@ -514,7 +513,7 @@
+ 
+         data = _core.LLVMGetBitcodeFromModule(self.ptr)
+         if not data:
+-            raise llvm.LLVMException, "Unable to create bitcode"
++            raise llvm.LLVMException("Unable to create bitcode")
+         fileobj.write(data)
+ 
+ 
+@@ -1236,7 +1235,7 @@
+         check_is_module(module)
+         ptr = _core.LLVMGetNamedGlobal(module.ptr, name)
+         if not ptr:
+-            raise llvm.LLVMException, ("no global named `%s`" % name)
++            raise llvm.LLVMException("no global named `%s`" % name)
+         return _make_value(ptr)
+ 
+     def delete(self):
+@@ -1307,7 +1306,7 @@
+         check_is_module(module)
+         ptr = _core.LLVMGetNamedFunction(module.ptr, name)
+         if not ptr:
+-            raise llvm.LLVMException, ("no function named `%s`" % name)
++            raise llvm.LLVMException("no function named `%s`" % name)
+         return _make_value(ptr)
+ 
+     @staticmethod
+@@ -2006,7 +2005,7 @@
+ 
+     ret = _core.LLVMLoadLibraryPermanently(filename)
+     if isinstance(ret, str):
+-        raise llvm.LLVMException, ret
++        raise llvm.LLVMException(ret)
+ 
+ def inline_function(call):
+     check_is_value(call)
+--- .\llvm\ee.py	(original)
++++ .\llvm\ee.py	(refactored)
+@@ -103,12 +103,11 @@
+             return _core.LLVMPreferredAlignmentOfGlobal(self.ptr,
+                     ty_or_gv.ptr)
+         else:
+-            raise core.LLVMException, \
+-                "argument is neither a type nor a global variable"
++            raise core.LLVMException("argument is neither a type nor a global variable")
+ 
+     def element_at_offset(self, ty, ofs):
+         core.check_is_type_struct(ty)
+-        ofs = long(ofs) # ofs is unsigned long long
++        ofs = int(ofs) # ofs is unsigned long long
+         return _core.LLVMElementAtOffset(self.ptr, ty.ptr, ofs)
+ 
+     def offset_of_element(self, ty, el):
+@@ -185,7 +184,7 @@
+         _util.check_is_unowned(module)
+         ret = _core.LLVMCreateExecutionEngine(module.ptr, int(force_interpreter))
+         if isinstance(ret, str):
+-            raise llvm.LLVMException, ret
++            raise llvm.LLVMException(ret)
+         return ExecutionEngine(ret, module)
+ 
+     def __init__(self, ptr, module):
+@@ -223,10 +222,10 @@
+     def remove_module(self, module):
+         core.check_is_module(module)
+         if module.owner != self:
+-            raise llvm.LLVMException, "module is not owned by self"
++            raise llvm.LLVMException("module is not owned by self")
+         ret = _core.LLVMRemoveModule2(self.ptr, module.ptr)
+         if isinstance(ret, str):
+-            raise llvm.LLVMException, ret
++            raise llvm.LLVMException(ret)
+         return core.Module(ret)
+ 
+     @property
+--- .\llvm\passes.py	(original)
++++ .\llvm\passes.py	(refactored)
+@@ -245,8 +245,7 @@
+         elif tgt_data_or_pass_id in _pass_creator:
+             self._add_pass(tgt_data_or_pass_id)
+         else:
+-            raise llvm.LLVMException, \
+-                ("invalid pass_id (%s)" % str(tgt_data_or_pass_id))
++            raise llvm.LLVMException("invalid pass_id (%s)" % str(tgt_data_or_pass_id))
+ 
+     def _add_target_data(self, tgt):
+         _core.LLVMAddTargetData(tgt.ptr, self.ptr)
+--- .\test\JITTutorial1.py	(original)
++++ .\test\JITTutorial1.py	(refactored)
+@@ -28,4 +28,4 @@
+ 
+ bldr.ret (tmp_2)
+ 
+-print module
++print(module)
+--- .\test\JITTutorial2.py	(original)
++++ .\test\JITTutorial2.py	(refactored)
+@@ -47,4 +47,4 @@
+ recur_2 = bldr.call (gcd, (x_sub_y, y,), "tmp")
+ bldr.ret (recur_2)
+ 
+-print module
++print(module)
+--- .\test\asm.py	(original)
++++ .\test\asm.py	(refactored)
+@@ -9,9 +9,9 @@
+ 
+ # write it's assembly representation to a file
+ asm = str(m)
+-print >> file("/tmp/testasm.ll", "w"), asm
++print(asm, file=file("/tmp/testasm.ll", "w"))
+ 
+ # read it back into a module
+ m2 = Module.from_assembly(file("/tmp/testasm.ll"))
+-print m2
++print(m2)
+ 
+--- .\test\call-jit-ctypes.py	(original)
++++ .\test\call-jit-ctypes.py	(refactored)
+@@ -42,7 +42,7 @@
+ 
+     if 0:
+         # print the created module
+-        print my_module
++        print(my_module)
+ 
+     # compile the function
+     ee = ExecutionEngine.new(my_module)
+--- .\test\example-jit.py	(original)
++++ .\test\example-jit.py	(refactored)
+@@ -29,5 +29,5 @@
+ retval = ee.run_function(f_sum, [arg1, arg2])
+ 
+ # The return value is also GenericValue. Let's print it.
+-print "returned", retval.as_int()
++print("returned", retval.as_int())
+ 
+--- .\test\example.py	(original)
++++ .\test\example.py	(refactored)
+@@ -41,5 +41,5 @@
+ 
+ # We've completed the definition now! Let's see the LLVM assembly
+ # language representation of what we've created:
+-print my_module
++print(my_module)
+ 
+--- .\test\intrinsic.py	(original)
++++ .\test\intrinsic.py	(refactored)
+@@ -16,7 +16,7 @@
+ val   = Constant.int(Type.int(), 42)
+ bswap = Function.intrinsic(mod, INTR_BSWAP, [Type.int()])
+ b.call(bswap, [val])
+-print mod
++print(mod)
+ 
+ # the output is:
+ #
+@@ -50,7 +50,7 @@
+ onemc2 = b.sub(one, cos2, "onemc2")
+ sin  = b.call(sqrt, [onemc2], "sin")
+ b.ret(sin)
+-print mod
++print(mod)
+ 
+ #
+ #   ; ModuleID = 'test'
+--- .\test\objcache.py	(original)
++++ .\test\objcache.py	(refactored)
+@@ -4,17 +4,17 @@
+ 
+ def check(a, b):
+     if a is b:
+-        print "OK"
++        print("OK")
+     else:
+-        print "FAIL"
++        print("FAIL")
+ 
+ def check_isnot(a, b):
+     if not (a is b):
+-        print "OK"
++        print("OK")
+     else:
+-        print "FAIL"
++        print("FAIL")
+ 
+-print "Testing module aliasing ..",
++print("Testing module aliasing ..", end=' ')
+ m1 = Module.new('a')
+ t = Type.int()
+ ft = Type.function(t, [t])
+@@ -22,75 +22,75 @@
+ m2 = f1.module
+ check(m1, m2)
+ 
+-print "Testing global vairable aliasing 1 .. ",
++print("Testing global vairable aliasing 1 .. ", end=' ')
+ gv1 = GlobalVariable.new(m1, t, "gv")
+ gv2 = GlobalVariable.get(m1, "gv")
+ check(gv1, gv2)
+ 
+-print "Testing global vairable aliasing 2 .. ",
++print("Testing global vairable aliasing 2 .. ", end=' ')
+ gv3 = m1.global_variables[0]
+ check(gv1, gv3)
+ 
+-print "Testing global vairable aliasing 3 .. ",
++print("Testing global vairable aliasing 3 .. ", end=' ')
+ gv2 = None
+ gv3 = None
+ gv1.delete()
+ gv4 = GlobalVariable.new(m1, t, "gv")
+ check_isnot(gv1, gv4)
+ 
+-print "Testing function aliasing 1 ..",
++print("Testing function aliasing 1 ..", end=' ')
+ b1 = f1.append_basic_block('entry')
+ f2 = b1.function
+ check(f1, f2)
+ 
+-print "Testing function aliasing 2 ..",
++print("Testing function aliasing 2 ..", end=' ')
+ f3 = m1.get_function_named("func")
+ check(f1, f3)
+ 
+-print "Testing function aliasing 3 ..",
++print("Testing function aliasing 3 ..", end=' ')
+ f4 = Function.get_or_insert(m1, ft, "func")
+ check(f1, f4)
+ 
+-print "Testing function aliasing 4 ..",
++print("Testing function aliasing 4 ..", end=' ')
+ f5 = Function.get(m1, "func")
+ check(f1, f5)
+ 
+-print "Testing function aliasing 5 ..",
++print("Testing function aliasing 5 ..", end=' ')
+ f6 = m1.get_or_insert_function(ft, "func")
+ check(f1, f6)
+ 
+-print "Testing function aliasing 6 ..",
++print("Testing function aliasing 6 ..", end=' ')
+ f7 = m1.functions[0]
+ check(f1, f7)
+ 
+-print "Testing argument aliasing .. ",
++print("Testing argument aliasing .. ", end=' ')
+ a1 = f1.args[0]
+ a2 = f1.args[0]
+ check(a1, a2)
+ 
+-print "Testing basic block aliasing 1 .. ",
++print("Testing basic block aliasing 1 .. ", end=' ')
+ b2 = f1.basic_blocks[0]
+ check(b1, b2)
+ 
+-print "Testing basic block aliasing 2 .. ",
++print("Testing basic block aliasing 2 .. ", end=' ')
+ b3 = f1.get_entry_basic_block()
+ check(b1, b3)
+ 
+-print "Testing basic block aliasing 3 .. ",
++print("Testing basic block aliasing 3 .. ", end=' ')
+ b31 = f1.entry_basic_block
+ check(b1, b31)
+ 
+-print "Testing basic block aliasing 4 .. ",
++print("Testing basic block aliasing 4 .. ", end=' ')
+ bldr = Builder.new(b1)
+ b4 = bldr.basic_block
+ check(b1, b4)
+ 
+-print "Testing basic block aliasing 5 .. ",
++print("Testing basic block aliasing 5 .. ", end=' ')
+ i1 = bldr.ret_void()
+ b5 = i1.basic_block
+ check(b1, b5)
+ 
+-print "Testing instruction aliasing 1 .. ",
++print("Testing instruction aliasing 1 .. ", end=' ')
+ i2 = b5.instructions[0]
+ check(i1, i2)
+ 
+@@ -100,9 +100,9 @@
+ v2 = phi.get_incoming_value(0)
+ b6 = phi.get_incoming_block(0)
+ 
+-print "Testing PHI / basic block aliasing 5 .. ",
++print("Testing PHI / basic block aliasing 5 .. ", end=' ')
+ check(b1, b6)
+ 
+-print "Testing PHI / value aliasing .. ",
++print("Testing PHI / value aliasing .. ", end=' ')
+ check(f1.args[0], v2)
+ 
+--- .\test\operands.py	(original)
++++ .\test\operands.py	(refactored)
+@@ -28,9 +28,9 @@
+     def __init__(self): pass
+     def read(self): return test_module
+ m = Module.from_assembly(strstream())
+-print "-"*60
+-print m
+-print "-"*60
++print("-"*60)
++print(m)
++print("-"*60)
+ 
+ test_func = m.get_function_named("test_func")
+ prod      = m.get_function_named("prod")
+@@ -38,16 +38,16 @@
+ #===----------------------------------------------------------------------===
+ # test operands
+ 
+-print
++print()
+ i1 = test_func.basic_blocks[0].instructions[0]
+ i2 = test_func.basic_blocks[0].instructions[1]
+-print "Testing User.operand_count ..",
++print("Testing User.operand_count ..", end=' ')
+ if i1.operand_count == 3 and i2.operand_count == 2:
+-    print "OK"
++    print("OK")
+ else:
+-    print "FAIL"
++    print("FAIL")
+ 
+-print "Testing User.operands ..",
++print("Testing User.operands ..", end=' ')
+ c1 = i1.operands[0] is prod
+ c2 = i1.operands[1] is test_func.args[0]
+ c3 = i1.operands[2] is test_func.args[1]
+@@ -56,22 +56,22 @@
+ c6 = len(i1.operands) == 3
+ c7 = len(i2.operands) == 2
+ if c1 and c2 and c3 and c5 and c6 and c7:
+-    print "OK"
++    print("OK")
+ else:
+-    print "FAIL"
+-print
++    print("FAIL")
++print()
+ 
+ #===----------------------------------------------------------------------===
+ # show test_function
+ 
+-print "Examining test_function `test_test_func':"
++print("Examining test_function `test_test_func':")
+ idx = 1
+ for inst in test_func.basic_blocks[0].instructions:
+-    print "Instruction #%d:" % (idx,)
+-    print "  operand_count =", inst.operand_count
+-    print "  operands:"
++    print("Instruction #%d:" % (idx,))
++    print("  operand_count =", inst.operand_count)
++    print("  operands:")
+     oidx = 1
+     for op in inst.operands:
+-        print "    %d: %s" % (oidx, repr(op))
++        print("    %d: %s" % (oidx, repr(op)))
+         oidx += 1
+     idx += 1
+--- .\test\passes.py	(original)
++++ .\test\passes.py	(refactored)
+@@ -36,8 +36,8 @@
+ }
+ """
+ m = Module.from_assembly(strstream(asm))
+-print "-"*72
+-print m
++print("-"*72)
++print(m)
+ 
+ # Let's run a module-level inlining pass. First, create a pass manager.
+ pm = PassManager.new()
+@@ -55,8 +55,8 @@
+ del pm
+ 
+ # Print the result. Note the change in @test2.
+-print "-"*72
+-print m
++print("-"*72)
++print(m)
+ 
+ 
+ # Let's run a DCE pass on the the function 'test1' now. First create a
+@@ -73,5 +73,5 @@
+ fpm.run( m.get_function_named('test1') )
+ 
+ # Print the result. Note the change in @test1.
+-print "-"*72
+-print m
++print("-"*72)
++print(m)
+--- .\test\test.py	(original)
++++ .\test\test.py	(refactored)
+@@ -69,7 +69,7 @@
+ 
+     # done
+     if gc.garbage:
+-        print "garbage = ", gc.garbage
++        print("garbage = ", gc.garbage)
+ 
+ 
+ main()
+--- .\test\testall.py	(original)
++++ .\test\testall.py	(refactored)
+@@ -15,12 +15,12 @@
+ 
+ 
+ def do_llvmexception():
+-    print "    Testing class LLVMException"
++    print("    Testing class LLVMException")
+     e = LLVMException()
+ 
+ 
+ def do_ownable():
+-    print "    Testing class Ownable"
++    print("    Testing class Ownable")
+     o = Ownable(None, lambda x: None)
+     try:
+         o._own(None)
+@@ -30,7 +30,7 @@
+ 
+ 
+ def do_misc():
+-    print "    Testing miscellaneous functions"
++    print("    Testing miscellaneous functions")
+     try:
+         load_library_permanently("/usr/lib/libm.so")
+     except LLVMException:
+@@ -42,14 +42,14 @@
+ 
+ 
+ def do_llvm():
+-    print "  Testing module llvm"
++    print("  Testing module llvm")
+     do_llvmexception()
+     do_ownable()
+     do_misc()
+ 
+ 
+ def do_module():
+-    print "    Testing class Module"
++    print("    Testing class Module")
+     m = Module.new('test')
+     m.target = 'a'
+     a = m.target
+@@ -101,7 +101,7 @@
+ 
+ 
+ def do_type():
+-    print "    Testing class Type"
++    print("    Testing class Type")
+     for i in range(1,100):
+         Type.int(i)
+     Type.float()
+@@ -151,14 +151,14 @@
+ 
+ 
+ def do_typehandle():
+-    print "    Testing class TypeHandle"
++    print("    Testing class TypeHandle")
+     th = TypeHandle.new(Type.opaque())
+     ts = Type.struct([ Type.int(), Type.pointer(th.type) ])
+     th.type.refine(ts)
+ 
+ 
+ def do_value():
+-    print "    Testing class Value"
++    print("    Testing class Value")
+     k = Constant.int(ti, 42)
+     k.name = 'a'
+     s = k.name
+@@ -186,7 +186,7 @@
+ 
+ 
+ def do_constant():
+-    print "    Testing class Constant"
++    print("    Testing class Constant")
+     Constant.null(ti)
+     Constant.all_ones(ti)
+     Constant.undef(ti)
+@@ -231,7 +231,7 @@
+ 
+ 
+ def do_global_value():
+-    print "    Testing class GlobalValue"
++    print("    Testing class GlobalValue")
+     m = Module.new('a')
+     gv = GlobalVariable.new(m, Type.int(), 'b')
+     s = gv.is_declaration
+@@ -247,7 +247,7 @@
+ 
+ 
+ def do_global_variable():
+-    print "    Testing class GlobalVariable"
++    print("    Testing class GlobalVariable")
+     m = Module.new('a')
+     gv = GlobalVariable.new(m, Type.int(), 'b')
+     gv = GlobalVariable.get(m, 'b')
+@@ -260,7 +260,7 @@
+ 
+ 
+ def do_argument():
+-    print "    Testing class Argument"
++    print("    Testing class Argument")
+     m = Module.new('a')
+     ft = Type.function(ti, [ti])
+     f = Function.new(m, ft, 'func')
+@@ -272,7 +272,7 @@
+ 
+ 
+ def do_function():
+-    print "    Testing class Function"
++    print("    Testing class Function")
+     ft = Type.function(ti, [ti]*20)
+     zz = Function.new(Module.new('z'), ft, 'foobar')
+     del zz
+@@ -307,7 +307,7 @@
+ 
+ 
+ def do_instruction():
+-    print "    Testing class Instruction"
++    print("    Testing class Instruction")
+     m = Module.new('a')
+     ft = Type.function(ti, [ti]*20)
+     f = Function.new(m, ft, 'func')
+@@ -320,7 +320,7 @@
+ 
+ 
+ def do_callorinvokeinstruction():
+-    print "    Testing class CallOrInvokeInstruction"
++    print("    Testing class CallOrInvokeInstruction")
+     m = Module.new('a')
+     ft = Type.function(ti, [ti])
+     f = Function.new(m, ft, 'func')
+@@ -337,7 +337,7 @@
+ 
+ 
+ def do_phinode():
+-    print "    Testing class PhiNode"
++    print("    Testing class PhiNode")
+     m = Module.new('a')
+     ft = Type.function(ti, [ti])
+     f = Function.new(m, ft, 'func')
+@@ -354,7 +354,7 @@
+ 
+ 
+ def do_switchinstruction():
+-    print "    Testing class SwitchInstruction"
++    print("    Testing class SwitchInstruction")
+     m = Module.new('a')
+     ft = Type.function(ti, [ti])
+     f = Function.new(m, ft, 'func')
+@@ -365,7 +365,7 @@
+ 
+ 
+ def do_basicblock():
+-    print "    Testing class BasicBlock"
++    print("    Testing class BasicBlock")
+     m = Module.new('a')
+     ft = Type.function(ti, [ti])
+     f = Function.new(m, ft, 'func')
+@@ -395,7 +395,7 @@
+ 
+ 
+ def do_builder():
+-    print "    Testing class Builder"
++    print("    Testing class Builder")
+     m = Module.new('a')
+     ft = Type.function(ti, [ti])
+     f = Function.new(m, ft, 'func')
+@@ -488,7 +488,7 @@
+ 
+ 
+ def do_llvm_core():
+-    print "  Testing module llvm.core"
++    print("  Testing module llvm.core")
+     do_module()
+     do_type()
+     do_typehandle()
+@@ -508,7 +508,7 @@
+ 
+ 
+ def do_targetdata():
+-    print "    Testing class TargetData"
++    print("    Testing class TargetData")
+     t = TargetData.new('')
+     v = str(t)
+     v = t.byte_order
+@@ -530,7 +530,7 @@
+ 
+ 
+ def do_genericvalue():
+-    print "    Testing class GenericValue"
++    print("    Testing class GenericValue")
+     v = GenericValue.int(ti, 1)
+     v = GenericValue.int_signed(ti, 1)
+     v = GenericValue.real(Type.float(), 3.14)
+@@ -540,7 +540,7 @@
+ 
+ 
+ def do_executionengine():
+-    print "    Testing class ExecutionEngine"
++    print("    Testing class ExecutionEngine")
+     m = Module.new('a')
+     ee = ExecutionEngine.new(m, True)
+     ft = Type.function(ti, [])
+@@ -567,14 +567,14 @@
+ 
+ 
+ def do_llvm_ee():
+-    print "  Testing module llvm.ee"
++    print("  Testing module llvm.ee")
+     do_targetdata()
+     do_genericvalue()
+     do_executionengine()
+ 
+ 
+ def do_passmanager():
+-    print "    Testing class PassManager"
++    print("    Testing class PassManager")
+     pm = PassManager.new()
+     pm.add(TargetData.new(''))
+     for i in [getattr(llvm.passes, x) for x in \
+@@ -586,7 +586,7 @@
+ 
+ 
+ def do_functionpassmanager():
+-    print "    Testing class FunctionPassManager"
++    print("    Testing class FunctionPassManager")
+     m = Module.new('a')
+     ft = Type.function(ti, [])
+     f = m.add_function(ft, 'func')
+@@ -602,13 +602,13 @@
+ 
+ 
+ def do_llvm_passes():
+-    print "  Testing module llvm.passes"
++    print("  Testing module llvm.passes")
+     do_passmanager()
+     do_functionpassmanager()
+ 
+ 
+ def main():
+-    print "Testing package llvm"
++    print("Testing package llvm")
+     do_llvm()
+     do_llvm_core()
+     do_llvm_ee()
+--- .\test\testattrs.py	(original)
++++ .\test\testattrs.py	(refactored)
+@@ -1,7 +1,7 @@
+ #!/usr/bin/env python
+ 
+ from llvm.core import *
+-from cStringIO import StringIO
++from io import StringIO
+ 
+ 
+ def make_module():
+--- .\test\typehandle.py	(original)
++++ .\test\typehandle.py	(refactored)
+@@ -16,4 +16,4 @@
+ m.add_type_name("struct.node", th.type)
+ 
+ # show what we created
+-print m
++print(m)
+--- .\test\uses.py	(original)
++++ .\test\uses.py	(refactored)
+@@ -13,11 +13,11 @@
+ tmp3 = bld.add(tmp1, f.args[2], "tmp3")
+ bld.ret(tmp3)
+ 
+-print "-"*60
+-print m
+-print "-"*60
++print("-"*60)
++print(m)
++print("-"*60)
+ 
+-print "Testing use count ..",
++print("Testing use count ..", end=' ')
+ c1 = f.args[0].use_count == 1
+ c2 = f.args[1].use_count == 1
+ c3 = f.args[2].use_count == 1
+@@ -25,11 +25,11 @@
+ c5 = tmp2.use_count == 0
+ c6 = tmp3.use_count == 1
+ if c1 and c2 and c3 and c4 and c5 and c6:
+-    print "OK"
++    print("OK")
+ else:
+-    print "FAIL"
++    print("FAIL")
+ 
+-print "Testing uses ..",
++print("Testing uses ..", end=' ')
+ c1 = f.args[0].uses[0] is tmp1
+ c2 = len(f.args[0].uses) == 1
+ c3 = f.args[1].uses[0] is tmp2
+@@ -40,6 +40,6 @@
+ c8 = len(tmp2.uses) == 0
+ c9 = len(tmp3.uses) == 1
+ if c1 and c2 and c3 and c4 and c5 and c6 and c7 and c8 and c9:
+-    print "OK"
++    print("OK")
+ else:
+-    print "FAIL"
++    print("FAIL")
+--- .\tools\intrgen.py	(original)
++++ .\tools\intrgen.py	(refactored)
+@@ -26,7 +26,7 @@
+     idx = 1
+     for i in intr:
+         s = 'INTR_' + i.upper()
+-        print '%s = %d' % (s.ljust(maxw), idx)
++        print('%s = %d' % (s.ljust(maxw), idx))
+         idx += 1
+ 
+ gen(sys.argv[1])
+--- .\tools\intrs_for_doc.py	(original)
++++ .\tools\intrs_for_doc.py	(refactored)
+@@ -21,5 +21,5 @@
+ outf = open(OUTF, 'wt')
+ i = 0
+ while i < len(intrs):
+-    print >>outf, "`" + "`,`".join(intrs[i:min(i+NCOLS,len(intrs)+1)]) + "`"
++    print("`" + "`,`".join(intrs[i:min(i+NCOLS,len(intrs)+1)]) + "`", file=outf)
+     i += NCOLS
+--- .\www\makeweb.py	(original)
++++ .\www\makeweb.py	(refactored)
+@@ -52,7 +52,7 @@
+ 
+ 
+ def _rmtree_warn(fn, path, excinfo):
+-    print "** WARNING **: error while doing %s on %s" % (fn, path)
++    print("** WARNING **: error while doing %s on %s" % (fn, path))
+ 
+ 
+ def _can_skip(opts, infile, outfile):
+@@ -67,14 +67,14 @@
+             cmd = cmdfn(opts, infile, outfile_actual)
+             if _can_skip(opts, infile, outfile_actual):
+                 if opts.verbose >= 2:
+-                    print "up to date %s -> %s" % (infile, outfile_actual)
++                    print("up to date %s -> %s" % (infile, outfile_actual))
+                 return
+             if cmd:
+                 # do cmd
+                 if opts.verbose:
+-                    print "process %s -> %s" % (infile, outfile_actual)
++                    print("process %s -> %s" % (infile, outfile_actual))
+                 if opts.verbose >= 3:
+-                    print "command is [%s]" % cmd
++                    print("command is [%s]" % cmd)
+                 if not opts.dryrun:
+                     os.system(cmd)
+             # else if cmd is None, do nothing
+@@ -83,7 +83,7 @@
+     # nothing matched, default action is to copy
+     if not _can_skip(opts, infile, outfile):
+         if opts.verbose:
+-            print "copying %s -> %s" % (infile, outfile)
++            print("copying %s -> %s" % (infile, outfile))
+         if not opts.dryrun:
+             shutil.copy(infile, outfile)
+ 
+@@ -95,14 +95,14 @@
+ 
+     # if it exists, it must be a dir!
+     if odexists and not os.path.isdir(outdir):
+-        print "** WARNING **: output dir '%s' exists but is " \
+-            "not a dir, skipping" % outdir
++        print("** WARNING **: output dir '%s' exists but is " \
++            "not a dir, skipping" % outdir)
+         return
+ 
+     # make outdir if not existing
+     if not odexists:
+         if opts.verbose:
+-            print "creating %s" % outdir
++            print("creating %s" % outdir)
+         if not opts.dryrun:
+             os.mkdir(outdir)
+ 
+@@ -114,8 +114,8 @@
+         # process files
+         if os.path.isfile(inp):
+             if os.path.exists(outp) and not os.path.isfile(outp):
+-                print "** WARNING **: output '%s' corresponding to " \
+-                    "input '%s' is not a file, skipping" % (outp, inp)
++                print("** WARNING **: output '%s' corresponding to " \
++                    "input '%s' is not a file, skipping" % (outp, inp))
+             else:
+                 process_file(opts, inp, outp)
+ 
+@@ -124,15 +124,15 @@
+             # if dir is in skip list, silently ignore
+             if elem in DIR_SKIP_TBL:
+                 if opts.verbose >= 3:
+-                    print "skipping %s" % inp
++                    print("skipping %s" % inp)
+                 continue
+             # just recurse
+             make(opts, inp, outp)
+ 
+         # neither a file nor a dir
+         else:
+-            print "** WARNING **: input '%s' is neither file nor " \
+-                "dir, skipping" % inp
++            print("** WARNING **: input '%s' is neither file nor " \
++                "dir, skipping" % inp)
+ 
+ 
+ def get_opts():
+@@ -173,14 +173,14 @@
+ def main():
+     opts, src, dest = get_opts()
+     if opts.verbose >= 3:
+-        print ("running with options:\nsrc = [%s]\ndest = [%s]\nverbose = [%d]\n" +\
++        print(("running with options:\nsrc = [%s]\ndest = [%s]\nverbose = [%d]\n" +\
+             "dry-run = [%d]\nclean-first = [%d]\nforce = [%d]") %\
+-            (src, dest, opts.verbose, opts.dryrun, opts.clean, opts.force)
++            (src, dest, opts.verbose, opts.dryrun, opts.clean, opts.force))
+     if opts.dryrun and opts.verbose == 0:
+         opts.verbose = 1
+     if opts.clean:
+         if opts.dryrun or opts.verbose:
+-            print "removing tree %s" % dest
++            print("removing tree %s" % dest)
+         if not opts.dryrun:
+             os.rmtree(dest, True, _rmtree_warn)
+     make(opts, src, dest)

@@ -29,5 +29,5 @@ arg2 = GenericValue.int(ty_int, 42)
 retval = ee.run_function(f_sum, [arg1, arg2])
 
 # The return value is also GenericValue. Let's print it.
-print "returned", retval.as_int()
+print("returned", retval.as_int())
 

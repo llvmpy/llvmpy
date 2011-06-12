@@ -13,11 +13,11 @@ tmp2 = bld.add(tmp1, f.args[1], "tmp2")
 tmp3 = bld.add(tmp1, f.args[2], "tmp3")
 bld.ret(tmp3)
 
-print "-"*60
-print m
-print "-"*60
+print("-"*60)
+print(m)
+print("-"*60)
 
-print "Testing use count ..",
+print("Testing use count ..", end=' ')
 c1 = f.args[0].use_count == 1
 c2 = f.args[1].use_count == 1
 c3 = f.args[2].use_count == 1
@@ -25,11 +25,11 @@ c4 = tmp1.use_count == 2
 c5 = tmp2.use_count == 0
 c6 = tmp3.use_count == 1
 if c1 and c2 and c3 and c4 and c5 and c6:
-    print "OK"
+    print("OK")
 else:
-    print "FAIL"
+    print("FAIL")
 
-print "Testing uses ..",
+print("Testing uses ..", end=' ')
 c1 = f.args[0].uses[0] is tmp1
 c2 = len(f.args[0].uses) == 1
 c3 = f.args[1].uses[0] is tmp2
@@ -40,6 +40,6 @@ c7 = len(tmp1.uses) == 2
 c8 = len(tmp2.uses) == 0
 c9 = len(tmp3.uses) == 1
 if c1 and c2 and c3 and c4 and c5 and c6 and c7 and c8 and c9:
-    print "OK"
+    print("OK")
 else:
-    print "FAIL"
+    print("FAIL")

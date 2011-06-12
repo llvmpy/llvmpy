@@ -21,5 +21,5 @@ for line in file(INF):
 outf = open(OUTF, 'wt')
 i = 0
 while i < len(intrs):
-    print >>outf, "`" + "`,`".join(intrs[i:min(i+NCOLS,len(intrs)+1)]) + "`"
+    print("`" + "`,`".join(intrs[i:min(i+NCOLS,len(intrs)+1)]) + "`", file=outf)
     i += NCOLS

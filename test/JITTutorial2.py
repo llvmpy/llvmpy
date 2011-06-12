@@ -47,4 +47,4 @@ x_sub_y = bldr.sub (x, y, "x_sub_y")
 recur_2 = bldr.call (gcd, (x_sub_y, y,), "tmp")
 bldr.ret (recur_2)
 
-print module
+print(module)

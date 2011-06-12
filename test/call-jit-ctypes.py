@@ -42,7 +42,7 @@ def test_jit_ctypes():
 
     if 0:
         # print the created module
-        print my_module
+        print(my_module)
 
     # compile the function
     ee = ExecutionEngine.new(my_module)

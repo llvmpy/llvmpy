@@ -245,8 +245,7 @@ class PassManager(object):
         elif tgt_data_or_pass_id in _pass_creator:
             self._add_pass(tgt_data_or_pass_id)
         else:
-            raise llvm.LLVMException, \
-                ("invalid pass_id (%s)" % str(tgt_data_or_pass_id))
+            raise llvm.LLVMException("invalid pass_id (%s)" % str(tgt_data_or_pass_id))
 
     def _add_target_data(self, tgt):
         _core.LLVMAddTargetData(tgt.ptr, self.ptr)

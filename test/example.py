@@ -41,5 +41,5 @@ builder.ret(tmp)
 
 # We've completed the definition now! Let's see the LLVM assembly
 # language representation of what we've created:
-print my_module
+print(my_module)
 
