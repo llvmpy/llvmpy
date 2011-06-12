@@ -32,10 +32,7 @@
 #include "wrap.h"
 #include "extra.h"
 
-/* Project-wide setting */
-#if (PY_MAJOR_VERSION >= 3) 
-#define LLVM_PY_USE_PYCAPSULE
-#endif
+
 
 // Python include
 #include "Python.h"
@@ -55,6 +52,10 @@
 typedef int Py_ssize_t;
 #endif
 
+/* Project-wide setting */
+#if (PY_MAJOR_VERSION >= 3) 
+#define LLVM_PY_USE_PYCAPSULE
+#endif
 
 /*===----------------------------------------------------------------------===*/
 /* Modules                                                                    */
@@ -66,7 +67,7 @@ _wLLVMModuleCreateWithName(PyObject *self, PyObject *args)
     const char *s;
     LLVMModuleRef module;
 
-    if (!PyArg_ParseTuple(args, "y#", &s))
+    if (!PyArg_ParseTuple(args, "s", &s))
         return NULL;
 
     module = LLVMModuleCreateWithName(s);
@@ -430,7 +431,7 @@ _wLLVMConstString(PyObject *self, PyObject *args)
     int dont_null_terminate;
     LLVMValueRef val;
     
-    if (!PyArg_ParseTuple(args, "y#i", &s, &dont_null_terminate))
+    if (!PyArg_ParseTuple(args, "si", &s, &dont_null_terminate))
         return NULL;
     
     val = LLVMConstString(s, strlen(s), dont_null_terminate);
@@ -647,7 +648,7 @@ _wLLVMBuildInvoke(PyObject *self, PyObject *args)
     LLVMBasicBlockRef then_blk, catch_blk;
     LLVMValueRef inst;
 
-    if (!PyArg_ParseTuple(args, "OOOOOy#", &obj1, &obj2, &obj3, &obj4, &obj5, &name))
+    if (!PyArg_ParseTuple(args, "OOOOOs", &obj1, &obj2, &obj3, &obj4, &obj5, &name))
         return NULL;
 
 #ifdef LLVM_PY_USE_PYCAPSULE
@@ -763,7 +764,7 @@ _wLLVMCreateMemoryBufferWithContentsOfFile(PyObject *self, PyObject *args)
     char *outmsg;
     PyObject *ret;
 
-    if (!PyArg_ParseTuple(args, "y#", &path))
+    if (!PyArg_ParseTuple(args, "s", &path))
         return NULL;
 
     if (!LLVMCreateMemoryBufferWithContentsOfFile(path, &ref, &outmsg)) {
@@ -1221,7 +1222,7 @@ _wLLVMLoadLibraryPermanently(PyObject *self, PyObject *args)
     char *outmsg;
     PyObject *ret;
 
-    if (!PyArg_ParseTuple(args, "y#", &filename)) {
+    if (!PyArg_ParseTuple(args, "s", &filename)) {
         return NULL;
     }
 

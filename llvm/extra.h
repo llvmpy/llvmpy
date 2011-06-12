@@ -37,11 +37,6 @@
 #ifndef LLVM_PY_EXTRA_H
 #define LLVM_PY_EXTRA_H
 
-/* Project-wide setting */
-#if (PY_MAJOR_VERSION >= 3) 
-#define LLVM_PY_USE_PYCAPSULE
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -79,7 +79,7 @@ _define_std_ctor(LLVMGenericValueRef)
 
 PyObject *ctor_int(int i)
 {
-    return PyInt_FromLong(i);
+    return PyLong_FromLong((long)i);
 }
 
 PyObject *ctor_llvmwrap_ull(llvmwrap_ull ull)

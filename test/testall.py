@@ -13,7 +13,6 @@ from llvm.passes import *
 
 ti = Type.int()
 
-
 def do_llvmexception():
     print("    Testing class LLVMException")
     e = LLVMException()
@@ -36,6 +35,7 @@ def do_misc():
     except LLVMException:
         pass
     try:
+        print("        ... second one now")
         load_library_permanently("no*such*so")
     except LLVMException:
         pass

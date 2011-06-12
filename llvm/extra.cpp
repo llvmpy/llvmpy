@@ -28,11 +28,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Project-wide setting */
-#if (PY_MAJOR_VERSION >= 3) 
-#define LLVM_PY_USE_PYCAPSULE
-#endif
-
 /**
  * These are some "extra" functions not available in the standard LLVM-C
  * bindings, but are required / good-to-have inorder to implement the
