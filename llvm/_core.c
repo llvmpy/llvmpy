@@ -1033,7 +1033,7 @@ _wLLVMRemoveModule2(PyObject *self, PyObject *args)
 
 #ifdef LLVM_PY_USE_PYCAPSULE
     ee = (LLVMExecutionEngineRef) PyCapsule_GetPointer(obj_ee, NULL);
-    mod = (LLVMValueRef) PyCapsule_GetPointer(obj_mod, NULL);
+    mod = (LLVMModuleRef) PyCapsule_GetPointer(obj_mod, NULL);
 #else
     ee = (LLVMExecutionEngineRef) PyCObject_AsVoidPtr(obj_ee);
     mod = (LLVMModuleRef) PyCObject_AsVoidPtr(obj_mod);
