@@ -178,8 +178,13 @@ _wLLVMLinkModules(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OO", &dest_obj, &src_obj))
         return NULL;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    dest = (LLVMModuleRef) PyCapsule_GetPointer(dest_obj, NULL);
+    src = (LLVMModuleRef) PyCapsule_GetPointer(src_obj, NULL);
+#else
     dest = (LLVMModuleRef) PyCObject_AsVoidPtr(dest_obj);
     src = (LLVMModuleRef) PyCObject_AsVoidPtr(src_obj);
+#endif
 
     if (!LLVMLinkModules(dest, src, &errmsg)) {
         if (errmsg) {
@@ -377,8 +382,13 @@ _wLLVMConstInt(PyObject *self, PyObject *args)
     
     if (!PyArg_ParseTuple(args, "OKi", &obj, &n, &sign_extend))
         return NULL;
-    
+
+#ifdef LLVM_PY_USE_PYCAPSULE
+    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj, NULL);
+#else    
     ty = (LLVMTypeRef)(PyCObject_AsVoidPtr(obj));
+#endif
+
     val = LLVMConstInt(ty, n, sign_extend);
     return ctor_LLVMValueRef(val);
 }
@@ -394,7 +404,12 @@ _wLLVMConstReal(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "Od", &obj, &d))
         return NULL;
     
+#ifdef LLVM_PY_USE_PYCAPSULE
+    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj, NULL);
+#else
     ty = (LLVMTypeRef)(PyCObject_AsVoidPtr(obj));
+#endif
+
     val = LLVMConstReal(ty, d);
     return ctor_LLVMValueRef(val);
 }
@@ -630,14 +645,26 @@ _wLLVMBuildInvoke(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OOOOOs", &obj1, &obj2, &obj3, &obj4, &obj5, &name))
         return NULL;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    builder = (LLVMBuilderRef) PyCapsule_GetPointer(obj1, NULL);
+    func = (LLVMValueRef) PyCapsule_GetPointer(obj2, NULL);
+#else
     builder = (LLVMBuilderRef)(PyCObject_AsVoidPtr(obj1));
     func    = (LLVMValueRef)(PyCObject_AsVoidPtr(obj2));
+#endif
+
     fnarg_count = (unsigned) PyList_Size(obj3);
     fnargs = (LLVMValueRef *)make_array_from_list(obj3, fnarg_count);
     if (!fnargs)
         return PyErr_NoMemory();
+        
+#ifdef LLVM_PY_USE_PYCAPSULE
+    then_blk = (LLVMBasicBlockRef) PyCapsule_GetPointer(obj4, NULL);
+    catch_blk = (LLVMBasicBlockRef) PyCapsule_GetPointer(obj5, NULL);
+#else
     then_blk = (LLVMBasicBlockRef)(PyCObject_AsVoidPtr(obj4));
     catch_blk = (LLVMBasicBlockRef)(PyCObject_AsVoidPtr(obj5));
+#endif
 
     inst = LLVMBuildInvoke(builder, func, fnargs, fnarg_count, then_blk, catch_blk, name);
 
@@ -935,7 +962,11 @@ _wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "Oi", &obj, &force_interpreter))
         return NULL;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    mod = (LLVMModuleRef) PyCapsule_GetPointer(obj, NULL);
+#else
     mod = (LLVMModuleRef) PyCObject_AsVoidPtr(obj);
+#endif
 
     if (force_interpreter)
         error = LLVMCreateInterpreterForModule(&ee, mod, &outmsg);
@@ -963,8 +994,13 @@ _wLLVMGetPointerToFunction(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OO", &obj_ee, &obj_fn))
         return NULL;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    ee = (LLVMExecutionEngineRef) PyCapsule_GetPointer(obj_ee, NULL);
+    fn = (LLVMValueRef) PyCapsule_GetPointer(obj_fn, NULL);
+#else
     ee = (LLVMExecutionEngineRef) PyCObject_AsVoidPtr(obj_ee);
     fn = (LLVMValueRef) PyCObject_AsVoidPtr(obj_fn);
+#endif
 
     return PyLong_FromVoidPtr(LLVMGetPointerToFunction(ee,fn));
 }
@@ -989,8 +1025,15 @@ _wLLVMRemoveModule2(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OO", &obj_ee, &obj_mod))
         return NULL;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    ee = (LLVMExecutionEngineRef) PyCapsule_GetPointer(obj_ee, NULL);
+    fn = (LLVMValueRef) PyCapsule_GetPointer(obj_fn, NULL);
+#error "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Using capsule"
+#else
     ee = (LLVMExecutionEngineRef) PyCObject_AsVoidPtr(obj_ee);
     mod = (LLVMModuleRef) PyCObject_AsVoidPtr(obj_mod);
+#error "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Using pycobject"
+#endif
 
     LLVMRemoveModule(ee, mod, &mod_new, &outmsg);
     if (mod_new) {
@@ -1036,7 +1079,11 @@ _wLLVMCreateGenericValueOfInt(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OLi", &obj1, &n, &is_signed))
         return NULL;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj1, NULL);
+#else
     ty = (LLVMTypeRef) PyCObject_AsVoidPtr(obj1);
+#endif
 
     gv = LLVMCreateGenericValueOfInt(ty, n, is_signed);
     return ctor_LLVMGenericValueRef(gv);
@@ -1053,7 +1100,11 @@ _wLLVMCreateGenericValueOfFloat(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "Od", &obj1, &d))
         return NULL;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj1, NULL);
+#else
     ty = (LLVMTypeRef) PyCObject_AsVoidPtr(obj1);
+#endif
 
     gv = LLVMCreateGenericValueOfFloat(ty, d);
     return ctor_LLVMGenericValueRef(gv);
@@ -1073,7 +1124,11 @@ _wLLVMCreateGenericValueOfPointer(PyObject *self, PyObject *args)
 
     n=n_;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj1, NULL);
+#else
     ty = (LLVMTypeRef) PyCObject_AsVoidPtr(obj1);
+#endif
 
     gv = LLVMCreateGenericValueOfPointer((void*)n);
     return ctor_LLVMGenericValueRef(gv);
@@ -1090,7 +1145,11 @@ _wLLVMGenericValueToInt(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "Oi", &obj1, &is_signed))
         return NULL;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    gv = (LLVMGenericValueRef) PyCapsule_GetPointer(obj1, NULL);
+#else
     gv = (LLVMGenericValueRef) PyCObject_AsVoidPtr(obj1);
+#endif
 
     val = LLVMGenericValueToInt(gv, is_signed);
     return is_signed ?
@@ -1109,8 +1168,13 @@ _wLLVMGenericValueToFloat(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))
         return NULL;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj1, NULL);
+    gv = (LLVMGenericValueRef) PyCapsule_GetPointer(obj2, NULL);
+#else
     ty = (LLVMTypeRef) PyCObject_AsVoidPtr(obj1);
     gv = (LLVMGenericValueRef) PyCObject_AsVoidPtr(obj2);
+#endif
 
     val = LLVMGenericValueToFloat(ty, gv);
     return PyFloat_FromDouble(val);
@@ -1126,7 +1190,11 @@ _wLLVMGenericValueToPointer(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O", &obj1))
         return NULL;
 
+#ifdef LLVM_PY_USE_PYCAPSULE
+    gv = (LLVMGenericValueRef) PyCapsule_GetPointer(obj1, NULL);
+#else
     gv = (LLVMGenericValueRef) PyCObject_AsVoidPtr(obj1);
+#endif
 
     val = LLVMGenericValueToPointer(gv);
     return PyLong_FromVoidPtr(val);

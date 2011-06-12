@@ -30,7 +30,6 @@
 
 #include "wrap.h"
 
-
 /*===----------------------------------------------------------------------===*/
 /* Helper functions/macros                                                    */
 /*===----------------------------------------------------------------------===*/
@@ -39,7 +38,11 @@
 PyObject * ctor_ ## typ ( typ p)                \
 {                                               \
     if (p)                                      \
+#ifdef LLVM_PY_USE_PYCAPSULE                    \
+        return PyCapsule_New(p, NULL, NULL);    \
+#else                                           \
         return PyCObject_FromVoidPtr(p, NULL);  \
+#endif                                          \
     Py_RETURN_NONE;                             \
 }
 
@@ -81,8 +84,11 @@ void *get_object_arg(PyObject *args)
 
     if (!PyArg_ParseTuple(args, "O", &o))
         return NULL;
-    
+#ifdef LLVM_PY_USE_PYCAPSULE
+    return PyCapsule_GetPointer(o, NULL);
+#else
     return PyCObject_AsVoidPtr(o);
+#endif
 }
 
 void **make_array_from_list(PyObject *list, int n)
@@ -96,7 +102,11 @@ void **make_array_from_list(PyObject *list, int n)
 
     for (i=0; i<n; i++) {
         PyObject *e = PyList_GetItem(list, i);
+#ifdef LLVM_PY_USE_PYCAPSULE
+        arr[i] = PyCapsule_GetPointer(e, NULL);
+#else
         arr[i] = PyCObject_AsVoidPtr(e);
+#endif
     }
     
     return arr;
@@ -121,3 +131,4 @@ PyObject *make_list_from_ ## TYPE ## _array( TYPE *p, unsigned n)   \
 
 LIST_FROM_ARRAY_IMPL(LLVMTypeRef)
 LIST_FROM_ARRAY_IMPL(LLVMValueRef)
+

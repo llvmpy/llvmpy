@@ -27,6 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+ 
+/* Project-wide setting */
+#if (PY_MAJOR_VERSION >= 3) 
+#define LLVM_PY_USE_PYCAPSULE
+#endif
 
 /**
  * Functions and macros to aid in wrapping.
@@ -45,7 +50,6 @@
 #include "llvm-c/Analysis.h"
 #include "llvm-c/ExecutionEngine.h"
 #include "llvm-c/Target.h"
-
 
 /*===----------------------------------------------------------------------===*/
 /* Typedefs                                                                   */
@@ -170,9 +174,13 @@ _w ## func (PyObject *self, PyObject *args)             \
                                                         \
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))    \
         return NULL;                                    \
-                                                        \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \    
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2));       \
 }
@@ -191,9 +199,13 @@ _w ## func (PyObject *self, PyObject *args)             \
                                                         \
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))    \
         return NULL;                                    \
-                                                        \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \    
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
+#endif                                                  \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
@@ -213,8 +225,11 @@ _w ## func (PyObject *self, PyObject *args)             \
                                                         \
     if (!PyArg_ParseTuple(args, "OI", &obj1, &arg2))    \
         return NULL;                                    \
-                                                        \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \   
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2));       \
 }
@@ -235,9 +250,15 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))    \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
     arg3 = ( intype3 ) PyCObject_AsVoidPtr(obj3);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3)); \
 }
@@ -258,9 +279,15 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))    \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
     arg3 = ( intype3 ) PyCObject_AsVoidPtr(obj3);       \
+#endif                                                  \
                                                         \
     func (arg1, arg2, arg3);                            \
     Py_RETURN_NONE;                                     \
@@ -282,8 +309,13 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "IOO", &arg1, &obj2, &obj3))    \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);  \
+#else                                                   \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
     arg3 = ( intype3 ) PyCObject_AsVoidPtr(obj3);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3)); \
 }
@@ -304,8 +336,13 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "IOO", &arg1, &obj2, &obj3))    \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);  \
+#else                                                   \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
     arg3 = ( intype3 ) PyCObject_AsVoidPtr(obj3);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3)); \
 }
@@ -388,7 +425,11 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "Os", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
+#endif                                                  \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
@@ -409,7 +450,11 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "Os", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2));       \
 }
@@ -429,7 +474,11 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "Oi", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
+#endif                                                  \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
@@ -450,7 +499,11 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "Oi", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
+#endif                                                  \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
@@ -472,8 +525,13 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "OOs", &obj1, &obj2, &arg3))   \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3)) ;\
 }
@@ -494,8 +552,13 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3))   \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3)) ;\
 }
@@ -516,8 +579,13 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "OOK", &obj1, &obj2, &arg3))   \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3)) ;\
 }
@@ -537,7 +605,11 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "Oii", &obj1, &arg2, &arg3))  \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
+#endif                                                  \
                                                         \
     func (arg1, arg2, arg3);                            \
     Py_RETURN_NONE;                                     \
@@ -559,7 +631,11 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "Oii", &obj1, &arg2, &arg3))  \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
+#endif                                                  \
                                                         \
     func (arg1, arg2, arg3);                            \
     Py_RETURN_NONE;                                     \
@@ -581,8 +657,13 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "OsO", &obj1, &arg2, &obj3))   \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg3 = ( intype3 ) PyCObject_AsVoidPtr(obj3);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3)); \
 }
@@ -605,8 +686,13 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "OOis", &obj1, &obj2, &arg3, &arg4))   \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4)) ;\
 }
@@ -628,9 +714,15 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "OOOs", &obj1, &obj2, &obj3, &arg4))   \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
     arg3 = ( intype3 ) PyCObject_AsVoidPtr(obj3);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));   \
 }
@@ -652,9 +744,15 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "OOOi", &obj1, &obj2, &obj3, &arg4))    \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
     arg3 = ( intype3 ) PyCObject_AsVoidPtr(obj3);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));   \
 }
@@ -676,10 +774,17 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "OOOO", &obj1, &obj2, &obj3, &obj4))    \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);  \
+    arg4 = ( intype4 ) PyCapsule_GetPointer(obj4, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
     arg3 = ( intype3 ) PyCObject_AsVoidPtr(obj3);       \
     arg4 = ( intype4 ) PyCObject_AsVoidPtr(obj4);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));    \
 }
@@ -702,10 +807,17 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "OOOOs", &obj1, &obj2, &obj3, &obj4, &arg5))   \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);  \
+    arg4 = ( intype4 ) PyCapsule_GetPointer(obj4, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);       \
     arg3 = ( intype3 ) PyCObject_AsVoidPtr(obj3);       \
     arg4 = ( intype4 ) PyCObject_AsVoidPtr(obj4);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5)); \
 }
@@ -728,9 +840,15 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "OiOOs", &obj1, &arg2, &obj3, &obj4, &arg5))  \
         return NULL;                                    \
                                                         \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);  \
+    arg4 = ( intype4 ) PyCapsule_GetPointer(obj4, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);       \
     arg3 = ( intype3 ) PyCObject_AsVoidPtr(obj3);       \
     arg4 = ( intype4 ) PyCObject_AsVoidPtr(obj4);       \
+#endif                                                  \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5)); \
 }
@@ -753,7 +871,11 @@ _w ## func (PyObject *self, PyObject *args)                     \
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))            \
         return NULL;                                            \
                                                                 \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);               \
+#endif                                                          \
     arg2n = (unsigned) PyList_Size(obj2);                       \
     if (!(arg2v = ( intype2 *)make_array_from_list(obj2, arg2n)))   \
         return PyErr_NoMemory();                                \
@@ -835,7 +957,11 @@ _w ## func (PyObject *self, PyObject *args)                     \
     if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3))    \
         return NULL;                                            \
                                                                 \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);               \
+#endif                                                          \
     arg2n = (unsigned) PyList_Size(obj2);                       \
     if (!(arg2v = ( intype2 *)make_array_from_list(obj2, arg2n)))   \
         return PyErr_NoMemory();                                \
@@ -864,7 +990,11 @@ _w ## func (PyObject *self, PyObject *args)                     \
     if (!PyArg_ParseTuple(args, "OiO", &obj1, &arg2, &obj3))    \
         return NULL;                                            \
                                                                 \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);               \
+#endif                                                          \
     arg3n = (unsigned) PyList_Size(obj3);                       \
     if (!(arg3v = ( intype3 *)make_array_from_list(obj3, arg3n)))   \
         return PyErr_NoMemory();                                \
@@ -893,8 +1023,13 @@ _w ## func (PyObject *self, PyObject *args)                     \
     if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))    \
         return NULL;                                            \
                                                                 \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+#else                                                   \
     arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);               \
     arg2 = ( intype2 ) PyCObject_AsVoidPtr(obj2);               \
+#endif                                                          \
     arg3n = (unsigned) PyList_Size(obj3);                       \
     if (!(arg3v = ( intype3 *)make_array_from_list(obj3, arg3n)))   \
         return PyErr_NoMemory();                                \
@@ -924,8 +1059,13 @@ _w ## func (PyObject *self, PyObject *args)                         \
     if (!PyArg_ParseTuple(args, "OOOs", &obj1, &obj2, &obj3, &arg4))\
         return NULL;                                                \
                                                                     \
+#ifdef LLVM_PY_USE_PYCAPSULE                            \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);  \
+#else                                                   \
     arg1  = ( intype1 ) PyCObject_AsVoidPtr(obj1);                  \
     arg2  = ( intype2 ) PyCObject_AsVoidPtr(obj2);                  \
+#endif                                                              \
     arg3n = ( unsigned ) PyList_Size(obj3);                         \
     if (!(arg3v = ( intype3 *)make_array_from_list(obj3, arg3n)))   \
         return PyErr_NoMemory();                                    \
