@@ -433,16 +433,22 @@ unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, unsigned *lenp)
 /* Return 0 on failure (with errmsg filled in), 1 on success. */
 unsigned LLVMLoadLibraryPermanently(const char* filename, char **errmsg)
 {
+    printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@1");
     assert(filename);
+    printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
     assert(errmsg);
+    printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@3");
 
     /* Note: the LLVM API returns true on failure. Don't ask why. */
     std::string msg;
+    printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@4");
     if (llvm::sys::DynamicLibrary::LoadLibraryPermanently(filename, &msg)) {
+        printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@5");
         *errmsg = strdup(msg.c_str());
+        printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@6");
         return 0;
     }
-
+    printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@7");
     return 1;
 }
 

@@ -36,7 +36,7 @@
 #define LLVM_PY_WRAP_H
 
 /* Project-wide setting */
-#if (PY_MAJOR_VERSION >= 3) 
+#if PY_MAJOR_VERSION >= 3
 #define LLVM_PY_USE_PYCAPSULE
 #endif
 
@@ -135,7 +135,7 @@ PyObject *make_list_from_LLVMValueRef_array(LLVMValueRef *p, unsigned n);
  *** PyCapsule Calls
  ******************************************************************************
  *****************************************************************************/
-
+#error "Capsule @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 /**
  * Wrap LLVM functions of the type
@@ -330,7 +330,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
     const char *arg1;                                   \
                                                         \
-    if (!PyArg_ParseTuple(args, "s", &arg1))            \
+    if (!PyArg_ParseTuple(args, "y#", &arg1))            \
         return NULL;                                    \
                                                         \
     return ctor_ ## outtype ( func (arg1));             \
@@ -363,7 +363,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!(arg1 = ( intype1 )get_object_arg(args)))      \
         return NULL;                                    \
                                                         \
-    return PyString_FromString( func (arg1));           \
+    return PyBytes_FromString( func (arg1));           \
 }
 
 /**
@@ -395,7 +395,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     const char *arg2;                                   \
     intype1 arg1;                                       \
                                                         \
-    if (!PyArg_ParseTuple(args, "Os", &obj1, &arg2))    \
+    if (!PyArg_ParseTuple(args, "Oy#", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
     arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
@@ -416,7 +416,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     const char *arg2;                                   \
     intype1 arg1;                                       \
                                                         \
-    if (!PyArg_ParseTuple(args, "Os", &obj1, &arg2))    \
+    if (!PyArg_ParseTuple(args, "Oy#", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
     arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
@@ -479,7 +479,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     intype2 arg2;                                       \
     const char *arg3;                                   \
                                                         \
-    if (!PyArg_ParseTuple(args, "OOs", &obj1, &obj2, &arg3))   \
+    if (!PyArg_ParseTuple(args, "OOy#", &obj1, &obj2, &arg3))   \
         return NULL;                                    \
                                                         \
     arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
@@ -588,7 +588,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     const char *arg2;                                   \
     intype3 arg3;                                       \
                                                         \
-    if (!PyArg_ParseTuple(args, "OsO", &obj1, &arg2, &obj3))   \
+    if (!PyArg_ParseTuple(args, "Oy#O", &obj1, &arg2, &obj3))   \
         return NULL;                                    \
                                                         \
     arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
@@ -612,7 +612,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     int arg3;                                           \
     const char *arg4;                                   \
                                                         \
-    if (!PyArg_ParseTuple(args, "OOis", &obj1, &obj2, &arg3, &arg4))   \
+    if (!PyArg_ParseTuple(args, "OOiy#", &obj1, &obj2, &arg3, &arg4))   \
         return NULL;                                    \
                                                         \
     arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
@@ -635,7 +635,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     intype3 arg3;                                       \
     const char *arg4;                                   \
                                                         \
-    if (!PyArg_ParseTuple(args, "OOOs", &obj1, &obj2, &obj3, &arg4))   \
+    if (!PyArg_ParseTuple(args, "OOOy#", &obj1, &obj2, &obj3, &arg4))   \
         return NULL;                                    \
                                                         \
     arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
@@ -709,7 +709,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     intype4 arg4;                                       \
     const char *arg5;                                   \
                                                         \
-    if (!PyArg_ParseTuple(args, "OOOOs", &obj1, &obj2, &obj3, &obj4, &arg5))   \
+    if (!PyArg_ParseTuple(args, "OOOOy#", &obj1, &obj2, &obj3, &obj4, &arg5))   \
         return NULL;                                    \
                                                         \
     arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
@@ -735,7 +735,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     intype4 arg4;                                       \
     const char *arg5;                                   \
                                                         \
-    if (!PyArg_ParseTuple(args, "OiOOs", &obj1, &arg2, &obj3, &obj4, &arg5))  \
+    if (!PyArg_ParseTuple(args, "OiOOy#", &obj1, &arg2, &obj3, &obj4, &arg5))  \
         return NULL;                                    \
                                                         \
     arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
@@ -931,7 +931,7 @@ _w ## func (PyObject *self, PyObject *args)                         \
     unsigned arg3n;                                                 \
     outtype ret;                                                    \
                                                                     \
-    if (!PyArg_ParseTuple(args, "OOOs", &obj1, &obj2, &obj3, &arg4))\
+    if (!PyArg_ParseTuple(args, "OOOy#", &obj1, &obj2, &obj3, &arg4))\
         return NULL;                                                \
                                                                     \
     arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);  \
@@ -963,7 +963,7 @@ _w ## func (PyObject *self, PyObject *args)                         \
         return NULL;                                                \
                                                                     \
     val = func (arg1);                                              \
-    ret = PyString_FromString(val);                                 \
+    ret = PyBytes_FromString(val);                                 \
     LLVMDisposeMessage(val);                                        \
     return ret;                                                     \
 }
@@ -1201,7 +1201,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!(arg1 = ( intype1 )get_object_arg(args)))      \
         return NULL;                                    \
                                                         \
-    return PyString_FromString( func (arg1));           \
+    return PyBytes_FromString( func (arg1));           \
 }
 
 /**
@@ -1800,7 +1800,7 @@ _w ## func (PyObject *self, PyObject *args)                         \
         return NULL;                                                \
                                                                     \
     val = func (arg1);                                              \
-    ret = PyString_FromString(val);                                 \
+    ret = PyBytes_FromString(val);                                 \
     LLVMDisposeMessage(val);                                        \
     return ret;                                                     \
 }
