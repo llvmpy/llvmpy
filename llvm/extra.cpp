@@ -325,19 +325,20 @@ void LLVMSetDoesNotThrow(LLVMValueRef fn, int DoesNotThrow)
     return fnp->setDoesNotThrow((bool)DoesNotThrow);
 }
 
+
 LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef module, int id,
     LLVMTypeRef *types, unsigned n_types)
 {
     assert(types);
 
-    std::vector< llvm::ArrayRef<llvm::Type*> > types_vec;
-    unwrap_cvec(types, n_types, types_vec);
+    std::vector< llvm::Type* > types_vec;
+    unwrap_vec(types, n_types, types_vec);
 
     llvm::Module *modulep = llvm::unwrap(module);
     assert(modulep);
 
     llvm::Function *intfunc = llvm::Intrinsic::getDeclaration(modulep, 
-        llvm::Intrinsic::ID(id), &types_vec[0], types_vec.size());
+				     llvm::Intrinsic::ID(id), types_vec[0]);
 
     return wrap(intfunc);
 }
@@ -501,8 +502,8 @@ void LLVMAdd ## P ## Pass (LLVMPassManagerRef passmgr) { \
 
 define_pass( AAEval )
 define_pass( AliasAnalysisCounter )
-define_pass( AlwaysInliner )
-define_pass( BasicAliasAnalysis )
+//define_pass( AlwaysInliner )
+//define_pass( BasicAliasAnalysis )
 define_pass( BlockPlacement )
 define_pass( BreakCriticalEdges )
 define_pass( CodeGenPrepare )

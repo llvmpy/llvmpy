@@ -135,7 +135,8 @@ class _ObjectCache(type):
 # Cacheables
 #===----------------------------------------------------------------------===
 
-class Cacheable(object, metaclass=_ObjectCache):
+class Cacheable(object):
+    __metaclass__ = _ObjectCache
     """Objects that can be cached.
 
     Objects that wrap a PyCObject are cached to avoid "aliasing", i.e.,
