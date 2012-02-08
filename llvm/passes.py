@@ -187,7 +187,6 @@ _pass_creator = {
     PASS_LOOP_UNROLL                     : _core.LLVMAddLoopUnrollPass,
     PASS_LOOP_UNSWITCH                   : _core.LLVMAddLoopUnswitchPass,
     PASS_LOWER_INVOKE                    : _core.LLVMAddLowerInvokePass,
-    PASS_LOWER_SET_JMP                   : _core.LLVMAddLowerSetJmpPass,
     PASS_LOWER_SWITCH                    : _core.LLVMAddLowerSwitchPass,
     PASS_MEM_CPY_OPT                     : _core.LLVMAddMemCpyOptPass,
     PASS_MERGE_FUNCTIONS                 : _core.LLVMAddMergeFunctionsPass,

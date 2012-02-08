@@ -48,7 +48,7 @@
 #include "llvm/Constants.h"
 #include "llvm/DerivedTypes.h"
 #include "llvm/GlobalVariable.h"
-#include "llvm/TypeSymbolTable.h"
+//#include "llvm/TypeSymbolTable.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/IntrinsicInst.h"
@@ -330,7 +330,7 @@ LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef module, int id,
 {
     assert(types);
 
-    std::vector<const llvm::Type*> types_vec;
+    std::vector< llvm::ArrayRef<llvm::Type*> > types_vec;
     unwrap_cvec(types, n_types, types_vec);
 
     llvm::Module *modulep = llvm::unwrap(module);
@@ -384,7 +384,8 @@ LLVMModuleRef LLVMGetModuleFromBitcode(const char *bitcode, unsigned bclen,
     return wrap(modulep);
 }
 
-unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, char **out)
+unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, unsigned int mode, 
+			 char **out)
 {
     llvm::Module *sourcep = llvm::unwrap(src);
     assert(sourcep);
@@ -392,7 +393,7 @@ unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, char **out)
     assert(destinationp);
 
     std::string msg;
-    if (llvm::Linker::LinkModules(destinationp, sourcep, &msg)) {
+    if (llvm::Linker::LinkModules(destinationp, sourcep, mode, &msg)) {
         *out = strdup(msg.c_str());
         return 0;
     }
@@ -544,8 +545,8 @@ define_pass( ScalarEvolutionAliasAnalysis )
 //define_pass( SimplifyHalfPowrLibCalls )
 define_pass( SingleLoopExtractor )
 define_pass( StripNonDebugSymbols )
-define_pass( StructRetPromotion )
-define_pass( TailDuplication )
+//define_pass( StructRetPromotion )
+//define_pass( TailDuplication )
 define_pass( UnifyFunctionExitNodes )
 
 /* we support only internalize(true) */

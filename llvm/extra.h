@@ -163,7 +163,8 @@ LLVMModuleRef LLVMGetModuleFromBitcode(const char *bc, unsigned bclen,
 /* Wraps llvm::Linker::LinkModules().  Returns 0 on failure (with errmsg
  * filled in) and 1 on success.  Dispose error message after use with
  * LLVMDisposeMessage(). */
-unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, char **errmsg);
+unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, 
+			 unsigned int, char **errmsg);
 
 /* Returns pointer to a heap-allocated block of `*len' bytes containing bit code
  * for the given module. NULL on error. */

@@ -68,7 +68,6 @@ PyObject * ctor_ ## typ ( typ p)                \
 _define_std_ctor(LLVMModuleRef)
 _define_std_ctor(LLVMTypeRef)
 _define_std_ctor(LLVMValueRef)
-_define_std_ctor(LLVMTypeHandleRef)
 _define_std_ctor(LLVMBasicBlockRef)
 _define_std_ctor(LLVMBuilderRef)
 _define_std_ctor(LLVMMemoryBufferRef)

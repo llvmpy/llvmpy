@@ -440,23 +440,6 @@ class Module(llvm.Ownable, llvm.Cacheable):
         # Do not try to destroy the other module's llvm::Module*.
         other._own(llvm.DummyOwner())
 
-    def add_type_name(self, name, ty):
-        """Map a string to a type.
-
-        Similar to C's struct/typedef declarations. Returns True
-        if entry already existed (in which case nothing is changed),
-        False otherwise.
-        """
-        check_is_type(ty)
-        return _core.LLVMAddTypeName(self.ptr, name, ty.ptr) != 0
-
-    def delete_type_name(self, name):
-        """Removes a named type.
-
-        Undoes what add_type_name() does.
-        """
-        _core.LLVMDeleteTypeName(self.ptr, name)
-
     def get_type_named(self, name):
         """Return a Type object with the given name."""
         ptr  = _core.LLVMGetTypeByName(self.ptr, name)
@@ -650,13 +633,6 @@ class Type(object):
         """Create a label type."""
         return _make_type(_core.LLVMLabelType(), TYPE_LABEL)
 
-    @staticmethod
-    def opaque():
-        """Create an opaque type.
-
-        Opaque types are used to create self-referencing types."""
-        return _make_type(_core.LLVMOpaqueType(), TYPE_OPAQUE)
-
     def __init__(self, ptr, kind):
         """DO NOT CALL DIRECTLY.
 
@@ -682,17 +658,6 @@ class Type(object):
 
     def __ne__(self, rhs):
         return not self == rhs
-
-    def refine(self, dest):
-        """Refine the abstract type represented by self into a concrete class.
-
-        This object is no longer valid after refining, so do not hold
-        references to it after calling. See the user guide for examples on how
-        to use this."""
-
-        check_is_type(dest)
-        _core.LLVMRefineType(self.ptr, dest.ptr)
-        self.ptr = None
 
 
 class IntegerType(Type):
@@ -1655,9 +1620,6 @@ class Builder(object):
         return _make_value(
             _core.LLVMBuildInvoke(self.ptr, func.ptr, args2,
                 then_blk.ptr, catch_blk.ptr, name))
-
-    def unwind(self):
-        return _make_value(_core.LLVMBuildUnwind(self.ptr))
 
     def unreachable(self):
         return _make_value(_core.LLVMBuildUnreachable(self.ptr))

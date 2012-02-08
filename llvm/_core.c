@@ -87,8 +87,6 @@ _wrap_obj2str(LLVMGetDataLayout, LLVMModuleRef)
 _wrap_objstr2none(LLVMSetDataLayout, LLVMModuleRef)
 _wrap_obj2str(LLVMGetTarget, LLVMModuleRef)
 _wrap_objstr2none(LLVMSetTarget, LLVMModuleRef)
-_wrap_objstrobj2obj(LLVMAddTypeName, LLVMModuleRef, LLVMTypeRef, int)
-_wrap_objstr2none(LLVMDeleteTypeName, LLVMModuleRef)
 _wrap_objstr2obj(LLVMGetTypeByName, LLVMModuleRef, LLVMTypeRef)
 _wrap_obj2none(LLVMDumpModule, LLVMModuleRef)
 _wrap_obj2none(LLVMDisposeModule, LLVMModuleRef)
@@ -189,8 +187,9 @@ _wLLVMLinkModules(PyObject *self, PyObject *args)
     PyObject *dest_obj, *src_obj, *ret;
     LLVMModuleRef dest, src; 
     char *errmsg;
+    unsigned int mode = 0;
 
-    if (!PyArg_ParseTuple(args, "OO", &dest_obj, &src_obj))
+    if (!PyArg_ParseTuple(args, "OO|I", &dest_obj, &src_obj, &mode))
         return NULL;
 
 #ifdef LLVM_PY_USE_PYCAPSULE
@@ -201,7 +200,7 @@ _wLLVMLinkModules(PyObject *self, PyObject *args)
     src = (LLVMModuleRef) PyCObject_AsVoidPtr(src_obj);
 #endif
 
-    if (!LLVMLinkModules(dest, src, &errmsg)) {
+    if (!LLVMLinkModules(dest, src, mode, &errmsg)) {
         if (errmsg) {
             ret = PyBytes_FromString(errmsg);
             LLVMDisposeMessage(errmsg);
@@ -326,14 +325,14 @@ _wrap_obj2obj(LLVMGetVectorSize, LLVMTypeRef, int)
 
 _wrap_none2obj(LLVMVoidType, LLVMTypeRef)
 _wrap_none2obj(LLVMLabelType, LLVMTypeRef)
-_wrap_none2obj(LLVMOpaqueType, LLVMTypeRef)
 
 /*===-- Type handles -----------------------------------------------------===*/
 
+/*
 _wrap_obj2obj(LLVMCreateTypeHandle, LLVMTypeRef, LLVMTypeHandleRef)
-_wrap_objobj2none(LLVMRefineType, LLVMTypeRef, LLVMTypeRef)
 _wrap_obj2obj(LLVMResolveTypeHandle, LLVMTypeHandleRef, LLVMTypeRef)
 _wrap_obj2none(LLVMDisposeTypeHandle, LLVMTypeHandleRef)
+*/
 
 
 /*===----------------------------------------------------------------------===*/
@@ -706,7 +705,6 @@ _wLLVMBuildInvoke(PyObject *self, PyObject *args)
     return ctor_LLVMValueRef(inst);
 }
 
-_wrap_obj2obj(LLVMBuildUnwind, LLVMBuilderRef, LLVMValueRef)
 _wrap_obj2obj(LLVMBuildUnreachable, LLVMBuilderRef, LLVMValueRef)
 
 /* Add a case to the switch instruction */
@@ -870,7 +868,6 @@ _wrap_pass( DeadArgElimination )
 _wrap_pass( DeadCodeElimination )
 _wrap_pass( DeadInstElimination )
 _wrap_pass( DeadStoreElimination )
-_wrap_pass( DeadTypeElimination )
 _wrap_pass( DemoteRegisterToMemory )
 _wrap_pass( DomOnlyPrinter )
 _wrap_pass( DomOnlyViewer )
@@ -905,7 +902,6 @@ _wrap_pass( LoopStrengthReduce )
 _wrap_pass( LoopUnroll )
 _wrap_pass( LoopUnswitch )
 _wrap_pass( LowerInvoke )
-_wrap_pass( LowerSetJmp )
 _wrap_pass( LowerSwitch )
 _wrap_pass( MemCpyOpt )
 _wrap_pass( MergeFunctions )
@@ -1323,8 +1319,6 @@ static PyMethodDef core_methods[] = {
     _method( LLVMSetDataLayout )    
     _method( LLVMGetTarget )    
     _method( LLVMSetTarget )    
-    _method( LLVMAddTypeName )    
-    _method( LLVMDeleteTypeName )    
     _method( LLVMGetTypeByName )
     _method( LLVMDumpModule )
     _method( LLVMDisposeModule )
@@ -1388,13 +1382,12 @@ static PyMethodDef core_methods[] = {
     /* Other types */
     _method( LLVMVoidType )    
     _method( LLVMLabelType )    
-    _method( LLVMOpaqueType )    
 
     /* Type handles */
-    _method( LLVMCreateTypeHandle )    
-    _method( LLVMRefineType )    
+    /*
     _method( LLVMResolveTypeHandle )    
     _method( LLVMDisposeTypeHandle )
+    */
 
     /* Values */
 
@@ -1592,7 +1585,6 @@ static PyMethodDef core_methods[] = {
     _method( LLVMBuildCondBr )    
     _method( LLVMBuildSwitch )    
     _method( LLVMBuildInvoke )    
-    _method( LLVMBuildUnwind )    
     _method( LLVMBuildUnreachable )    
 
     /* Add a case to the switch instruction */
@@ -1690,7 +1682,6 @@ static PyMethodDef core_methods[] = {
     _pass( DeadCodeElimination )
     _pass( DeadInstElimination )
     _pass( DeadStoreElimination )
-    _pass( DeadTypeElimination )
     _pass( DemoteRegisterToMemory )
     _pass( DomOnlyPrinter )
     _pass( DomOnlyViewer )
@@ -1725,7 +1716,6 @@ static PyMethodDef core_methods[] = {
     _pass( LoopUnroll )
     _pass( LoopUnswitch )
     _pass( LowerInvoke )
-    _pass( LowerSetJmp )
     _pass( LowerSwitch )
     _pass( MemCpyOpt )
     _pass( MergeFunctions )
