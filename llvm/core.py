@@ -709,12 +709,12 @@ class StructType(Type):
         Same as len(obj.elements), but faster."""
         return _core.LLVMCountStructElementTypes(self.ptr)
 
-    @property
-    def elements(self):
-        """An iterable that yieldsd Type objects, representing the types of the
-        elements (members) of the structure, in order."""
-        pp = _core.LLVMGetStructElementTypes(self.ptr)
-        return [ _make_type(p, _core.LLVMGetTypeKind(p)) for p in pp ]
+    #@property
+    #def elements(self):
+    #    """An iterable that yieldsd Type objects, representing the types of the
+    #    elements (members) of the structure, in order."""
+    #    pp = _core.LLVMGetStructElementTypes(self.ptr)
+    #    return [ _make_type(p, _core.LLVMGetTypeKind(p)) for p in pp ]
 
     @property
     def packed(self):

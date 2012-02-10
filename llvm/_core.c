@@ -297,11 +297,13 @@ _wLLVMGetFunctionTypeParams(PyObject *self, PyObject *args)
 _wrap_listint2obj(LLVMStructType, LLVMTypeRef, LLVMTypeRef)
 _wrap_obj2obj(LLVMCountStructElementTypes, LLVMTypeRef, int)
 
+/*
 static PyObject *
 _wLLVMGetStructElementTypes(PyObject *self, PyObject *args)
 {
     return obj2arr(self, args, LLVMCountStructElementTypes, LLVMGetStructElementTypes);
 }
+*/
 
 _wrap_obj2obj(LLVMIsPackedStruct, LLVMTypeRef, int)
 
@@ -1363,7 +1365,7 @@ static PyMethodDef core_methods[] = {
     /* Struct types */
     _method( LLVMStructType )    
     _method( LLVMCountStructElementTypes )    
-    _method( LLVMGetStructElementTypes )    
+    //_method( LLVMGetStructElementTypes )    
     _method( LLVMIsPackedStruct )    
 
     /* Array types */
