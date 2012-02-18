@@ -36,6 +36,8 @@
 
 // Python include
 #include "Python.h"
+#include "numpy/ndarrayobject.h"
+#include "numpy/ufuncobject.h"
 
 /* LLVM includes */
 #include "llvm-c/Analysis.h"
@@ -1313,6 +1315,53 @@ _wPyCObjectVoidPtrToPyLong(PyObject *self, PyObject *args)
 
 #endif
 
+#define UNARY_LOOP\
+    char *ip1 = args[0], *op1 = args[1];\
+    npy_intp is1 = steps[0], os1 = steps[1];\
+    npy_intp n = dimensions[0];\
+    npy_intp i;\
+    for(i = 0; i < n; i++, ip1 += is1, op1 += os1)
+
+typedef npy_cdouble cunaryfunc(npy_cdouble);
+
+NPY_NO_EXPORT void
+MyUFunc_D_D(char **args, npy_intp *dimensions, npy_intp *steps, void *func)
+{
+    cunaryfunc *f = (cunaryfunc *)func;
+    UNARY_LOOP {
+        npy_cdouble in1 = *(npy_cdouble *)ip1;
+        npy_cdouble *out = (npy_cdouble *)op1;
+        *out = f(in1);
+    }
+}
+
+PyUFuncGenericFunction funcs[1] = {MyUFunc_D_D};
+static char types[2] = {NPY_DOUBLE, NPY_DOUBLE};
+
+static PyObject *
+ufunc_from_ptr(PyObject *self, PyObject *args)
+{
+
+    Py_ssize_t func_ptr; 
+    char *func_name = "temp"; 
+    void **data; 
+    PyObject *ret;
+    double(*func)(double);
+
+    /* FIXME:  This will not be freed */    
+    data = (void **)malloc(sizeof(void **));
+
+    if (!PyArg_ParseTuple(args, "n|s", &func_ptr, &func_name)) return NULL;
+    data[0] = (void *)func_ptr;
+    func = data[0];
+    printf("%f" , func(4.3));
+    ret = PyUFunc_FromFuncAndData(funcs, data, types, 1, 1, 1, PyUFunc_None, func_name, "doc", 0);
+
+    return ret;
+}
+
+
+
 static PyMethodDef core_methods[] = {
 
     /* Modules */
@@ -1796,9 +1845,11 @@ static PyMethodDef core_methods[] = {
     _method( LLVMLoadLibraryPermanently )
     //_method( LLVMInlineFunction )
     _method( PyCObjectVoidPtrToPyLong )
-
+    {"make_ufunc", ufunc_from_ptr, METH_VARARGS},
     { NULL }
 };
+
+
 
 // Module main function, hairy because of py3k port
 
@@ -1820,6 +1871,9 @@ PyMODINIT_FUNC
 init_core(void)
 #endif
 {
+    import_array();
+    import_umath();
+
     LLVMLinkInJIT();
     LLVMLinkInInterpreter();
     LLVMInitializeNativeTarget();
@@ -1831,6 +1885,7 @@ init_core(void)
     if (module == NULL)
         INITERROR;
 #if PY_MAJOR_VERSION >= 3
+    
     return module;
 #endif
 }

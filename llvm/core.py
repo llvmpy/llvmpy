@@ -90,7 +90,6 @@ OPCODE_BR             = 2
 OPCODE_SWITCH         = 3
 OPCODE_INDIRECT_BR    = 4
 OPCODE_INVOKE         = 5
-OPCODE_UNWIND         = 6
 OPCODE_RESUME         = 7
 OPCODE_UNREACHABLE    = 8
 OPCODE_ADD            = 9
@@ -144,6 +143,7 @@ OPCODE_SHUFFLEVECTOR  = 56
 OPCODE_EXTRACTVALUE   = 57
 OPCODE_INSERTVALUE    = 58
 OPCODE_LANDINGPAD     = 59
+OPCODE_UNWIND         = 60
 
 # calling conventions
 CC_C             = 0
@@ -787,29 +787,6 @@ def _make_type(ptr, kind):
     else:
         # "generic" type
         return Type(ptr, kind)
-
-
-#===----------------------------------------------------------------------===
-# Type Handle
-#===----------------------------------------------------------------------===
-
-class TypeHandle(object):
-
-    @staticmethod
-    def new(abstract_ty):
-        check_is_type(abstract_ty)
-        return TypeHandle(_core.LLVMCreateTypeHandle(abstract_ty.ptr))
-
-    def __init__(self, ptr):
-        self.ptr = ptr
-
-    def __del__(self):
-        _core.LLVMDisposeTypeHandle(self.ptr)
-
-    @property
-    def type(self):
-        ptr = _core.LLVMResolveTypeHandle(self.ptr)
-        return _make_type(ptr, _core.LLVMGetTypeKind(ptr))
 
 
 #===----------------------------------------------------------------------===
