@@ -355,7 +355,7 @@ LLVMModuleRef LLVMGetModuleFromAssembly(const char *asmtext, unsigned txtlen,
                                               llvm::getGlobalContext()))) {
         std::string s;
         llvm::raw_string_ostream buf(s);
-        error.Print("llvm-py", buf);
+        error.print("llvm-py", buf);
         *out = strdup(buf.str().c_str());
         return NULL;
     }
