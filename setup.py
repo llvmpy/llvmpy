@@ -31,9 +31,8 @@
 
 import sys, os
 from distutils.core import setup, Extension
-import numpy
 
-LLVM_PY_VERSION = '0.7'
+LLVM_PY_VERSION = '0.8'
 
 
 def _run(cmd):
@@ -101,7 +100,7 @@ def call_setup(llvm_config):
             ('__STDC_CONSTANT_MACROS', None),
             ('__STDC_LIMIT_MACROS', None),
             ('_GNU_SOURCE', None)],
-        include_dirs = ['/usr/include', incdir, numpy.get_include()],
+        include_dirs = ['/usr/include', incdir],
         library_dirs = [libdir],
         libraries = std_libs + libs_core,
         extra_objects = objs_core,
