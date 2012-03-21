@@ -38,6 +38,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <sstream>
 
 // LLVM includes
