@@ -39,6 +39,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
+#include <cstdio>
 
 // LLVM includes
 #include "llvm/LLVMContext.h"
