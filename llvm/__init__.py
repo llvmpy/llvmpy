@@ -118,10 +118,11 @@ class _ObjectCache(type):
 
     def __call__(cls, ptr, *args, **kwargs):
         objid = _core.PyCObjectVoidPtrToPyLong(ptr)
-        obj = _ObjectCache.__instances.get(objid)
+        key = "%s:%d" % (cls.__name__, objid)
+        obj = _ObjectCache.__instances.get(key)
         if obj is None:
             obj = super(_ObjectCache, cls).__call__(ptr, *args, **kwargs)
-            _ObjectCache.__instances[objid] = obj
+            _ObjectCache.__instances[key] = obj
         return obj
 
     @staticmethod
