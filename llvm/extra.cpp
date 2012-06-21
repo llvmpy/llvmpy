@@ -100,6 +100,14 @@ char *LLVMDumpModuleToString(LLVMModuleRef module)
     return strdup(buf.str().c_str());
 }
 
+void LLVMModuleAddLibrary(LLVMModuleRef module, const char *name)
+{
+    llvm::Module *M = llvm::unwrap(module);
+    llvm::StringRef namestr = llvm::StringRef(name);
+    M->addLibrary(namestr);
+    return;
+}
+
 char *LLVMDumpTypeToString(LLVMTypeRef type)
 {
     return do_print<LLVMTypeRef, llvm::Type>(type);

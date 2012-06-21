@@ -50,6 +50,9 @@ extern "C" {
  * LLVMDisposeMessage(). */
 char *LLVMDumpModuleToString(LLVMModuleRef module);
 
+/* Wraps llvm::Module::addLibrary(name). */
+void LLVMModuleAddLibrary(LLVMModuleRef module, const char *name);
+
 /* Wraps llvm::Type::print(). Dispose the returned string after use, via
  * LLVMDisposeMessage(). */
 char *LLVMDumpTypeToString(LLVMTypeRef type);

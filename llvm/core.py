@@ -505,6 +505,9 @@ class Module(llvm.Ownable, llvm.Cacheable):
             raise llvm.LLVMException("Unable to create bitcode")
         fileobj.write(data)
 
+    def add_library(self, name):
+        return _core.LLVMModuleAddLibrary(self.ptr, name)
+
 
 #===----------------------------------------------------------------------===
 # Types
