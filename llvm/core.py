@@ -1099,6 +1099,13 @@ class ConstantAggregateZero(Constant):
     pass
 
 
+class ConstantDataArray(Constant):
+    pass
+
+
+class ConstantDataVector(Constant):
+    pass
+
 class ConstantInt(Constant):
     pass
 
@@ -1484,6 +1491,8 @@ __class_for_valueid = {
     VALUE_UNDEF_VALUE                     : UndefValue,
     VALUE_CONSTANT_EXPR                   : ConstantExpr,
     VALUE_CONSTANT_AGGREGATE_ZERO         : ConstantAggregateZero,
+    VALUE_CONSTANT_DATA_ARRAY             : ConstantDataArray,
+    VALUE_CONSTANT_DATA_VECTOR            : ConstantDataVector,
     VALUE_CONSTANT_INT                    : ConstantInt,
     VALUE_CONSTANT_FP                     : ConstantFP,
     VALUE_CONSTANT_ARRAY                  : ConstantArray,
