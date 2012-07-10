@@ -32,7 +32,7 @@
 import sys, os
 from distutils.core import setup, Extension
 
-LLVM_PY_VERSION = '0.8.1'
+LLVM_PY_VERSION = '0.8.2'
 
 
 def _run(cmd):
