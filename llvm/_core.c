@@ -85,6 +85,8 @@ _wLLVMModuleCreateWithName(PyObject *self, PyObject *args)
 
 _wrap_obj2str(LLVMGetDataLayout, LLVMModuleRef)
 _wrap_objstr2none(LLVMSetDataLayout, LLVMModuleRef)
+_wrap_obj2str(LLVMGetModuleIdentifier, LLVMModuleRef)
+_wrap_objstr2none(LLVMSetModuleIdentifier, LLVMModuleRef)
 _wrap_obj2str(LLVMGetTarget, LLVMModuleRef)
 _wrap_objstr2none(LLVMSetTarget, LLVMModuleRef)
 _wrap_objstr2none(LLVMModuleAddLibrary, LLVMModuleRef)
@@ -94,7 +96,7 @@ _wrap_obj2none(LLVMDisposeModule, LLVMModuleRef)
 _wrap_dumper(LLVMDumpModuleToString, LLVMModuleRef)
 _wrap_obj2obj(LLVMModuleGetPointerSize, LLVMModuleRef, int)
 _wrap_objstrobj2obj(LLVMModuleGetOrInsertFunction, LLVMModuleRef, 
-    LLVMTypeRef, LLVMValueRef)      
+                    LLVMTypeRef, LLVMValueRef)      
 
 static PyObject *
 _wLLVMVerifyModule(PyObject *self, PyObject *args)
@@ -1319,7 +1321,9 @@ static PyMethodDef core_methods[] = {
     /* Modules */
     _method( LLVMModuleCreateWithName )    
     _method( LLVMGetDataLayout )    
-    _method( LLVMSetDataLayout )    
+    _method( LLVMSetDataLayout )
+    _method( LLVMGetModuleIdentifier )   
+    _method( LLVMSetModuleIdentifier )    
     _method( LLVMGetTarget )    
     _method( LLVMSetTarget )    
     _method( LLVMModuleAddLibrary )

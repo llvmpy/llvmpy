@@ -41,6 +41,17 @@
 extern "C" {
 #endif
 
+
+/*
+ * Wraps llvm::Module::getModuleIdentifier()
+ */ 
+char *LLVMGetModuleIdentifier(LLVMModuleRef module);
+
+/*
+ * Wraps llvm::Module::setModuleIdentifier()
+ */ 
+void LLVMSetModuleIdentifier(LLVMModuleRef module, const char * name);
+
 /* Notes:
  *  - Some returned strings must be disposed of by LLVMDisposeMessage. These are
  *    indicated in the comments. Where it is not indicated, DO NOT call dispose.

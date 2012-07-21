@@ -507,7 +507,14 @@ class Module(llvm.Ownable, llvm.Cacheable):
 
     def add_library(self, name):
         return _core.LLVMModuleAddLibrary(self.ptr, name)
-
+        
+    def _get_id(self):
+        return _core.LLVMGetModuleIdentifier(self.ptr)
+        
+    def _set_id(self, string):
+        _core.LLVMSetModuleIdentifier(self.ptr, string)
+        
+    id = property(_get_id, _set_id)
 
 #===----------------------------------------------------------------------===
 # Types

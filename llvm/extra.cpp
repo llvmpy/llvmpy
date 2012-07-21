@@ -90,6 +90,16 @@ char *do_print(W obj)
     return strdup(buf.str().c_str());
 }
 
+char *LLVMGetModuleIdentifier(LLVMModuleRef module)
+{
+    return strdup(llvm::unwrap(module)->getModuleIdentifier().c_str());
+}
+
+void LLVMSetModuleIdentifier(LLVMModuleRef module, const char * name)
+{
+    llvm::unwrap(module)->setModuleIdentifier(name);
+}
+
 char *LLVMDumpModuleToString(LLVMModuleRef module)
 {
     std::string s;
