@@ -128,8 +128,9 @@ class _ObjectCache(type):
     @staticmethod
     def forget(obj):
         objid = _core.PyCObjectVoidPtrToPyLong(obj.ptr)
-        if objid in _ObjectCache.__instances:
-            del _ObjectCache.__instances[objid]
+        key = "%s:%d" % (type(obj).__name__, objid)
+        if key in _ObjectCache.__instances:
+            del _ObjectCache.__instances[key]
 
 
 #===----------------------------------------------------------------------===
