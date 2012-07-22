@@ -41,6 +41,21 @@
 extern "C" {
 #endif
 
+/*
+ * Wraps StructType::create()
+ */ 
+LLVMTypeRef LLVMStructTypeIdentified(const char * name);
+
+/*
+ * StructType::setBody()
+ */
+void LLVMSetStructBody(LLVMTypeRef type, LLVMTypeRef* elemtys, unsigned elemct, int is_packed);
+
+/*
+ * Wraps llvm::StructType::setName()
+ */ 
+void LLVMSetStructName(LLVMTypeRef type, const char * name);
+
 
 /*
  * Wraps llvm::Module::getModuleIdentifier()

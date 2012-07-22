@@ -11,7 +11,7 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- *  * Neither the name of this software, nor the names of its 
+ *  * Neither the name of this software, nor the names of its
  *    contributors may be used to endorse or promote products derived from
  *    this software without specific prior written permission.
  *
@@ -30,7 +30,7 @@
 
 /**
  * Functions and macros to aid in wrapping.
- */ 
+ */
 
 #ifndef LLVM_PY_WRAP_H
 #define LLVM_PY_WRAP_H
@@ -169,7 +169,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2)
  */
 #define _wrap_objobj2obj(func, intype1, intype2, outtype)\
@@ -232,7 +232,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3)
  */
 #define _wrap_objobjobj2obj(func, intype1, intype2, intype3, outtype)   \
@@ -255,7 +255,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * void func(intype1 arg1, intype2 arg2, intype3 arg3)
  */
 #define _wrap_objobjobj2none(func, intype1, intype2, intype3)   \
@@ -474,7 +474,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, const char *arg3)
  */
 #define _wrap_objobjstr2obj(func, intype1, intype2, outtype)    \
@@ -497,7 +497,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, int arg3)
  */
 #define _wrap_objobjint2obj(func, intype1, intype2, outtype)    \
@@ -519,7 +519,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, unsigned long long arg3)
  */
 #define _wrap_objobjull2obj(func, intype1, intype2, outtype)    \
@@ -541,7 +541,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * void func(intype1 arg1, <unsigned/signed int> arg2, <unsigned/signed int> arg3)
  */
 #define _wrap_objintint2none(func, intype1)                     \
@@ -562,7 +562,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * void func(intype1 arg1, <unsigned/signed int> arg2, enum_intype3 arg3)
  */
 #define _wrap_objintenum2none(func, intype1, intype3)         \
@@ -584,7 +584,7 @@ _w ## func (PyObject *self, PyObject *args)                   \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, const char *arg2, intype3 arg3)
  */
 #define _wrap_objstrobj2obj(func, intype1, intype3, outtype)    \
@@ -608,7 +608,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, int arg3, const char *arg4)
  */
 #define _wrap_objobjintstr2obj(func, intype1, intype2, outtype)       \
@@ -632,7 +632,7 @@ _w ## func (PyObject *self, PyObject *args)                           \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, const char *arg4)
  */
 #define _wrap_objobjobjstr2obj(func, intype1, intype2, intype3, outtype)\
@@ -657,7 +657,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, <unsigned/signed int> arg4)
  */
 #define _wrap_objobjobjint2obj(func, intype1, intype2, intype3, outtype)    \
@@ -681,7 +681,7 @@ _w ## func (PyObject *self, PyObject *args)                                 \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, intype arg4)
  */
 #define _wrap_objobjobjobj2obj(func, intype1, intype2, intype3, intype4, outtype)   \
@@ -706,7 +706,7 @@ _w ## func (PyObject *self, PyObject *args)                                     
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, intype arg4, const char *arg5)
  */
 #define _wrap_objobjobjobjstr2obj(func, intype1, intype2, intype3, intype4, outtype)\
@@ -868,6 +868,35 @@ _w ## func (PyObject *self, PyObject *args)                      \
     return ctor_ ## outtype (ret);                               \
 }
 
+
+/**
+ * Wrap LLVM functions of the type
+ * void func(intype1 arg1, intype2 *arg2v, unsigned arg2n, int arg3)
+ * where arg2v is an array of intype2 elements, arg2n in length.
+ */
+#define _wrap_objlistint2none(func, intype1, intype2)    \
+static PyObject *                                                \
+_w ## func (PyObject *self, PyObject *args)                      \
+{                                                                \
+    PyObject *obj1, *obj2;                                       \
+    intype1 arg1;                                                \
+    intype2 *arg2v;                                              \
+    unsigned arg2n;                                              \
+    int arg3;                                                    \
+                                                                 \
+    if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3))     \
+        return NULL;                                             \
+                                                                 \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);         \
+    arg2n = (unsigned) PyList_Size(obj2);                        \
+    if (!(arg2v = ( intype2 *)make_array_from_list(obj2, arg2n)))\
+        return PyErr_NoMemory();                                 \
+                                                                 \
+    func (arg1, arg2v, arg2n, arg3);                             \
+    free(arg2v);                                                 \
+    Py_RETURN_NONE;                                              \
+}
+
 /**
  * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, int arg2, intype3 *arg3v, unsigned arg3n)
@@ -1022,7 +1051,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2)
  */
 #define _wrap_objobj2obj(func, intype1, intype2, outtype)   \
@@ -1082,7 +1111,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3)
  */
 #define _wrap_objobjobj2obj(func, intype1, intype2, intype3, outtype)   \
@@ -1105,7 +1134,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * void func(intype1 arg1, intype2 arg2, intype3 arg3)
  */
 #define _wrap_objobjobj2none(func, intype1, intype2, intype3)   \
@@ -1319,7 +1348,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, const char *arg3)
  */
 #define _wrap_objobjstr2obj(func, intype1, intype2, outtype)    \
@@ -1341,7 +1370,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, int arg3)
  */
 #define _wrap_objobjint2obj(func, intype1, intype2, outtype)    \
@@ -1363,7 +1392,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, unsigned long long arg3)
  */
 #define _wrap_objobjull2obj(func, intype1, intype2, outtype)    \
@@ -1385,7 +1414,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * void func(intype1 arg1, <unsigned/signed int> arg2, <unsigned/signed int> arg3)
  */
 #define _wrap_objintint2none(func, intype1)             \
@@ -1406,7 +1435,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * void func(intype1 arg1, <unsigned/signed int> arg2, enum_intype3 arg3)
  */
 #define _wrap_objintenum2none(func, intype1, intype3)   \
@@ -1428,7 +1457,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, const char *arg2, intype3 arg3)
  */
 #define _wrap_objstrobj2obj(func, intype1, intype3, outtype)    \
@@ -1451,7 +1480,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, int arg3, const char *arg4)
  */
 #define _wrap_objobjintstr2obj(func, intype1, intype2, outtype)    \
@@ -1474,7 +1503,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, const char *arg4)
  */
 #define _wrap_objobjobjstr2obj(func, intype1, intype2, intype3, outtype)    \
@@ -1498,7 +1527,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, <unsigned/signed int> arg4)
  */
 #define _wrap_objobjobjint2obj(func, intype1, intype2, intype3, outtype)    \
@@ -1522,7 +1551,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, intype arg4)
  */
 #define _wrap_objobjobjobj2obj(func, intype1, intype2, intype3, intype4, outtype)   \
@@ -1547,7 +1576,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 }
 
 /**
- * Wrap LLVM functions of the type 
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, intype arg4, const char *arg5)
  */
 #define _wrap_objobjobjobjstr2obj(func, intype1, intype2, intype3, intype4, outtype)    \
@@ -1705,6 +1734,35 @@ _w ## func (PyObject *self, PyObject *args)                     \
     free(arg2v);                                                \
     return ctor_ ## outtype (ret);                              \
 }
+
+/**
+ * Wrap LLVM functions of the type
+ * void func(intype1 arg1, intype2 *arg2v, unsigned arg2n, int arg3)
+ * where arg2v is an array of intype2 elements, arg2n in length.
+ */
+#define _wrap_objlistint2none(func, intype1, intype2)   \
+static PyObject *                                               \
+_w ## func (PyObject *self, PyObject *args)                     \
+{                                                               \
+    PyObject *obj1, *obj2;                                      \
+    intype1 arg1;                                               \
+    intype2 *arg2v;                                             \
+    unsigned arg2n;                                             \
+    int arg3;                                                   \
+                                                                \
+    if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3))    \
+        return NULL;                                            \
+                                                                \
+    arg1 = ( intype1 ) PyCObject_AsVoidPtr(obj1);               \
+    arg2n = (unsigned) PyList_Size(obj2);                       \
+    if (!(arg2v = ( intype2 *)make_array_from_list(obj2, arg2n)))   \
+        return PyErr_NoMemory();                                \
+                                                                \
+    func (arg1, arg2v, arg2n, arg3);                            \
+    free(arg2v);                                                \
+    Py_RETURN_NONE;                                             \
+}
+
 
 /**
  * Wrap LLVM functions of the type

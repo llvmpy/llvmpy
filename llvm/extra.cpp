@@ -90,6 +90,25 @@ char *do_print(W obj)
     return strdup(buf.str().c_str());
 }
 
+LLVMTypeRef LLVMStructTypeIdentified(const char * name)
+{
+    using namespace llvm;
+    return wrap(StructType::create(getGlobalContext(), name));
+}
+
+void LLVMSetStructBody(LLVMTypeRef type, LLVMTypeRef* elemtys, unsigned elemct, int is_packed)
+{
+    using namespace llvm;
+    ArrayRef<Type*> elemtys_aryref(unwrap(elemtys), elemct);
+    unwrap<StructType>(type)->setBody(elemtys_aryref, is_packed);
+}
+
+void LLVMSetStructName(LLVMTypeRef type, const char * name)
+{
+    llvm::StructType *st = llvm::unwrap<llvm::StructType>(type);
+    st->setName(name);
+}
+
 char *LLVMGetModuleIdentifier(LLVMModuleRef module)
 {
     return strdup(llvm::unwrap(module)->getModuleIdentifier().c_str());

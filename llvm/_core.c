@@ -11,7 +11,7 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- *  * Neither the name of this software, nor the names of its 
+ *  * Neither the name of this software, nor the names of its
  *    contributors may be used to endorse or promote products derived from
  *    this software without specific prior written permission.
  *
@@ -53,7 +53,7 @@ typedef int Py_ssize_t;
 #endif
 
 /* Project-wide setting */
-#if (PY_MAJOR_VERSION >= 3) 
+#if (PY_MAJOR_VERSION >= 3)
 #define LLVM_PY_USE_PYCAPSULE
 #endif
 
@@ -72,13 +72,13 @@ _wLLVMModuleCreateWithName(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "U:LLVMModuleCreateWithName", &s_)) {
         return NULL;
     }
-    
+
     s = PyUnicode_AS_DATA(s_);
 #else
     if (!PyArg_ParseTuple(args, "s", &s))
         return NULL;
 #endif
-    
+
     module = LLVMModuleCreateWithName(s);
     return ctor_LLVMModuleRef(module);
 }
@@ -95,8 +95,8 @@ _wrap_obj2none(LLVMDumpModule, LLVMModuleRef)
 _wrap_obj2none(LLVMDisposeModule, LLVMModuleRef)
 _wrap_dumper(LLVMDumpModuleToString, LLVMModuleRef)
 _wrap_obj2obj(LLVMModuleGetPointerSize, LLVMModuleRef, int)
-_wrap_objstrobj2obj(LLVMModuleGetOrInsertFunction, LLVMModuleRef, 
-                    LLVMTypeRef, LLVMValueRef)      
+_wrap_objstrobj2obj(LLVMModuleGetOrInsertFunction, LLVMModuleRef,
+                    LLVMTypeRef, LLVMValueRef)
 
 static PyObject *
 _wLLVMVerifyModule(PyObject *self, PyObject *args)
@@ -188,7 +188,7 @@ static PyObject *
 _wLLVMLinkModules(PyObject *self, PyObject *args)
 {
     PyObject *dest_obj, *src_obj, *ret;
-    LLVMModuleRef dest, src; 
+    LLVMModuleRef dest, src;
     char *errmsg;
     unsigned int mode = 0;
 
@@ -212,7 +212,7 @@ _wLLVMLinkModules(PyObject *self, PyObject *args)
         }
         return ret;
     }
-    
+
     /* note: success => None, failure => string with error message */
     Py_RETURN_NONE;
 }
@@ -298,15 +298,19 @@ _wLLVMGetFunctionTypeParams(PyObject *self, PyObject *args)
 /*===-- Struct types -----------------------------------------------------===*/
 
 _wrap_listint2obj(LLVMStructType, LLVMTypeRef, LLVMTypeRef)
+_wrap_str2obj(LLVMStructTypeIdentified, LLVMTypeRef)
+_wrap_objlistint2none(LLVMSetStructBody, LLVMTypeRef, LLVMTypeRef)
 _wrap_obj2obj(LLVMCountStructElementTypes, LLVMTypeRef, int)
+_wrap_obj2str(LLVMGetStructName, LLVMTypeRef)
+_wrap_objstr2none(LLVMSetStructName, LLVMTypeRef)
 
-/*
+
 static PyObject *
 _wLLVMGetStructElementTypes(PyObject *self, PyObject *args)
 {
     return obj2arr(self, args, LLVMCountStructElementTypes, LLVMGetStructElementTypes);
 }
-*/
+
 
 _wrap_obj2obj(LLVMIsPackedStruct, LLVMTypeRef, int)
 
@@ -398,13 +402,13 @@ _wLLVMConstInt(PyObject *self, PyObject *args)
     int sign_extend;
     LLVMTypeRef ty;
     LLVMValueRef val;
-    
+
     if (!PyArg_ParseTuple(args, "OKi", &obj, &n, &sign_extend))
         return NULL;
 
 #ifdef LLVM_PY_USE_PYCAPSULE
     ty = (LLVMTypeRef) PyCapsule_GetPointer(obj, NULL);
-#else    
+#else
     ty = (LLVMTypeRef)(PyCObject_AsVoidPtr(obj));
 #endif
 
@@ -419,10 +423,10 @@ _wLLVMConstReal(PyObject *self, PyObject *args)
     double d;
     LLVMTypeRef ty;
     LLVMValueRef val;
-    
+
     if (!PyArg_ParseTuple(args, "Od", &obj, &d))
         return NULL;
-    
+
 #ifdef LLVM_PY_USE_PYCAPSULE
     ty = (LLVMTypeRef) PyCapsule_GetPointer(obj, NULL);
 #else
@@ -449,13 +453,13 @@ _wLLVMConstString(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "Ui:LLVMConstString", &s_, &dont_null_terminate)) {
         return NULL;
     }
-    
+
     s = PyUnicode_AS_DATA(s_);
-#else    
+#else
     if (!PyArg_ParseTuple(args, "si", &s, &dont_null_terminate))
         return NULL;
 #endif
-    
+
     val = LLVMConstString(s, strlen(s), dont_null_terminate);
     return ctor_LLVMValueRef(val);
 }
@@ -520,7 +524,7 @@ _wrap_objobjobj2obj(LLVMConstShuffleVector, LLVMValueRef, LLVMValueRef, LLVMValu
 _wrap_obj2obj(LLVMGetGlobalParent, LLVMValueRef, LLVMModuleRef)
 _wrap_obj2obj(LLVMIsDeclaration, LLVMValueRef, int)
 _wrap_obj2obj(LLVMGetLinkage, LLVMValueRef, int)
-_wrap_objenum2none(LLVMSetLinkage, LLVMValueRef, LLVMLinkage) 
+_wrap_objenum2none(LLVMSetLinkage, LLVMValueRef, LLVMLinkage)
 _wrap_obj2str(LLVMGetSection, LLVMValueRef)
 _wrap_objstr2none(LLVMSetSection, LLVMValueRef)
 _wrap_obj2obj(LLVMGetVisibility, LLVMValueRef, int)
@@ -545,7 +549,7 @@ _wrap_obj2obj(LLVMIsGlobalConstant, LLVMValueRef, int)
 
 /*===-- Functions --------------------------------------------------------===*/
 
-_wrap_objstrobj2obj(LLVMAddFunction, LLVMModuleRef, LLVMTypeRef, LLVMValueRef)      
+_wrap_objstrobj2obj(LLVMAddFunction, LLVMModuleRef, LLVMTypeRef, LLVMValueRef)
 _wrap_objstr2obj(LLVMGetNamedFunction, LLVMModuleRef, LLVMValueRef)
 _wrap_obj2obj(LLVMGetFirstFunction, LLVMModuleRef, LLVMValueRef)
 _wrap_obj2obj(LLVMGetNextFunction, LLVMValueRef, LLVMValueRef)
@@ -675,12 +679,12 @@ _wLLVMBuildInvoke(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OOOOOU:LLVMBuildInvoke", &obj1, &obj2, &obj3, &obj4, &obj5, &name_)) {
         return NULL;
     }
-    
+
     name = PyUnicode_AS_DATA(name_);
 #else
     if (!PyArg_ParseTuple(args, "OOOOOs", &obj1, &obj2, &obj3, &obj4, &obj5, &name))
         return NULL;
-#endif    
+#endif
 
 #ifdef LLVM_PY_USE_PYCAPSULE
     builder = (LLVMBuilderRef) PyCapsule_GetPointer(obj1, NULL);
@@ -694,7 +698,7 @@ _wLLVMBuildInvoke(PyObject *self, PyObject *args)
     fnargs = (LLVMValueRef *)make_array_from_list(obj3, fnarg_count);
     if (!fnargs)
         return PyErr_NoMemory();
-        
+
 #ifdef LLVM_PY_USE_PYCAPSULE
     then_blk = (LLVMBasicBlockRef) PyCapsule_GetPointer(obj4, NULL);
     catch_blk = (LLVMBasicBlockRef) PyCapsule_GetPointer(obj5, NULL);
@@ -799,13 +803,13 @@ _wLLVMCreateMemoryBufferWithContentsOfFile(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "U:LLVMCreateMemoryBufferWithContentsOfFile", &path_)) {
         return NULL;
     }
-    
+
     path = PyUnicode_AS_DATA(path_);
 #else
     if (!PyArg_ParseTuple(args, "s", &path))
         return NULL;
 #endif
-    
+
     if (!LLVMCreateMemoryBufferWithContentsOfFile(path, &ref, &outmsg)) {
         ret = ctor_LLVMMemoryBufferRef(ref);
     } else {
@@ -980,10 +984,10 @@ _wrap_objobj2obj(LLVMCallFrameAlignmentOfType, LLVMTargetDataRef, LLVMTypeRef,
         int)
 _wrap_objobj2obj(LLVMPreferredAlignmentOfType, LLVMTargetDataRef, LLVMTypeRef,
         int)
-_wrap_objobj2obj(LLVMPreferredAlignmentOfGlobal, LLVMTargetDataRef, 
+_wrap_objobj2obj(LLVMPreferredAlignmentOfGlobal, LLVMTargetDataRef,
         LLVMValueRef, int)
 _wrap_objobjull2obj(LLVMElementAtOffset, LLVMTargetDataRef, LLVMTypeRef, int)
-_wrap_objobjint2obj(LLVMOffsetOfElement, LLVMTargetDataRef, LLVMTypeRef, 
+_wrap_objobjint2obj(LLVMOffsetOfElement, LLVMTargetDataRef, LLVMTypeRef,
         llvmwrap_ull)
 
 
@@ -1263,7 +1267,7 @@ _wLLVMLoadLibraryPermanently(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "U:LLVMLoadLibraryPermanently", &filename_)) {
         return NULL;
     }
-    
+
     filename = PyUnicode_AS_DATA(filename_);
 #else
     if (!PyArg_ParseTuple(args, "s", &filename)) {
@@ -1292,7 +1296,7 @@ static PyObject *
 _wPyCObjectVoidPtrToPyLong(PyObject *self, PyObject *args)
 {
     void *p;
-    
+
     if (!(p = get_object_arg(args)))
         return NULL;
 
@@ -1319,13 +1323,13 @@ _wPyCObjectVoidPtrToPyLong(PyObject *self, PyObject *args)
 static PyMethodDef core_methods[] = {
 
     /* Modules */
-    _method( LLVMModuleCreateWithName )    
-    _method( LLVMGetDataLayout )    
+    _method( LLVMModuleCreateWithName )
+    _method( LLVMGetDataLayout )
     _method( LLVMSetDataLayout )
-    _method( LLVMGetModuleIdentifier )   
-    _method( LLVMSetModuleIdentifier )    
-    _method( LLVMGetTarget )    
-    _method( LLVMSetTarget )    
+    _method( LLVMGetModuleIdentifier )
+    _method( LLVMSetModuleIdentifier )
+    _method( LLVMGetTarget )
+    _method( LLVMSetTarget )
     _method( LLVMModuleAddLibrary )
     _method( LLVMGetTypeByName )
     _method( LLVMDumpModule )
@@ -1342,68 +1346,72 @@ static PyMethodDef core_methods[] = {
     /* Types */
 
     /* General */
-    _method( LLVMGetTypeKind )    
+    _method( LLVMGetTypeKind )
     _method( LLVMDumpTypeToString )
 
     /* Integer types */
-    _method( LLVMInt1Type )    
-    _method( LLVMInt8Type )    
-    _method( LLVMInt16Type )    
-    _method( LLVMInt32Type )    
-    _method( LLVMInt64Type )    
-    _method( LLVMIntType )    
-    _method( LLVMGetIntTypeWidth )    
+    _method( LLVMInt1Type )
+    _method( LLVMInt8Type )
+    _method( LLVMInt16Type )
+    _method( LLVMInt32Type )
+    _method( LLVMInt64Type )
+    _method( LLVMIntType )
+    _method( LLVMGetIntTypeWidth )
 
     /* Floating-point types */
-    _method( LLVMFloatType )    
-    _method( LLVMDoubleType )    
-    _method( LLVMX86FP80Type )    
-    _method( LLVMFP128Type )    
-    _method( LLVMPPCFP128Type )    
+    _method( LLVMFloatType )
+    _method( LLVMDoubleType )
+    _method( LLVMX86FP80Type )
+    _method( LLVMFP128Type )
+    _method( LLVMPPCFP128Type )
 
     /* Function types */
-    _method( LLVMFunctionType )    
-    _method( LLVMIsFunctionVarArg )    
-    _method( LLVMGetReturnType )    
-    _method( LLVMCountParamTypes )    
-    _method( LLVMGetFunctionTypeParams )    
+    _method( LLVMFunctionType )
+    _method( LLVMIsFunctionVarArg )
+    _method( LLVMGetReturnType )
+    _method( LLVMCountParamTypes )
+    _method( LLVMGetFunctionTypeParams )
 
     /* Struct types */
-    _method( LLVMStructType )    
-    _method( LLVMCountStructElementTypes )    
-    //_method( LLVMGetStructElementTypes )    
-    _method( LLVMIsPackedStruct )    
+    _method( LLVMStructType )
+    _method( LLVMStructTypeIdentified )
+    _method( LLVMSetStructBody )
+    _method( LLVMCountStructElementTypes )
+    _method( LLVMGetStructElementTypes )
+    _method( LLVMIsPackedStruct )
+    _method( LLVMGetStructName )
+    _method( LLVMSetStructName )
 
     /* Array types */
-    _method( LLVMArrayType )    
-    _method( LLVMGetElementType )    
-    _method( LLVMGetArrayLength )    
+    _method( LLVMArrayType )
+    _method( LLVMGetElementType )
+    _method( LLVMGetArrayLength )
 
     /* Pointer types */
-    _method( LLVMPointerType )    
-    _method( LLVMGetPointerAddressSpace )    
+    _method( LLVMPointerType )
+    _method( LLVMGetPointerAddressSpace )
 
     /* Vector type */
-    _method( LLVMVectorType )    
-    _method( LLVMGetVectorSize )    
+    _method( LLVMVectorType )
+    _method( LLVMGetVectorSize )
 
     /* Other types */
-    _method( LLVMVoidType )    
-    _method( LLVMLabelType )    
+    _method( LLVMVoidType )
+    _method( LLVMLabelType )
 
     /* Type handles */
     /*
-    _method( LLVMResolveTypeHandle )    
+    _method( LLVMResolveTypeHandle )
     _method( LLVMDisposeTypeHandle )
     */
 
     /* Values */
 
     /* Operations on all values */
-    _method( LLVMTypeOf )    
-    _method( LLVMGetValueName )    
-    _method( LLVMSetValueName )    
-    _method( LLVMDumpValue )    
+    _method( LLVMTypeOf )
+    _method( LLVMGetValueName )
+    _method( LLVMSetValueName )
+    _method( LLVMDumpValue )
     _method( LLVMDumpValueToString )
     _method( LLVMValueGetID )
     _method( LLVMValueGetNumUses )
@@ -1417,102 +1425,102 @@ static PyMethodDef core_methods[] = {
     /* Constant Values */
 
     /* Operations on constants of any type */
-    _method( LLVMConstNull )    
-    _method( LLVMConstAllOnes )    
-    _method( LLVMGetUndef )    
-    _method( LLVMIsConstant )    
-    _method( LLVMIsNull )    
-    _method( LLVMIsUndef )    
+    _method( LLVMConstNull )
+    _method( LLVMConstAllOnes )
+    _method( LLVMGetUndef )
+    _method( LLVMIsConstant )
+    _method( LLVMIsNull )
+    _method( LLVMIsUndef )
 
     /* Operations on scalar constants */
-    _method( LLVMConstInt )    
-    _method( LLVMConstReal )    
-    _method( LLVMConstRealOfString )    
+    _method( LLVMConstInt )
+    _method( LLVMConstReal )
+    _method( LLVMConstRealOfString )
 
     /* Operations on composite constants */
-    _method( LLVMConstString )    
-    _method( LLVMConstArray )    
-    _method( LLVMConstStruct )    
-    _method( LLVMConstVector )    
+    _method( LLVMConstString )
+    _method( LLVMConstArray )
+    _method( LLVMConstStruct )
+    _method( LLVMConstVector )
 
     /* Constant expressions */
-    _method( LLVMSizeOf )    
-    _method( LLVMConstNeg )    
-    _method( LLVMConstNot )    
-    _method( LLVMConstAdd )    
+    _method( LLVMSizeOf )
+    _method( LLVMConstNeg )
+    _method( LLVMConstNot )
+    _method( LLVMConstAdd )
     _method( LLVMConstFAdd )
-    _method( LLVMConstSub ) 
-    _method( LLVMConstFSub )   
-    _method( LLVMConstMul )    
-    _method( LLVMConstFMul )    
-    _method( LLVMConstUDiv )    
-    _method( LLVMConstSDiv )    
-    _method( LLVMConstFDiv )    
-    _method( LLVMConstURem )    
-    _method( LLVMConstSRem )    
-    _method( LLVMConstFRem )    
-    _method( LLVMConstAnd )    
-    _method( LLVMConstOr )    
-    _method( LLVMConstXor )    
-    _method( LLVMConstICmp )    
-    _method( LLVMConstFCmp )    
-    _method( LLVMConstShl )    
-    _method( LLVMConstLShr )    
-    _method( LLVMConstAShr )    
-    _method( LLVMConstGEP )    
-    _method( LLVMConstTrunc )    
-    _method( LLVMConstSExt )    
-    _method( LLVMConstZExt )    
-    _method( LLVMConstFPTrunc )    
-    _method( LLVMConstFPExt )    
-    _method( LLVMConstUIToFP )    
-    _method( LLVMConstSIToFP )    
-    _method( LLVMConstFPToUI )    
-    _method( LLVMConstFPToSI )    
-    _method( LLVMConstPtrToInt )    
-    _method( LLVMConstIntToPtr )    
-    _method( LLVMConstBitCast )    
-    _method( LLVMConstSelect )    
-    _method( LLVMConstExtractElement )    
-    _method( LLVMConstInsertElement )    
-    _method( LLVMConstShuffleVector )    
+    _method( LLVMConstSub )
+    _method( LLVMConstFSub )
+    _method( LLVMConstMul )
+    _method( LLVMConstFMul )
+    _method( LLVMConstUDiv )
+    _method( LLVMConstSDiv )
+    _method( LLVMConstFDiv )
+    _method( LLVMConstURem )
+    _method( LLVMConstSRem )
+    _method( LLVMConstFRem )
+    _method( LLVMConstAnd )
+    _method( LLVMConstOr )
+    _method( LLVMConstXor )
+    _method( LLVMConstICmp )
+    _method( LLVMConstFCmp )
+    _method( LLVMConstShl )
+    _method( LLVMConstLShr )
+    _method( LLVMConstAShr )
+    _method( LLVMConstGEP )
+    _method( LLVMConstTrunc )
+    _method( LLVMConstSExt )
+    _method( LLVMConstZExt )
+    _method( LLVMConstFPTrunc )
+    _method( LLVMConstFPExt )
+    _method( LLVMConstUIToFP )
+    _method( LLVMConstSIToFP )
+    _method( LLVMConstFPToUI )
+    _method( LLVMConstFPToSI )
+    _method( LLVMConstPtrToInt )
+    _method( LLVMConstIntToPtr )
+    _method( LLVMConstBitCast )
+    _method( LLVMConstSelect )
+    _method( LLVMConstExtractElement )
+    _method( LLVMConstInsertElement )
+    _method( LLVMConstShuffleVector )
 
     /* Globals */
 
     /* Globals (general) */
-    _method( LLVMGetGlobalParent )    
-    _method( LLVMIsDeclaration )    
-    _method( LLVMGetLinkage )    
-    _method( LLVMSetLinkage )    
-    _method( LLVMGetSection )    
-    _method( LLVMSetSection )    
-    _method( LLVMGetVisibility )    
-    _method( LLVMSetVisibility )    
-    _method( LLVMGetAlignment )    
-    _method( LLVMSetAlignment )    
+    _method( LLVMGetGlobalParent )
+    _method( LLVMIsDeclaration )
+    _method( LLVMGetLinkage )
+    _method( LLVMSetLinkage )
+    _method( LLVMGetSection )
+    _method( LLVMSetSection )
+    _method( LLVMGetVisibility )
+    _method( LLVMSetVisibility )
+    _method( LLVMGetAlignment )
+    _method( LLVMSetAlignment )
 
     /* Global Variables */
-    _method( LLVMAddGlobal )    
-    _method( LLVMGetNamedGlobal )    
+    _method( LLVMAddGlobal )
+    _method( LLVMGetNamedGlobal )
     _method( LLVMGetFirstGlobal )
     _method( LLVMGetNextGlobal )
-    _method( LLVMDeleteGlobal )    
-    _method( LLVMHasInitializer )    
-    _method( LLVMGetInitializer )    
-    _method( LLVMSetInitializer )    
-    _method( LLVMSetThreadLocal )    
-    _method( LLVMSetGlobalConstant )    
-    _method( LLVMIsThreadLocal )    
-    _method( LLVMIsGlobalConstant )    
+    _method( LLVMDeleteGlobal )
+    _method( LLVMHasInitializer )
+    _method( LLVMGetInitializer )
+    _method( LLVMSetInitializer )
+    _method( LLVMSetThreadLocal )
+    _method( LLVMSetGlobalConstant )
+    _method( LLVMIsThreadLocal )
+    _method( LLVMIsGlobalConstant )
 
     /* Functions */
-    _method( LLVMAddFunction )    
-    _method( LLVMGetNamedFunction )    
-    _method( LLVMGetFirstFunction )    
-    _method( LLVMGetNextFunction )    
-    _method( LLVMDeleteFunction )    
-    _method( LLVMGetIntrinsicID )    
-    _method( LLVMGetFunctionCallConv )    
+    _method( LLVMAddFunction )
+    _method( LLVMGetNamedFunction )
+    _method( LLVMGetFirstFunction )
+    _method( LLVMGetNextFunction )
+    _method( LLVMDeleteFunction )
+    _method( LLVMGetIntrinsicID )
+    _method( LLVMGetFunctionCallConv )
     _method( LLVMSetFunctionCallConv )
     _method( LLVMGetGC )
     _method( LLVMSetGC )
@@ -1525,27 +1533,27 @@ static PyMethodDef core_methods[] = {
     _method( LLVMRemoveFunctionAttr )
 
     /* Arguments */
-    _method( LLVMCountParams )    
-    _method( LLVMGetFirstParam )    
-    _method( LLVMGetNextParam )    
-    _method( LLVMGetParamParent )    
+    _method( LLVMCountParams )
+    _method( LLVMGetFirstParam )
+    _method( LLVMGetNextParam )
+    _method( LLVMGetParamParent )
     _method( LLVMAddAttribute )
     _method( LLVMRemoveAttribute )
-    _method( LLVMSetParamAlignment )    
-    _method( LLVMGetParamAlignment )    
+    _method( LLVMSetParamAlignment )
+    _method( LLVMGetParamAlignment )
 
     /* Basic Blocks */
-    _method( LLVMGetBasicBlockParent )    
-    _method( LLVMCountBasicBlocks )    
+    _method( LLVMGetBasicBlockParent )
+    _method( LLVMCountBasicBlocks )
     _method( LLVMGetFirstBasicBlock )
     _method( LLVMGetNextBasicBlock )
-    _method( LLVMGetEntryBasicBlock )    
-    _method( LLVMAppendBasicBlock )    
-    _method( LLVMInsertBasicBlock )    
-    _method( LLVMDeleteBasicBlock )    
+    _method( LLVMGetEntryBasicBlock )
+    _method( LLVMAppendBasicBlock )
+    _method( LLVMInsertBasicBlock )
+    _method( LLVMDeleteBasicBlock )
 
     /* Instructions */
-    _method( LLVMGetInstructionParent )    
+    _method( LLVMGetInstructionParent )
     _method( LLVMGetFirstInstruction )
     _method( LLVMGetNextInstruction )
     _method( LLVMInstIsTerminator )
@@ -1561,102 +1569,102 @@ static PyMethodDef core_methods[] = {
     _method( LLVMInstGetOpcodeName )
 
     /* Call Sites (Call or Invoke) */
-    _method( LLVMSetInstructionCallConv )    
-    _method( LLVMGetInstructionCallConv )    
+    _method( LLVMSetInstructionCallConv )
+    _method( LLVMGetInstructionCallConv )
     _method( LLVMIsTailCall )
     _method( LLVMSetTailCall )
-    _method( LLVMAddInstrAttribute )    
-    _method( LLVMRemoveInstrAttribute )    
-    _method( LLVMSetInstrParamAlignment )    
+    _method( LLVMAddInstrAttribute )
+    _method( LLVMRemoveInstrAttribute )
+    _method( LLVMSetInstrParamAlignment )
 
     /* PHI Nodes */
-    _method( LLVMAddIncoming1 )    
-    _method( LLVMCountIncoming )    
-    _method( LLVMGetIncomingValue )    
-    _method( LLVMGetIncomingBlock )    
+    _method( LLVMAddIncoming1 )
+    _method( LLVMCountIncoming )
+    _method( LLVMGetIncomingValue )
+    _method( LLVMGetIncomingBlock )
 
     /* Comparison Instructions */
     _method( LLVMCmpInstGetPredicate )
 
     /* Instruction builders */
-    _method( LLVMCreateBuilder )    
-    _method( LLVMPositionBuilderBefore )    
-    _method( LLVMPositionBuilderAtEnd )    
-    _method( LLVMGetInsertBlock )    
-    _method( LLVMDisposeBuilder )    
+    _method( LLVMCreateBuilder )
+    _method( LLVMPositionBuilderBefore )
+    _method( LLVMPositionBuilderAtEnd )
+    _method( LLVMGetInsertBlock )
+    _method( LLVMDisposeBuilder )
 
     /* Terminators */
-    _method( LLVMBuildRetVoid )    
-    _method( LLVMBuildRet )    
-    _method( LLVMBuildRetMultiple )    
-    _method( LLVMBuildBr )    
-    _method( LLVMBuildCondBr )    
-    _method( LLVMBuildSwitch )    
-    _method( LLVMBuildInvoke )    
-    _method( LLVMBuildUnreachable )    
+    _method( LLVMBuildRetVoid )
+    _method( LLVMBuildRet )
+    _method( LLVMBuildRetMultiple )
+    _method( LLVMBuildBr )
+    _method( LLVMBuildCondBr )
+    _method( LLVMBuildSwitch )
+    _method( LLVMBuildInvoke )
+    _method( LLVMBuildUnreachable )
 
     /* Add a case to the switch instruction */
-    _method( LLVMAddCase )    
+    _method( LLVMAddCase )
 
     /* Arithmetic */
-    _method( LLVMBuildAdd )    
+    _method( LLVMBuildAdd )
     _method( LLVMBuildFAdd)
     _method( LLVMBuildSub )
-    _method( LLVMBuildFSub)    
-    _method( LLVMBuildMul )    
+    _method( LLVMBuildFSub)
+    _method( LLVMBuildMul )
     _method( LLVMBuildFMul)
-    _method( LLVMBuildUDiv )    
-    _method( LLVMBuildSDiv )    
-    _method( LLVMBuildFDiv )    
-    _method( LLVMBuildURem )    
-    _method( LLVMBuildSRem )    
-    _method( LLVMBuildFRem )    
-    _method( LLVMBuildShl )    
-    _method( LLVMBuildLShr )    
-    _method( LLVMBuildAShr )    
-    _method( LLVMBuildAnd )    
-    _method( LLVMBuildOr )    
-    _method( LLVMBuildXor )    
-    _method( LLVMBuildNeg )    
-    _method( LLVMBuildNot )    
+    _method( LLVMBuildUDiv )
+    _method( LLVMBuildSDiv )
+    _method( LLVMBuildFDiv )
+    _method( LLVMBuildURem )
+    _method( LLVMBuildSRem )
+    _method( LLVMBuildFRem )
+    _method( LLVMBuildShl )
+    _method( LLVMBuildLShr )
+    _method( LLVMBuildAShr )
+    _method( LLVMBuildAnd )
+    _method( LLVMBuildOr )
+    _method( LLVMBuildXor )
+    _method( LLVMBuildNeg )
+    _method( LLVMBuildNot )
 
     /* Memory */
-    _method( LLVMBuildMalloc )    
-    _method( LLVMBuildArrayMalloc )    
-    _method( LLVMBuildAlloca )    
-    _method( LLVMBuildArrayAlloca )    
-    _method( LLVMBuildFree )    
-    _method( LLVMBuildLoad )    
-    _method( LLVMBuildStore )    
-    _method( LLVMBuildGEP )    
+    _method( LLVMBuildMalloc )
+    _method( LLVMBuildArrayMalloc )
+    _method( LLVMBuildAlloca )
+    _method( LLVMBuildArrayAlloca )
+    _method( LLVMBuildFree )
+    _method( LLVMBuildLoad )
+    _method( LLVMBuildStore )
+    _method( LLVMBuildGEP )
 
     /* Casts */
-    _method( LLVMBuildTrunc )    
-    _method( LLVMBuildZExt )    
-    _method( LLVMBuildSExt )    
-    _method( LLVMBuildFPToUI )    
-    _method( LLVMBuildFPToSI )    
-    _method( LLVMBuildUIToFP )    
-    _method( LLVMBuildSIToFP )    
-    _method( LLVMBuildFPTrunc )    
-    _method( LLVMBuildFPExt )    
-    _method( LLVMBuildPtrToInt )    
-    _method( LLVMBuildIntToPtr )    
-    _method( LLVMBuildBitCast )    
+    _method( LLVMBuildTrunc )
+    _method( LLVMBuildZExt )
+    _method( LLVMBuildSExt )
+    _method( LLVMBuildFPToUI )
+    _method( LLVMBuildFPToSI )
+    _method( LLVMBuildUIToFP )
+    _method( LLVMBuildSIToFP )
+    _method( LLVMBuildFPTrunc )
+    _method( LLVMBuildFPExt )
+    _method( LLVMBuildPtrToInt )
+    _method( LLVMBuildIntToPtr )
+    _method( LLVMBuildBitCast )
 
     /* Comparisons */
-    _method( LLVMBuildICmp )    
-    _method( LLVMBuildFCmp )    
+    _method( LLVMBuildICmp )
+    _method( LLVMBuildFCmp )
 
     /* Miscellaneous instructions */
-    _method( LLVMBuildGetResult )    
-    _method( LLVMBuildPhi )    
-    _method( LLVMBuildCall )    
-    _method( LLVMBuildSelect )    
-    _method( LLVMBuildVAArg )    
-    _method( LLVMBuildExtractElement )    
-    _method( LLVMBuildInsertElement )    
-    _method( LLVMBuildShuffleVector )    
+    _method( LLVMBuildGetResult )
+    _method( LLVMBuildPhi )
+    _method( LLVMBuildCall )
+    _method( LLVMBuildSelect )
+    _method( LLVMBuildVAArg )
+    _method( LLVMBuildExtractElement )
+    _method( LLVMBuildInsertElement )
+    _method( LLVMBuildShuffleVector )
 
     /* Memory Buffer */
     _method( LLVMCreateMemoryBufferWithContentsOfFile )
@@ -1664,12 +1672,12 @@ static PyMethodDef core_methods[] = {
     _method( LLVMDisposeMemoryBuffer )
 
     /* Pass Manager */
-    _method( LLVMCreatePassManager )    
-    _method( LLVMCreateFunctionPassManagerForModule )    
-    _method( LLVMRunPassManager )    
-    _method( LLVMInitializeFunctionPassManager )    
-    _method( LLVMRunFunctionPassManager )    
-    _method( LLVMFinalizeFunctionPassManager )    
+    _method( LLVMCreatePassManager )
+    _method( LLVMCreateFunctionPassManagerForModule )
+    _method( LLVMRunPassManager )
+    _method( LLVMInitializeFunctionPassManager )
+    _method( LLVMRunFunctionPassManager )
+    _method( LLVMFinalizeFunctionPassManager )
     _method( LLVMDisposePassManager )
 
     /* Passes */
@@ -1838,7 +1846,7 @@ init_core(void)
     if (module == NULL)
         INITERROR;
 #if PY_MAJOR_VERSION >= 3
-    
+
     return module;
 #endif
 }

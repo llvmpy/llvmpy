@@ -3,16 +3,16 @@
 # watch out for uncollected objects
 import gc
 
-import unittest, sys
+import unittest, sys, logging
 
 from llvm import *
 from llvm.core import *
+
 
 class TestModule(unittest.TestCase):
 
     def setUp(self):
         pass
-
 
     def testdata_layout(self):
         """Data layout property."""
@@ -33,23 +33,39 @@ class TestModule(unittest.TestCase):
         reqd = '; ModuleID = \'test3.1\'\ntarget triple = "some_value"\n'
         self.assertEqual(str(m), reqd)
 
+    # Type system is rewritten in LLVM 3.0.
+    # Only named StructType is supported.
+    # See http://blog.llvm.org/2011/11/llvm-30-type-system-rewrite.html
+    #
+    #    def testtype_name(self):
+    #        """Type names."""
+    #        m = Module.new("test4.1")
+    #        r = m.add_type_name("typename41", Type.int())
+    #        self.assertEqual(r, 0)
+    #        r = m.add_type_name("typename41", Type.int())
+    #        self.assertEqual(r, 1)
+    #        reqd = "; ModuleID = 'test4.1'\n\n%typename41 = type i32\n"
+    #        self.assertEqual(str(m), reqd)
+    #        r = m.delete_type_name("typename41")
+    #        reqd = "; ModuleID = 'test4.1'\n"
+    #        self.assertEqual(str(m), reqd)
+    #        r = m.delete_type_name("no such name") # nothing should happen
+    #        reqd = "; ModuleID = 'test4.1'\n"
+    #        self.assertEqual(str(m), reqd)
 
     def testtype_name(self):
-        """Type names."""
         m = Module.new("test4.1")
-        r = m.add_type_name("typename41", Type.int())
-        self.assertEqual(r, 0)
-        r = m.add_type_name("typename41", Type.int())
-        self.assertEqual(r, 1)
-        reqd = "; ModuleID = 'test4.1'\n\n%typename41 = type i32\n"
-        self.assertEqual(str(m), reqd)
-        r = m.delete_type_name("typename41")
-        reqd = "; ModuleID = 'test4.1'\n"
-        self.assertEqual(str(m), reqd)
-        r = m.delete_type_name("no such name") # nothing should happen
-        reqd = "; ModuleID = 'test4.1'\n"
-        self.assertEqual(str(m), reqd)
+        struct = Type.struct([Type.int(), Type.int()], name="struct.two.int")
+        self.assertEqual(struct.name, "struct.two.int")
+        got_struct = m.get_type_named(struct.name)
+        self.assertEqual(got_struct.name, struct.name)
 
+        self.assertEqual(got_struct.element_count, struct.element_count)
+        self.assertEqual(len(struct.elements), struct.element_count)
+
+        self.assertEqual(struct.elements, got_struct.elements)
+        for elty in struct.elements:
+            self.assertEqual(elty, Type.int())
 
     def testglobal_variable(self):
         """Global variables."""
@@ -65,11 +81,14 @@ def main():
     gc.set_debug(gc.DEBUG_LEAK)
 
     # run tests
-    unittest.main()
+    unittest.main(exit=False)  # set exit to False so that it will return.
 
     # done
-    if gc.garbage:
-        print("garbage = ", gc.garbage)
+    for it in gc.garbage:
+        logging.debug('garbage = %s', it)
+
+if __name__ == '__main__':
+    main()
 
 
-main()
+

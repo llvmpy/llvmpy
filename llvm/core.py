@@ -585,24 +585,42 @@ class Type(object):
                     var_arg), TYPE_FUNCTION)
 
     @staticmethod
-    def struct(element_tys): # not packed
+    def struct(element_tys, name=''): # not packed
         """Create a (unpacked) structure type.
 
         Creates a structure type with elements of types as given in the
         iterable `element_tys'. This method creates a unpacked
-        structure. For a packed one, use the packed_struct() method."""
+        structure. For a packed one, use the packed_struct() method.
+        
+        If name is not '', creates a identified type; 
+        otherwise, creates a literal type."""
         elems = unpack_types(element_tys)
-        return _make_type(_core.LLVMStructType(elems, 0), TYPE_STRUCT)
+        
+        if name: # create Identified StructType
+            objptr = _core.LLVMStructTypeIdentified(name)
+            _core.LLVMSetStructBody(objptr, elems, 0)
+        else:        # create Literal StructType
+            objptr = _core.LLVMStructType(elems, 0)
+        
+        return _make_type(objptr, TYPE_STRUCT)
 
     @staticmethod
-    def packed_struct(element_tys):
+    def packed_struct(element_tys, name=''):
         """Create a (packed) structure type.
 
         Creates a structure type with elements of types as given in the
         iterable `element_tys'. This method creates a packed
-        structure. For an unpacked one, use the struct() method."""
+        structure. For an unpacked one, use the struct() method.
+        
+        If name is not '', creates a identified type; 
+        otherwise, creates a literal type."""
         elems = unpack_types(element_tys)
-        return _make_type(_core.LLVMStructType(elems, 1), TYPE_STRUCT)
+        
+        if name: # create Identified StructType
+            objptr = _core.LLVMStructTypeIdentified(name)
+            _core.LLVMSetStructBody(objptr, elems, 0)
+        else:        # create Literal StructType
+            objptr = _core.LLVMStructType(elems, 1)
 
     @staticmethod
     def array(element_ty, count):
@@ -725,18 +743,25 @@ class StructType(Type):
         Same as len(obj.elements), but faster."""
         return _core.LLVMCountStructElementTypes(self.ptr)
 
-    #@property
-    #def elements(self):
-    #    """An iterable that yieldsd Type objects, representing the types of the
-    #    elements (members) of the structure, in order."""
-    #    pp = _core.LLVMGetStructElementTypes(self.ptr)
-    #    return [ _make_type(p, _core.LLVMGetTypeKind(p)) for p in pp ]
+    @property
+    def elements(self):
+        """An iterable that yieldsd Type objects, representing the types of the
+        elements (members) of the structure, in order."""
+        pp = _core.LLVMGetStructElementTypes(self.ptr)
+        return [ _make_type(p, _core.LLVMGetTypeKind(p)) for p in pp ]
 
     @property
     def packed(self):
         """True if the structure is packed, False otherwise."""
         return _core.LLVMIsPackedStruct(self.ptr) != 0
 
+    def _set_name(self, name):
+        _core.LLVMSetStructName(self.ptr, name)
+        
+    def _get_name(self):
+        return _core.LLVMGetStructName(self.ptr)
+
+    name = property(_get_name, _set_name)
 
 class ArrayType(Type):
     """Represents an array type."""
