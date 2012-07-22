@@ -4,6 +4,10 @@ from llvm.core import *
 from llvm.passes import *
 from llvm.ee import *
 
+from StringIO import StringIO
+
+import logging, unittest
+
 # A helper class.
 class strstream(object):
     def __init__(self, s):
@@ -35,43 +39,68 @@ entry:
     ret i32 %tmp
 }
 """
-m = Module.from_assembly(strstream(asm))
-print("-"*72)
-print(m)
 
-# Let's run a module-level inlining pass. First, create a pass manager.
-pm = PassManager.new()
+class TestPasses(unittest.TestCase):
+    def test_passes(self):
+        m = Module.from_assembly(StringIO(asm))
+        logging.debug("-"*72)
+        logging.debug(m)
 
-# Add the target data as the first "pass". This is mandatory.
-pm.add( TargetData.new('') )
+        fn_test1 = m.get_function_named('test1')
+        fn_test2 = m.get_function_named('test2')
 
-# Add the inlining pass.
-pm.add( PASS_FUNCTION_INLINING )
+        original_test1 = str(fn_test1)
+        original_test2 = str(fn_test2)
 
-# Run it!
-pm.run(m)
+        # Let's run a module-level inlining pass. First, create a pass manager.
+        pm = PassManager.new()
 
-# Done with the pass manager.
-del pm
+        # Add the target data as the first "pass". This is mandatory.
+        pm.add( TargetData.new('') )
 
-# Print the result. Note the change in @test2.
-print("-"*72)
-print(m)
+        # Add the inlining pass.
+        pm.add( PASS_FUNCTION_INLINING )
+
+        # Run it!
+        pm.run(m)
 
 
-# Let's run a DCE pass on the the function 'test1' now. First create a
-# function pass manager.
-fpm = FunctionPassManager.new(m)
+        # Done with the pass manager.
+        del pm
 
-# Add the target data as first "pass". This is mandatory.
-fpm.add( TargetData.new('') )
+        # Print the result. Note the change in @test2.
+        logging.debug("-"*72)
+        logging.debug(m)
 
-# Add a DCE pass
-fpm.add( PASS_AGGRESSIVE_DCE )
+        # Make sure test2 is inlined
+        self.assertNotEqual(str(fn_test2).strip(), original_test2.strip())
 
-# Run the pass on the function 'test1'
-fpm.run( m.get_function_named('test1') )
+        bb_entry = fn_test2.basic_blocks[0]
 
-# Print the result. Note the change in @test1.
-print("-"*72)
-print(m)
+        self.assertEqual(len(bb_entry.instructions), 1)
+        self.assertEqual(bb_entry.instructions[0].opcode_name, 'ret')
+
+        # Let's run a DCE pass on the the function 'test1' now. First create a
+        # function pass manager.
+        fpm = FunctionPassManager.new(m)
+
+        # Add the target data as first "pass". This is mandatory.
+        fpm.add( TargetData.new('') )
+
+        # Add a DCE pass
+        fpm.add( PASS_AGGRESSIVE_DCE )
+
+        # Run the pass on the function 'test1'
+        fpm.run( m.get_function_named('test1') )
+
+        # Print the result. Note the change in @test1.
+        logging.debug("-"*72)
+        logging.debug(m)
+
+        # Make sure test1 is modified
+        self.assertNotEqual(str(fn_test1).strip(), original_test1.strip())
+
+
+if __name__ == '__main__':
+    unittest.main()
+
