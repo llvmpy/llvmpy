@@ -42,6 +42,11 @@ extern "C" {
 #endif
 
 /*
+ * Wraps StructType::isLiteral()
+ */
+int LLVMIsLiteralStruct(LLVMTypeRef type);
+
+/*
  * Wraps StructType::create()
  */ 
 LLVMTypeRef LLVMStructTypeIdentified(const char * name);

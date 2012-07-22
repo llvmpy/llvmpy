@@ -67,6 +67,25 @@ class TestModule(unittest.TestCase):
         for elty in struct.elements:
             self.assertEqual(elty, Type.int())
 
+        # rename identified type
+        struct.name = 'new_name'
+        self.assertEqual(struct.name, 'new_name')
+        self.assertIs(m.get_type_named("struct.two.int"), None)
+
+        self.assertEqual(got_struct.name, struct.name)
+
+        # remove identified type
+        struct.name = ''
+
+        self.assertIs(m.get_type_named("struct.two.int"), None)
+        self.assertIs(m.get_type_named("new_name"), None)
+
+        # another name
+
+        struct.name = 'another.name'
+        self.assertEqual(struct.name, 'another.name')
+        self.assertEqual(got_struct.name, struct.name)
+
     def testglobal_variable(self):
         """Global variables."""
         m = Module.new("test5.1")

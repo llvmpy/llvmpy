@@ -313,6 +313,8 @@ _wLLVMGetStructElementTypes(PyObject *self, PyObject *args)
 
 
 _wrap_obj2obj(LLVMIsPackedStruct, LLVMTypeRef, int)
+_wrap_obj2obj(LLVMIsOpaqueStruct, LLVMTypeRef, int)
+_wrap_obj2obj(LLVMIsLiteralStruct, LLVMTypeRef, int)
 
 /*===-- Array types ------------------------------------------------------===*/
 
@@ -1379,6 +1381,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMCountStructElementTypes )
     _method( LLVMGetStructElementTypes )
     _method( LLVMIsPackedStruct )
+    _method( LLVMIsOpaqueStruct )
+    _method( LLVMIsLiteralStruct )
     _method( LLVMGetStructName )
     _method( LLVMSetStructName )
 

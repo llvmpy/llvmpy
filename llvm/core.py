@@ -507,13 +507,13 @@ class Module(llvm.Ownable, llvm.Cacheable):
 
     def add_library(self, name):
         return _core.LLVMModuleAddLibrary(self.ptr, name)
-        
+
     def _get_id(self):
         return _core.LLVMGetModuleIdentifier(self.ptr)
-        
+
     def _set_id(self, string):
         _core.LLVMSetModuleIdentifier(self.ptr, string)
-        
+
     id = property(_get_id, _set_id)
 
 #===----------------------------------------------------------------------===
@@ -585,23 +585,32 @@ class Type(object):
                     var_arg), TYPE_FUNCTION)
 
     @staticmethod
+    def opaque(name):
+        """Create a opaque StructType"""
+        if not name:
+            raise llvm.LLVMException("Must specify a name")
+
+        objptr = _core.LLVMStructTypeIdentified(name)
+        return _make_type(objptr, TYPE_STRUCT)
+
+    @staticmethod
     def struct(element_tys, name=''): # not packed
         """Create a (unpacked) structure type.
 
         Creates a structure type with elements of types as given in the
         iterable `element_tys'. This method creates a unpacked
         structure. For a packed one, use the packed_struct() method.
-        
-        If name is not '', creates a identified type; 
+
+        If name is not '', creates a identified type;
         otherwise, creates a literal type."""
         elems = unpack_types(element_tys)
-        
+
         if name: # create Identified StructType
             objptr = _core.LLVMStructTypeIdentified(name)
             _core.LLVMSetStructBody(objptr, elems, 0)
         else:        # create Literal StructType
             objptr = _core.LLVMStructType(elems, 0)
-        
+
         return _make_type(objptr, TYPE_STRUCT)
 
     @staticmethod
@@ -611,11 +620,11 @@ class Type(object):
         Creates a structure type with elements of types as given in the
         iterable `element_tys'. This method creates a packed
         structure. For an unpacked one, use the struct() method.
-        
-        If name is not '', creates a identified type; 
+
+        If name is not '', creates a identified type;
         otherwise, creates a literal type."""
         elems = unpack_types(element_tys)
-        
+
         if name: # create Identified StructType
             objptr = _core.LLVMStructTypeIdentified(name)
             _core.LLVMSetStructBody(objptr, elems, 0)
@@ -750,6 +759,23 @@ class StructType(Type):
         pp = _core.LLVMGetStructElementTypes(self.ptr)
         return [ _make_type(p, _core.LLVMGetTypeKind(p)) for p in pp ]
 
+    def set_body(self, elems, packed=False):
+        """Filled the body of a opaque type.
+        """
+        # check
+        if not self.is_opaque:
+            raise llvm.LLVMException("Body is already defined.")
+        
+        # prepare arguments
+        elems = unpack_types(elems)
+        if packed:
+            packed = 1
+        else:
+            packed = 0
+
+        # call c API
+        _core.LLVMSetStructBody(self.ptr, elems, packed)
+
     @property
     def packed(self):
         """True if the structure is packed, False otherwise."""
@@ -757,11 +783,23 @@ class StructType(Type):
 
     def _set_name(self, name):
         _core.LLVMSetStructName(self.ptr, name)
-        
+
     def _get_name(self):
         return _core.LLVMGetStructName(self.ptr)
 
     name = property(_get_name, _set_name)
+
+    @property
+    def is_literal(self):
+        return bool(_core.LLVMIsLiteralStruct(self.ptr))
+
+    @property
+    def is_identified(self):
+        return not _core.LLVMIsLiteralStruct(self.ptr)
+
+    @property
+    def is_opaque(self):
+        return bool(_core.LLVMIsOpaqueStruct(self.ptr))
 
 class ArrayType(Type):
     """Represents an array type."""

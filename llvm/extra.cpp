@@ -90,6 +90,11 @@ char *do_print(W obj)
     return strdup(buf.str().c_str());
 }
 
+int LLVMIsLiteralStruct(LLVMTypeRef type)
+{
+    return llvm::unwrap<llvm::StructType>(type)->isLiteral();
+}
+
 LLVMTypeRef LLVMStructTypeIdentified(const char * name)
 {
     using namespace llvm;
