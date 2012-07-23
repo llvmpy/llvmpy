@@ -603,15 +603,7 @@ class Type(object):
 
         If name is not '', creates a identified type;
         otherwise, creates a literal type."""
-        elems = unpack_types(element_tys)
-
-        if name: # create Identified StructType
-            objptr = _core.LLVMStructTypeIdentified(name)
-            _core.LLVMSetStructBody(objptr, elems, 0)
-        else:        # create Literal StructType
-            objptr = _core.LLVMStructType(elems, 0)
-
-        return _make_type(objptr, TYPE_STRUCT)
+        return Type.__struct(element_tys, packed=False, name=name)
 
     @staticmethod
     def packed_struct(element_tys, name=''):
@@ -623,13 +615,25 @@ class Type(object):
 
         If name is not '', creates a identified type;
         otherwise, creates a literal type."""
+        return Type.__struct(element_tys, packed=True, name=name)
+
+    @staticmethod
+    def __struct(element_tys, packed, name):
         elems = unpack_types(element_tys)
+
+        if packed:
+            packed=1
+        else:
+            packed=0
 
         if name: # create Identified StructType
             objptr = _core.LLVMStructTypeIdentified(name)
-            _core.LLVMSetStructBody(objptr, elems, 0)
+            _core.LLVMSetStructBody(objptr, elems, packed)
         else:        # create Literal StructType
-            objptr = _core.LLVMStructType(elems, 1)
+            objptr = _core.LLVMStructType(elems, packed)
+
+        return _make_type(objptr, TYPE_STRUCT)
+
 
     @staticmethod
     def array(element_ty, count):
@@ -765,7 +769,7 @@ class StructType(Type):
         # check
         if not self.is_opaque:
             raise llvm.LLVMException("Body is already defined.")
-        
+
         # prepare arguments
         elems = unpack_types(elems)
         if packed:
