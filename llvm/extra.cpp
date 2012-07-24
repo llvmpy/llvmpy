@@ -585,10 +585,11 @@ unsigned LLVMGetParamAlignment(LLVMValueRef arg)
     return argp->getParent()->getParamAlignment(argno + 1);
 }
 
+
 /* Passes. A few passes (listed below) are used directly from LLVM-C,
  * rest are defined here.
  */
-
+/*
 #define define_pass(P)                                   \
 void LLVMAdd ## P ## Pass (LLVMPassManagerRef passmgr) { \
     using namespace llvm;                                \
@@ -646,8 +647,9 @@ define_pass( StripNonDebugSymbols )
 //define_pass( StructRetPromotion )
 //define_pass( TailDuplication )
 define_pass( UnifyFunctionExitNodes )
-
+*/
 /* we support only internalize(true) */
+/*
 llvm::ModulePass *createInternalize2Pass() { return llvm::createInternalizePass(true); }
 define_pass( Internalize2 )
-
+*/

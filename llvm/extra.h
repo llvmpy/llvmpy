@@ -238,6 +238,7 @@ unsigned LLVMGetParamAlignment(LLVMValueRef arg);
 /* Passes. Some passes are used directly from LLVM-C, rest are declared
  * here. */
 
+/*
 #define declare_pass(P) \
     void LLVMAdd ## P ## Pass (LLVMPassManagerRef PM);
 
@@ -292,6 +293,7 @@ declare_pass( TailDuplication )
 declare_pass( UnifyFunctionExitNodes )
 
 declare_pass( Internalize2 )
+*/
 
 #ifdef __cplusplus
 } /* extern "C" */
