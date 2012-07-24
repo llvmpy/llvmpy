@@ -355,6 +355,21 @@ _w ## func (PyObject *self, PyObject *args)             \
     return ctor_ ## outtype ( func ());                 \
 }
 
+
+/**
+ * Wrap LLVM functions of the type
+ * const char * func()
+ */
+ #define _wrap_none2str(func)                           \
+static PyObject *                                       \
+_w ## func (PyObject *self, PyObject *args)             \
+{                                                       \
+    if (!PyArg_ParseTuple(args, ""))                    \
+        return NULL;                                    \
+    return PyBytes_FromString(func());                  \
+}
+
+
 /**
  * Wrap LLVM functions of the type
  * const char *func(intype1 arg1)
@@ -1230,6 +1245,21 @@ _w ## func (PyObject *self, PyObject *args)             \
                                                         \
     return ctor_ ## outtype ( func ());                 \
 }
+
+
+/**
+ * Wrap LLVM functions of the type
+ * const char * func()
+ */
+ #define _wrap_none2str(func)                           \
+static PyObject *                                       \
+_w ## func (PyObject *self, PyObject *args)             \
+{                                                       \
+    if (!PyArg_ParseTuple(args, ""))                    \
+        return NULL;                                    \
+    return PyBytes_FromString(func());                  \
+}
+
 
 /**
  * Wrap LLVM functions of the type

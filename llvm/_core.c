@@ -853,11 +853,23 @@ _wrap_obj2obj(LLVMInitializeFunctionPassManager, LLVMPassManagerRef, int)
 _wrap_objobj2obj(LLVMRunFunctionPassManager, LLVMPassManagerRef, LLVMValueRef, int)
 _wrap_obj2obj(LLVMFinalizeFunctionPassManager, LLVMPassManagerRef, int)
 _wrap_obj2none(LLVMDisposePassManager, LLVMPassManagerRef)
+_wrap_none2str(LLVMDumpPasses)
+_wrap_objstr2obj(LLVMAddPassByName, LLVMPassManagerRef, int)
+
+static PyObject *            
+_wLLVMInitializePasses(PyObject * self, PyObject * args)
+{
+    if (!PyArg_ParseTuple(args, ""))                    
+        return NULL;                                    
+    LLVMInitializePasses();
+    Py_RETURN_NONE;
+}
 
 
 /*===----------------------------------------------------------------------===*/
 /* Passes                                                                     */
 /*===----------------------------------------------------------------------===*/
+
 
 #define _wrap_pass(P)   \
 _wrap_obj2none( LLVMAdd ## P ## Pass, LLVMPassManagerRef)
@@ -1683,8 +1695,13 @@ static PyMethodDef core_methods[] = {
     _method( LLVMRunFunctionPassManager )
     _method( LLVMFinalizeFunctionPassManager )
     _method( LLVMDisposePassManager )
+    _method( LLVMDumpPasses )
+    _method( LLVMAddPassByName )
+    _method( LLVMInitializePasses )
 
     /* Passes */
+
+
     _pass( AAEval )
     _pass( AggressiveDCE )
     _pass( AliasAnalysisCounter )

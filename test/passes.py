@@ -59,7 +59,7 @@ class TestPasses(unittest.TestCase):
         pm.add( TargetData.new('') )
 
         # Add the inlining pass.
-        pm.add( PASS_FUNCTION_INLINING )
+        pm.add( PASS_INLINE )
 
         # Run it!
         pm.run(m)
@@ -88,7 +88,7 @@ class TestPasses(unittest.TestCase):
         fpm.add( TargetData.new('') )
 
         # Add a DCE pass
-        fpm.add( PASS_AGGRESSIVE_DCE )
+        fpm.add( PASS_ADCE )
 
         # Run the pass on the function 'test1'
         fpm.run( m.get_function_named('test1') )
@@ -100,6 +100,8 @@ class TestPasses(unittest.TestCase):
         # Make sure test1 is modified
         self.assertNotEqual(str(fn_test1).strip(), original_test1.strip())
 
+    def test_dump_passes(self):
+        self.assertTrue(len(PASSES)>0, msg="Cannot have no passes")
 
 if __name__ == '__main__':
     unittest.main()

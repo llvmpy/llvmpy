@@ -11,7 +11,7 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- *  * Neither the name of this software, nor the names of its 
+ *  * Neither the name of this software, nor the names of its
  *    contributors may be used to endorse or promote products derived from
  *    this software without specific prior written permission.
  *
@@ -78,6 +78,22 @@
 
 //using namespace llvm;
 
+/*
+ * For use in LLVMDumpPasses to dump passes.
+ */
+class PassRegistryPrinter : public llvm::PassRegistrationListener{
+public:
+    std::ostringstream stringstream;
+
+    void passEnumerate(const llvm::PassInfo * pass_info){
+        stringstream << pass_info->getPassArgument()
+                     << "\t"
+                     << pass_info->getPassName()
+                     << "\n";
+    }
+};
+
+
 /* Helper method for LLVMDumpXXXToString() methods. */
 template <typename W, typename UW>
 char *do_print(W obj)
@@ -89,6 +105,44 @@ char *do_print(W obj)
     p->print(buf);
     return strdup(buf.str().c_str());
 }
+
+int LLVMAddPassByName(LLVMPassManagerRef pm, const char * name)
+{
+    using namespace llvm;
+    const PassInfo * pi = Pass::lookupPassInfo(StringRef(name));
+    if (pi){
+        unwrap(pm)->add(pi->createPass());
+        return 1;  // success
+    } else {
+        return 0;  // fail -- cannot find pass
+    }
+}
+
+void LLVMInitializePasses(){
+    using namespace llvm;
+    PassRegistry &registry = *PassRegistry::getPassRegistry();
+    initializeCore(registry);
+    initializeScalarOpts(registry);
+    initializeVectorization(registry);
+    initializeIPO(registry);
+    initializeAnalysis(registry);
+    initializeIPA(registry);
+    initializeTransformUtils(registry);
+    initializeInstCombine(registry);
+    initializeInstrumentation(registry);
+    initializeTarget(registry);
+}
+
+
+const char * LLVMDumpPasses()
+{
+    using namespace llvm;
+    PassRegistry &registry = *PassRegistry::getPassRegistry();
+    PassRegistryPrinter prp;
+    registry.enumerateWith(&prp);
+    return strdup(prp.stringstream.str().c_str());
+}
+
 
 int LLVMIsLiteralStruct(LLVMTypeRef type)
 {
@@ -263,7 +317,7 @@ void unwrap_cvec(W *values, unsigned n, std::vector<const UW *>& out)
     }
 }
 
-LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef builder, 
+LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef builder,
     LLVMValueRef *values, unsigned n_values)
 {
     assert(values);
@@ -277,7 +331,7 @@ LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef builder,
     return llvm::wrap(builderp->CreateAggregateRet(&values_vec[0], values_vec.size()));
 }
 
-LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef builder, 
+LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef builder,
     LLVMValueRef value, unsigned index, const char *name)
 {
     assert(name);
@@ -380,7 +434,7 @@ LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef module, int id,
     llvm::Module *modulep = llvm::unwrap(module);
     assert(modulep);
 
-    llvm::Function *intfunc = llvm::Intrinsic::getDeclaration(modulep, 
+    llvm::Function *intfunc = llvm::Intrinsic::getDeclaration(modulep,
 				     llvm::Intrinsic::ID(id), types_vec[0]);
 
     return wrap(intfunc);
@@ -428,7 +482,7 @@ LLVMModuleRef LLVMGetModuleFromBitcode(const char *bitcode, unsigned bclen,
     return wrap(modulep);
 }
 
-unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, unsigned int mode, 
+unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, unsigned int mode,
 			 char **out)
 {
     llvm::Module *sourcep = llvm::unwrap(src);
