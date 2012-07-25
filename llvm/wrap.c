@@ -77,6 +77,7 @@ _define_std_ctor(LLVMTargetDataRef)
 _define_std_ctor(LLVMGenericValueRef)
 
 _define_std_ctor(LLVMPassManagerBuilderRef)
+_define_std_ctor(LLVMEngineBuilderRef)
 
 PyObject *ctor_int(int i)
 {

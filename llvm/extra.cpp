@@ -69,13 +69,20 @@
 #include "llvm/Linker.h"
 #include "llvm/Support/SourceMgr.h"
 
+
+
 // LLVM-C includes
 #include "llvm-c/Core.h"
 #include "llvm-c/ExecutionEngine.h"
 
 // our includes
 #include "extra.h"
+#include "llvm_c_extra.h"
 
+
+namespace llvm{
+DEFINE_SIMPLE_CONVERSION_FUNCTIONS(EngineBuilder, LLVMEngineBuilderRef)
+}
 /*
  * For use in LLVMDumpPasses to dump passes.
  */
@@ -104,6 +111,58 @@ char *do_print(W obj)
     return strdup(buf.str().c_str());
 }
 
+LLVMEngineBuilderRef LLVMCreateEngineBuilder(LLVMModuleRef mod)
+{
+    using namespace llvm;
+    return wrap(new EngineBuilder(unwrap(mod)));
+}
+
+void LLVMDisposeEngineBuilder(LLVMEngineBuilderRef eb)
+{
+    delete llvm::unwrap(eb);
+}
+
+void LLVMEngineBuilderForceJIT(LLVMEngineBuilderRef eb)
+{
+    using namespace llvm;
+    unwrap(eb)->setEngineKind(EngineKind::JIT);
+}
+
+void LLVMEngineBuilderForceInterpreter(LLVMEngineBuilderRef eb)
+{
+    using namespace llvm;
+    unwrap(eb)->setEngineKind(EngineKind::Interpreter);
+}
+
+void LLVMEngineBuilderSetOptLevel(LLVMEngineBuilderRef eb, int level)
+{
+    using namespace llvm;
+    const CodeGenOpt::Level level_map[] = {
+        CodeGenOpt::None,
+        CodeGenOpt::Less,
+        CodeGenOpt::Default,
+        CodeGenOpt::Aggressive,
+    };
+
+    unwrap(eb)->setOptLevel(level_map[level]);
+}
+
+
+LLVMExecutionEngineRef LLVMEngineBuilderCreate(LLVMEngineBuilderRef eb, char **err)
+{
+    using namespace llvm;
+    std::string errstring;
+    LLVMExecutionEngineRef ret;
+
+    ret = wrap(unwrap(eb)->setErrorStr(&errstring).create());
+
+    if ( !errstring.empty() ) {
+        *err = strdup(errstring.c_str());
+        return 0;
+    } else {
+        return ret;
+    }
+}
 
 int LLVMPassManagerBuilderGetOptLevel(LLVMPassManagerBuilderRef pmb)
 {
@@ -189,7 +248,8 @@ LLVMTypeRef LLVMStructTypeIdentified(const char * name)
     return wrap(StructType::create(getGlobalContext(), name));
 }
 
-void LLVMSetStructBody(LLVMTypeRef type, LLVMTypeRef* elemtys, unsigned elemct, int is_packed)
+void LLVMSetStructBody(LLVMTypeRef type, LLVMTypeRef* elemtys,
+                       unsigned elemct, int is_packed)
 {
     using namespace llvm;
     ArrayRef<Type*> elemtys_aryref(unwrap(elemtys), elemct);

@@ -1050,6 +1050,36 @@ _wrap_objobjint2obj(LLVMOffsetOfElement, LLVMTargetDataRef, LLVMTypeRef,
 
 
 /*===----------------------------------------------------------------------===*/
+/* Engine Builder                                                             */
+/*===----------------------------------------------------------------------===*/
+
+_wrap_obj2obj(LLVMCreateEngineBuilder, LLVMModuleRef, LLVMEngineBuilderRef)
+_wrap_obj2none(LLVMDisposeEngineBuilder, LLVMEngineBuilderRef)
+_wrap_obj2none(LLVMEngineBuilderForceJIT, LLVMEngineBuilderRef)
+_wrap_obj2none(LLVMEngineBuilderForceInterpreter, LLVMEngineBuilderRef)
+_wrap_objint2none(LLVMEngineBuilderSetOptLevel, LLVMEngineBuilderRef)
+
+static PyObject *
+_wLLVMEngineBuilderCreate(PyObject *self, PyObject *args)
+{
+    LLVMEngineBuilderRef obj;
+    if (!(obj = (LLVMEngineBuilderRef)get_object_arg(args)))
+        return NULL;
+
+    char * outmsg = 0;
+    
+    PyObject * ret;
+    ret = LLVMEngineBuilderCreate(obj, &outmsg);
+
+    if( outmsg ){ // check if error message is set.
+        ret = PyBytes_FromString(outmsg);
+        free(outmsg);
+    }
+
+    return ctor_LLVMExecutionEngineRef(ret);
+}
+
+/*===----------------------------------------------------------------------===*/
 /* Execution Engine                                                           */
 /*===----------------------------------------------------------------------===*/
 
@@ -1878,6 +1908,15 @@ static PyMethodDef core_methods[] = {
     _method( LLVMPreferredAlignmentOfGlobal )
     _method( LLVMElementAtOffset )
     _method( LLVMOffsetOfElement )
+
+    /* Engine Builder */
+
+    _method( LLVMCreateEngineBuilder )
+    _method( LLVMDisposeEngineBuilder )
+    _method( LLVMEngineBuilderForceJIT )
+    _method( LLVMEngineBuilderForceInterpreter )
+    _method( LLVMEngineBuilderSetOptLevel )
+    _method( LLVMEngineBuilderCreate )
 
     /* Execution Engine */
     _method( LLVMCreateExecutionEngine )

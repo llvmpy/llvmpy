@@ -145,7 +145,7 @@ class GenericValue(object):
         core.check_is_type(ty)
         ptr = _core.LLVMCreateGenericValueOfPointer(ty.ptr, intval)
         return GenericValue(ptr)
-                                    
+
     def __init__(self, ptr):
         self.ptr = ptr
 
@@ -171,6 +171,47 @@ def check_is_generic_value(obj): _util.check_gen(obj, GenericValue)
 def _unpack_generic_values(objlist):
     return _util.unpack_gen(objlist, check_is_generic_value)
 
+
+#===----------------------------------------------------------------------===
+# Engine builder
+#===----------------------------------------------------------------------===
+
+class EngineBuilder(object):
+    @staticmethod
+    def new(module):
+        core.check_is_module(module)
+        _util.check_is_unowned(module)
+        obj = _core.LLVMCreateEngineBuilder(module.ptr)
+        return EngineBuilder(obj, module)
+
+    def __init__(self, ptr, module):
+        self.ptr = ptr
+        self._module = module
+
+    def __del__(self):
+        _core.LLVMDisposeEngineBuilder(self.ptr)
+
+    def force_jit(self):
+        _core.LLVMEngineBuilderForceJIT(self.ptr)
+        return self
+
+    def force_interpreter(self):
+        _core.LLVMEngineBuilderForceInterpreter(self.ptr)
+        return self
+
+    def opt(self, level):
+        '''
+        level valid [0, 1, 2, 3] -- [None, Less, Default, Aggressive]
+        '''
+        assert level in range(4)
+        _core.LLVMEngineBuilderSetOptLevel(self.ptr, level)
+        return self
+
+    def create(self):
+        ret = _core.LLVMEngineBuilderCreate(self.ptr)
+        if isinstance(ret, basestring):
+            raise llvm.LLVMException(ret)
+        return ExecutionEngine(ret, self._module)
 
 #===----------------------------------------------------------------------===
 # Execution engine

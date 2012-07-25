@@ -45,10 +45,13 @@
 #include "llvm-c/Analysis.h"
 #include "llvm-c/ExecutionEngine.h"
 #include "llvm-c/Target.h"
+
 // workaround missing bool type
 #define bool int
 #include "llvm-c/Transforms/PassManagerBuilder.h"
 #undef bool
+
+#include "llvm_c_extra.h"
 
 /* Project-wide setting */
 #if PY_MAJOR_VERSION >= 3
@@ -88,8 +91,9 @@ _declare_std_ctor(LLVMExecutionEngineRef)
 _declare_std_ctor(LLVMTargetDataRef)
 _declare_std_ctor(LLVMGenericValueRef)
 
-// extra LLVM class not defined in LLVM-C
+// extra LLVM classes
 _declare_std_ctor(LLVMPassManagerBuilderRef)
+_declare_std_ctor(LLVMEngineBuilderRef)
 
 /* standard types */
 _declare_std_ctor(int)

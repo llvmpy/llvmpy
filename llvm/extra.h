@@ -39,9 +39,43 @@
 
 #include "llvm-c/Transforms/PassManagerBuilder.h"
 
+#include "llvm_c_extra.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/*
+ * Wraps new EngineBuilder
+ */
+LLVMEngineBuilderRef LLVMCreateEngineBuilder(LLVMModuleRef mod);
+
+/*
+ * Wraps delete EngineBuilder
+ */
+void LLVMDisposeEngineBuilder(LLVMEngineBuilderRef eb);
+
+
+/*
+ * Wraps EngineBuilder::setEngineKind(EngineKind::JIT)
+ */
+void LLVMEngineBuilderForceJIT(LLVMEngineBuilderRef eb);
+
+/*
+ * Wraps EngineBuilder::setEngineKind(EngineKind::Interpreter)
+ */
+void LLVMEngineBuilderForceInterpreter(LLVMEngineBuilderRef eb);
+
+
+/*
+ * Wraps EngineBuilder::setOptLevel
+ */
+void LLVMEngineBuilderSetOptLevel(LLVMEngineBuilderRef eb, int level);
+
+/*
+ * Wraps EngineBuilder::setErrorStr and EngineBuilder::create
+ */
+LLVMExecutionEngineRef LLVMEngineBuilderCreate(LLVMEngineBuilderRef eb, char **err);
 
 /*
  * Wraps PassManagerBuilder::OptLevel
