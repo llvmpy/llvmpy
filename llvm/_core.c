@@ -843,6 +843,50 @@ _wrap_obj2none(LLVMDisposeMemoryBuffer, LLVMMemoryBufferRef)
 
 
 /*===----------------------------------------------------------------------===*/
+/* Pass Manager Builder                                                       */
+/*===----------------------------------------------------------------------===*/
+
+_wrap_none2obj(LLVMPassManagerBuilderCreate, LLVMPassManagerBuilderRef)
+_wrap_obj2none(LLVMPassManagerBuilderDispose, LLVMPassManagerBuilderRef)
+
+_wrap_objint2none(LLVMPassManagerBuilderSetOptLevel, LLVMPassManagerBuilderRef)
+_wrap_obj2obj(LLVMPassManagerBuilderGetOptLevel, LLVMPassManagerBuilderRef, int)
+
+_wrap_objint2none(LLVMPassManagerBuilderSetSizeLevel, LLVMPassManagerBuilderRef)
+_wrap_obj2obj(LLVMPassManagerBuilderGetSizeLevel, LLVMPassManagerBuilderRef, int)
+
+_wrap_objint2none(LLVMPassManagerBuilderSetVectorize, LLVMPassManagerBuilderRef)
+_wrap_obj2obj(LLVMPassManagerBuilderGetVectorize, LLVMPassManagerBuilderRef, int)
+
+_wrap_objint2none(LLVMPassManagerBuilderSetDisableUnitAtATime,
+                  LLVMPassManagerBuilderRef)
+_wrap_obj2obj(LLVMPassManagerBuilderGetDisableUnitAtATime,
+              LLVMPassManagerBuilderRef, int)
+
+_wrap_objint2none(LLVMPassManagerBuilderSetDisableUnrollLoops,
+                  LLVMPassManagerBuilderRef)
+_wrap_obj2obj(LLVMPassManagerBuilderGetDisableUnrollLoops,
+              LLVMPassManagerBuilderRef, int)
+
+_wrap_objint2none(LLVMPassManagerBuilderSetDisableSimplifyLibCalls,
+                  LLVMPassManagerBuilderRef)
+_wrap_obj2obj(LLVMPassManagerBuilderGetDisableSimplifyLibCalls,
+              LLVMPassManagerBuilderRef, int)
+
+_wrap_objint2none(LLVMPassManagerBuilderUseInlinerWithThreshold,
+                  LLVMPassManagerBuilderRef)
+
+
+_wrap_objobj2none(LLVMPassManagerBuilderPopulateFunctionPassManager,
+                  LLVMPassManagerBuilderRef,
+                  LLVMPassManagerRef)
+
+_wrap_objobj2none(LLVMPassManagerBuilderPopulateModulePassManager,
+                  LLVMPassManagerBuilderRef,
+                  LLVMPassManagerRef)
+
+
+/*===----------------------------------------------------------------------===*/
 /* Pass Manager                                                               */
 /*===----------------------------------------------------------------------===*/
 
@@ -1686,6 +1730,35 @@ static PyMethodDef core_methods[] = {
     _method( LLVMCreateMemoryBufferWithContentsOfFile )
     _method( LLVMCreateMemoryBufferWithSTDIN )
     _method( LLVMDisposeMemoryBuffer )
+
+    /* Pass Manager Builder */
+
+    _method( LLVMPassManagerBuilderCreate  )
+    _method( LLVMPassManagerBuilderDispose )
+
+    _method( LLVMPassManagerBuilderSetOptLevel )
+    _method( LLVMPassManagerBuilderGetOptLevel )
+
+    _method( LLVMPassManagerBuilderSetSizeLevel )
+    _method( LLVMPassManagerBuilderGetSizeLevel )
+
+    _method( LLVMPassManagerBuilderSetVectorize )
+    _method( LLVMPassManagerBuilderGetVectorize )
+
+
+    _method( LLVMPassManagerBuilderSetDisableUnitAtATime )
+    _method( LLVMPassManagerBuilderGetDisableUnitAtATime )
+
+    _method( LLVMPassManagerBuilderSetDisableUnrollLoops )
+    _method( LLVMPassManagerBuilderGetDisableUnrollLoops )
+
+    _method( LLVMPassManagerBuilderSetDisableSimplifyLibCalls )
+    _method( LLVMPassManagerBuilderGetDisableSimplifyLibCalls )
+
+    _method( LLVMPassManagerBuilderUseInlinerWithThreshold )
+
+    _method( LLVMPassManagerBuilderPopulateFunctionPassManager )
+    _method( LLVMPassManagerBuilderPopulateModulePassManager )
 
     /* Pass Manager */
     _method( LLVMCreatePassManager )

@@ -11,7 +11,7 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- *  * Neither the name of this software, nor the names of its 
+ *  * Neither the name of this software, nor the names of its
  *    contributors may be used to endorse or promote products derived from
  *    this software without specific prior written permission.
  *
@@ -31,7 +31,7 @@
 #include "wrap.h"
 
 /* Project-wide setting */
-#if (PY_MAJOR_VERSION >= 3) 
+#if (PY_MAJOR_VERSION >= 3)
 #define LLVM_PY_USE_PYCAPSULE
 #endif
 
@@ -39,7 +39,7 @@
 /* Helper functions/macros                                                    */
 /*===----------------------------------------------------------------------===*/
 
-#ifdef LLVM_PY_USE_PYCAPSULE 
+#ifdef LLVM_PY_USE_PYCAPSULE
 
 #define _define_std_ctor(typ)                   \
 PyObject * ctor_ ## typ ( typ p)                \
@@ -76,6 +76,8 @@ _define_std_ctor(LLVMExecutionEngineRef)
 _define_std_ctor(LLVMTargetDataRef)
 _define_std_ctor(LLVMGenericValueRef)
 
+_define_std_ctor(LLVMPassManagerBuilderRef)
+
 PyObject *ctor_int(int i)
 {
     return PyLong_FromLong((long)i);
@@ -108,7 +110,7 @@ void **make_array_from_list(PyObject *list, int n)
 {
     int i;
     void **arr;
-    
+
     arr = (void **)malloc(sizeof(void *) * n);
     if (!arr)
         return NULL;
@@ -121,7 +123,7 @@ void **make_array_from_list(PyObject *list, int n)
         arr[i] = PyCObject_AsVoidPtr(e);
 #endif
     }
-    
+
     return arr;
 }
 

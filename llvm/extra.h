@@ -37,22 +37,62 @@
 #ifndef LLVM_PY_EXTRA_H
 #define LLVM_PY_EXTRA_H
 
+#include "llvm-c/Transforms/PassManagerBuilder.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/*
+ * Wraps PassManagerBuilder::OptLevel
+ */
+int LLVMPassManagerBuilderGetOptLevel(LLVMPassManagerBuilderRef pmb);
+
+/*
+ * Wraps PassManagerBuilder::SizeLevel
+ */
+int LLVMPassManagerBuilderGetSizeLevel(LLVMPassManagerBuilderRef pmb);
+
+/*
+ * Wraps PassManagerBuilder::Vectorize
+ */
+void LLVMPassManagerBuilderSetVectorize(LLVMPassManagerBuilderRef pmb, int flag);
+
+/*
+ * Wraps PassManagerBuilder::Vectorize
+ */
+int LLVMPassManagerBuilderGetVectorize(LLVMPassManagerBuilderRef pmb);
+
+/*
+ * Wraps PassManagerBuilder::DisableUnitAtATime
+ */
+int LLVMPassManagerBuilderGetDisableUnitAtATime(LLVMPassManagerBuilderRef pmb);
+
+/*
+ * Wraps PassManagerBuilder::DisableUnrollLoops
+ */
+int LLVMPassManagerBuilderGetDisableUnrollLoops(LLVMPassManagerBuilderRef pmb);
+
+/*
+ * Wraps PassManagerBuilder::DisableSimplifyLibCalls
+ */
+int LLVMPassManagerBuilderGetDisableSimplifyLibCalls(LLVMPassManagerBuilderRef pmb);
+
+/*
+ * Wraps PassManager::add
+ */
 int LLVMAddPassByName(LLVMPassManagerRef pm, const char * name);
 
 /*
  * Wraps initialize*
  */
-void LLVMInitializePasses();
+void LLVMInitializePasses(void);
 
 /*
  * Wraps PassRegistry::enumerateWith()
  * Returns a '\n' separated string of all passes available to `opt`.
  */
-const char * LLVMDumpPasses();
+const char * LLVMDumpPasses(void);
 
 /*
  * Wraps StructType::isLiteral()

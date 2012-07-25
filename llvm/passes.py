@@ -40,6 +40,89 @@ import llvm.ee as ee        # target data
 import llvm.core as core    # module, function etc.
 import llvm._core as _core  # C wrappers
 
+
+#===----------------------------------------------------------------------===
+# Pass manager builder
+#===----------------------------------------------------------------------===
+
+class PassManagerBuilder(object):
+    @staticmethod
+    def new():
+        return PassManagerBuilder(_core.LLVMPassManagerBuilderCreate())
+
+    def __init__(self, ptr):
+        self.ptr = ptr
+
+    def __del__(self):
+        _core.LLVMPassManagerBuilderDispose(self.ptr)
+
+    def populate(self, pm):
+        if isinstance(pm, FunctionPassManager):
+            return _core.LLVMPassManagerBuilderPopulateFunctionPassManager(
+                        self.ptr, pm.ptr)
+        else:
+            return _core.LLVMPassManagerBuilderPopulateModulePassManager(
+                        self.ptr, pm.ptr)
+
+
+    def _set_opt_level(self, optlevel):
+        _core.LLVMPassManagerBuilderSetOptLevel(self.ptr, optlevel)
+
+    def _get_opt_level(self):
+        return _core.LLVMPassManagerBuilderGetOptLevel(self.ptr)
+
+    opt_level = property(_get_opt_level, _set_opt_level)
+
+    def _set_size_level(self, sizelevel):
+        _core.LLVMPassManagerBuilderSetSizeLevel(self.ptr, sizelevel)
+
+    def _get_size_level(self):
+        return _core.LLVMPassManagerBuilderGetSizeLevel(self.ptr)
+
+    size_level = property(_get_size_level, _set_size_level)
+
+    def _set_vectorize(self, enable):
+        _core.LLVMPassManagerBuilderSetVectorize(self.ptr, int(bool(enable)))
+
+    def _get_vectorize(self):
+        return bool(_core.LLVMPassManagerBuilderGetVectorize(self.ptr))
+
+    vectorize = property(_get_vectorize, _set_vectorize)
+
+    def _set_disable_unit_at_a_time(self, disable):
+        return _core.LLVMPassManagerBuilderSetDisableUnitAtATime(
+                    self.ptr, disable)
+
+    def _get_disable_unit_at_a_time(self):
+        return _core.LLVMPassManagerBuilderGetDisableUnitAtATime(
+                    self.ptr)
+
+    disable_unit_at_a_time = property(_get_disable_unit_at_a_time,
+                                      _set_disable_unit_at_a_time)
+
+    def _set_disable_unroll_loops(self, disable):
+        return _core.LLVMPassManagerBuilderGetDisableUnrollLoops(
+                    self.ptr, disable)
+
+    def _get_disable_unroll_loops(self):
+        return _core.LLVMPassManagerBuilderGetDisableUnrollLoops(self.ptr)
+
+    disable_unroll_loops = property(_get_disable_unroll_loops,
+                                    _set_disable_unroll_loops)
+
+    def _set_disable_simplify_lib_calls(self, disable):
+        return _core.LLVMPassManagerBuilderGetDisableSimplifyLibCalls(
+                    self.ptr, disable)
+
+    def _get_disable_simplify_lib_calls(self):
+        return _core.LLVMPassManagerBuilderGetDisableSimplifyLibCalls(self.ptr)
+
+    disable_simplify_lib_calls = property(_get_disable_simplify_lib_calls,
+                                          _set_disable_simplify_lib_calls)
+
+    def use_inliner_with_threshold(self, threshold):
+        _core.LLVMPassManagerBuilderUseInlinerWithThreshold(self.ptr, threshold)
+
 #===----------------------------------------------------------------------===
 # Pass manager
 #===----------------------------------------------------------------------===

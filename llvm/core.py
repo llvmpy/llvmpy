@@ -620,11 +620,7 @@ class Type(object):
     @staticmethod
     def __struct(element_tys, packed, name):
         elems = unpack_types(element_tys)
-
-        if packed:
-            packed=1
-        else:
-            packed=0
+        packed = int(bool(packed))
 
         if name: # create Identified StructType
             objptr = _core.LLVMStructTypeIdentified(name)

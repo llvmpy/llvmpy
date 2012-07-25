@@ -9,11 +9,11 @@ from StringIO import StringIO
 import logging, unittest
 
 # A helper class.
-class strstream(object):
-    def __init__(self, s):
-        self.s = s
-    def read(self):
-        return self.s
+#class strstream(object):
+#    def __init__(self, s):
+#        self.s = s
+#    def read(self):
+#        return self.s
 
 # Create a module.
 asm = """
@@ -100,8 +100,71 @@ class TestPasses(unittest.TestCase):
         # Make sure test1 is modified
         self.assertNotEqual(str(fn_test1).strip(), original_test1.strip())
 
+    def test_passes_with_pmb(self):
+        m = Module.from_assembly(StringIO(asm))
+        logging.debug("-"*72)
+        logging.debug(m)
+
+        fn_test1 = m.get_function_named('test1')
+        fn_test2 = m.get_function_named('test2')
+
+        original_test1 = str(fn_test1)
+        original_test2 = str(fn_test2)
+
+        # Try out the PassManagerBuilder
+
+        pmb = PassManagerBuilder.new()
+
+        self.assertEqual(pmb.opt_level, 2)  # ensure default is level 2
+        pmb.opt_level = 3
+        self.assertEqual(pmb.opt_level, 3) # make sure it works
+
+        self.assertEqual(pmb.size_level, 0) # ensure default is level 0
+        pmb.size_level = 2
+        self.assertEqual(pmb.size_level, 2) # make sure it works
+
+        self.assertFalse(pmb.vectorize) # ensure default is False
+        pmb.vectorize = True
+        self.assertTrue(pmb.vectorize) # make sure it works
+
+        # make sure the default is False
+        self.assertFalse(pmb.disable_unit_at_a_time)
+        self.assertFalse(pmb.disable_unroll_loops)
+        self.assertFalse(pmb.disable_simplify_lib_calls)
+
+        # Do function pass
+        fpm = FunctionPassManager.new(m)
+
+        pmb.populate(fpm)
+
+        fpm.run(fn_test1)
+
+        # Print the result. Note the change in @test1.
+        logging.debug("-"*72)
+        logging.debug(m)
+
+        # Make sure test1 has changed
+        self.assertNotEqual(str(fn_test1).strip(), original_test1.strip())
+
+
+        # Do module pass
+        pm = PassManager.new()
+
+        pmb.populate(pm)
+
+        pm.run(m)
+
+        # Print the result. Note the change in @test2.
+        logging.debug("-"*72)
+        logging.debug(m)
+
+        # Make sure test2 has changed
+        self.assertNotEqual(str(fn_test2).strip(), original_test2.strip())
+
+
     def test_dump_passes(self):
         self.assertTrue(len(PASSES)>0, msg="Cannot have no passes")
+
 
 if __name__ == '__main__':
     unittest.main()

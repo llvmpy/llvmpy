@@ -76,8 +76,6 @@
 // our includes
 #include "extra.h"
 
-//using namespace llvm;
-
 /*
  * For use in LLVMDumpPasses to dump passes.
  */
@@ -105,6 +103,42 @@ char *do_print(W obj)
     p->print(buf);
     return strdup(buf.str().c_str());
 }
+
+
+int LLVMPassManagerBuilderGetOptLevel(LLVMPassManagerBuilderRef pmb)
+{
+    return llvm::unwrap(pmb)->OptLevel;
+}
+
+int LLVMPassManagerBuilderGetSizeLevel(LLVMPassManagerBuilderRef pmb)
+{
+    return llvm::unwrap(pmb)->SizeLevel;
+}
+
+void LLVMPassManagerBuilderSetVectorize(LLVMPassManagerBuilderRef pmb, int flag)
+{
+    llvm::unwrap(pmb)->Vectorize = flag;
+}
+
+int LLVMPassManagerBuilderGetVectorize(LLVMPassManagerBuilderRef pmb){
+    return llvm::unwrap(pmb)->Vectorize;
+}
+
+int LLVMPassManagerBuilderGetDisableUnitAtATime(LLVMPassManagerBuilderRef pmb)
+{
+    return llvm::unwrap(pmb)->DisableUnitAtATime;
+}
+
+int LLVMPassManagerBuilderGetDisableUnrollLoops(LLVMPassManagerBuilderRef pmb)
+{
+    return llvm::unwrap(pmb)->DisableUnrollLoops;
+}
+
+int LLVMPassManagerBuilderGetDisableSimplifyLibCalls(LLVMPassManagerBuilderRef pmb)
+{
+    return llvm::unwrap(pmb)->DisableSimplifyLibCalls;
+}
+
 
 int LLVMAddPassByName(LLVMPassManagerRef pm, const char * name)
 {
