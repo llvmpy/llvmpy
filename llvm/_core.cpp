@@ -1180,18 +1180,18 @@ _wLLVMCreateGenericValueOfFloat(PyObject *self, PyObject *args)
 static PyObject *
 _wLLVMCreateGenericValueOfPointer(PyObject *self, PyObject *args)
 {
-    PyObject *obj1;
-    LLVMTypeRef ty;
+//    PyObject *obj1;
+//    LLVMTypeRef ty; //unused?
     unsigned long long n_;
     size_t n;
     LLVMGenericValueRef gv;
 
-    if (!PyArg_ParseTuple(args, "OL", &obj1, &n_))
+    if (!PyArg_ParseTuple(args, "L", &n_))
         return NULL;
 
     n=n_;
 
-    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj1, NULL);
+//    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj1, NULL);
 
     gv = LLVMCreateGenericValueOfPointer((void*)n);
     return ctor_LLVMGenericValueRef(gv);

@@ -36,7 +36,9 @@ import llvm                 # top-level, for common stuff
 import llvm.core as core    # module, function etc.
 import llvm._core as _core  # C wrappers
 import llvm._util as _util  # utility functions
+import logging
 
+logger = logging.getLogger(__name__)
 
 #===----------------------------------------------------------------------===
 # Enumerations
@@ -141,9 +143,25 @@ class GenericValue(object):
         return GenericValue(ptr)
 
     @staticmethod
-    def pointer(ty, intval):
-        core.check_is_type(ty)
-        ptr = _core.LLVMCreateGenericValueOfPointer(ty.ptr, intval)
+    def pointer(*args):
+        '''
+        One argument version takes (addr).
+        Two argument version takes (ty, addr). [Deprecated]
+
+        `ty` is unused.
+        `addr` is an integer representing an address.
+
+        TODO: remove two argument version.
+        '''
+        if len(args)==2:
+            logger.warning("Deprecated: Two argument version of "
+                           "GenericValue.pointer() is deprecated.")
+            addr = args[1]
+        elif len(args)!=1:
+            raise TypeError("pointer() takes 1 or 2 arguments.")
+        else:
+            addr = args[0]
+        ptr = _core.LLVMCreateGenericValueOfPointer(addr)
         return GenericValue(ptr)
 
     def __init__(self, ptr):
