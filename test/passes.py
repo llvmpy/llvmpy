@@ -3,8 +3,11 @@
 from llvm.core import *
 from llvm.passes import *
 from llvm.ee import *
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
-from StringIO import StringIO
 
 import logging, unittest
 

@@ -3,7 +3,11 @@
 # Tests accessing of instruction operands.
 
 from llvm.core import *
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 import logging, unittest
 
 m = None
