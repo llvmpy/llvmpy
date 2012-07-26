@@ -1067,16 +1067,19 @@ _wLLVMEngineBuilderCreate(PyObject *self, PyObject *args)
         return NULL;
 
     char * outmsg = 0;
-    
-    PyObject * ret;
-    ret = LLVMEngineBuilderCreate(obj, &outmsg);
 
+    LLVMExecutionEngineRef ee = LLVMEngineBuilderCreate(obj, &outmsg);
+
+
+    PyObject * ret;
     if( outmsg ){ // check if error message is set.
         ret = PyBytes_FromString(outmsg);
         free(outmsg);
+    }else{
+        ret = ctor_LLVMExecutionEngineRef(ee);
     }
 
-    return ctor_LLVMExecutionEngineRef(ret);
+    return ret;
 }
 
 /*===----------------------------------------------------------------------===*/
