@@ -209,7 +209,7 @@ class EngineBuilder(object):
 
     def create(self):
         ret = _core.LLVMEngineBuilderCreate(self.ptr)
-        if isinstance(ret, basestring):
+        if isinstance(ret, str):
             raise llvm.LLVMException(ret)
         return ExecutionEngine(ret, self._module)
 

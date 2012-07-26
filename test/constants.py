@@ -193,7 +193,7 @@ class TestConstants(unittest.TestCase):
 
         # check result
         for result, golden in zip(results, values):
-            self.assertEqual(result, golden)
+            self.assertEqual(result.decode(), golden)
 
     def test_const_struct(self):
         from random import randint, random
@@ -201,7 +201,7 @@ class TestConstants(unittest.TestCase):
             (0, 0., 0.),
             (-1, -1., -1.),
             (1, 1., 1.),
-        ] + [(randint(0, 0xffffffff), random(), random()) for _ in xrange(100)]
+        ] + [(randint(0, 0xffffffff), random(), random()) for _ in range(100)]
 
         struct_type = Type.struct([Type.int(), Type.float(), Type.double()])
 
@@ -260,7 +260,7 @@ class TestConstants(unittest.TestCase):
             (0, 0, 0, 0),
             (1, 1, 1, 1),
             (-1, -1, -1, -1),
-        ] + [ (randgen(), randgen(), randgen(), randgen()) for _ in xrange(100) ]
+        ] + [ (randgen(), randgen(), randgen(), randgen()) for _ in range(100) ]
 
         def map_constant(packed_values):
             consts = [ Constant.int(Type.int(), i) for i in packed_values ]

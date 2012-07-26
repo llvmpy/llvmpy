@@ -148,17 +148,15 @@ void LLVMEngineBuilderSetOptLevel(LLVMEngineBuilderRef eb, int level)
 }
 
 
-LLVMExecutionEngineRef LLVMEngineBuilderCreate(LLVMEngineBuilderRef eb, char **err)
+LLVMExecutionEngineRef LLVMEngineBuilderCreate(LLVMEngineBuilderRef eb, std::string & error)
 {
     using namespace llvm;
-    std::string errstring;
     LLVMExecutionEngineRef ret;
 
-    ret = wrap(unwrap(eb)->setErrorStr(&errstring).create());
+    ret = wrap(unwrap(eb)->setErrorStr(&error).create());
 
-    if ( !errstring.empty() ) {
-        *err = strdup(errstring.c_str());
-        return 0;
+    if ( !error.empty() ) { // error string is set
+        return NULL;
     } else {
         return ret;
     }
@@ -534,8 +532,7 @@ LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef module, int id,
     return wrap(intfunc);
 }
 
-LLVMModuleRef LLVMGetModuleFromAssembly(const char *asmtext, unsigned txtlen,
-    char **out)
+LLVMModuleRef LLVMGetModuleFromAssembly(const char *asmtext, char **out)
 {
     assert(asmtext);
     assert(out);

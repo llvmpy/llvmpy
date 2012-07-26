@@ -348,7 +348,7 @@ class Module(llvm.Ownable, llvm.Cacheable):
         ret = _core.LLVMGetModuleFromBitcode(data)
         if not ret:
             raise llvm.LLVMException("Unable to create module from bitcode")
-        elif isinstance(ret, str):
+        elif _util.isstring(ret):
             raise llvm.LLVMException(ret)
         else:
             return Module(ret)

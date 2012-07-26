@@ -137,8 +137,18 @@ class _ObjectCache(type):
 # Cacheables
 #===----------------------------------------------------------------------===
 
-class Cacheable(object):
-    __metaclass__ = _ObjectCache
+# version 2/3 compatibility help
+#   version 2 metaclass
+#       class Cacheable(object):
+#           __metaclass__ = _ObjectCache  # Doing nothing for version 3
+#
+#   version 3 metaclass
+#       class Cacheable(metaclass=_ObjectCache):
+#
+# Reference: http://mikewatkins.ca/2008/11/29/python-2-and-3-metaclasses/#using-the-metaclass-in-python-3-x
+ObjectCache = _ObjectCache('ObjectCache', (object, ), {})
+
+class Cacheable(ObjectCache):
     """Objects that can be cached.
 
     Objects that wrap a PyCObject are cached to avoid "aliasing", i.e.,
@@ -146,5 +156,5 @@ class Cacheable(object):
     to the same C pointer."""
 
     def forget(self):
-        _ObjectCache.forget(self)
+        ObjectCache.forget(self)
 

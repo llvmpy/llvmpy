@@ -30,36 +30,18 @@
 
 #include "wrap.h"
 
-/* Project-wide setting */
-#if (PY_MAJOR_VERSION >= 3)
-#define LLVM_PY_USE_PYCAPSULE
-#endif
-
 /*===----------------------------------------------------------------------===*/
 /* Helper functions/macros                                                    */
 /*===----------------------------------------------------------------------===*/
 
-#ifdef LLVM_PY_USE_PYCAPSULE
-
 #define _define_std_ctor(typ)                   \
 PyObject * ctor_ ## typ ( typ p)                \
 {                                               \
-    if (p)                                      \
+    if (p){                                     \
         return PyCapsule_New(p, NULL, NULL);    \
+    }                                           \
     Py_RETURN_NONE;                             \
 }
-
-#else
-
-#define _define_std_ctor(typ)                   \
-PyObject * ctor_ ## typ ( typ p)                \
-{                                               \
-    if (p)                                      \
-        return PyCObject_FromVoidPtr(p, NULL);  \
-    Py_RETURN_NONE;                             \
-}
-
-#endif
 
 /*===----------------------------------------------------------------------===*/
 /* Type ctor/dtor                                                             */
@@ -100,11 +82,8 @@ void *get_object_arg(PyObject *args)
 
     if (!PyArg_ParseTuple(args, "O", &o))
         return NULL;
-#ifdef LLVM_PY_USE_PYCAPSULE
+
     return PyCapsule_GetPointer(o, NULL);
-#else
-    return PyCObject_AsVoidPtr(o);
-#endif
 }
 
 void **make_array_from_list(PyObject *list, int n)
@@ -118,11 +97,7 @@ void **make_array_from_list(PyObject *list, int n)
 
     for (i=0; i<n; i++) {
         PyObject *e = PyList_GetItem(list, i);
-#ifdef LLVM_PY_USE_PYCAPSULE
         arr[i] = PyCapsule_GetPointer(e, NULL);
-#else
-        arr[i] = PyCObject_AsVoidPtr(e);
-#endif
     }
 
     return arr;

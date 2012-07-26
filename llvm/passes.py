@@ -39,7 +39,7 @@ import llvm                 # top-level, for common stuff
 import llvm.ee as ee        # target data
 import llvm.core as core    # module, function etc.
 import llvm._core as _core  # C wrappers
-
+import llvm._util as _util  # Utility functions
 
 #===----------------------------------------------------------------------===
 # Pass manager builder
@@ -142,10 +142,10 @@ class PassManager(object):
     def add(self, tgt_data_or_pass_name):
         if isinstance(tgt_data_or_pass_name, ee.TargetData):
             self._add_target_data(tgt_data_or_pass_name)
-        elif isinstance(tgt_data_or_pass_name, basestring):
+        elif _util.isstring(tgt_data_or_pass_name):
             self._add_pass(tgt_data_or_pass_name)
         else:
-            raise llvm.LLVMException("invalid pass_id (%s)" % str(tgt_data_or_pass_name))
+            raise llvm.LLVMException("invalid pass_id (%s)" % tgt_data_or_pass_name)
 
     def _add_target_data(self, tgt):
         _core.LLVMAddTargetData(tgt.ptr, self.ptr)

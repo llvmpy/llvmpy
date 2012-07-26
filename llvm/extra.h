@@ -75,7 +75,8 @@ void LLVMEngineBuilderSetOptLevel(LLVMEngineBuilderRef eb, int level);
 /*
  * Wraps EngineBuilder::setErrorStr and EngineBuilder::create
  */
-LLVMExecutionEngineRef LLVMEngineBuilderCreate(LLVMEngineBuilderRef eb, char **err);
+LLVMExecutionEngineRef LLVMEngineBuilderCreate(LLVMEngineBuilderRef eb,
+                                               std::string &error);
 
 /*
  * Wraps PassManagerBuilder::OptLevel
@@ -272,8 +273,7 @@ unsigned LLVMCmpInstGetPredicate(LLVMValueRef cmpinst);
 /* Wraps llvm::ParseAssemblyString(). Returns a module reference or NULL (with
  * `out' pointing to an error message). Dispose error message after use, via
  * LLVMDisposeMessage(). */
-LLVMModuleRef LLVMGetModuleFromAssembly(const char *asmtxt, unsigned txten,
-    char **out);
+LLVMModuleRef LLVMGetModuleFromAssembly(const char *asmtxt, char **out);
 
 /* Wraps llvm::ParseBitcodeFile(). Returns a module reference or NULL (with
  * `out' pointing to an error message). Dispose error message after use, via

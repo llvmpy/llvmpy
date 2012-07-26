@@ -10,7 +10,7 @@ except ImportError:
 import unittest
 
 def make_module():
-    test_module = u"""
+    test_module = """
     define i32 @sum(i32, i32) {
     entry:
             %2 = add i32 %0, %1

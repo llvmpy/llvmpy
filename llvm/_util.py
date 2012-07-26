@@ -77,3 +77,22 @@ def wrapiter(first, next, container, wrapper):
         ptr = next(ptr)
     return ret
 
+
+#===----------------------------------------------------------------------===
+# Py2/3 compatibility string check
+#===----------------------------------------------------------------------===
+def _isstring_py2(x):
+    return isinstance(x, basestring)
+
+def _isstring_py3(x):
+    return isinstance(x, str)
+
+def _isstring_choose():
+    try:
+        basestring
+        return _isstring_py2
+    except:
+        return _isstring_py3
+
+isstring = _isstring_choose()
+
