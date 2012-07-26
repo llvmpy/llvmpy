@@ -95,7 +95,7 @@ def call_setup(llvm_config):
 
     ext_core = Extension(
         'llvm._core',
-        ['llvm/_core.c', 'llvm/wrap.c', 'llvm/extra.cpp'],
+        ['llvm/_core.cpp', 'llvm/wrap.cpp', 'llvm/extra.cpp'],
         define_macros = [
             ('__STDC_CONSTANT_MACROS', None),
             ('__STDC_LIMIT_MACROS', None),

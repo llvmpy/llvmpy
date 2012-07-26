@@ -1067,7 +1067,7 @@ _wLLVMEngineBuilderCreate(PyObject *self, PyObject *args)
         return NULL;
 
     char * outmsg = 0;
-
+    
     LLVMExecutionEngineRef ee = LLVMEngineBuilderCreate(obj, &outmsg);
 
 
@@ -1953,7 +1953,8 @@ static PyMethodDef core_methods[] = {
 
 
 // Module main function, hairy because of py3k port
-
+extern "C" {
+    
 #if (PY_MAJOR_VERSION >= 3)
 struct PyModuleDef module_def = {
     PyModuleDef_HEAD_INIT,
@@ -1987,3 +1988,5 @@ init_core(void)
     return module;
 #endif
 }
+
+} // end extern C
