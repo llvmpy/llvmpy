@@ -596,6 +596,7 @@ _wrap_obj2obj(LLVMInstIsArithmeticShift, LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsAssociative,  LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsCommutative,  LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsVolatile,     LLVMValueRef, int)
+_wrap_objint2none(LLVMSetVolatile,    LLVMValueRef)
 _wrap_obj2obj(LLVMInstGetOpcode,      LLVMValueRef, int)
 _wrap_obj2str(LLVMInstGetOpcodeName,  LLVMValueRef)
 
@@ -1554,6 +1555,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMInstIsAssociative )
     _method( LLVMInstIsCommutative )
     _method( LLVMInstIsVolatile )
+    _method( LLVMSetVolatile )
     _method( LLVMInstGetOpcode )
     _method( LLVMInstGetOpcodeName )
 

@@ -1458,6 +1458,9 @@ class Instruction(User):
         """True if this is a volatile load or store."""
         return _core.LLVMInstIsVolatile(self.ptr) != 0
 
+    def set_volatile(self, flag):
+        return _core.LLVMSetVolatile(self.ptr, int(bool(flag)))
+
     @property
     def opcode(self):
         return _core.LLVMInstGetOpcode(self.ptr)
@@ -1827,14 +1830,20 @@ class Builder(object):
         check_is_value(ptr)
         return _make_value(_core.LLVMBuildFree(self.ptr, ptr.ptr))
 
-    def load(self, ptr, name=""):
+    def load(self, ptr, name="", volatile=False):
         check_is_value(ptr)
-        return _make_value(_core.LLVMBuildLoad(self.ptr, ptr.ptr, name))
+        inst = _make_value(_core.LLVMBuildLoad(self.ptr, ptr.ptr, name))
+        if volatile:
+            inst.set_volatile(volatile)
+        return inst
 
-    def store(self, value, ptr):
+    def store(self, value, ptr, volatile=False):
         check_is_value(value)
         check_is_value(ptr)
-        return _make_value(_core.LLVMBuildStore(self.ptr, value.ptr, ptr.ptr))
+        inst = _make_value(_core.LLVMBuildStore(self.ptr, value.ptr, ptr.ptr))
+        if volatile:
+            inst.set_volatile(volatile)
+        return inst
 
     def gep(self, ptr, indices, name=""):
         check_is_value(ptr)
