@@ -56,13 +56,15 @@ LLVMValueRef LLVMBuildFence(LLVMBuilderRef builder, const char* ordering,
  * Wraps IRBuilder::CreateLoad, LoadInst::setAtomic
  */
 LLVMValueRef LLVMBuildAtomicLoad(LLVMBuilderRef builder, LLVMValueRef ptr,
-                                 const char* ordering, int crossthread);
+                                 unsigned align, const char* ordering,
+                                 int crossthread);
 /*
  * Wraps IRBuilder::CreateStore, StoreInst::setAtomic
  */
 LLVMValueRef LLVMBuildAtomicStore(LLVMBuilderRef builder,
                                   LLVMValueRef ptr, LLVMValueRef val,
-                                  const char* ordering, int crossthread);
+                                  unsigned align, const char* ordering,
+                                  int crossthread);
 
 /*
  * Wraps IRBuilder::CreateAtomicRMW

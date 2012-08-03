@@ -2048,23 +2048,24 @@ class Builder(object):
         return self.atomic_rmw('umin', *args, **kwargs)
 
 
-    def atomic_load(self, ptr, ordering, crossthread=True, volatile=False, name=""):
+    def atomic_load(self, ptr, ordering, align=1, crossthread=True,
+                    volatile=False, name=""):
         check_is_value(ptr)
         inst = _make_value(_core.LLVMBuildAtomicLoad(
-                                    self.ptr, ptr.ptr, ordering.lower(),
-                                    int(bool(crossthread))))
+                                    self.ptr, ptr.ptr, int(align),
+                                    ordering.lower(), int(bool(crossthread))))
         if volatile:
             inst.set_volatile(volatile)
         if inst:
             inst.name = name
         return inst
 
-    def atomic_store(self, value, ptr, ordering, crossthread=True,
+    def atomic_store(self, value, ptr, ordering, align=1, crossthread=True,
                      volatile=False):
         check_is_value(value)
         check_is_value(ptr)
         inst = _make_value(_core.LLVMBuildAtomicStore(
-                                    self.ptr, ptr.ptr, value.ptr,
+                                    self.ptr, ptr.ptr, value.ptr, int(align),
                                     ordering.lower(), int(bool(crossthread))))
         if volatile:
             inst.set_volatile(volatile)
