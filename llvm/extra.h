@@ -45,6 +45,12 @@
 extern "C" {
 #endif
 
+/*
+ * Wraps IRBuilder::CreateAtomicRMW
+ */
+LLVMValueRef LLVMBuildAtomicRMW(LLVMBuilderRef builder, const char * op,
+                                LLVMValueRef ptr, LLVMValueRef val,
+                                const char* ordering, int crossthread);
 
 /*
  * Wraps IRBuilder::CreateAtomicCmpXchg

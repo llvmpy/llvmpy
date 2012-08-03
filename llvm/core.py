@@ -2003,7 +2003,15 @@ class Builder(object):
         check_is_value(old)
         check_is_value(new)
         inst = _core.LLVMBuildAtomicCmpXchg(self.ptr, ptr.ptr, old.ptr, new.ptr,
-                                            ordering.lower(), int(bool(crossthread)))
+                                            ordering.lower(),
+                                            int(bool(crossthread)))
+        return _make_value(inst)
+
+    def atomic_rmw(self, op, ptr, val, ordering, crossthread=True):
+        check_is_value(ptr)
+        check_is_value(val)
+        inst = _core.LLVMBuildAtomicRMW(self.ptr, op.lower(), ptr.ptr, val.ptr,
+                                        ordering.lower(), int(bool(crossthread)))
         return _make_value(inst)
 
 #===----------------------------------------------------------------------===

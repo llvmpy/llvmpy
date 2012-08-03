@@ -701,6 +701,32 @@ _w ## func (PyObject *self, PyObject *args)                             \
 
 /**
  * Wrap LLVM functions of the type
+ * outtype func(intype1 arg1, const char* arg2, intype3 arg3, intype4, const char *arg5, <unsigned/signed int> arg6)
+ */
+#define _wrap_objstrobjobjstrint2obj(func, intype1, intype3, intype4, outtype)\
+static PyObject *                                                       \
+_w ## func (PyObject *self, PyObject *args)                             \
+{                                                                       \
+    PyObject *obj1, *obj3, *obj4;                                       \
+    intype1 arg1;                                                       \
+    const char *arg2;                                                   \
+    intype3 arg3;                                                       \
+    intype4 arg4;                                                       \
+    const char *arg5;                                                   \
+    int arg6;                                                           \
+                                                                        \
+    if (!PyArg_ParseTuple(args, "OsOOsi", &obj1, &arg2, &obj3, &obj4, &arg5, &arg6))   \
+        return NULL;                                                    \
+                                                                        \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                \
+    arg4 = ( intype4 ) PyCapsule_GetPointer(obj4, NULL);                \
+                                                                        \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5, arg6));     \
+}
+
+/**
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, <unsigned/signed int> arg4)
  */
 #define _wrap_objobjobjint2obj(func, intype1, intype2, intype3, outtype)    \
