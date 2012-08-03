@@ -1996,6 +1996,15 @@ class Builder(object):
             _core.LLVMBuildShuffleVector(self.ptr,
                 vecA.ptr, vecB.ptr, mask.ptr, name))
 
+    # atomics
+
+    def atomic_cmpxchg(self, ptr, old, new, ordering, crossthread=True):
+        check_is_value(ptr)
+        check_is_value(old)
+        check_is_value(new)
+        inst = _core.LLVMBuildAtomicCmpXchg(self.ptr, ptr.ptr, old.ptr, new.ptr,
+                                            ordering.lower(), int(bool(crossthread)))
+        return _make_value(inst)
 
 #===----------------------------------------------------------------------===
 # Memory buffer

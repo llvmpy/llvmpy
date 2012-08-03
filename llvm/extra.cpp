@@ -111,6 +111,45 @@ char *do_print(W obj)
     return strdup(buf.str().c_str());
 }
 
+LLVMValueRef LLVMBuildAtomicCmpXchg(LLVMBuilderRef builder, LLVMValueRef ptr,
+                               LLVMValueRef cmp, LLVMValueRef val,
+                               const char* ordering, int crossthread)
+{
+    using namespace llvm;
+
+    AtomicOrdering ordering_enum;
+
+    if ( strcmp(ordering, "unordered") == 0 )
+        ordering_enum = Unordered;
+    else if ( strcmp(ordering, "monotonic") == 0 )
+        ordering_enum = Monotonic;
+    else if ( strcmp(ordering, "acquire") == 0 )
+        ordering_enum = Acquire;
+    else if ( strcmp(ordering, "release") == 0 )
+        ordering_enum = Release;
+    else if ( strcmp(ordering, "acq_rel") == 0 )
+        ordering_enum = AcquireRelease;
+    else if ( strcmp(ordering, "seq_cst") == 0 )
+        ordering_enum = SequentiallyConsistent;
+    else
+        ordering_enum = NotAtomic;
+
+    SynchronizationScope crossthread_enum;
+    switch( crossthread ){
+    case 0:
+        crossthread_enum = SingleThread;
+        break;
+    default:
+        crossthread_enum = CrossThread;
+    }
+
+
+    Value * inst = unwrap(builder)->CreateAtomicCmpXchg(
+                                        unwrap(ptr), unwrap(cmp), unwrap(val),
+                                        ordering_enum, crossthread_enum);
+    return wrap(inst);
+}
+
 LLVMEngineBuilderRef LLVMCreateEngineBuilder(LLVMModuleRef mod)
 {
     using namespace llvm;

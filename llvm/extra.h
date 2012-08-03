@@ -45,6 +45,14 @@
 extern "C" {
 #endif
 
+
+/*
+ * Wraps IRBuilder::CreateAtomicCmpXchg
+ */
+LLVMValueRef LLVMBuildAtomicCmpXchg(LLVMBuilderRef builder, LLVMValueRef ptr,
+                                    LLVMValueRef cmp, LLVMValueRef val,
+                                    const char* ordering, int crossthread);
+
 /*
  * Wraps new EngineBuilder
  */

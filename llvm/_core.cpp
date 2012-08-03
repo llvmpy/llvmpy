@@ -740,6 +740,10 @@ _wrap_objobjobjstr2obj(LLVMBuildBitCast, LLVMBuilderRef, LLVMValueRef, LLVMTypeR
 _wrap_objenumobjobjstr2obj(LLVMBuildICmp, LLVMBuilderRef, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objenumobjobjstr2obj(LLVMBuildFCmp, LLVMBuilderRef, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 
+
+/* Atomics */
+_wrap_objobjobjobjstrint2obj(LLVMBuildAtomicCmpXchg, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+
 /* Miscellaneous instructions */
 
 _wrap_objobjintstr2obj(LLVMBuildGetResult, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
@@ -1646,6 +1650,9 @@ static PyMethodDef core_methods[] = {
     /* Comparisons */
     _method( LLVMBuildICmp )
     _method( LLVMBuildFCmp )
+
+    /* Atomics */
+    _method( LLVMBuildAtomicCmpXchg )
 
     /* Miscellaneous instructions */
     _method( LLVMBuildGetResult )
