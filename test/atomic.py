@@ -62,6 +62,7 @@ class TestAtomic(unittest.TestCase):
             inst = bldr.atomic_rmw('xchg', ptr, val, ordering)
             self.assertEqual(ordering, str(inst).split(' ')[-1])
 
+
         for op in test_these_atomic_op:
             inst = bldr.atomic_rmw(op, ptr, val, ordering)
             self.assertEqual(op, str(inst).strip().split(' ')[3])
@@ -69,6 +70,11 @@ class TestAtomic(unittest.TestCase):
         inst = bldr.atomic_rmw('xchg', ptr, val, ordering, crossthread=False)
         self.assertEqual('singlethread', str(inst).strip().split(' ')[-2])
 
+
+        for op in test_these_atomic_op:
+            atomic_op = getattr(bldr, 'atomic_%s' % op)
+            inst = atomic_op(ptr, val, ordering)
+            self.assertEqual(op, str(inst).strip().split(' ')[3])
 
 if __name__ == '__main__':
     unittest.main()

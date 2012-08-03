@@ -2014,6 +2014,40 @@ class Builder(object):
                                         ordering.lower(), int(bool(crossthread)))
         return _make_value(inst)
 
+    def atomic_xchg(self, *args, **kwargs):
+        return self.atomic_rmw('xchg', *args, **kwargs)
+
+    def atomic_add(self, *args, **kwargs):
+        return self.atomic_rmw('add', *args, **kwargs)
+
+    def atomic_sub(self, *args, **kwargs):
+        return self.atomic_rmw('sub', *args, **kwargs)
+
+    def atomic_and(self, *args, **kwargs):
+        return self.atomic_rmw('and', *args, **kwargs)
+
+    def atomic_nand(self, *args, **kwargs):
+        return self.atomic_rmw('nand', *args, **kwargs)
+
+    def atomic_or(self, *args, **kwargs):
+        return self.atomic_rmw('or', *args, **kwargs)
+
+    def atomic_xor(self, *args, **kwargs):
+        return self.atomic_rmw('xor', *args, **kwargs)
+
+    def atomic_max(self, *args, **kwargs):
+        return self.atomic_rmw('max', *args, **kwargs)
+
+    def atomic_min(self, *args, **kwargs):
+        return self.atomic_rmw('min', *args, **kwargs)
+
+    def atomic_umax(self, *args, **kwargs):
+        return self.atomic_rmw('umax', *args, **kwargs)
+
+    def atomic_umin(self, *args, **kwargs):
+        return self.atomic_rmw('umin', *args, **kwargs)
+
+
 #===----------------------------------------------------------------------===
 # Memory buffer
 #===----------------------------------------------------------------------===
