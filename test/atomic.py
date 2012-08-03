@@ -76,5 +76,25 @@ class TestAtomic(unittest.TestCase):
             inst = atomic_op(ptr, val, ordering)
             self.assertEqual(op, str(inst).strip().split(' ')[3])
 
+    def test_atomic_ldst(self):
+        mod = Module.new('mod')
+        functype = Type.function(Type.void(), [])
+        func = mod.add_function(functype, name='foo')
+        bb = func.append_basic_block('entry')
+        bldr = Builder.new(bb)
+        ptr = bldr.alloca(Type.int())
+
+        val = Constant.int(Type.int(), 1234)
+
+        for ordering in test_these_orderings:
+            loaded = bldr.atomic_load(ptr, ordering)
+            self.assertIn('load atomic', str(loaded))
+            self.assertEqual(ordering, str(loaded).strip().split(' ')[-1])
+            stored = bldr.atomic_store(loaded, ptr, ordering)
+            self.assertIn('store atomic', str(stored))
+            self.assertEqual(ordering, str(stored).strip().split(' ')[-1])
+
 if __name__ == '__main__':
     unittest.main()
+
+

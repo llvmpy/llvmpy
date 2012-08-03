@@ -181,6 +181,35 @@ LLVMValueRef LLVMBuildAtomicRMW(LLVMBuilderRef builder, const char * opname,
     return wrap(inst);
 }
 
+LLVMValueRef LLVMBuildAtomicLoad(LLVMBuilderRef builder, LLVMValueRef ptr,
+                                 const char* ordering, int crossthread)
+{
+    using namespace llvm;
+    AtomicOrdering atomic_order = atomic_ordering_from_string(ordering);
+    SynchronizationScope sync_scope = sync_scope_from_int(crossthread);
+
+    LoadInst * inst = unwrap(builder)->CreateLoad(unwrap(ptr));
+
+    inst->setAtomic(atomic_order, sync_scope);
+
+    return wrap(inst);
+}
+
+LLVMValueRef LLVMBuildAtomicStore(LLVMBuilderRef builder,
+                                  LLVMValueRef ptr, LLVMValueRef val,
+                                  const char* ordering, int crossthread)
+{
+    using namespace llvm;
+    AtomicOrdering atomic_order = atomic_ordering_from_string(ordering);
+    SynchronizationScope sync_scope = sync_scope_from_int(crossthread);
+
+    StoreInst * inst = unwrap(builder)->CreateStore(unwrap(val), unwrap(ptr));
+
+    inst->setAtomic(atomic_order, sync_scope);
+
+    return wrap(inst);
+}
+
 LLVMValueRef LLVMBuildAtomicCmpXchg(LLVMBuilderRef builder, LLVMValueRef ptr,
                                LLVMValueRef cmp, LLVMValueRef val,
                                const char* ordering, int crossthread)

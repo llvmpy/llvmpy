@@ -45,6 +45,19 @@
 extern "C" {
 #endif
 
+
+/*
+ * Wraps IRBuilder::CreateLoad, setAtomic
+ */
+LLVMValueRef LLVMBuildAtomicLoad(LLVMBuilderRef builder, LLVMValueRef ptr,
+                                 const char* ordering, int crossthread);
+/*
+ * Wraps IRBuilder::CreateStore, setAtomic
+ */
+LLVMValueRef LLVMBuildAtomicStore(LLVMBuilderRef builder,
+                                  LLVMValueRef ptr, LLVMValueRef val,
+                                  const char* ordering, int crossthread);
+
 /*
  * Wraps IRBuilder::CreateAtomicRMW
  */
