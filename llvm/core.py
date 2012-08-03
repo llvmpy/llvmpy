@@ -2070,6 +2070,11 @@ class Builder(object):
             inst.set_volatile(volatile)
         return inst
 
+    def fence(self, ordering, crossthread=True):
+        inst = _make_value(_core.LLVMBuildFence(self.ptr, ordering.lower(),
+                                                int(bool(crossthread))))
+        return inst
+
 #===----------------------------------------------------------------------===
 # Memory buffer
 #===----------------------------------------------------------------------===

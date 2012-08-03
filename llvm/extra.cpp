@@ -140,6 +140,17 @@ llvm::SynchronizationScope sync_scope_from_int(int crossthread)
         return llvm::SingleThread;
 }
 
+LLVMValueRef LLVMBuildFence(LLVMBuilderRef builder, const char* ordering,
+                            int crossthread)
+{
+    using namespace llvm;
+    AtomicOrdering atomic_order = atomic_ordering_from_string(ordering);
+    SynchronizationScope sync_scope = sync_scope_from_int(crossthread);
+
+    Value * inst = unwrap(builder)->CreateFence(atomic_order, sync_scope);
+    return wrap(inst);
+}
+
 LLVMValueRef LLVMBuildAtomicRMW(LLVMBuilderRef builder, const char * opname,
                                 LLVMValueRef ptr, LLVMValueRef val,
                                 const char* ordering, int crossthread)

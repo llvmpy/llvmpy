@@ -694,6 +694,29 @@ _w ## func (PyObject *self, PyObject *args)                             \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));           \
 }
 
+
+/**
+ * Wrap LLVM functions of the type
+ * outtype func(intype1 arg1, const char *arg2, <unsigned/signed int> arg3)
+ */
+#define _wrap_objstrint2obj(func, intype1, outtype)\
+static PyObject *                                                       \
+_w ## func (PyObject *self, PyObject *args)                             \
+{                                                                       \
+    PyObject *obj1;                                                     \
+    intype1 arg1;                                                       \
+    const char *arg2;                                                   \
+    int arg3;                                                           \
+                                                                        \
+    if (!PyArg_ParseTuple(args, "Osi", &obj1, &arg2, &arg3))    \
+        return NULL;                                                    \
+                                                                        \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
+                                                                        \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3));     \
+}
+
+
 /**
  * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3, const char *arg4, <unsigned/signed int> arg5)

@@ -90,9 +90,14 @@ class TestAtomic(unittest.TestCase):
             loaded = bldr.atomic_load(ptr, ordering)
             self.assertIn('load atomic', str(loaded))
             self.assertEqual(ordering, str(loaded).strip().split(' ')[-1])
+
             stored = bldr.atomic_store(loaded, ptr, ordering)
             self.assertIn('store atomic', str(stored))
             self.assertEqual(ordering, str(stored).strip().split(' ')[-1])
+
+            fenced = bldr.fence(ordering)
+            self.assertEqual(['fence', ordering], str(fenced).strip().split(' '))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -47,12 +47,18 @@ extern "C" {
 
 
 /*
- * Wraps IRBuilder::CreateLoad, setAtomic
+ * Wraps IRBuilder::CreateFence
+ */
+LLVMValueRef LLVMBuildFence(LLVMBuilderRef builder, const char* ordering,
+                            int crossthread);
+
+/*
+ * Wraps IRBuilder::CreateLoad, LoadInst::setAtomic
  */
 LLVMValueRef LLVMBuildAtomicLoad(LLVMBuilderRef builder, LLVMValueRef ptr,
                                  const char* ordering, int crossthread);
 /*
- * Wraps IRBuilder::CreateStore, setAtomic
+ * Wraps IRBuilder::CreateStore, StoreInst::setAtomic
  */
 LLVMValueRef LLVMBuildAtomicStore(LLVMBuilderRef builder,
                                   LLVMValueRef ptr, LLVMValueRef val,
