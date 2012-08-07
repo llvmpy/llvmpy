@@ -610,7 +610,7 @@ def do_functionpassmanager():
     b.ret(Constant.int(ti, 42))
     fpm = FunctionPassManager.new(m)
     fpm.add(TargetData.new(''))
-    fpm.add(PASS_AGGRESSIVE_DCE)
+    fpm.add(PASS_ADCE)
     fpm.initialize()
     fpm.run(f)
     fpm.finalize()
