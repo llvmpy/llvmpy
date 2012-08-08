@@ -21,7 +21,7 @@ class TestUses(unittest.TestCase):
         logging.debug(m)
         logging.debug("-"*60)
 
-        logging.debug("Testing use count ..", end=' ')
+        logging.debug("Testing use count ..")
         self.assertEqual(f.args[0].use_count, 1)
         self.assertEqual(f.args[1].use_count, 1)
         self.assertEqual(f.args[2].use_count, 1)
@@ -29,7 +29,7 @@ class TestUses(unittest.TestCase):
         self.assertEqual(tmp2.use_count, 0)
         self.assertEqual(tmp3.use_count, 1)
 
-        logging.debug("Testing uses ..", end=' ')
+        logging.debug("Testing uses ..")
         self.assertIs(f.args[0].uses[0], tmp1)
         self.assertEqual(len(f.args[0].uses), 1)
         self.assertIs(f.args[1].uses[0], tmp2)

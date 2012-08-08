@@ -110,6 +110,135 @@ char *do_print(W obj)
     p->print(buf);
     return strdup(buf.str().c_str());
 }
+static
+llvm::AtomicOrdering atomic_ordering_from_string(const char * ordering)
+{
+    using namespace llvm;
+
+    if ( strcmp(ordering, "unordered") == 0 )
+        return Unordered;
+    else if ( strcmp(ordering, "monotonic") == 0 )
+        return Monotonic;
+    else if ( strcmp(ordering, "acquire") == 0 )
+        return Acquire;
+    else if ( strcmp(ordering, "release") == 0 )
+        return Release;
+    else if ( strcmp(ordering, "acq_rel") == 0 )
+        return AcquireRelease;
+    else if ( strcmp(ordering, "seq_cst") == 0 )
+        return SequentiallyConsistent;
+    else
+        return NotAtomic;
+}
+
+static
+llvm::SynchronizationScope sync_scope_from_int(int crossthread)
+{
+    if( crossthread )
+        return llvm::CrossThread;
+    else
+        return llvm::SingleThread;
+}
+
+LLVMValueRef LLVMBuildFence(LLVMBuilderRef builder, const char* ordering,
+                            int crossthread)
+{
+    using namespace llvm;
+    AtomicOrdering atomic_order = atomic_ordering_from_string(ordering);
+    SynchronizationScope sync_scope = sync_scope_from_int(crossthread);
+
+    Value * inst = unwrap(builder)->CreateFence(atomic_order, sync_scope);
+    return wrap(inst);
+}
+
+LLVMValueRef LLVMBuildAtomicRMW(LLVMBuilderRef builder, const char * opname,
+                                LLVMValueRef ptr, LLVMValueRef val,
+                                const char* ordering, int crossthread)
+{
+    using namespace llvm;
+
+    AtomicRMWInst::BinOp op;
+
+    if( strcmp(opname, "xchg") == 0 )
+        op = AtomicRMWInst::Xchg;
+    else if( strcmp(opname, "add") == 0 )
+        op = AtomicRMWInst::Add;
+    else if( strcmp(opname, "sub") == 0 )
+        op = AtomicRMWInst::Sub;
+    else if( strcmp(opname, "and") == 0 )
+        op = AtomicRMWInst::And;
+    else if( strcmp(opname, "nand") == 0 )
+        op = AtomicRMWInst::Nand;
+    else if( strcmp(opname, "or") == 0 )
+        op = AtomicRMWInst::Or;
+    else if( strcmp(opname, "xor") == 0 )
+        op = AtomicRMWInst::Xor;
+    else if( strcmp(opname, "max") == 0 )
+        op = AtomicRMWInst::Max;
+    else if( strcmp(opname, "min") == 0 )
+        op = AtomicRMWInst::Min;
+    else if( strcmp(opname, "umax") == 0 )
+        op = AtomicRMWInst::UMax;
+    else if( strcmp(opname, "umin") == 0 )
+        op = AtomicRMWInst::UMin;
+    else
+        op = AtomicRMWInst::BAD_BINOP;
+
+    AtomicOrdering atomic_order = atomic_ordering_from_string(ordering);
+    SynchronizationScope sync_scope = sync_scope_from_int(crossthread);
+
+    Value * inst = unwrap(builder)->CreateAtomicRMW(op, unwrap(ptr), unwrap(val),
+                                                    atomic_order, sync_scope);
+    return wrap(inst);
+}
+
+LLVMValueRef LLVMBuildAtomicLoad(LLVMBuilderRef builder, LLVMValueRef ptr,
+                                 unsigned align, const char* ordering,
+                                 int crossthread)
+{
+    using namespace llvm;
+    AtomicOrdering atomic_order = atomic_ordering_from_string(ordering);
+    SynchronizationScope sync_scope = sync_scope_from_int(crossthread);
+
+    LoadInst * inst = unwrap(builder)->CreateLoad(unwrap(ptr));
+
+    inst->setAtomic(atomic_order, sync_scope);
+    inst->setAlignment(align);
+
+    return wrap(inst);
+}
+
+LLVMValueRef LLVMBuildAtomicStore(LLVMBuilderRef builder,
+                                  LLVMValueRef ptr, LLVMValueRef val,
+                                  unsigned align, const char* ordering,
+                                  int crossthread)
+{
+    using namespace llvm;
+    AtomicOrdering atomic_order = atomic_ordering_from_string(ordering);
+    SynchronizationScope sync_scope = sync_scope_from_int(crossthread);
+
+    StoreInst * inst = unwrap(builder)->CreateStore(unwrap(val), unwrap(ptr));
+
+    inst->setAtomic(atomic_order, sync_scope);
+    inst->setAlignment(align);
+
+    return wrap(inst);
+}
+
+LLVMValueRef LLVMBuildAtomicCmpXchg(LLVMBuilderRef builder, LLVMValueRef ptr,
+                               LLVMValueRef cmp, LLVMValueRef val,
+                               const char* ordering, int crossthread)
+{
+    using namespace llvm;
+
+    AtomicOrdering atomic_order = atomic_ordering_from_string(ordering);
+    SynchronizationScope sync_scope = sync_scope_from_int(crossthread);
+
+    Value * inst = unwrap(builder)->CreateAtomicCmpXchg(
+                                        unwrap(ptr), unwrap(cmp), unwrap(val),
+                                        atomic_order, sync_scope);
+    return wrap(inst);
+}
 
 LLVMEngineBuilderRef LLVMCreateEngineBuilder(LLVMModuleRef mod)
 {

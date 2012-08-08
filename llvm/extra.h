@@ -45,6 +45,41 @@
 extern "C" {
 #endif
 
+
+/*
+ * Wraps IRBuilder::CreateFence
+ */
+LLVMValueRef LLVMBuildFence(LLVMBuilderRef builder, const char* ordering,
+                            int crossthread);
+
+/*
+ * Wraps IRBuilder::CreateLoad, LoadInst::setAtomic
+ */
+LLVMValueRef LLVMBuildAtomicLoad(LLVMBuilderRef builder, LLVMValueRef ptr,
+                                 unsigned align, const char* ordering,
+                                 int crossthread);
+/*
+ * Wraps IRBuilder::CreateStore, StoreInst::setAtomic
+ */
+LLVMValueRef LLVMBuildAtomicStore(LLVMBuilderRef builder,
+                                  LLVMValueRef ptr, LLVMValueRef val,
+                                  unsigned align, const char* ordering,
+                                  int crossthread);
+
+/*
+ * Wraps IRBuilder::CreateAtomicRMW
+ */
+LLVMValueRef LLVMBuildAtomicRMW(LLVMBuilderRef builder, const char * op,
+                                LLVMValueRef ptr, LLVMValueRef val,
+                                const char* ordering, int crossthread);
+
+/*
+ * Wraps IRBuilder::CreateAtomicCmpXchg
+ */
+LLVMValueRef LLVMBuildAtomicCmpXchg(LLVMBuilderRef builder, LLVMValueRef ptr,
+                                    LLVMValueRef cmp, LLVMValueRef val,
+                                    const char* ordering, int crossthread);
+
 /*
  * Wraps new EngineBuilder
  */

@@ -596,6 +596,7 @@ _wrap_obj2obj(LLVMInstIsArithmeticShift, LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsAssociative,  LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsCommutative,  LLVMValueRef, int)
 _wrap_obj2obj(LLVMInstIsVolatile,     LLVMValueRef, int)
+_wrap_objint2none(LLVMSetVolatile,    LLVMValueRef)
 _wrap_obj2obj(LLVMInstGetOpcode,      LLVMValueRef, int)
 _wrap_obj2str(LLVMInstGetOpcodeName,  LLVMValueRef)
 
@@ -738,6 +739,14 @@ _wrap_objobjobjstr2obj(LLVMBuildBitCast, LLVMBuilderRef, LLVMValueRef, LLVMTypeR
 
 _wrap_objenumobjobjstr2obj(LLVMBuildICmp, LLVMBuilderRef, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objenumobjobjstr2obj(LLVMBuildFCmp, LLVMBuilderRef, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+
+
+/* Atomics */
+_wrap_objobjobjobjstrint2obj(LLVMBuildAtomicCmpXchg, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objstrobjobjstrint2obj(LLVMBuildAtomicRMW, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objobjintstrint2obj(LLVMBuildAtomicLoad, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
+_wrap_objobjobjintstrint2obj(LLVMBuildAtomicStore, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objstrint2obj(LLVMBuildFence, LLVMBuilderRef, LLVMValueRef)
 
 /* Miscellaneous instructions */
 
@@ -1554,6 +1563,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMInstIsAssociative )
     _method( LLVMInstIsCommutative )
     _method( LLVMInstIsVolatile )
+    _method( LLVMSetVolatile )
     _method( LLVMInstGetOpcode )
     _method( LLVMInstGetOpcodeName )
 
@@ -1644,6 +1654,13 @@ static PyMethodDef core_methods[] = {
     /* Comparisons */
     _method( LLVMBuildICmp )
     _method( LLVMBuildFCmp )
+
+    /* Atomics */
+    _method( LLVMBuildAtomicCmpXchg )
+    _method( LLVMBuildAtomicRMW )
+    _method( LLVMBuildAtomicLoad )
+    _method( LLVMBuildAtomicStore )
+    _method( LLVMBuildFence )
 
     /* Miscellaneous instructions */
     _method( LLVMBuildGetResult )

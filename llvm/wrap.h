@@ -673,6 +673,185 @@ _w ## func (PyObject *self, PyObject *args)                             \
 
 /**
  * Wrap LLVM functions of the type
+ * outtype func(intype1 arg1, intype2 arg2, const char *arg3, <unsigned/signed int> arg4)
+ */
+#define _wrap_objobjstrint2obj(func, intype1, intype2, outtype)\
+static PyObject *                                                       \
+_w ## func (PyObject *self, PyObject *args)                             \
+{                                                                       \
+    PyObject *obj1, *obj2;                                              \
+    intype1 arg1;                                                       \
+    intype2 arg2;                                                       \
+    const char *arg3;                                                   \
+    int arg4;                                                           \
+                                                                        \
+    if (!PyArg_ParseTuple(args, "OOsi", &obj1, &obj2, &arg3, &arg4))    \
+        return NULL;                                                    \
+                                                                        \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                \
+                                                                        \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));           \
+}
+
+
+
+/**
+ * Wrap LLVM functions of the type
+ * outtype func(intype1 arg1, intype2 arg2, <unsigned/signed int> arg3, const char *arg4, <unsigned/signed int> arg5)
+ */
+#define _wrap_objobjintstrint2obj(func, intype1, intype2, outtype)\
+static PyObject *                                                       \
+_w ## func (PyObject *self, PyObject *args)                             \
+{                                                                       \
+    PyObject *obj1, *obj2;                                              \
+    intype1 arg1;                                                       \
+    intype2 arg2;                                                       \
+    int arg3;                                                           \
+    const char *arg4;                                                   \
+    int arg5;                                                           \
+                                                                        \
+    if (!PyArg_ParseTuple(args, "OOisi", &obj1, &obj2, &arg3, &arg4, &arg5))    \
+        return NULL;                                                    \
+                                                                        \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                \
+                                                                        \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5));           \
+}
+
+/**
+ * Wrap LLVM functions of the type
+ * outtype func(intype1 arg1, const char *arg2, <unsigned/signed int> arg3)
+ */
+#define _wrap_objstrint2obj(func, intype1, outtype)\
+static PyObject *                                                       \
+_w ## func (PyObject *self, PyObject *args)                             \
+{                                                                       \
+    PyObject *obj1;                                                     \
+    intype1 arg1;                                                       \
+    const char *arg2;                                                   \
+    int arg3;                                                           \
+                                                                        \
+    if (!PyArg_ParseTuple(args, "Osi", &obj1, &arg2, &arg3))    \
+        return NULL;                                                    \
+                                                                        \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
+                                                                        \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3));     \
+}
+
+
+/**
+ * Wrap LLVM functions of the type
+ * outtype func(intype1 arg1, intype2 arg2, intype3, const char *arg4, <unsigned/signed int> arg5)
+ */
+#define _wrap_objobjobjstrint2obj(func, intype1, intype2, intype3, outtype)\
+static PyObject *                                                       \
+_w ## func (PyObject *self, PyObject *args)                             \
+{                                                                       \
+    PyObject *obj1, *obj2, *obj3;                                       \
+    intype1 arg1;                                                       \
+    intype2 arg2;                                                       \
+    intype3 arg3;                                                       \
+    const char *arg4;                                                   \
+    int arg5;                                                           \
+                                                                        \
+    if (!PyArg_ParseTuple(args, "OOOsi", &obj1, &obj2, &obj3, &arg4, &arg5))    \
+        return NULL;                                                    \
+                                                                        \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                \
+                                                                        \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5));     \
+}
+
+
+
+
+/**
+ * Wrap LLVM functions of the type
+ * outtype func(intype1 arg1, intype2 arg2, intype3, <unsigned/signed int> arg4, const char *arg5, <unsigned/signed int> arg6)
+ */
+#define _wrap_objobjobjintstrint2obj(func, intype1, intype2, intype3, outtype)\
+static PyObject *                                                       \
+_w ## func (PyObject *self, PyObject *args)                             \
+{                                                                       \
+    PyObject *obj1, *obj2, *obj3;                                       \
+    intype1 arg1;                                                       \
+    intype2 arg2;                                                       \
+    intype3 arg3;                                                       \
+    int arg4;                                                           \
+    const char *arg5;                                                   \
+    int arg6;                                                           \
+                                                                        \
+    if (!PyArg_ParseTuple(args, "OOOisi", &obj1, &obj2, &obj3, &arg4, &arg5, &arg6))    \
+        return NULL;                                                    \
+                                                                        \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                \
+                                                                        \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5, arg6));     \
+}
+
+/**
+ * Wrap LLVM functions of the type
+ * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, intype4, const char *arg5, <unsigned/signed int> arg6)
+ */
+#define _wrap_objobjobjobjstrint2obj(func, intype1, intype2, intype3, intype4, outtype)\
+static PyObject *                                                       \
+_w ## func (PyObject *self, PyObject *args)                             \
+{                                                                       \
+    PyObject *obj1, *obj2, *obj3, *obj4;                                \
+    intype1 arg1;                                                       \
+    intype2 arg2;                                                       \
+    intype3 arg3;                                                       \
+    intype4 arg4;                                                       \
+    const char *arg5;                                                   \
+    int arg6;                                                           \
+                                                                        \
+    if (!PyArg_ParseTuple(args, "OOOOsi", &obj1, &obj2, &obj3, &obj4, &arg5, &arg6))   \
+        return NULL;                                                    \
+                                                                        \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
+    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                \
+    arg4 = ( intype4 ) PyCapsule_GetPointer(obj4, NULL);                \
+                                                                        \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5, arg6));     \
+}
+
+
+/**
+ * Wrap LLVM functions of the type
+ * outtype func(intype1 arg1, const char* arg2, intype3 arg3, intype4, const char *arg5, <unsigned/signed int> arg6)
+ */
+#define _wrap_objstrobjobjstrint2obj(func, intype1, intype3, intype4, outtype)\
+static PyObject *                                                       \
+_w ## func (PyObject *self, PyObject *args)                             \
+{                                                                       \
+    PyObject *obj1, *obj3, *obj4;                                       \
+    intype1 arg1;                                                       \
+    const char *arg2;                                                   \
+    intype3 arg3;                                                       \
+    intype4 arg4;                                                       \
+    const char *arg5;                                                   \
+    int arg6;                                                           \
+                                                                        \
+    if (!PyArg_ParseTuple(args, "OsOOsi", &obj1, &arg2, &obj3, &obj4, &arg5, &arg6))   \
+        return NULL;                                                    \
+                                                                        \
+    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
+    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                \
+    arg4 = ( intype4 ) PyCapsule_GetPointer(obj4, NULL);                \
+                                                                        \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5, arg6));     \
+}
+
+/**
+ * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, <unsigned/signed int> arg4)
  */
 #define _wrap_objobjobjint2obj(func, intype1, intype2, intype3, outtype)    \

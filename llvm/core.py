@@ -1458,6 +1458,9 @@ class Instruction(User):
         """True if this is a volatile load or store."""
         return _core.LLVMInstIsVolatile(self.ptr) != 0
 
+    def set_volatile(self, flag):
+        return _core.LLVMSetVolatile(self.ptr, int(bool(flag)))
+
     @property
     def opcode(self):
         return _core.LLVMInstGetOpcode(self.ptr)
@@ -1827,14 +1830,20 @@ class Builder(object):
         check_is_value(ptr)
         return _make_value(_core.LLVMBuildFree(self.ptr, ptr.ptr))
 
-    def load(self, ptr, name=""):
+    def load(self, ptr, name="", volatile=False):
         check_is_value(ptr)
-        return _make_value(_core.LLVMBuildLoad(self.ptr, ptr.ptr, name))
+        inst = _make_value(_core.LLVMBuildLoad(self.ptr, ptr.ptr, name))
+        if volatile:
+            inst.set_volatile(volatile)
+        return inst
 
-    def store(self, value, ptr):
+    def store(self, value, ptr, volatile=False):
         check_is_value(value)
         check_is_value(ptr)
-        return _make_value(_core.LLVMBuildStore(self.ptr, value.ptr, ptr.ptr))
+        inst = _make_value(_core.LLVMBuildStore(self.ptr, value.ptr, ptr.ptr))
+        if volatile:
+            inst.set_volatile(volatile)
+        return inst
 
     def gep(self, ptr, indices, name=""):
         check_is_value(ptr)
@@ -1987,6 +1996,85 @@ class Builder(object):
             _core.LLVMBuildShuffleVector(self.ptr,
                 vecA.ptr, vecB.ptr, mask.ptr, name))
 
+    # atomics
+
+    def atomic_cmpxchg(self, ptr, old, new, ordering, crossthread=True):
+        check_is_value(ptr)
+        check_is_value(old)
+        check_is_value(new)
+        inst = _core.LLVMBuildAtomicCmpXchg(self.ptr, ptr.ptr, old.ptr, new.ptr,
+                                            ordering.lower(),
+                                            int(bool(crossthread)))
+        return _make_value(inst)
+
+    def atomic_rmw(self, op, ptr, val, ordering, crossthread=True):
+        check_is_value(ptr)
+        check_is_value(val)
+        inst = _core.LLVMBuildAtomicRMW(self.ptr, op.lower(), ptr.ptr, val.ptr,
+                                        ordering.lower(), int(bool(crossthread)))
+        return _make_value(inst)
+
+    def atomic_xchg(self, *args, **kwargs):
+        return self.atomic_rmw('xchg', *args, **kwargs)
+
+    def atomic_add(self, *args, **kwargs):
+        return self.atomic_rmw('add', *args, **kwargs)
+
+    def atomic_sub(self, *args, **kwargs):
+        return self.atomic_rmw('sub', *args, **kwargs)
+
+    def atomic_and(self, *args, **kwargs):
+        return self.atomic_rmw('and', *args, **kwargs)
+
+    def atomic_nand(self, *args, **kwargs):
+        return self.atomic_rmw('nand', *args, **kwargs)
+
+    def atomic_or(self, *args, **kwargs):
+        return self.atomic_rmw('or', *args, **kwargs)
+
+    def atomic_xor(self, *args, **kwargs):
+        return self.atomic_rmw('xor', *args, **kwargs)
+
+    def atomic_max(self, *args, **kwargs):
+        return self.atomic_rmw('max', *args, **kwargs)
+
+    def atomic_min(self, *args, **kwargs):
+        return self.atomic_rmw('min', *args, **kwargs)
+
+    def atomic_umax(self, *args, **kwargs):
+        return self.atomic_rmw('umax', *args, **kwargs)
+
+    def atomic_umin(self, *args, **kwargs):
+        return self.atomic_rmw('umin', *args, **kwargs)
+
+
+    def atomic_load(self, ptr, ordering, align=1, crossthread=True,
+                    volatile=False, name=""):
+        check_is_value(ptr)
+        inst = _make_value(_core.LLVMBuildAtomicLoad(
+                                    self.ptr, ptr.ptr, int(align),
+                                    ordering.lower(), int(bool(crossthread))))
+        if volatile:
+            inst.set_volatile(volatile)
+        if inst:
+            inst.name = name
+        return inst
+
+    def atomic_store(self, value, ptr, ordering, align=1, crossthread=True,
+                     volatile=False):
+        check_is_value(value)
+        check_is_value(ptr)
+        inst = _make_value(_core.LLVMBuildAtomicStore(
+                                    self.ptr, ptr.ptr, value.ptr, int(align),
+                                    ordering.lower(), int(bool(crossthread))))
+        if volatile:
+            inst.set_volatile(volatile)
+        return inst
+
+    def fence(self, ordering, crossthread=True):
+        inst = _make_value(_core.LLVMBuildFence(self.ptr, ordering.lower(),
+                                                int(bool(crossthread))))
+        return inst
 
 #===----------------------------------------------------------------------===
 # Memory buffer
