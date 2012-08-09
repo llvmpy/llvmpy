@@ -52,6 +52,10 @@
 //#include "llvm/TypeSymbolTable.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/CallSite.h"
+#include "llvm/Support/FormattedStream.h"
+#include "llvm/Target/TargetData.h"
+#include "llvm/Support/TargetSelect.h"
+
 #include "llvm/IntrinsicInst.h"
 #include "llvm/Analysis/Verifier.h"
 #include "llvm/Assembly/Parser.h"
@@ -68,8 +72,6 @@
 #include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Linker.h"
 #include "llvm/Support/SourceMgr.h"
-
-
 
 // LLVM-C includes
 #include "llvm-c/Core.h"
@@ -110,6 +112,72 @@ char *do_print(W obj)
     p->print(buf);
     return strdup(buf.str().c_str());
 }
+
+unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
+                                           unsigned * lenp)
+{
+    using namespace llvm;
+    assert(lenp);
+
+    InitializeNativeTargetAsmPrinter();
+
+    Module *modulep = unwrap(module);
+    assert(modulep);
+
+    // get objectcode into a string
+    std::string s;
+    raw_string_ostream buf(s);
+
+    formatted_raw_ostream fso(buf);
+
+    TargetMachine * tm = EngineBuilder(modulep).selectTarget();
+
+    PassManager pm;
+
+    if (!tm->getTargetData()){
+        printf("No target data in target machine");
+        return NULL;
+    }
+
+    //printf("%s\n", modulep->getDataLayout().c_str());
+
+    pm.add(new TargetData(*tm->getTargetData()));
+
+    bool failed;
+    if( assembly ) {
+        failed = tm->addPassesToEmitFile(pm, fso, TargetMachine::CGFT_AssemblyFile);
+    } else {
+        failed = tm->addPassesToEmitFile(pm, fso, TargetMachine::CGFT_ObjectFile);
+    }
+
+    if ( failed ) {
+        printf("No support\n");
+        printf("%s\n", tm->getTargetData()->getStringRepresentation().c_str());
+        return NULL;
+    }
+
+    pm.run(*modulep);
+
+    // flush all streams
+    fso.flush();
+    buf.flush();
+
+    const std::string& bc = buf.str();
+
+    // and then into a new buffer
+    size_t bclen = bc.size();
+    unsigned char *bytes = new unsigned char[bclen];
+    if (!bytes){
+        return NULL;
+    }
+    memcpy(bytes, bc.data(), bclen);
+
+    /* return */
+    *lenp = bclen;
+    return bytes;
+}
+
+
 static
 llvm::AtomicOrdering atomic_ordering_from_string(const char * ordering)
 {
@@ -352,7 +420,6 @@ void LLVMInitializePasses(){
     initializeInstrumentation(registry);
     initializeTarget(registry);
 }
-
 
 const char * LLVMDumpPasses()
 {
