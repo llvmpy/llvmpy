@@ -1,22 +1,9 @@
-+------------------------------------+
-| layout: page                       |
-+------------------------------------+
-| title: "Kaleidoscope: Chapter 4"   |
-+------------------------------------+
-
-Adding JIT and Optimizer Support
-================================
+*************************************************
+Chapter 4: Adding JIT and Optimizer Support
+*************************************************
 
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
-
-**Chapter 4**
-
--  This will become a table of contents (this text will be scraped).
-   {:toc}
-
-**`Chapter 5: Extending the Language: Control
-Flow <PythonLangImpl5.html>`_**
 
 Introduction # {#intro}
 =======================

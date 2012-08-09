@@ -10,6 +10,7 @@ Contents:
 
 .. toctree::
    :titlesonly:
+   :maxdepth: 2
 
    doc/userguide.rst
    doc/examples.rst

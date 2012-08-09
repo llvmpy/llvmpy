@@ -1,21 +1,9 @@
-+------------------------------------+
-| layout: page                       |
-+------------------------------------+
-| title: "Kaleidoscope: Chapter 2"   |
-+------------------------------------+
-
-Implementing a Parser and AST
-=============================
+***************************************************
+Chapter 2: Implementing a Parser and AST
+***************************************************
 
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
-
-**Chapter 2**
-
--  This will become a table of contents (this text will be scraped).
-   {:toc}
-
-**`Chapter 3: Code generation to LLVM IR <PythonLangImpl3.html>`_**
 
 Introduction # {#intro}
 =======================

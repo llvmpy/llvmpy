@@ -1,22 +1,9 @@
-+------------------------------------+
-| layout: page                       |
-+------------------------------------+
-| title: "Kaleidoscope: Chapter 3"   |
-+------------------------------------+
-
-Code generation to LLVM IR
-==========================
+*******************************************
+Chapter 3: Code generation to LLVM IR
+*******************************************
 
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
-
-**Chapter 3**
-
--  This will become a table of contents (this text will be scraped).
-   {:toc}
-
-**`Chapter 4: Adding JIT and Optimizer
-Support <PythonLangImpl4.html>`_**
 
 Introduction # {#intro}
 =======================
@@ -32,7 +19,7 @@ and parser than it is to generate LLVM IR code. :)
 **Please note**: the code in this chapter and later requires llvmpy 0.6
 and LLVM 2.7. Earlier versions will most likely not work with it. Also
 note that you need to use a version of this tutorial that matches your
-llvmpy release: If you are using an official llvm-py release, use the
+llvmpy release: If you are using an official llvmpy release, use the
 version of the documentation on the `llvmpy examples
 page <http://www.mdevan.org/llvmpy/examples.html>`_
 

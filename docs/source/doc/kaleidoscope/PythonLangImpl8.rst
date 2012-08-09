@@ -1,18 +1,9 @@
-+------------------------------------+
-| layout: page                       |
-+------------------------------------+
-| title: "Kaleidoscope: Chapter 8"   |
-+------------------------------------+
-
-Conclusion and other useful LLVM tidbits
-========================================
+*****************************************************************
+Chapter 8: Conclusion and other useful LLVM tidbits
+*****************************************************************
 
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_
 
-**Chapter 8**
-
--  This will become a table of contents (this text will be scraped).
-   {:toc}
 
 Tutorial Conclusion # {#conclusion}
 ===================================

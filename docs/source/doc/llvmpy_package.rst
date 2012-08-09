@@ -1,8 +1,6 @@
-+------------------------------+
-| layout: page                 |
-+------------------------------+
-| title: The llvmpy Package   |
-+------------------------------+
+***********************
+The llvmpy Package 
+***********************
 
 The llvmpy is a Python package, consisting of 6 modules, that wrap over
 enough LLVM APIs to allow the implementation of your own compiler/VM

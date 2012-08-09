@@ -1,24 +1,12 @@
-+------------------------------------+
-| layout: page                       |
-+------------------------------------+
-| title: "Kaleidoscope: Chapter 1"   |
-+------------------------------------+
-
-Tutorial Introduction and the Lexer
-===================================
+*************************************************
+Chapter 1: Tutorial Introduction and the Lexer
+*************************************************
 
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
-**Chapter 1**
-
--  This will become a table of contents (this text will be scraped).
-   {:toc}
-
-`**Chapter 2: Implementing a Parser and AST** <PythonLangImpl2.html>`_
-
 Introduction
-============
+=========
 
 Welcome to the "Implementing a language with LLVM" tutorial. This
 tutorial runs through the implementation of a simple language, showing

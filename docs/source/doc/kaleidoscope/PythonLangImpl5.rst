@@ -1,22 +1,9 @@
-+------------------------------------+
-| layout: page                       |
-+------------------------------------+
-| title: "Kaleidoscope: Chapter 5"   |
-+------------------------------------+
-
-Extending the Language: Control Flow
-====================================
+*****************************************************
+Chapter 5: Extending the Language: Control Flow
+*****************************************************
 
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
-
-**Chapter 5**
-
--  This will become a table of contents (this text will be scraped).
-   {:toc}
-
-**`Chapter 6: Extending the Language: User-defined
-Operators <PythonLangImpl6.html>`_**
 
 Introduction # {#intro}
 =======================

@@ -1,22 +1,9 @@
-+------------------------------------+
-| layout: page                       |
-+------------------------------------+
-| title: "Kaleidoscope: Chapter 6"   |
-+------------------------------------+
-
-Extending the Language: User-defined Operators
-==============================================
+**********************************************************************
+Chapter 6: Extending the Language: User-defined Operators
+**********************************************************************
 
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
-
-**Chapter 6**
-
--  This will become a table of contents (this text will be scraped).
-   {:toc}
-
-**`Chapter 7: Extending the Language: Mutable Variables / SSA
-Construction <PythonLangImpl7.html>`_**
 
 Introduction # {#intro}
 =======================

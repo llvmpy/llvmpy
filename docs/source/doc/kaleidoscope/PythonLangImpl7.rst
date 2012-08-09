@@ -1,22 +1,9 @@
-+------------------------------------+
-| layout: page                       |
-+------------------------------------+
-| title: "Kaleidoscope: Chapter 7"   |
-+------------------------------------+
-
-Extending the Language: Mutable Variables / SSA construction
-============================================================
+*******************************************************************************
+Chapter 7: Extending the Language: Mutable Variables / SSA construction
+*******************************************************************************
 
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
-
-**Chapter 7**
-
--  This will become a table of contents (this text will be scraped).
-   {:toc}
-
-**`Chapter 8: Conclusion and other useful LLVM
-tidbits <PythonLangImpl8.html>`_**
 
 Introduction # {#intro}
 =======================
