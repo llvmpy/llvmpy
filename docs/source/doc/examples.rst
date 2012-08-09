@@ -23,7 +23,7 @@ Here's how it looks like:
 
 {% highlight python %} #!/usr/bin/env python
 
-Import the llvm-py modules.
+Import the llvmpy modules.
 ===========================
 
 from llvm import \* from llvm.core import \*
@@ -55,7 +55,7 @@ ty\_func = Type.function(ty\_int, [ty\_int, ty\_int])
 Now we need a function named 'sum' of this type. Functions are not
 ==================================================================
 
-free-standing (in llvm-py); it needs to be contained in a module.
+free-standing (in llvmpy); it needs to be contained in a module.
 =================================================================
 
 f\_sum = my\_module.add\_function(ty\_func, "sum")
@@ -118,7 +118,7 @@ Let's compile this function in-memory and run it.
 
 {% highlight python %} #!/usr/bin/env python
 
-Import the llvm-py modules.
+Import the llvmpy modules.
 ===========================
 
 from llvm import \* from llvm.core import \* from llvm.ee import \* #
@@ -183,7 +183,7 @@ Kaleidoscope ## {#kaleidoscope}
 Implementing a Language with LLVM
 
 The LLVM `Kaleidoscope <http://www.llvm.org/docs/tutorial/>`_ tutorial
-has been ported to llvm-py by Max Shawabkeh.
+has been ported to llvmpy by Max Shawabkeh.
 
 1. `Tutorial Introduction and the
    Lexer <kaleidoscope/PythonLangImpl1.html>`_

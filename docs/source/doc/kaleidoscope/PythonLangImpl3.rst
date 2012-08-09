@@ -29,12 +29,12 @@ will teach you a little bit about how LLVM does things, as well as
 demonstrate how easy it is to use. It's much more work to build a lexer
 and parser than it is to generate LLVM IR code. :)
 
-**Please note**: the code in this chapter and later requires llvm-py 0.6
+**Please note**: the code in this chapter and later requires llvmpy 0.6
 and LLVM 2.7. Earlier versions will most likely not work with it. Also
 note that you need to use a version of this tutorial that matches your
-llvm-py release: If you are using an official llvm-py release, use the
-version of the documentation on the `llvm-py examples
-page <http://www.mdevan.org/llvm-py/examples.html>`_
+llvmpy release: If you are using an official llvm-py release, use the
+version of the documentation on the `llvmpy examples
+page <http://www.mdevan.org/llvmpy/examples.html>`_
 
 --------------
 
@@ -128,7 +128,7 @@ First we'll do numeric literals:
 {% highlight python %} def CodeGen(self): return
 Constant.real(Type.double(), self.value) {% endhighlight %}
 
-In llvm-py, floating point numeric constants are represented with the
+In llvmpy, floating point numeric constants are represented with the
 ``llvm.core.ConstantFP`` class. To create one, we can use the static
 ``real()`` method in the ``llvm.core.Constant`` class. This code
 basically just creates and returns a ``ConstantFP``. Note that in the
@@ -514,7 +514,7 @@ Full Code Listing # {#code}
 ===========================
 
 Here is the complete code listing for our running example, enhanced with
-the LLVM code generator. Because this uses the llvm-py libraries, you
+the LLVM code generator. Because this uses the llvmpy libraries, you
 need to `download <../download.html>`_ and
 `install <../userguide.html#install>`_ them.
 

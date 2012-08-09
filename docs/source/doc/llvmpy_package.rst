@@ -1,10 +1,10 @@
 +------------------------------+
 | layout: page                 |
 +------------------------------+
-| title: The llvm-py Package   |
+| title: The llvmpy Package   |
 +------------------------------+
 
-The llvm-py is a Python package, consisting of 6 modules, that wrap over
+The llvmpy is a Python package, consisting of 6 modules, that wrap over
 enough LLVM APIs to allow the implementation of your own compiler/VM
 backend in pure Python. If you're come this far, you probably know why
 this is a good idea.
@@ -80,7 +80,7 @@ A note on the importing of these modules
 
 Pythonically, modules are imported with the statement
 ``import llvm.core``. However, you might find it more convenient to
-import llvm-py modules thus:
+import llvmpy modules thus:
 
 {% highlight python %} from llvm import \* from llvm.core import \* from
 llvm.ee import \* from llvm.passes import \* {% endhighlight %}
@@ -90,7 +90,7 @@ This avoids quite some typing. Both conventions work, however.
     **Tip**
 
     Python-style documentation strings (``__doc__``) are present in
-    llvm-py. You can use the ``help()`` of the interactive Python
+    llvmpy. You can use the ``help()`` of the interactive Python
     interpreter or the ``object?`` of
     `IPython <http://ipython.scipy.org/moin/>`_ to get online help.
     (Note: not complete yet!)

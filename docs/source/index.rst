@@ -3,21 +3,16 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Documenation for llvmpy
+Documentation for llvmpy
 =================
 
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :titlesonly:
 
    doc/userguide.rst
-   doc/llvmpy_package.rst
-   doc/llvm_concepts.rst
-   doc/types.rst
-   doc/examples/JITTutorial1.rst
-   doc/examples/JITTutorial2.rst
-   doc/kaleidoscope/PythonLangImpl1.rst
+   doc/examples.rst
 
 
 Indices and tables

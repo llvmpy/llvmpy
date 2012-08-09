@@ -18,11 +18,11 @@ create a module
 my\_module = Module.new('my\_module') {% endhighlight %}
 
 The constructor of the Module class should *not* be used to instantiate
-a Module object. This is a common feature for all llvm-py classes.
+a Module object. This is a common feature for all llvmpy classes.
 
     **Convention**
 
-    *All* llvm-py objects are instantiated using static methods of
+    *All* llvmpy objects are instantiated using static methods of
     corresponding classes. Constructors *should not* be used.
 
     The argument ``my_module`` is a module identifier (a plain string).
@@ -225,7 +225,7 @@ compares the resultant strings.
 
     **Convention**
 
-    *All* llvm-py objects (where it makes sense), when stringified,
+    *All* llvmpy objects (where it makes sense), when stringified,
     return the LLVM assembly representation. ``print module_obj`` for
     example, prints the LLVM assembly form of the entire module.
 

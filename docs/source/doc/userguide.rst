@@ -1,10 +1,8 @@
-+---------------------+
-| layout: page        |
-+---------------------+
-| title: User Guide   |
-+---------------------+
+************
+User Guide 
+************
 
-llvm-py provides Python bindings for LLVM. This document explains how
+llvmpy provides Python bindings for LLVM. This document explains how
 you can setup and use it. A working knowledge of Python and a basic idea
 of LLVM is assumed.
 
@@ -26,31 +24,31 @@ Together with `clang <http://clang.llvm.org/>`_ or
 means to quickly instrument C and C++ sources. For e.g., llvm-gcc can be
 used to generate the LLVM assembly for a given C source file, which can
 then be loaded and manipulated (adding profiling code to every function,
-say) using a llvm-py based Python script.
+say) using a llvmpy based Python script.
 
 License
 -------
 
-Both LLVM and llvm-py are distributed under (different) permissive open
-source licenses. llvm-py uses the `new BSD
+Both LLVM and llvmpy are distributed under (different) permissive open
+source licenses. llvmpy uses the `new BSD
 license <http://opensource.org/licenses/bsd-license.php>`_. More
 information is available
-`here <https://github.com/numba/llvm-py/blob/master/LICENSE>`_.
+`here <https://github.com/numba/llvmpy/blob/master/LICENSE>`_.
 
 Platforms
 ---------
 
-llvm-py has been built/tested/reported to work on various GNU/Linux
+llvmpy has been built/tested/reported to work on various GNU/Linux
 flavours, BSD, Mac OS X; on i386 and amd64 architectures. Windows is not
 supported, for a variety of reasons.
 
 Versions
 --------
 
-llvm-py 0.8.2 requires version 3.1 of LLVM. It may not work with
+llvmpy 0.8.2 requires version 3.1 of LLVM. It may not work with
 previous versions.
 
-llvm-py has been built and tested with Python 2.7. It should work with
+llvmpy has been built and tested with Python 2.7. It should work with
 earlier versions. It has not been tried with Python 3.x (patches
 welcome).
 
@@ -59,7 +57,7 @@ welcome).
 Installation
 ============
 
-The Git repo of llvm-py is at https://github.com/numba/llvm-py.git.
+The Git repo of llvmpy is at https://github.com/numba/llvmpy.git.
 You'll need to build and install it before it can be used. At least the
 following will be required for this:
 
@@ -73,14 +71,14 @@ command ``sudo apt-get install gcc g++ python python-dev``. Ensure that
 your distro's repository has the appropriate version of LLVM!
 
 It does not matter which compiler LLVM itself was built with (``g++``,
-``llvm-g++`` or any other); llvm-py can be built with any compiler. It
+``llvm-g++`` or any other); llvmpy can be built with any compiler. It
 has been tried only with gcc/g++ though.
 
 LLVM and ``--enable-pic``
 -------------------------
 
 The result of an LLVM build is a set of static libraries and object
-files. The llvm-py contains an extension package that is built into a
+files. The llvmpy contains an extension package that is built into a
 shared object (\_core.so) which links to these static libraries and
 object files. It is therefore required that the LLVM libraries and
 object files be built with the ``-fPIC`` option (generate position
@@ -93,14 +91,14 @@ configuring LLVM (default is no PIC), like this:
 llvm-config
 -----------
 
-In order to build llvm-py, it's build script needs to know from where it
+In order to build llvmpy, it's build script needs to know from where it
 can invoke the llvm helper program, ``llvm-config``. If you've installed
 LLVM, then this will be available in your ``PATH``, and nothing further
 needs to be done. If you've built LLVM yourself, or for any reason
 ``llvm-config`` is not in your ``PATH``, you'll need to pass the full
 path of ``llvm-config`` to the build script.
 
-You'll need to be 'root' to install llvm-py. Remember that your ``PATH``
+You'll need to be 'root' to install llvmpy. Remember that your ``PATH``
 is different from that of 'root', so even if ``llvm-config`` is in your
 ``PATH``, it may not be available when you do ``sudo``.
 
@@ -110,10 +108,10 @@ Steps
 Get 3.1 version of LLVM, build it. Make sure '--enable-pic' is passed to
 LLVM's 'configure'.
 
-Get llvm-py and install it:
+Get llvmpy and install it:
 
-{% highlight bash %} $ git clone git@github.com:numba/llvm-py.git $ cd
-llvm-py $ python setup.py install {% endhighlight %}
+{% highlight bash %} $ git clone git@github.com:numba/llvmpy.git $ cd
+llvmpy $ python setup.py install {% endhighlight %}
 
 If you need to tell the build script where ``llvm-config`` is, do it
 this way:
@@ -122,7 +120,7 @@ this way:
 --llvm-config=/home/mdevan/llvm/Release/bin/llvm-config {% endhighlight
 %}
 
-To build a debug version of llvm-py, that links against the debug
+To build a debug version of llvmpy, that links against the debug
 libraries of LLVM, use this:
 
 {% highlight bash %} $ python setup.py build -g
@@ -144,7 +142,7 @@ information on such scripts.
 Uninstall # {#uninstall}
 ========================
 
-If you'd installed llvm-py with the ``--user`` option, then llvm-py
+If you'd installed llvmpy with the ``--user`` option, then llvmpy
 would be present under ``~/.local/lib/python2.7/site-packages``.
 Otherwise, it might be under ``/usr/lib/python2.7/site-packages`` or
 ``/usr/local/lib/python2.7/site-packages``. The directory would vary

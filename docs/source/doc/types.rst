@@ -6,7 +6,7 @@
 
 Types are what you think they are. A instance of
 `llvm.core.Type <llvm.core.Type.html>`_, or one of its derived classes,
-represent a type. llvm-py does not use as many classes to represent
+represent a type. llvmpy does not use as many classes to represent
 types as does LLVM itself. Some types are represented using
 `llvm.core.Type <llvm.core.Type.html>`_ itself and the rest are
 represented using derived classes of

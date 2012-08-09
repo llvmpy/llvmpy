@@ -329,7 +329,7 @@ Now we can load this library into the Python process using
 to produce simple output to the console:
 
 {% highlight python %} >>> import llvm.core >>>
-llvm.core.load\_library\_permanently('/home/max/llvm-py-tutorial/putchard.so')
+llvm.core.load\_library\_permanently('/home/max/llvmpy-tutorial/putchard.so')
 >>> import kaleidoscope >>> kaleidoscope.main() ready> extern
 putchard(x) Read an extern: declare double @putchard(double)
 

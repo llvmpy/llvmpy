@@ -163,7 +163,7 @@ There is an LLVM binary called
 `opt <http://www.llvm.org/cmds/opt.html>`_, which lets you run passes on
 bitcode files from the command line. You can write your own passes (in
 C/C++, as a shared library). This can be loaded and executed by +opt+.
-(Although llvm-py does not allow you to write your own passes, it does
+(Although llvmpy does not allow you to write your own passes, it does
 allow you to navigate the entire IR at any stage, and perform any
 transforms on it as you like.)
 
@@ -211,4 +211,4 @@ multiple modules.
 
 --------------
 
-**Next** -- `llvm-py Package <./llvm-py_package.html>`_
+**Next** -- `llvmpy Package <./llvm-py_package.html>`_

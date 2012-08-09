@@ -72,11 +72,11 @@ constants in ``llvm.core``. These are:
 There are also target-specific intrinsics (which correspond to that
 target's CPU instructions) available, but are omitted here for brevity.
 Full list can be seen from
-[*intrinsic\_ids.py](https://github.com/numba/llvm-py/blob/master/llvm/*\ intrinsic\_ids.py).
+[*intrinsic\_ids.py](https://github.com/numba/llvmpy/blob/master/llvm/*\ intrinsic\_ids.py).
 See the `LLVM Language
 Reference <http://www.llvm.org/docs/LangRef.html>`_ for more information
 on the intrinsics, and the
-`test <https://github.com/numba/llvm-py/blob/master/test/intrinsic.py>`_
+`test <https://github.com/numba/llvmpy/blob/master/test/intrinsic.py>`_
 directory in the source distribution for more examples. The intrinsic ID
 can be retrieved from a function object with the read-only property
 ``intrinsic_id``.
@@ -84,7 +84,7 @@ can be retrieved from a function object with the read-only property
     **Auto-generation of Intrinsic IDs**
 
     A script (tool/intrgen.py in source tree) generates the intrinsic
-    IDs automatically. This is necessary when compiling llvm-py with a
+    IDs automatically. This is necessary when compiling llvmpy with a
     different version of LLVM.
 
 Calling Convention # {#callconv}

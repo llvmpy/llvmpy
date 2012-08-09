@@ -27,7 +27,7 @@ using ``operands`` property from the
 
 The name of the instruction (like ``add``, ``mul`` etc) can be got via
 the ``opcode_name`` property. The ``basic_block`` property gives the
-basic block to which the instruction belongs to. Note that llvm-py does
+basic block to which the instruction belongs to. Note that llvmpy does
 not allow free-standing instruction objects (i.e., all instructions are
 created contained within a basic block).
 
