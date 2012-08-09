@@ -516,6 +516,16 @@ class Module(llvm.Ownable, llvm.Cacheable):
 
     id = property(_get_id, _set_id)
 
+    def to_native_object(self):
+        '''returns byte string of the module as native object code
+        '''
+        return _core.LLVMGetNativeCodeFromModule(self.ptr, 0)
+
+    def to_native_assembly(self):
+        '''returns byte string of the module as native assembly code
+        '''
+        return _core.LLVMGetNativeCodeFromModule(self.ptr, 1)
+
 #===----------------------------------------------------------------------===
 # Types
 #===----------------------------------------------------------------------===
@@ -2125,4 +2135,13 @@ def load_library_permanently(filename):
 def inline_function(call):
     check_is_value(call)
     return _core.LLVMInlineFunction(call.ptr)
+
+
+
+#===----------------------------------------------------------------------===
+# Initialization
+#===----------------------------------------------------------------------===
+if _core.LLVMInitializeNativeTarget():
+    raise llvm.LLVMException("No native target!?")
+
 
