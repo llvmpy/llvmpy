@@ -1,0 +1,131 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>&lt;no title&gt; &mdash; llvmpy 0.8.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="llvmpy 0.8.2 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="../index.html">llvmpy 0.8.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <table border="1" class="docutils">
+<colgroup>
+<col width="100%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>layout: page</td>
+</tr>
+<tr class="row-even"><td>title: GlobalVariable (llvm.core)</td>
+</tr>
+</tbody>
+</table>
+<p>Global variables (<tt class="docutils literal"><span class="pre">llvm.core.GlobalVariable</span></tt>) are subclasses of
+<a class="reference external" href="llvm.core.GlobalValue.html">llvm.core.GlobalValue</a> and represent
+module-level variables. These can have optional initializers and can be
+marked as constants. Global variables can be created either by using the
+<tt class="docutils literal"><span class="pre">add_global_variable</span></tt> method of the <a class="reference external" href="llvm.core.Module.html">Module</a>
+class, or by using the static method <tt class="docutils literal"><span class="pre">GlobalVariable.new</span></tt>.</p>
+<div class="highlight-python"><pre># create a global variable using
+add_global_variable method gv1 =
+module_obj.add_global_variable(Type.int(), "gv1")
+
+# or equivalently, using a static constructor method
+gv2 = GlobalVariable.new(module_obj, Type.int(), "gv2") {% endhighlight
+%}
+
+Existing global variables of a module can be accessed by name using
+``module_obj.get_global_variable_named(name)`` or
+``GlobalVariable.get``. All existing global variables can be enumerated
+via iterating over the property ``module_obj.global_variables``.
+
+{% highlight python %} # retrieve a reference to the global variable
+gv1, # using the get_global_variable_named method gv1 =
+module_obj.get_global_variable_named("gv1")
+
+# or equivalently, using the static ``get`` method:
+gv2 = GlobalVariable.get(module_obj, "gv2")
+
+# list all global variables in a module
+for gv in module_obj.global_variables: print gv.name, "of type",
+gv.type</pre>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/doc/llvm.core.GlobalVariable.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="../index.html">llvmpy 0.8.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mahadevan R (2008-2010), Continuum Analytics (2012).
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>
