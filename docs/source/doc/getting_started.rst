@@ -107,6 +107,5 @@ Get llvmpy and install it:
 
 .. code-block:: bash
 
-   $ git clone git@github.com:numba/llvmpy.git
-   $ cd llvmpy
-   $ python setup.py install
+   $ git clone git@github.com:numba/llvmpy.git $ cd
+   llvmpy $ python setup.py install
