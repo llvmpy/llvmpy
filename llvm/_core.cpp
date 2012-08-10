@@ -185,6 +185,30 @@ _wLLVMGetBitcodeFromModule(PyObject *self, PyObject *args)
 }
 
 static PyObject *
+_wLLVMGetNativeCodeFromModule(PyObject * self, PyObject * args)
+{
+    PyObject * ret;
+    unsigned len;
+    unsigned char * bytes;
+    LLVMModuleRef m;
+
+    PyObject * arg_m;
+    int arg_use_asm;
+
+    if (!PyArg_ParseTuple(args, "Oi", &arg_m, &arg_use_asm))
+        return NULL;
+
+    m = (LLVMModuleRef) PyCapsule_GetPointer(arg_m, NULL);
+
+    if ( !(bytes = LLVMGetNativeCodeFromModule(m, arg_use_asm, &len)) )
+        Py_RETURN_NONE;
+
+    ret = PyBytes_FromStringAndSize((char *)bytes, (Py_ssize_t)len);
+    delete [] bytes;
+    return ret;
+}
+
+static PyObject *
 _wLLVMLinkModules(PyObject *self, PyObject *args)
 {
     PyObject *dest_obj, *src_obj, *ret;
@@ -873,6 +897,8 @@ _wLLVMInitializePasses(PyObject * self, PyObject * args)
     Py_RETURN_NONE;
 }
 
+_wrap_none2obj(LLVMInitializeNativeTarget, int)
+
 
 /*===----------------------------------------------------------------------===*/
 /* Passes                                                                     */
@@ -1335,6 +1361,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMGetModuleFromAssembly )
     _method( LLVMGetModuleFromBitcode )
     _method( LLVMGetBitcodeFromModule )
+    _method( LLVMGetNativeCodeFromModule )
     _method( LLVMModuleGetPointerSize )
     _method( LLVMModuleGetOrInsertFunction )
     _method( LLVMLinkModules )
@@ -1717,6 +1744,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMDumpPasses )
     _method( LLVMAddPassByName )
     _method( LLVMInitializePasses )
+    _method( LLVMInitializeNativeTarget )
 
     /* Passes */
 

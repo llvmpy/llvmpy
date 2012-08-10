@@ -45,6 +45,11 @@
 extern "C" {
 #endif
 
+/*
+ * Wraps TargetMachine::addPassesToEmitFile
+ */
+unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
+                                           unsigned * lenp);
 
 /*
  * Wraps IRBuilder::CreateFence
