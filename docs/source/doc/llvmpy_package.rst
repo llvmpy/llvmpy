@@ -80,15 +80,8 @@ Pythonically, modules are imported with the statement
 ``import llvm.core``. However, you might find it more convenient to
 import llvmpy modules thus:
 
-{% highlight python %} from llvm import \* from llvm.core import \* from
-llvm.ee import \* from llvm.passes import \* {% endhighlight %}
 
-This avoids quite some typing. Both conventions work, however.
+.. code-block:: python
 
-    **Tip**
-
-    Python-style documentation strings (``__doc__``) are present in
-    llvmpy. You can use the ``help()`` of the interactive Python
-    interpreter or the ``object?`` of
-    `IPython <http://ipython.scipy.org/moin/>`_ to get online help.
-    (Note: not complete yet!)
+   from llvm import \* from llvm.core import \* from
+   llvm.ee import \* from llvm.passes import \*

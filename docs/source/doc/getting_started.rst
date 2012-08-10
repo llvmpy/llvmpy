@@ -78,8 +78,9 @@ object files be built with the ``-fPIC`` option (generate position
 independent code). Be sure to use the ``--enable-pic`` option while
 configuring LLVM (default is no PIC), like this:
 
-{% highlight bash %} ~/llvm$ ./configure --enable-pic --enable-optimized
-{% endhighlight %}
+.. code-block:: bash
+  
+   $ ~/llvm ./configure --enable-pic --enable-optimized
 
 llvm-config
 -----------
@@ -103,51 +104,8 @@ LLVM's 'configure'.
 
 Get llvmpy and install it:
 
-{% highlight bash %} $ git clone git@github.com:numba/llvmpy.git $ cd
-llvmpy $ python setup.py install {% endhighlight %}
 
-If you need to tell the build script where ``llvm-config`` is, do it
-this way:
+.. code-block:: bash
 
-{% highlight bash %} $ python setup.py install --user
---llvm-config=/home/mdevan/llvm/Release/bin/llvm-config {% endhighlight
-%}
-
-To build a debug version of llvmpy, that links against the debug
-libraries of LLVM, use this:
-
-{% highlight bash %} $ python setup.py build -g
---llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config $ python setup.py
-install --user --llvm-config=/home/mdevan/llvm/Debug/bin/llvm-config {%
-endhighlight %}
-
-Be warned that debug binaries will be huge (100MB+) ! They are required
-only if you need to debug into LLVM also.
-
-``setup.py`` is a standard Python distutils script. See the Python
-documentation regarding `Installing Python
-Modules <http://docs.python.org/inst/inst.html>`_ and `Distributing
-Python Modules <http://docs.python.org/dist/dist.html>`_ for more
-information on such scripts.
-
-
-Uninstall 
-==============
-
-If you'd installed llvmpy with the ``--user`` option, then llvmpy
-would be present under ``~/.local/lib/python2.7/site-packages``.
-Otherwise, it might be under ``/usr/lib/python2.7/site-packages`` or
-``/usr/local/lib/python2.7/site-packages``. The directory would vary
-with your Python version and OS flavour. Look around.
-
-Once you've located the site-packages directory, the modules and the
-"egg" can be removed like so:
-
-{% highlight bash %} $ rm -rf /llvm /llvm\_py-.egg-info {% endhighlight
-%}
-
-See the `Python
-documentation <http://docs.python.org/install/index.html>`_ for more
-information.
-
---------------
+   $ git clone git@github.com:numba/llvmpy.git $ cd
+   llvmpy $ python setup.py install

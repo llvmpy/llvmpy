@@ -112,23 +112,36 @@ This gives the language a very nice and simple syntax. For example, the
 following simple example computes `Fibonacci
 numbers <http://en.wikipedia.org/wiki/Fibonacci_number>`_:
 
-{% highlight python %} # Compute the x'th fibonacci number. def fib(x)
-if x < 3 then 1 else fib(x-1)+fib(x-2)
 
-This expression will compute the 40th number.
-=============================================
+.. code-block::
 
-fib(40) {% endhighlight %}
+   # Compute the x'th fibonacci number. 
+   def fib(x):
+      if x < 3:
+         return 1
+      else:
+         return fib(x-1)+fib(x-2)
+   
+   # This expression will compute the 40th number.
+   fib(40)
+
+
 
 We also allow Kaleidoscope to call into standard library functions (the
 LLVM JIT makes this completely trivial). This means that you can use the
 'extern' keyword to define a function before you use it (this is also
 useful for mutually recursive functions). For example:
 
-{% highlight python %} extern sin(arg); extern cos(arg); extern
-atan2(arg1 arg2);
 
-atan2(sin(0.4), cos(42)) {% endhighlight %}
+.. code-block:: 
+
+   extern sin(arg); 
+   extern cos(arg); 
+   extern atan2(arg1 arg2);
+   
+   atan2(sin(0.4), cos(42))
+
+
 
 A more interesting example is included in Chapter 6 where we write a
 little Kaleidoscope application that
@@ -150,23 +163,32 @@ traditional way to do this is to use a
 the lexer includes a token type and potentially some metadata (e.g. the
 numeric value of a number). First, we define the possibilities:
 
-{% highlight python %} # The lexer yields one of these types for each
-token. class EOFToken(object): pass
 
-class DefToken(object): pass
+.. code-block:: python
 
-class ExternToken(object): pass
+   # The lexer yields one of these types for each token. 
+   class EOFToken(object): pass
+   
+   class DefToken(object): pass
+   
+   class ExternToken(object): pass
+   
+   class IdentifierToken(object):
+       def __init__(self, name):
+           self.name = name
+   
+   class NumberToken(object):
+       def __init__(self, value):
+           self.value = value
+   
+   class CharacterToken(object):
+       def __init__(self, char):
+           self.char = char
+       def __eq__(self, other):
+           return isinstance(other, CharacterToken) and self.char == other.char
+       def __ne__(self, other):
+           return not self == other
 
-class IdentifierToken(object): def **init**\ (self, name): self.name =
-name
-
-class NumberToken(object): def **init**\ (self, value): self.value =
-value
-
-class CharacterToken(object): def **init**\ (self, char): self.char =
-char def **eq**\ (self, other): return isinstance(other, CharacterToken)
-and self.char == other.char def **ne**\ (self, other): return not self
-== other {% endhighlight %}
 
 Each token yielded by our lexer will be of one of the above types. For
 simple tokens that are always the same, like the "def" keyword, the
@@ -193,82 +215,109 @@ digits. Identifiers (and keywords) are alphanumeric string starting with
 a letter and comments are anything between a hash (``#``) and the end of
 the line.
 
-{% highlight python %} import re
 
-...
+.. code-block:: python
 
-Regular expressions that tokens and comments of our language.
-=============================================================
-
-REGEX\_NUMBER = re.compile('[0-9]+(?:.[0-9]+)?') REGEX\_IDENTIFIER =
-re.compile('[a-zA-Z][a-zA-Z0-9]\ *') REGEX\_COMMENT = re.compile('#.*')
-
-{% endhighlight %}
+   import re
+   
+   ...
+   
+   # Regular expressions that tokens and comments of our language.
+   REGEX_NUMBER = re.compile('[0-9]+(?:.[0-9]+)?')
+   REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9]\ *')
+   REGEX_COMMENT = re.compile('#.*')
+   
 
 Next, let's start defining the ``Tokenize`` function itself. The first
 thing we need to do is set up a loop that scans the string, while
 ignoring whitespace between tokens:
 
-{% highlight python %} def Tokenize(string): while string: # Skip
-whitespace. if string[0].isspace(): string = string[1:] continue
 
-::
+.. code-block:: python
 
-    ...
+   def Tokenize(string):
+       while string: # Skip whitespace.
+           if string[0].isspace():
+              string = string[1:]
+              continue
+   
+   ::
+   
+   ...
+   
+   
 
-{% endhighlight %}
+
 
 Next we want to find out what the next token is. For this we run the
 regexes we defined above on the remainder of the string. To simplify the
 rest of the code, we run all three regexes each time. As mentioned
 above, inefficiencies are ignored for the purpose of this tutorial:
 
-{% highlight python %} # Run regexes. comment\_match =
-REGEX\_COMMENT.match(string) number\_match = REGEX\_NUMBER.match(string)
-identifier\_match = REGEX\_IDENTIFIER.match(string) {% endhighlight %}
 
-Now se check if any of the regexes matched. For comments, we simply
+.. code-block:: python
+
+   # Run regexes.
+   comment_match = REGEX_COMMENT.match(string)
+   number_match = REGEX_NUMBER.match(string)
+   identifier_match = REGEX_IDENTIFIER.match(string)
+
+
+Now we check if any of the regexes matched. For comments, we simply
 ignore the captured match:
 
-{% highlight python %} # Check if any of the regexes matched and yield
-the appropriate result. if comment\_match: comment =
-comment\_match.group(0) string = string[len(comment):] {% endhighlight
-python %}
 
+.. code-block:: python
+
+   # Check if any of the regexes matched and yield
+   # the appropriate result.
+   if comment_match:
+      comment = comment_match.group(0)
+      string = string[len(comment):]
+   
 For numbers, we yield the captured match, converted to a float and
 tagged with the appropriate token type:
-
-{% highlight python %} elif number\_match: number =
-number\_match.group(0) yield NumberToken(float(number)) string =
-string[len(number):] {% endhighlight %}
+   
+.. code-block:: python
+ 
+   elif number_match: 
+        number = number_match.group(0)
+        yield NumberToken(float(number))
+        string = string[len(number):]
 
 The identifier case is a little more complex. We have to check for
 keywords to decide whether we have captured an identifier or a keyword:
 
-{% highlight python %} elif identifier\_match: identifier =
-identifier\_match.group(0) # Check if we matched a keyword. if
-identifier == 'def': yield DefToken() elif identifier == 'extern': yield
-ExternToken() else: yield IdentifierToken(identifier) string =
-string[len(identifier):] {% endhighlight %}
+.. code-block:: python
+
+   elif identifier_match:
+       identifier = identifier_match.group(0)
+       # Check if we matched a keyword.
+       if identifier == 'def':
+          yield DefToken()
+       elif identifier == 'extern':
+          yield ExternToken()
+       else: 
+          yield IdentifierToken(identifier)
+       string = string[len(identifier):]
+
 
 Finally, if we haven't recognized a comment, a number of an identifier,
 we yield the current character as an "unknown character" token. This is
 used, for example, for operators like ``+`` or ``*``:
 
-{% highlight python %} else: # Yield the unknown character. yield
-CharacterToken(string[0]) string = string[1:] {% endhighlight %}
+
+.. code-block:: python
+
+   else: # Yield the unknown character.
+       yield CharacterToken(string[0])
+       string = string[1:]
+
 
 Once we're done with the loop, we return a final end-of-file token:
 
-{% highlight python %} yield EOFToken() {% endhighlight %}
 
-With this, we have the complete lexer for the basic Kaleidoscope
-language (the `full code listing <PythonLangImpl2.html#code>`_ for the
-Lexer is available in the `next chapter <PythonLangImpl2.html>`_ of the
-tutorial). Next we'll `build a simple parser that uses this to build an
-Abstract Syntax Tree <PythonLangImpl2.html>`_. When we have that, we'll
-include a driver so that you can use the lexer and parser together.
+.. code-block:: python
 
---------------
+   yield EOFToken()
 
-**`Next: Implementing a Parser and AST <PythonLangImpl2.html>`_**

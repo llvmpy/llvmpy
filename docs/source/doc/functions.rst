@@ -13,34 +13,29 @@ References to functions already present in a module can be retrieved via
 ``Function.get``. All functions in a module can be enumerated by
 iterating over ``module_obj.functions``.
 
-{% highlight python %} # create a type, representing functions that take
-an integer and return # a floating point value. ft = Type.function(
-Type.float(), [ Type.int() ] )
 
-create a function of this type
-==============================
+.. code-block:: python
 
-f1 = module\_obj.add\_function(ft, "func1")
+   # create a type, representing functions that take
+   an integer and return # a floating point value. ft = Type.function(
+   Type.float(), [ Type.int() ] )
+   
+   # create a function of this type
+   f1 = module_obj.add_function(ft, "func1")
+   
+   # or equivalently, like this:
+   f2 = Function.new(module_obj, ft, "func2")
+   
+   # get a reference to an existing function
+   f3 = module_obj.get_function_named("func3")
+   
+   # or like this:
+   f4 = Function.get(module_obj, "func4")
+   
+   # list all function names in a module
+   for f in module_obj.functions: print f.name
 
-or equivalently, like this:
-===========================
 
-f2 = Function.new(module\_obj, ft, "func2")
-
-get a reference to an existing function
-=======================================
-
-f3 = module\_obj.get\_function\_named("func3")
-
-or like this:
-=============
-
-f4 = Function.get(module\_obj, "func4")
-
-list all function names in a module
-===================================
-
-for f in module\_obj.functions: print f.name {% endhighlight %}
 
 Intrinsic
 =========
@@ -52,13 +47,16 @@ called with a module object, an intrinsic ID (which is a numeric
 constant) and a list of the types of arguments (which LLVM uses to
 resolve overloaded intrinsic functions).
 
-{% highlight python %} # get a reference to the llvm.bswap intrinsic
-bswap = Function.intrinsic(mod, INTR\_BSWAP, [Type.int()])
 
-call it
-=======
+.. code-block:: python
 
-builder.call(bswap, [value]) {% endhighlight %}
+   # get a reference to the llvm.bswap intrinsic
+   bswap = Function.intrinsic(mod, INTR_BSWAP, [Type.int()])
+   
+   # call it
+   builder.call(bswap, [value])
+
+
 
 Here, the constant ``INTR_BSWAP``, available from ``llvm.core``,
 represents the LLVM intrinsic
@@ -111,13 +109,16 @@ The value objects corresponding to the arguments of a function can be
 got using the read-only property ``args``. These can be iterated over,
 and also be indexed via integers. An example:
 
-{% highlight python %} # list all argument names and types for arg in
-fn.args: print arg.name, "of type", arg.type
 
-change the name of the first argument
-=====================================
+.. code-block:: python
 
-fn.args[0].name = "objptr" {% endhighlight %}
+   # list all argument names and types for arg in
+   fn.args: print arg.name, "of type", arg.type
+   
+   # change the name of the first argument
+   fn.args[0].name = "objptr"
+
+
 
 Basic blocks (see later) are contained within functions. When newly
 created, a function has no basic blocks. They have to be added
@@ -130,71 +131,19 @@ blocks can be got via ``basic_block_count`` method. Note that
 ``get_entry_basic_block`` is slightly faster than ``basic_blocks[0]``
 and so is ``basic_block_count``, over ``len(f.basic_blocks)``.
 
-{% highlight python %} # add a basic block b1 =
-fn.append\_basic\_block("entry")
 
-get the first one
-=================
+.. code-block:: python
 
-b2 = fn.get\_entry\_basic\_block() b2 = fn.basic\_mdblocks[0] # slower
-than previous method
-
-print names of all basic blocks
-===============================
-
-for b in fn.basic\_blocks: print b.name
-
-get number of basic blocks
-==========================
-
-n = fn.basic\_block\_count n = len(fn.basic\_blocks) # slower than
-previous method {% endhighlight %}
-
-Functions can be deleted using the method ``delete``. This deletes them
-from their containing module. All references to the function object
-should be dropped after ``delete`` has been called.
-
-Functions can be verified with the ``verify`` method. Note that this may
-not work properly (aborts on errors).
-
-Function Attributes # {#fnattr}
-===============================
-
-Function attributes, as documented
-`here <http://www.llvm.org/docs/LangRef.html#fnattrs>`_, can be set on
-functions using the methods ``add_attribute`` and ``remove_attribute``.
-The following values may be used to refer to the LLVM attributes:
-
-Value \| Equivalent LLVM Assembly Keyword \|
-------\|----------------------------------\|
-``ATTR_ALWAYS_INLINE``\ \|\ ``alwaysinline`` \|
-``ATTR_INLINE_HINT``\ \|\ ``inlinehint`` \|
-``ATTR_NO_INLINE``\ \|\ ``noinline`` \|
-``ATTR_OPTIMIZE_FOR_SIZE``\ \|\ ``optsize`` \|
-``ATTR_NO_RETURN``\ \|\ ``noreturn`` \|
-``ATTR_NO_UNWIND``\ \|\ ``nounwind`` \|
-``ATTR_READ_NONE``\ \|\ ``readnone`` \|
-``ATTR_READONLY``\ \|\ ``readonly`` \|
-``ATTR_STACK_PROTECT``\ \|\ ``ssp`` \|
-``ATTR_STACK_PROTECT_REQ``\ \|\ ``sspreq`` \|
-``ATTR_NO_REDZONE``\ \|\ ``noredzone`` \|
-``ATTR_NO_IMPLICIT_FLOAT``\ \|\ ``noimplicitfloat`` \|
-``ATTR_NAKED``\ \|\ ``naked`` \|
-
-Here is how attributes can be set and removed:
-
-{% highlight python %} # create a function ti = Type.int(32) tf =
-Type.function(ti, [ti, ti]) m = Module.new('mod') f =
-m.add\_function(tf, 'sum') print f # declare i32 @sum(i32, i32)
-
-add a couple of attributes
-==========================
-
-f.add\_attribute(ATTR\_NO\_UNWIND) f.add\_attribute(ATTR\_READONLY)
-print f # declare i32 @sum(i32, i32) nounwind readonly {% endhighlight
-%}
-
-**Related Links**
-
-`llvm.core.Function <llvm.core.Function.html>`_,
-`llvm.core.Argument <llvm.core.Argument.html>`_
+   # add a basic block b1 =
+   fn.append_basic_block("entry")
+   
+   # get the first one
+   b2 = fn.get_entry_basic_block() b2 = fn.basic_mdblocks[0] # slower
+   than previous method
+   
+   # print names of all basic blocks
+   for b in fn.basic_blocks: print b.name
+   
+   # get number of basic blocks
+   n = fn.basic_block_count n = len(fn.basic_blocks) # slower than
+   previous method

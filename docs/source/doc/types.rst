@@ -60,50 +60,43 @@ An Example
 
 Here is an example that demonstrates the creation of types:
 
-{% highlight python %} #!/usr/bin/env python
 
-integers
-========
+.. code-block:: python
 
-int\_ty = Type.int() bool\_ty = Type.int(1) int\_64bit = Type.int(64)
+   #!/usr/bin/env python
+   
+   # integers
+   int_ty = Type.int() bool_ty = Type.int(1) int_64bit = Type.int(64)
+   
+   # floats
+   sprec_real = Type.float() dprec_real = Type.double()
+   
+   # arrays and vectors
+   intar_ty = Type.array( int_ty, 10 ) # "typedef int intar_ty[10];"
+   twodim = Type.array( intar_ty , 10 ) # "typedef int twodim[10][10];"
+   vec = Type.array( int_ty, 10 )
+   
+   # structures
+   s1_ty = Type.struct( [ int_ty, sprec_real ] ) # "struct s1_ty { int
+   v1; float v2; };"
+   
+   # pointers
+   intptr_ty = Type.pointer(int_ty) # "typedef int \*intptr_ty;"
+   
+   # functions
+   f1 = Type.function( int_ty, [ int_ty ] ) # functions that take 1
+   int_ty and return 1 int_ty
+   
+   f2 = Type.function( Type.void(), [ int_ty, int_ty ] ) # functions that
+   take 2 int_tys and return nothing
+   
+   f3 = Type.function( Type.void(), ( int_ty, int_ty ) ) # same as f2;
+   any iterable can be used
+   
+   fnargs = [ Type.pointer( Type.int(8) ) ] printf = Type.function(
+   Type.int(), fnargs, True ) # variadic function
 
-floats
-======
 
-sprec\_real = Type.float() dprec\_real = Type.double()
-
-arrays and vectors
-==================
-
-intar\_ty = Type.array( int\_ty, 10 ) # "typedef int intar\_ty[10];"
-twodim = Type.array( intar\_ty , 10 ) # "typedef int twodim[10][10];"
-vec = Type.array( int\_ty, 10 )
-
-structures
-==========
-
-s1\_ty = Type.struct( [ int\_ty, sprec\_real ] ) # "struct s1\_ty { int
-v1; float v2; };"
-
-pointers
-========
-
-intptr\_ty = Type.pointer(int\_ty) # "typedef int \*intptr\_ty;"
-
-functions
-=========
-
-f1 = Type.function( int\_ty, [ int\_ty ] ) # functions that take 1
-int\_ty and return 1 int\_ty
-
-f2 = Type.function( Type.void(), [ int\_ty, int\_ty ] ) # functions that
-take 2 int\_tys and return nothing
-
-f3 = Type.function( Type.void(), ( int\_ty, int\_ty ) ) # same as f2;
-any iterable can be used
-
-fnargs = [ Type.pointer( Type.int(8) ) ] printf = Type.function(
-Type.int(), fnargs, True ) # variadic function {% endhighlight %}
 
 --------------
 
@@ -123,16 +116,8 @@ The following code defines a opaque structure, named "mystruct". The
 body is defined after the construction using ``StructType.set_body``.
 The second subtype is a pointer to a "mystruct" type.
 
-{% highlight python %} ts = Type.opaque('mystruct')
-ts.set\_body([Type.int(), Type.pointer(ts)]) {% endhighlight %}
 
---------------
+.. code-block:: python
 
-**Related Links** `llvm.core.Type <llvm.core.Type.html>`_,
-`llvm.core.IntegerType <llvm.core.IntegerType.html>`_,
-`llvm.core.FunctionType <llvm.core.FunctionType.html>`_,
-`llvm.core.StructType <llvm.core.StructType.html>`_,
-`llvm.core.ArrayType <llvm.core.ArrayType.html>`_,
-`llvm.core.PointerType <llvm.core.PointerType.html>`_,
-`llvm.core.VectorType <llvm.core.VectorType.html>`_,
-`llvm.core.TypeHandle <llvm.core.TypeHandle.html>`_
+   ts = Type.opaque('mystruct')
+   ts.set_body([Type.int(), Type.pointer(ts)])

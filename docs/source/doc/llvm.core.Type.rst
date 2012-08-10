@@ -106,40 +106,23 @@ Properties
 A value (enum) representing the "type" of the object. It will be one of
 the following constants defined in ``llvm.core``:
 
-{% highlight python %} # Warning: do not rely on actual numerical
-values! TYPE\_VOID = 0 TYPE\_FLOAT = 1 TYPE\_DOUBLE = 2 TYPE\_X86\_FP80
-= 3 TYPE\_FP128 = 4 TYPE\_PPC\_FP128 = 5 TYPE\_LABEL = 6 TYPE\_INTEGER =
-7 TYPE\_FUNCTION = 8 TYPE\_STRUCT = 9 TYPE\_ARRAY = 10 TYPE\_POINTER =
-11 TYPE\_OPAQUE = 12 TYPE\_VECTOR = 13 TYPE\_METADATA = 14 TYPE\_UNION =
-15 {% endhighlight %}
+
+.. code-block:: python
+
+   # Warning: do not rely on actual numerical
+   values! TYPE_VOID = 0 TYPE_FLOAT = 1 TYPE_DOUBLE = 2 TYPE_X86_FP80
+   = 3 TYPE_FP128 = 4 TYPE_PPC_FP128 = 5 TYPE_LABEL = 6 TYPE_INTEGER =
+   7 TYPE_FUNCTION = 8 TYPE_STRUCT = 9 TYPE_ARRAY = 10 TYPE_POINTER =
+   11 TYPE_OPAQUE = 12 TYPE_VECTOR = 13 TYPE_METADATA = 14 TYPE_UNION =
+   15
+
+
 
 Example:
 ^^^^^^^^
 
-{% highlight python %} assert Type.int().kind == TYPE\_INTEGER assert
-Type.void().kind == TYPE\_VOID {% endhighlight %}
 
-Methods
--------
+.. code-block:: python
 
-``refine``
-~~~~~~~~~~
-
-Used for constructing self-referencing types. See the documentation of
-`TypeHandle <llvm.core.TypeHandle.html>`_ objects.
-
-Special Methods
----------------
-
-``__str__``
-~~~~~~~~~~~
-
-``Type`` objects can be stringified into it's LLVM assembly language
-representation.
-
-``__eq__``
-~~~~~~~~~~
-
-``Type`` objects can be compared for equality. Internally, this converts
-both arguments into their LLVM assembly representations and compares the
-resultant strings.
+   assert Type.int().kind == TYPE_INTEGER assert
+   Type.void().kind == TYPE_VOID

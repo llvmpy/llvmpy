@@ -39,14 +39,10 @@ Returns an iterable object that yields `Type <llvm.core.Type.html>`_
 objects that represent, in order, the types of the arguments accepted by
 the function. Used like this:
 
-{% highlight python %} func\_type = Type.function( Type.int(), [
-Type.int(), Type.int() ] ) for arg in func\_type.args: assert arg.kind
-== TYPE\_INTEGER assert arg == Type.int() assert func\_type.arg\_count
-== len(func\_type.args) {% endhighlight %}
 
-``arg_count``
-~~~~~~~~~~~~~
+.. code-block:: python
 
-[read-only]
-
-The number of arguments. Same as ``len(obj.args)``, but faster.
+   func_type = Type.function( Type.int(), [
+   Type.int(), Type.int() ] ) for arg in func_type.args: assert arg.kind
+   == TYPE_INTEGER assert arg == Type.int() assert func_type.arg_count
+   == len(func_type.args)
