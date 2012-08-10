@@ -83,5 +83,7 @@ import llvmpy modules thus:
 
 .. code-block:: python
 
-   from llvm import \* from llvm.core import \* from
-   llvm.ee import \* from llvm.passes import \*
+   from llvm import *
+   from llvm.core import *
+   from llvm.ee import *
+   from llvm.passes import *
