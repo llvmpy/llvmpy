@@ -43,7 +43,7 @@
 //// For pre-2.7 compatbility, use the following include, which provides
 //// alias for PyCapsule.
 //// See http://docs.python.org/py3k/howto/cporting.html
-//      #include <capsulethunk.h>   // pre-2.7 compatibility for PyCapsule
+#include "capsulethunk.h"   // pre-2.7 compatibility for PyCapsule
 
 
 /* llvm includes */
