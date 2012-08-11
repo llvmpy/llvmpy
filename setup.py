@@ -77,21 +77,12 @@ def call_setup(llvm_config):
 
     incdir      = _run(llvm_config + ' --includedir')
     libdir      = _run(llvm_config + ' --libdir')
-    ldflags     = _run(llvm_config + ' --ldflags')
-    libs_core, objs_core = get_libs_and_objs(llvm_config,
-        ['core', 'analysis', 'scalaropts', 'executionengine',
-         'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
-         'instrumentation', 'ipa', 'ipo', 'transformutils',
-         'asmparser', 'linker', 'support'])
-
-    std_libs    = [ 'pthread', 'm', 'stdc++' ]
+    std_libs    = [ 'pthread', 'm', 'stdc++', 'LLVM-3.1' ]
     extra_link_args = ["-fPIC"]
     if not ("openbsd" in sys.platform or "freebsd" in sys.platform):
         std_libs.append("dl")
     if "darwin" in sys.platform:
         std_libs.append("ffi")
-        extra_link_args += ['-framework', 'Python']
-        
 
     ext_core = Extension(
         'llvm._core',
@@ -102,8 +93,7 @@ def call_setup(llvm_config):
             ('_GNU_SOURCE', None)],
         include_dirs = ['/usr/include', incdir],
         library_dirs = [libdir],
-        libraries = std_libs + libs_core,
-        extra_objects = objs_core,
+        libraries = std_libs,
         extra_link_args = extra_link_args)
 
     setup(
