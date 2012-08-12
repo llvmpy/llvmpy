@@ -90,8 +90,6 @@ def call_setup(llvm_config):
         std_libs.append("dl")
     if "darwin" in sys.platform:
         std_libs.append("ffi")
-        extra_link_args += ['-framework', 'Python']
-        
 
     ext_core = Extension(
         'llvm._core',
