@@ -27,9 +27,11 @@ follow these steps:
 -  create a function of type *tf* named *sum*
 -  add a *basic block* to the function
 -  using a helper object called an *instruction builder*, add two
-   instructions into the basic block: . an instruction to add the two
-   arguments and store the result into a temporary variable . a return
-   instruction to return the value of the temporary variable
+   instructions into the basic block: 
+    - an instruction to add the two
+      arguments and store the result into a temporary variable 
+    - a return
+      instruction to return the value of the temporary variable
 
 (A basic block is a block of instructions.)
 
@@ -116,32 +118,32 @@ The corresponding LLVM assembly:
 .. code-block:: llvm
 
    ; ModuleID = '/tmp/webcompile/_7149_0.bc'
-    target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64"
+   target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64"
    target triple = "x86_64-linux-gnu"
 
    define i32 @sum(i32 %n) nounwind readnone { 
    entry:
-   %0 = icmp eq i32 %n, 0          ; [#uses=1]
-   br i1 %0, label %bb2, label %bb1
+      %0 = icmp eq i32 %n, 0          ; [#uses=1]
+      br i1 %0, label %bb2, label %bb1
 
    bb1:     ; preds = %entry
-   %1 = add i32 %n, -1          ; [#uses=2]
-   %2 = icmp eq i32 %1, 0     ; [#uses=1]
-   br i1 %2, label %sum.exit, label %bb1.i
+      %1 = add i32 %n, -1          ; [#uses=2]
+      %2 = icmp eq i32 %1, 0     ; [#uses=1]
+      br i1 %2, label %sum.exit, label %bb1.i
 
    bb1.i:     ; preds = %bb1
-   %3 = add i32 %n, -2          ; [#uses=1]
-   %4 = tail call i32 @sum(i32 %3) nounwind   ; [#uses=1]
-   %5 = add i32 %4, %1          ; [#uses=1]
-   br label %sum.exit
+      %3 = add i32 %n, -2          ; [#uses=1]
+      %4 = tail call i32 @sum(i32 %3) nounwind   ; [#uses=1]
+      %5 = add i32 %4, %1          ; [#uses=1]
+      br label %sum.exit
 
    sum.exit:     ; preds = %bb1.i, %bb1
-   %6 = phi i32 [ %5, %bb1.i ], [ 0, %bb1 ]         ; [#uses=1]
-   %7 = add i32 %6, %n                                    ; [#uses=1]
-   ret i32 %7
+      %6 = phi i32 [ %5, %bb1.i ], [ 0, %bb1 ]         ; [#uses=1]
+      %7 = add i32 %6, %n                                    ; [#uses=1]
+      ret i32 %7
 
    bb2:       ; preds = %entry
-   ret i32 0
+      ret i32 0
    }
 
 Note the usage of SSA form. The long string called ``target datalayout``
