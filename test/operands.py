@@ -34,13 +34,6 @@ entry:
 
 class TestOperands(unittest.TestCase):
 
-    if sys.version_info[:2] < (2, 7):
-        def assertIs(self, expr1, expr2, msg=None):
-            if expr1 is not expr2:
-                standardMsg = '%s is not %s' % (safe_repr(expr1),
-                                                safe_repr(expr2))
-                self.fail(self._formatMessage(msg, standardMsg))
-
     def test_operands(self):
         m = Module.from_assembly(StringIO(test_module))
         logging.debug("-"*60)
@@ -50,7 +43,7 @@ class TestOperands(unittest.TestCase):
         test_func = m.get_function_named("test_func")
         prod      = m.get_function_named("prod")
 
-        #===----------------------------------------------------------------------===
+        #===-----------------------------------------------------------===
         # test operands
 
 
@@ -63,15 +56,15 @@ class TestOperands(unittest.TestCase):
 
         logging.debug("Testing User.operands ..")
 
-        self.assertIs(i1.operands[-1], prod)
-        self.assertIs(i1.operands[0], test_func.args[0])
-        self.assertIs(i1.operands[1], test_func.args[1])
-        self.assertIs(i2.operands[0], i1)
-        self.assertIs(i2.operands[1], test_func.args[2])
+        self.assert_(i1.operands[-1] is prod)
+        self.assert_(i1.operands[0] is test_func.args[0])
+        self.assert_(i1.operands[1] is test_func.args[1])
+        self.assert_(i2.operands[0] is i1)
+        self.assert_(i2.operands[1] is test_func.args[2])
         self.assertEqual(len(i1.operands), 3)
         self.assertEqual(len(i2.operands), 2)
 
-        #===----------------------------------------------------------------------===
+        #===-----------------------------------------------------------===
         # show test_function
 
         logging.debug("Examining test_function `test_test_func':")
@@ -89,4 +82,3 @@ class TestOperands(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

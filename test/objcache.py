@@ -13,12 +13,6 @@ class TestObjCache(unittest.TestCase):
                                                 safe_repr(expr2))
                 self.fail(self._formatMessage(msg, standardMsg))
 
-        def assertIsNot(self, expr1, expr2, msg=None):
-            if expr1 is expr2:
-                standardMsg = 'unexpectedly identical: %s' % (safe_repr(
-                                                                 expr1),)
-                self.fail(self._formatMessage(msg, standardMsg))
-
     def test_objcache(self):
         logging.debug("Testing module aliasing ..")
         m1 = Module.new('a')
@@ -45,7 +39,7 @@ class TestObjCache(unittest.TestCase):
         gv1.delete()
         gv4 = GlobalVariable.new(m1, t, "gv")
 
-        self.assertIsNot(gv1, gv4)
+        self.assert_(gv1 is not gv4)
 
         logging.debug("Testing function aliasing 1 ..")
         b1 = f1.append_basic_block('entry')
