@@ -1,14 +1,14 @@
 #! /usr/bin/env python
-
 '''
 Test and stress Constants.
 '''
+import unittest
+import logging
 
 from llvm.core import *
 from llvm.ee import *
 from ctypes import *
 
-import unittest, logging
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -135,7 +135,7 @@ class TestConstants(unittest.TestCase):
             if golden == 0:
                 self.assertEqual(result, golden)
             else:
-                self.assertLess(abs(result-golden)/golden, 1e-7)
+                self.assert_(abs(result-golden)/golden < 1e-7)
 
     def test_const_double(self):
         from random import random
@@ -250,7 +250,7 @@ class TestConstants(unittest.TestCase):
             if golden[1] == 0:
                 self.assertEqual(result[1], golden[1])
             else:
-                self.assertLess(abs(result[1]-golden[1])/golden[1], 1e-7)
+                self.assert_(abs(result[1]-golden[1])/golden[1] < 1e-7)
             self.assertEqual(result[2], golden[2])
 
     def test_const_vector(self):
