@@ -93,6 +93,7 @@ _declare_std_ctor(LLVMGenericValueRef)
 // extra LLVM classes
 _declare_std_ctor(LLVMPassManagerBuilderRef)
 _declare_std_ctor(LLVMEngineBuilderRef)
+_declare_std_ctor(LLVMTargetMachineRef)
 
 /* standard types */
 _declare_std_ctor(int)

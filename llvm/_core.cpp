@@ -993,6 +993,43 @@ _wrap_pass( UnifyFunctionExitNodes )
 
 _wrap_pass( Internalize2 )
 */
+
+
+/*===----------------------------------------------------------------------===*/
+/* Target Machine                                                             */
+/*===----------------------------------------------------------------------===*/
+
+_wrap_obj2obj(LLVMTargetMachineFromEngineBuilder, LLVMEngineBuilderRef,
+              LLVMTargetMachineRef)
+_wrap_obj2none(LLVMDisposeTargetMachine, LLVMTargetMachineRef)
+
+
+static PyObject *
+_wLLVMTargetMachineEmitFile(PyObject * self, PyObject * args)
+{
+    PyObject * ret;
+    unsigned len;
+    unsigned char * bytes;
+    LLVMTargetMachineRef tm;
+    LLVMModuleRef m;
+
+    PyObject *arg_tm, *arg_m;
+    int arg_use_asm;
+
+    if (!PyArg_ParseTuple(args, "OOi", &arg_tm, &arg_m, &arg_use_asm))
+        return NULL;
+
+    tm = (LLVMTargetMachineRef) PyCapsule_GetPointer(arg_tm, NULL);
+    m = (LLVMModuleRef) PyCapsule_GetPointer(arg_m, NULL);
+
+    if ( !(bytes = LLVMTargetMachineEmitFile(tm, m, arg_use_asm, &len)) )
+        Py_RETURN_NONE;
+
+    ret = PyBytes_FromStringAndSize((char *)bytes, (Py_ssize_t)len);
+    delete [] bytes;
+    return ret;
+}
+
 /*===----------------------------------------------------------------------===*/
 /* Target Data                                                                */
 /*===----------------------------------------------------------------------===*/
@@ -1834,6 +1871,11 @@ static PyMethodDef core_methods[] = {
 
     _pass( Internalize2 )
     */
+
+    /* Target Machine */
+    _method( LLVMTargetMachineFromEngineBuilder )
+    _method( LLVMDisposeTargetMachine )
+    _method( LLVMTargetMachineEmitFile )
 
     /* Target Data */
     _method( LLVMCreateTargetData )

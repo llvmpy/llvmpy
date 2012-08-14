@@ -293,3 +293,31 @@ class ExecutionEngine(object):
         td._own(self)
         return td
 
+
+#===----------------------------------------------------------------------===
+# Target machine
+#===----------------------------------------------------------------------===
+
+class TargetMachine(object):
+    @staticmethod
+    def from_engine_builder(eb):
+        '''Construct a TargetMachine from an EngineBuilder
+        '''
+        ptr = _core.LLVMTargetMachineFromEngineBuilder(eb.ptr)
+        return TargetMachine(ptr)
+
+    def __init__(self, ptr):
+        self.ptr = ptr
+
+    def __del__(self):
+        _core.LLVMDisposeTargetMachine(self.ptr)
+
+    def emit_assembly(self, module):
+        '''returns byte string of the module as assembly code of the target machine
+        '''
+        return _core.LLVMTargetMachineEmitFile(self.ptr, module.ptr, True)
+
+    def emit_object(self, module):
+        '''returns byte string of the module as assembly code of the target machine
+        '''
+        return _core.LLVMTargetMachineEmitFile(self.ptr, module.ptr, False)

@@ -84,6 +84,7 @@
 
 namespace llvm{
 DEFINE_SIMPLE_CONVERSION_FUNCTIONS(EngineBuilder, LLVMEngineBuilderRef)
+DEFINE_SIMPLE_CONVERSION_FUNCTIONS(TargetMachine, LLVMTargetMachineRef)
 }
 /*
  * For use in LLVMDumpPasses to dump passes.
@@ -113,15 +114,29 @@ char *do_print(W obj)
     return strdup(buf.str().c_str());
 }
 
-unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
-                                           unsigned * lenp)
+
+LLVMTargetMachineRef LLVMTargetMachineFromEngineBuilder(LLVMEngineBuilderRef eb)
+{
+    using namespace llvm;
+    TargetMachine * tm = unwrap(eb)->selectTarget();
+    return wrap(tm);
+}
+
+void LLVMDisposeTargetMachine(LLVMTargetMachineRef tm){
+    delete llvm::unwrap(tm);
+}
+
+
+unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
+                                         LLVMModuleRef modref,
+                                         int assembly, unsigned * lenp)
 {
     using namespace llvm;
     assert(lenp);
 
     InitializeNativeTargetAsmPrinter();
 
-    Module *modulep = unwrap(module);
+    Module *modulep = unwrap(modref);
     assert(modulep);
 
     // get objectcode into a string
@@ -130,16 +145,14 @@ unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
 
     formatted_raw_ostream fso(buf);
 
-    TargetMachine * tm = EngineBuilder(modulep).selectTarget();
+    TargetMachine * tm = unwrap(tmref);
 
     PassManager pm;
 
     if (!tm->getTargetData()){
-        printf("No target data in target machine");
+        fprintf(stderr, "No target data in target machine");
         return NULL;
     }
-
-    //printf("%s\n", modulep->getDataLayout().c_str());
 
     pm.add(new TargetData(*tm->getTargetData()));
 
@@ -151,8 +164,8 @@ unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
     }
 
     if ( failed ) {
-        printf("No support\n");
-        printf("%s\n", tm->getTargetData()->getStringRepresentation().c_str());
+        fprintf(stderr, "No support\n");
+        fprintf(stderr, "%s\n", tm->getTargetData()->getStringRepresentation().c_str());
         return NULL;
     }
 
@@ -175,6 +188,21 @@ unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
     /* return */
     *lenp = bclen;
     return bytes;
+}
+
+unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
+                                           unsigned * lenp)
+{
+    using namespace llvm;
+    assert(lenp);
+
+    Module *modulep = unwrap(module);
+    assert(modulep);
+
+    // select native default machine
+    TargetMachine * tm = EngineBuilder(modulep).selectTarget();
+
+    return LLVMTargetMachineEmitFile(wrap(tm), module, assembly, lenp);
 }
 
 

@@ -46,6 +46,20 @@ extern "C" {
 #endif
 
 /*
+ * Wraps EngineBuilder::selectTarget
+ */
+LLVMTargetMachineRef LLVMTargetMachineFromEngineBuilder(LLVMEngineBuilderRef eb);
+
+/*
+ * Wraps operator delete
+ */
+void LLVMDisposeTargetMachine(LLVMTargetMachineRef tm);
+
+unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
+                                         LLVMModuleRef modref,
+                                         int assembly, unsigned * lenp);
+
+/*
  * Wraps TargetMachine::addPassesToEmitFile
  */
 unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
