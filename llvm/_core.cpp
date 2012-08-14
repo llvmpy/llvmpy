@@ -888,16 +888,14 @@ _wrap_obj2none(LLVMDisposePassManager, LLVMPassManagerRef)
 _wrap_none2str(LLVMDumpPasses)
 _wrap_objstr2obj(LLVMAddPassByName, LLVMPassManagerRef, int)
 
-static PyObject *
-_wLLVMInitializePasses(PyObject * self, PyObject * args)
-{
-    if (!PyArg_ParseTuple(args, ""))
-        return NULL;
-    LLVMInitializePasses();
-    Py_RETURN_NONE;
-}
+
+_wrap_none2none(LLVMInitializePasses)
 
 _wrap_none2obj(LLVMInitializeNativeTarget, int)
+_wrap_none2obj(LLVMInitializeNativeTargetAsmPrinter, int)
+_wrap_none2none(LLVMInitializePTXTarget)
+_wrap_none2none(LLVMInitializePTXTargetInfo)
+_wrap_none2none(LLVMInitializePTXAsmPrinter)
 
 
 /*===----------------------------------------------------------------------===*/
@@ -1029,6 +1027,16 @@ _wLLVMTargetMachineEmitFile(PyObject * self, PyObject * args)
     delete [] bytes;
     return ret;
 }
+
+_wrap_obj2obj(LLVMTargetMachineGetTargetData, LLVMTargetMachineRef,
+              LLVMTargetDataRef)
+_wrap_obj2str(LLVMTargetMachineGetTargetName, LLVMTargetMachineRef)
+_wrap_obj2str(LLVMTargetMachineGetTargetShortDescription, LLVMTargetMachineRef)
+_wrap_obj2str(LLVMTargetMachineGetTriple, LLVMTargetMachineRef)
+_wrap_obj2str(LLVMTargetMachineGetCPU, LLVMTargetMachineRef)
+_wrap_obj2str(LLVMTargetMachineGetFS, LLVMTargetMachineRef)
+_wrap_none2none(LLVMPrintRegisteredTargetsForVersion)
+
 
 /*===----------------------------------------------------------------------===*/
 /* Target Data                                                                */
@@ -1781,7 +1789,12 @@ static PyMethodDef core_methods[] = {
     _method( LLVMDumpPasses )
     _method( LLVMAddPassByName )
     _method( LLVMInitializePasses )
+
     _method( LLVMInitializeNativeTarget )
+    _method( LLVMInitializeNativeTargetAsmPrinter )
+    _method( LLVMInitializePTXTarget )
+    _method( LLVMInitializePTXTargetInfo )
+    _method( LLVMInitializePTXAsmPrinter )
 
     /* Passes */
 
@@ -1876,6 +1889,13 @@ static PyMethodDef core_methods[] = {
     _method( LLVMTargetMachineFromEngineBuilder )
     _method( LLVMDisposeTargetMachine )
     _method( LLVMTargetMachineEmitFile )
+    _method( LLVMTargetMachineGetTargetData )
+    _method( LLVMTargetMachineGetTargetName )
+    _method( LLVMTargetMachineGetTargetShortDescription )
+    _method( LLVMTargetMachineGetTriple )
+    _method( LLVMTargetMachineGetCPU )
+    _method( LLVMTargetMachineGetFS )
+    _method( LLVMPrintRegisteredTargetsForVersion )
 
     /* Target Data */
     _method( LLVMCreateTargetData )

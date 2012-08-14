@@ -54,6 +54,7 @@
 #include "llvm/Support/CallSite.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Target/TargetData.h"
+#include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
 
 #include "llvm/IntrinsicInst.h"
@@ -114,6 +115,11 @@ char *do_print(W obj)
     return strdup(buf.str().c_str());
 }
 
+int LLVMInitializeNativeTargetAsmPrinter()
+{
+    return llvm::InitializeNativeTargetAsmPrinter();
+}
+
 
 LLVMTargetMachineRef LLVMTargetMachineFromEngineBuilder(LLVMEngineBuilderRef eb)
 {
@@ -133,8 +139,6 @@ unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
 {
     using namespace llvm;
     assert(lenp);
-
-    InitializeNativeTargetAsmPrinter();
 
     Module *modulep = unwrap(modref);
     assert(modulep);
@@ -190,6 +194,43 @@ unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
     return bytes;
 }
 
+const char* LLVMTargetMachineGetTargetName(LLVMTargetMachineRef tm)
+{
+    return strdup(llvm::unwrap(tm)->getTarget().getName());
+}
+
+const char* LLVMTargetMachineGetTargetShortDescription(LLVMTargetMachineRef tm)
+{
+    return strdup(llvm::unwrap(tm)->getTarget().getShortDescription());
+}
+
+const char* LLVMTargetMachineGetTriple(LLVMTargetMachineRef tm)
+{
+    return strdup(llvm::unwrap(tm)->getTargetTriple().str().c_str());
+}
+
+const char* LLVMTargetMachineGetCPU(LLVMTargetMachineRef tm)
+{
+    return strdup(llvm::unwrap(tm)->getTargetCPU().str().c_str());
+}
+
+const char* LLVMTargetMachineGetFS(LLVMTargetMachineRef tm)
+{
+    return strdup(llvm::unwrap(tm)->getTargetFeatureString().str().c_str());
+}
+
+void LLVMPrintRegisteredTargetsForVersion(){
+    llvm::TargetRegistry::printRegisteredTargetsForVersion();
+}
+
+
+
+LLVMTargetDataRef LLVMTargetMachineGetTargetData(LLVMTargetMachineRef tm)
+{
+    using namespace llvm;
+    return wrap(new TargetData(*unwrap(tm)->getTargetData()));
+}
+
 unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
                                            unsigned * lenp)
 {
@@ -204,7 +245,6 @@ unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
 
     return LLVMTargetMachineEmitFile(wrap(tm), module, assembly, lenp);
 }
-
 
 static
 llvm::AtomicOrdering atomic_ordering_from_string(const char * ordering)

@@ -78,11 +78,15 @@ def call_setup(llvm_config):
     incdir      = _run(llvm_config + ' --includedir')
     libdir      = _run(llvm_config + ' --libdir')
     ldflags     = _run(llvm_config + ' --ldflags')
+
+    ptx_components = ['ptx', 'ptxasmprinter', 'ptxcodegen', 'ptxdesc', 'ptxinfo']
+
     libs_core, objs_core = get_libs_and_objs(llvm_config,
         ['core', 'analysis', 'scalaropts', 'executionengine',
          'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
          'instrumentation', 'ipa', 'ipo', 'transformutils',
-         'asmparser', 'linker', 'support'])
+         'asmparser', 'linker', 'support', 'vectorize']
+         + ptx_components)
 
     std_libs    = [ 'pthread', 'm', 'stdc++' ]
     extra_link_args = ["-fPIC"]
@@ -91,7 +95,7 @@ def call_setup(llvm_config):
     if "darwin" in sys.platform:
         std_libs.append("ffi")
         extra_link_args += ['-framework', 'Python']
-        
+
 
     ext_core = Extension(
         'llvm._core',

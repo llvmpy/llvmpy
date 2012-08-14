@@ -45,6 +45,9 @@
 extern "C" {
 #endif
 
+int LLVMInitializeNativeTargetAsmPrinter();
+
+
 /*
  * Wraps EngineBuilder::selectTarget
  */
@@ -55,9 +58,47 @@ LLVMTargetMachineRef LLVMTargetMachineFromEngineBuilder(LLVMEngineBuilderRef eb)
  */
 void LLVMDisposeTargetMachine(LLVMTargetMachineRef tm);
 
+/*
+ * Wraps TargetMachine::addPassesToEmitFile
+ */
 unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
                                          LLVMModuleRef modref,
                                          int assembly, unsigned * lenp);
+
+/*
+ * Wraps TargetMachine::getTargetData
+ */
+LLVMTargetDataRef LLVMTargetMachineGetTargetData(LLVMTargetMachineRef tm);
+
+/*
+ * Wraps TargetMachine::getTarget().getName()
+ */
+const char* LLVMTargetMachineGetTargetName(LLVMTargetMachineRef tm);
+
+/*
+ * Wraps TargetMachine::getTarget().getShortDescription()
+ */
+const char* LLVMTargetMachineGetTargetShortDescription(LLVMTargetMachineRef tm);
+
+/*
+ * Wraps TargetMachine::getTargetTriple
+ */
+const char * LLVMTargetMachineGetTriple(LLVMTargetMachineRef tm);
+
+/*
+ * Wraps TargetMachine::getTargetCPU
+ */
+const char * LLVMTargetMachineGetCPU(LLVMTargetMachineRef tm);
+
+/*
+ * Wraps TargetMachine::getTargetFeatureString
+ */
+const char * LLVMTargetMachineGetFS(LLVMTargetMachineRef tm);
+
+/*
+ * Wraps TargetRegister::printRegisteredTargetsForVersion
+ */
+void LLVMPrintRegisteredTargetsForVersion();
 
 /*
  * Wraps TargetMachine::addPassesToEmitFile

@@ -146,6 +146,17 @@ PyObject *make_list_from_LLVMValueRef_array(LLVMValueRef *p, unsigned n);
  ******************************************************************************
  *****************************************************************************/
 
+
+#define _wrap_none2none(func)                               \
+static PyObject *                                           \
+_w ## func(PyObject * self, PyObject * args)    \
+{                                                           \
+    if (!PyArg_ParseTuple(args, ""))                        \
+        return NULL;                                        \
+    func();                                                 \
+    Py_RETURN_NONE;                                         \
+}
+
 /**
  * Wrap LLVM functions of the type
  * outtype func(intype1 arg1)
