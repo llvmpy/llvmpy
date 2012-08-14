@@ -115,9 +115,72 @@ char *do_print(W obj)
     return strdup(buf.str().c_str());
 }
 
+namespace {
+using namespace llvm;
+const CodeGenOpt::Level OptLevelMap[] = {
+    CodeGenOpt::None,
+    CodeGenOpt::Less,
+    CodeGenOpt::Default,
+    CodeGenOpt::Aggressive,
+};
+} // end anony namespace
+
+
 int LLVMInitializeNativeTargetAsmPrinter()
 {
     return llvm::InitializeNativeTargetAsmPrinter();
+}
+
+
+LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
+                                             const char *features, int opt)
+{
+    using namespace llvm;
+    std::string error;
+    Triple TheTriple;
+
+    // begin borrow from LLVM 3.2 code
+    // because we don't have 3 argument version of lookup() in 3.1
+    const Target * TheTarget = NULL;
+
+    const std::string ArchName(arch);
+    for (TargetRegistry::iterator it = TargetRegistry::begin(),
+        ie = TargetRegistry::end(); it != ie; ++it) {
+        if (ArchName == it->getName()) {
+            TheTarget = &*it;
+            break;
+        }
+    }
+
+    if (!TheTarget) {
+        fprintf(stderr, "%s\n", error.c_str());
+        return NULL;
+    }
+
+    Triple::ArchType Type = Triple::getArchTypeForLLVMName(ArchName);
+
+    if (Type != Triple::UnknownArch){
+        TheTriple.setArch(Type);
+    }
+    // end borrow from LLVM 3.2 code
+
+    if (!TheTarget->hasTargetMachine()){
+        fprintf(stderr, "No target machine for %s\n", arch);
+        return NULL;
+    }
+
+    TargetOptions no_target_options;
+    TargetMachine * tm = TheTarget->createTargetMachine(
+                                     TheTriple.str(), cpu, features,
+                                     no_target_options,
+                                     Reloc::Default, CodeModel::Default,
+                                     OptLevelMap[opt]);
+
+    if (!tm){
+        fprintf(stderr, "Cannot create target machine!\n");
+        return NULL;
+    }
+    return wrap(tm);
 }
 
 
@@ -401,15 +464,7 @@ void LLVMEngineBuilderForceInterpreter(LLVMEngineBuilderRef eb)
 
 void LLVMEngineBuilderSetOptLevel(LLVMEngineBuilderRef eb, int level)
 {
-    using namespace llvm;
-    const CodeGenOpt::Level level_map[] = {
-        CodeGenOpt::None,
-        CodeGenOpt::Less,
-        CodeGenOpt::Default,
-        CodeGenOpt::Aggressive,
-    };
-
-    unwrap(eb)->setOptLevel(level_map[level]);
+    unwrap(eb)->setOptLevel(OptLevelMap[level]);
 }
 
 

@@ -2151,4 +2151,5 @@ if _core.LLVMInitializeNativeTargetAsmPrinter():
 if True: # use PTX
     _core.LLVMInitializePTXTarget()
     _core.LLVMInitializePTXTargetInfo()
+    _core.LLVMInitializePTXTargetMC()
     _core.LLVMInitializePTXAsmPrinter()

@@ -312,6 +312,22 @@ def print_registered_targets():
 
 class TargetMachine(object):
 
+    @staticmethod
+    def lookup(arch, cpu='', features='', opt=2):
+        '''create a targetmachine given an architecture name
+
+        For a list of architectures,
+            use: `llc -help`
+
+        For a list of available CPUs,
+            use: `llvm-as < /dev/null | llc -march=xyz -mcpu=help`
+
+        For a list of available attributes (features),
+            use: `llvm-as < /dev/null | llc -march=xyz -mattr=help`
+        '''
+        ptr = _core.LLVMTargetMachineLookup(arch, cpu, features, opt)
+        return TargetMachine(ptr)
+
     def __init__(self, ptr):
         self.ptr = ptr
 

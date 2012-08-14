@@ -895,6 +895,7 @@ _wrap_none2obj(LLVMInitializeNativeTarget, int)
 _wrap_none2obj(LLVMInitializeNativeTargetAsmPrinter, int)
 _wrap_none2none(LLVMInitializePTXTarget)
 _wrap_none2none(LLVMInitializePTXTargetInfo)
+_wrap_none2none( LLVMInitializePTXTargetMC )
 _wrap_none2none(LLVMInitializePTXAsmPrinter)
 
 
@@ -1001,6 +1002,20 @@ _wrap_obj2obj(LLVMTargetMachineFromEngineBuilder, LLVMEngineBuilderRef,
               LLVMTargetMachineRef)
 _wrap_obj2none(LLVMDisposeTargetMachine, LLVMTargetMachineRef)
 
+static PyObject *
+_wLLVMTargetMachineLookup(PyObject * self, PyObject * args)
+{
+    const char *arch;
+    const char *cpu;
+    const char *features;
+    int opt;
+
+    if (!PyArg_ParseTuple(args, "sssi", &arch, &cpu, &features, &opt))
+        return NULL;
+
+    LLVMTargetMachineRef tm = LLVMTargetMachineLookup(arch, cpu, features, opt);
+    return ctor_LLVMTargetMachineRef(tm);
+}
 
 static PyObject *
 _wLLVMTargetMachineEmitFile(PyObject * self, PyObject * args)
@@ -1794,6 +1809,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMInitializeNativeTargetAsmPrinter )
     _method( LLVMInitializePTXTarget )
     _method( LLVMInitializePTXTargetInfo )
+    _method( LLVMInitializePTXTargetMC )
     _method( LLVMInitializePTXAsmPrinter )
 
     /* Passes */
@@ -1888,6 +1904,7 @@ static PyMethodDef core_methods[] = {
     /* Target Machine */
     _method( LLVMTargetMachineFromEngineBuilder )
     _method( LLVMDisposeTargetMachine )
+    _method( LLVMTargetMachineLookup )
     _method( LLVMTargetMachineEmitFile )
     _method( LLVMTargetMachineGetTargetData )
     _method( LLVMTargetMachineGetTargetName )

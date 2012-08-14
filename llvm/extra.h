@@ -48,6 +48,9 @@ extern "C" {
 int LLVMInitializeNativeTargetAsmPrinter();
 
 
+LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
+                                             const char *features, int opt);
+
 /*
  * Wraps EngineBuilder::selectTarget
  */
