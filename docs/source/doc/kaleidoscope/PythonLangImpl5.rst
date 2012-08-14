@@ -5,7 +5,7 @@ Chapter 5: Extending the Language: Control Flow
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
-Introduction # {#intro}
+Introduction 
 =======================
 
 Welcome to Chapter 5 of the `Implementing a language with
@@ -21,7 +21,7 @@ extend Kaleidoscope to have an if/then/else expression plus a simple
 
 --------------
 
-If/Then/Else # {#ifthen}
+If/Then/Else 
 ========================
 
 Extending Kaleidoscope to support if/then/else is quite straightforward.
@@ -60,7 +60,7 @@ down.
 Now that we know what we "want", let's break this down into its
 constituent pieces.
 
-Lexer Extensions for If/Then/Else ## {#iflexer}
+Lexer Extensions for If/Then/Else 
 -----------------------------------------------
 
 The lexer extensions are straightforward. First we add new token classes
@@ -88,7 +88,7 @@ pretty simple stuff:
 
 
 
-AST Extensions for If/Then/Else ## {#ifast}
+AST Extensions for If/Then/Else 
 -------------------------------------------
 
 To represent the new expression we add a new AST node for it:
@@ -99,7 +99,7 @@ To represent the new expression we add a new AST node for it:
    # Expression class for if/then/else. class
    IfExpressionNode(ExpressionNode):
    
-   def **init**\ (self, condition, then_branch, else_branch):
+   def __init__(self, condition, then_branch, else_branch):
    self.condition = condition self.then_branch = then_branch
    self.else_branch = else_branch
    
@@ -109,7 +109,7 @@ To represent the new expression we add a new AST node for it:
 
 The AST node just has pointers to the various subexpressions.
 
-Parser Extensions for If/Then/Else ## {#ifparser}
+Parser Extensions for If/Then/Else 
 -------------------------------------------------
 
 Now that we have the relevant tokens coming from the lexer and we have
@@ -160,7 +160,7 @@ Next we hook it up as a primary expression:
 
 
 
-LLVM IR for If/Then/Else ## {#ifir}
+LLVM IR for If/Then/Else 
 -----------------------------------
 
 Now that we have it parsing and building the AST, the final piece is
@@ -260,7 +260,7 @@ really easy to generate the Phi node, so we choose to do it directly.
 
 Okay, enough of the motivation and overview, lets generate code!
 
-Code Generation for If/Then/Else ## {#ifcodegen}
+Code Generation for If/Then/Else 
 ------------------------------------------------
 
 In order to generate code for this, we implement the ``Codegen`` method
@@ -423,7 +423,7 @@ languages...
 
 --------------
 
-'for' Loop Expression # {#for}
+'for' Loop Expression 
 ==============================
 
 Now that we know how to add basic control flow constructs to the
@@ -456,7 +456,7 @@ the future when we have mutable variables, it will get more useful.
 As before, lets talk about the changes that we need to Kaleidoscope to
 support this.
 
-Lexer Extensions for the 'for' Loop ## {#forlexer}
+Lexer Extensions for the 'for' Loop 
 --------------------------------------------------
 
 The lexer extensions are the same sort of thing as for if/then/else:
@@ -490,7 +490,7 @@ The lexer extensions are the same sort of thing as for if/then/else:
 
 
 
-AST Extensions for the 'for' Loop ## {#forast}
+AST Extensions for the 'for' Loop 
 ----------------------------------------------
 
 The AST node is just as simple. It basically boils down to capturing the
@@ -502,7 +502,7 @@ variable name and the constituent expressions in the node.
    # Expression class for for/in. class
    ForExpressionNode(ExpressionNode):
    
-   def **init**\ (self, loop_variable, start, end, step, body):
+   def __init__(self, loop_variable, start, end, step, body):
    self.loop_variable = loop_variable self.start = start self.end = end
    self.step = step self.body = body
    
@@ -510,7 +510,7 @@ variable name and the constituent expressions in the node.
 
 
 
-Parser Extensions for the 'for' Loop ## {#forparser}
+Parser Extensions for the 'for' Loop 
 ----------------------------------------------------
 
 The parser code is also fairly standard. The only interesting thing here
@@ -564,7 +564,7 @@ value to null in the AST node:
 
 
 
-LLVM IR for the 'for' Loop ## {#forir}
+LLVM IR for the 'for' Loop 
 --------------------------------------
 
 Now we get to the good part: the LLVM IR we want to generate for this
@@ -591,7 +591,7 @@ This loop contains all the same constructs we saw before: a phi node,
 several expressions, and some basic blocks. Lets see how this fits
 together.
 
-Code Generation for the 'for' Loop ## {#forcodegen}
+Code Generation for the 'for' Loop 
 ---------------------------------------------------
 
 The first part of Codegen is very simple: we just output the start
@@ -788,7 +788,7 @@ operators <PythonLangImpl6.html>`_ to our poor innocent language.
 
 --------------
 
-Full Code Listing # {#code}
+Full Code Listing 
 ===========================
 
 Here is the complete code listing for our running example, enhanced with
@@ -835,15 +835,15 @@ the if/then/else and for expressions:
    ThenToken(object): pass class ElseToken(object): pass class
    ForToken(object): pass class InToken(object): pass
    
-   class IdentifierToken(object): def **init**\ (self, name): self.name =
+   class IdentifierToken(object): def __init__(self, name): self.name =
    name
    
-   class NumberToken(object): def **init**\ (self, value): self.value =
+   class NumberToken(object): def __init__(self, value): self.value =
    value
    
-   class CharacterToken(object): def **init**\ (self, char): self.char =
-   char def **eq**\ (self, other): return isinstance(other, CharacterToken)
-   and self.char == other.char def **ne**\ (self, other): return not self
+   class CharacterToken(object): def __init__(self, char): self.char =
+   char def __eq__(self, other): return isinstance(other, CharacterToken)
+   and self.char == other.char def __ne__(self, other): return not self
    == other
    
    # Regular expressions that tokens and comments of our language.
@@ -904,14 +904,14 @@ the if/then/else and for expressions:
    # Expression class for numeric literals like "1.0".
    class NumberExpressionNode(ExpressionNode):
    
-   def **init**\ (self, value): self.value = value
+   def __init__(self, value): self.value = value
    
    def CodeGen(self): return Constant.real(Type.double(), self.value)
    
    # Expression class for referencing a variable, like "a".
    class VariableExpressionNode(ExpressionNode):
    
-   def **init**\ (self, name): self.name = name
+   def __init__(self, name): self.name = name
    
    def CodeGen(self): if self.name in g_named_values: return
    g_named_values[self.name] else: raise RuntimeError('Unknown variable
@@ -920,7 +920,7 @@ the if/then/else and for expressions:
    # Expression class for a binary operator.
    class BinaryOperatorExpressionNode(ExpressionNode):
    
-   def **init**\ (self, operator, left, right): self.operator = operator
+   def __init__(self, operator, left, right): self.operator = operator
    self.left = left self.right = right
    
    def CodeGen(self): left = self.left.CodeGen() right =
@@ -944,7 +944,7 @@ the if/then/else and for expressions:
    # Expression class for function calls.
    class CallExpressionNode(ExpressionNode):
    
-   def **init**\ (self, callee, args): self.callee = callee self.args =
+   def __init__(self, callee, args): self.callee = callee self.args =
    args
    
    def CodeGen(self): # Look up the name in the global module table. callee
@@ -963,7 +963,7 @@ the if/then/else and for expressions:
    # Expression class for if/then/else.
    class IfExpressionNode(ExpressionNode):
    
-   def **init**\ (self, condition, then_branch, else_branch):
+   def __init__(self, condition, then_branch, else_branch):
    self.condition = condition self.then_branch = then_branch
    self.else_branch = else_branch
    
@@ -1014,7 +1014,7 @@ the if/then/else and for expressions:
    # Expression class for for/in.
    class ForExpressionNode(ExpressionNode):
    
-   def **init**\ (self, loop_variable, start, end, step, body):
+   def __init__(self, loop_variable, start, end, step, body):
    self.loop_variable = loop_variable self.start = start self.end = end
    self.step = step self.body = body
    
@@ -1095,7 +1095,7 @@ the if/then/else and for expressions:
    # takes).
    class PrototypeNode(object):
    
-   def **init**\ (self, name, args): self.name = name self.args = args
+   def __init__(self, name, args): self.name = name self.args = args
    
    def CodeGen(self): # Make the function type, eg. double(double,double).
    funct_type = Type.function( Type.double(), [Type.double()] \*
@@ -1131,7 +1131,7 @@ the if/then/else and for expressions:
    # This class represents a function definition itself.
    class FunctionNode(object):
    
-   def **init**\ (self, prototype, body): self.prototype = prototype
+   def __init__(self, prototype, body): self.prototype = prototype
    self.body = body
    
    def CodeGen(self): # Clear scope. g_named_values.clear()
@@ -1167,7 +1167,7 @@ the if/then/else and for expressions:
    
    class Parser(object):
    
-   def **init**\ (self, tokens, binop_precedence): self.tokens = tokens
+   def __init__(self, tokens, binop_precedence): self.tokens = tokens
    self.binop_precedence = binop_precedence self.Next()
    
    # Provide a simple token buffer. Parser.current is the current token the
@@ -1408,4 +1408,4 @@ the if/then/else and for expressions:
    
    # Print out all of the generated code. print '', g_llvm_module
    
-   if **name** == '**main**\ ': main()
+   if **name** == '__main__': main()

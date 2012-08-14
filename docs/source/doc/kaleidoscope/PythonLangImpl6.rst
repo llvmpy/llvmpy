@@ -5,7 +5,7 @@ Chapter 6: Extending the Language: User-defined Operators
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
-Introduction # {#intro}
+Introduction 
 =======================
 
 Welcome to Chapter 6 of the `Implementing a language with
@@ -27,7 +27,7 @@ At the end of this tutorial, we'll run through an example Kaleidoscope
 application that `renders the Mandelbrot set <#example>`_. This gives an
 example of what you can build with Kaleidoscope and its feature set.
 
-User-defined Operators: the Idea # {#idea}
+User-defined Operators: the Idea 
 ==========================================
 
 The "operator overloading" that we will add to Kaleidoscope is more
@@ -77,7 +77,7 @@ operators.
 
 --------------
 
-User-defined Binary Operators # {#binary}
+User-defined Binary Operators 
 =========================================
 
 Adding support for user-defined binary operators is pretty simple with
@@ -113,7 +113,7 @@ keywords:
    implicitly the number of arguments the function # takes), as well as if
    it is an operator. class PrototypeNode(object):
    
-   def **init**\ (self, name, args, is_operator=False, precedence=0):
+   def __init__(self, name, args, is_operator=False, precedence=0):
    self.name = name self.args = args self.is_operator = is_operator
    self.precedence = precedence
    
@@ -266,7 +266,7 @@ the previous framework we built for other operators. Adding unary
 operators is a bit more challenging, because we don't have any framework
 for it yet - let's see what it takes.
 
-User-defined Unary Operators # {#unary}
+User-defined Unary Operators 
 =======================================
 
 Since we don't currently support unary operators in the Kaleidoscope
@@ -280,7 +280,7 @@ that, we need an AST node:
    # Expression class for a unary operator. class
    UnaryExpressionNode(ExpressionNode):
    
-   def **init**\ (self, operator, operand): self.operator = operator
+   def __init__(self, operator, operand): self.operator = operator
    self.operand = operand
    
    def CodeGen(self): ...
@@ -386,7 +386,7 @@ predefined operators.
 
 --------------
 
-Kicking the Tires # {#example}
+Kicking the Tires 
 ==============================
 
 It is somewhat hard to believe, but with a few simple extensions we've
@@ -674,7 +674,7 @@ front-end.
 
 --------------
 
-Full Code Listing # {#code}
+Full Code Listing 
 ===========================
 
 Here is the complete code listing for our running example, enhanced with
@@ -725,15 +725,15 @@ the if/then/else and for expressions:
    ForToken(object): pass class InToken(object): pass class
    BinaryToken(object): pass class UnaryToken(object): pass
    
-   class IdentifierToken(object): def **init**\ (self, name): self.name =
+   class IdentifierToken(object): def __init__(self, name): self.name =
    name
    
-   class NumberToken(object): def **init**\ (self, value): self.value =
+   class NumberToken(object): def __init__(self, value): self.value =
    value
    
-   class CharacterToken(object): def **init**\ (self, char): self.char =
-   char def **eq**\ (self, other): return isinstance(other, CharacterToken)
-   and self.char == other.char def **ne**\ (self, other): return not self
+   class CharacterToken(object): def __init__(self, char): self.char =
+   char def __eq__(self, other): return isinstance(other, CharacterToken)
+   and self.char == other.char def __ne__(self, other): return not self
    == other
    
    # Regular expressions that tokens and comments of our language.
@@ -798,14 +798,14 @@ the if/then/else and for expressions:
    # Expression class for numeric literals like "1.0".
    class NumberExpressionNode(ExpressionNode):
    
-   def **init**\ (self, value): self.value = value
+   def __init__(self, value): self.value = value
    
    def CodeGen(self): return Constant.real(Type.double(), self.value)
    
    # Expression class for referencing a variable, like "a".
    class VariableExpressionNode(ExpressionNode):
    
-   def **init**\ (self, name): self.name = name
+   def __init__(self, name): self.name = name
    
    def CodeGen(self): if self.name in g_named_values: return
    g_named_values[self.name] else: raise RuntimeError('Unknown variable
@@ -814,7 +814,7 @@ the if/then/else and for expressions:
    # Expression class for a binary operator.
    class BinaryOperatorExpressionNode(ExpressionNode):
    
-   def **init**\ (self, operator, left, right): self.operator = operator
+   def __init__(self, operator, left, right): self.operator = operator
    self.left = left self.right = right
    
    def CodeGen(self): left = self.left.CodeGen() right =
@@ -839,7 +839,7 @@ the if/then/else and for expressions:
    # Expression class for function calls.
    class CallExpressionNode(ExpressionNode):
    
-   def **init**\ (self, callee, args): self.callee = callee self.args =
+   def __init__(self, callee, args): self.callee = callee self.args =
    args
    
    def CodeGen(self): # Look up the name in the global module table. callee
@@ -858,7 +858,7 @@ the if/then/else and for expressions:
    # Expression class for if/then/else.
    class IfExpressionNode(ExpressionNode):
    
-   def **init**\ (self, condition, then_branch, else_branch):
+   def __init__(self, condition, then_branch, else_branch):
    self.condition = condition self.then_branch = then_branch
    self.else_branch = else_branch
    
@@ -909,7 +909,7 @@ the if/then/else and for expressions:
    # Expression class for for/in.
    class ForExpressionNode(ExpressionNode):
    
-   def **init**\ (self, loop_variable, start, end, step, body):
+   def __init__(self, loop_variable, start, end, step, body):
    self.loop_variable = loop_variable self.start = start self.end = end
    self.step = step self.body = body
    
@@ -988,7 +988,7 @@ the if/then/else and for expressions:
    # Expression class for a unary operator.
    class UnaryExpressionNode(ExpressionNode):
    
-   def **init**\ (self, operator, operand): self.operator = operator
+   def __init__(self, operator, operand): self.operator = operator
    self.operand = operand
    
    def CodeGen(self): operand = self.operand.CodeGen() function =
@@ -1000,7 +1000,7 @@ the if/then/else and for expressions:
    # takes), as well as if it is an operator.
    class PrototypeNode(object):
    
-   def **init**\ (self, name, args, is_operator=False, precedence=0):
+   def __init__(self, name, args, is_operator=False, precedence=0):
    self.name = name self.args = args self.is_operator = is_operator
    self.precedence = precedence
    
@@ -1042,7 +1042,7 @@ the if/then/else and for expressions:
    # This class represents a function definition itself.
    class FunctionNode(object):
    
-   def **init**\ (self, prototype, body): self.prototype = prototype
+   def __init__(self, prototype, body): self.prototype = prototype
    self.body = body
    
    def CodeGen(self): # Clear scope. g_named_values.clear()
@@ -1085,7 +1085,7 @@ the if/then/else and for expressions:
    
    class Parser(object):
    
-   def **init**\ (self, tokens): self.tokens = tokens self.Next()
+   def __init__(self, tokens): self.tokens = tokens self.Next()
    
    # Provide a simple token buffer. Parser.current is the current token the
    # parser is looking at. Parser.Next() reads another token from the lexer
@@ -1354,4 +1354,4 @@ the if/then/else and for expressions:
    
    # Print out all of the generated code. print '', g_llvm_module
    
-   if **name** == '**main**\ ': main()
+   if **name** == '__main__': main()

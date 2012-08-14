@@ -5,7 +5,7 @@ Chapter 7: Extending the Language: Mutable Variables / SSA construction
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
-Introduction # {#intro}
+Introduction 
 =======================
 
 Welcome to Chapter 7 of the `Implementing a language with
@@ -31,7 +31,7 @@ for your front-end to build SSA form: LLVM provides highly tuned and
 well tested support for this, though the way it works is a bit
 unexpected for some.
 
-Why is this a hard problem? # {#why}
+Why is this a hard problem? 
 ====================================
 
 To understand why mutable variables cause complexities in SSA
@@ -80,7 +80,7 @@ it. However, SSA construction requires non-trivial algorithms and data
 structures, so it is inconvenient and wasteful for every front-end to
 have to reproduce this logic.
 
-Memory in LLVM # {#memory}
+Memory in LLVM 
 ==========================
 
 The 'trick' here is that while LLVM does require all register values to
@@ -258,7 +258,7 @@ mutable variables now!
 
 --------------
 
-Mutable Variables in Kaleidoscope # {#kalvars}
+Mutable Variables in Kaleidoscope 
 ==============================================
 
 Now that we know the sort of problem we want to tackle, lets see what
@@ -299,7 +299,7 @@ operator, then extend Kaleidoscope to support new variable definitions.
 
 --------------
 
-Adjusting Existing Variables for Mutation # {#adjustments}
+Adjusting Existing Variables for Mutation 
 ==========================================================
 
 The symbol table in Kaleidoscope is managed at code generation time by
@@ -503,7 +503,7 @@ we'll add the assignment operator.
 
 --------------
 
-New Assignment Operator # {#assignment}
+New Assignment Operator 
 =======================================
 
 With our current framework, adding a new assignment operator is really
@@ -587,7 +587,7 @@ own local variables. Let's add this next!
 
 --------------
 
-User-defined Local Variables # {#localvars}
+User-defined Local Variables 
 ===========================================
 
 Adding var/in is just like any other other extensions we made to
@@ -615,7 +615,7 @@ var/in, it looks like this:
    # Expression class for var/in. class
    VarExpressionNode(ExpressionNode):
    
-   def **init**\ (self, variables, body): self.variables = variables
+   def __init__(self, variables, body): self.variables = variables
    self.body = body
    
    def CodeGen(self): ...
@@ -802,7 +802,7 @@ dominance frontier" computation anywhere in sight.
 
 --------------
 
-Full Code Listing # {#code}
+Full Code Listing 
 ===========================
 
 Here is the complete code listing for our running example, enhanced with
@@ -861,15 +861,15 @@ mutable variables and var/in support:
    BinaryToken(object): pass class UnaryToken(object): pass class
    VarToken(object): pass
    
-   class IdentifierToken(object): def **init**\ (self, name): self.name =
+   class IdentifierToken(object): def __init__(self, name): self.name =
    name
    
-   class NumberToken(object): def **init**\ (self, value): self.value =
+   class NumberToken(object): def __init__(self, value): self.value =
    value
    
-   class CharacterToken(object): def **init**\ (self, char): self.char =
-   char def **eq**\ (self, other): return isinstance(other, CharacterToken)
-   and self.char == other.char def **ne**\ (self, other): return not self
+   class CharacterToken(object): def __init__(self, char): self.char =
+   char def __eq__(self, other): return isinstance(other, CharacterToken)
+   and self.char == other.char def __ne__(self, other): return not self
    == other
    
    # Regular expressions that tokens and comments of our language.
@@ -936,14 +936,14 @@ mutable variables and var/in support:
    # Expression class for numeric literals like "1.0".
    class NumberExpressionNode(ExpressionNode):
    
-   def **init**\ (self, value): self.value = value
+   def __init__(self, value): self.value = value
    
    def CodeGen(self): return Constant.real(Type.double(), self.value)
    
    # Expression class for referencing a variable, like "a".
    class VariableExpressionNode(ExpressionNode):
    
-   def **init**\ (self, name): self.name = name
+   def __init__(self, name): self.name = name
    
    def CodeGen(self): if self.name in g_named_values: return
    g_llvm_builder.load(g_named_values[self.name], self.name) else:
@@ -952,7 +952,7 @@ mutable variables and var/in support:
    # Expression class for a binary operator.
    class BinaryOperatorExpressionNode(ExpressionNode):
    
-   def **init**\ (self, operator, left, right): self.operator = operator
+   def __init__(self, operator, left, right): self.operator = operator
    self.left = left self.right = right
    
    def CodeGen(self): # A special case for '=' because we don't want to
@@ -994,7 +994,7 @@ mutable variables and var/in support:
    # Expression class for function calls.
    class CallExpressionNode(ExpressionNode):
    
-   def **init**\ (self, callee, args): self.callee = callee self.args =
+   def __init__(self, callee, args): self.callee = callee self.args =
    args
    
    def CodeGen(self): # Look up the name in the global module table. callee
@@ -1013,7 +1013,7 @@ mutable variables and var/in support:
    # Expression class for if/then/else.
    class IfExpressionNode(ExpressionNode):
    
-   def **init**\ (self, condition, then_branch, else_branch):
+   def __init__(self, condition, then_branch, else_branch):
    self.condition = condition self.then_branch = then_branch
    self.else_branch = else_branch
    
@@ -1064,7 +1064,7 @@ mutable variables and var/in support:
    # Expression class for for/in.
    class ForExpressionNode(ExpressionNode):
    
-   def **init**\ (self, loop_variable, start, end, step, body):
+   def __init__(self, loop_variable, start, end, step, body):
    self.loop_variable = loop_variable self.start = start self.end = end
    self.step = step self.body = body
    
@@ -1146,7 +1146,7 @@ mutable variables and var/in support:
    # Expression class for a unary operator.
    class UnaryExpressionNode(ExpressionNode):
    
-   def **init**\ (self, operator, operand): self.operator = operator
+   def __init__(self, operator, operand): self.operator = operator
    self.operand = operand
    
    def CodeGen(self): operand = self.operand.CodeGen() function =
@@ -1156,7 +1156,7 @@ mutable variables and var/in support:
    # Expression class for var/in.
    class VarExpressionNode(ExpressionNode):
    
-   def **init**\ (self, variables, body): self.variables = variables
+   def __init__(self, variables, body): self.variables = variables
    self.body = body
    
    def CodeGen(self): old_bindings = {} function =
@@ -1204,7 +1204,7 @@ mutable variables and var/in support:
    # takes), as well as if it is an operator.
    class PrototypeNode(object):
    
-   def **init**\ (self, name, args, is_operator=False, precedence=0):
+   def __init__(self, name, args, is_operator=False, precedence=0):
    self.name = name self.args = args self.is_operator = is_operator
    self.precedence = precedence
    
@@ -1251,7 +1251,7 @@ mutable variables and var/in support:
    # This class represents a function definition itself.
    class FunctionNode(object):
    
-   def **init**\ (self, prototype, body): self.prototype = prototype
+   def __init__(self, prototype, body): self.prototype = prototype
    self.body = body
    
    def CodeGen(self): # Clear scope. g_named_values.clear()
@@ -1297,7 +1297,7 @@ mutable variables and var/in support:
    
    class Parser(object):
    
-   def **init**\ (self, tokens): self.tokens = tokens self.Next()
+   def __init__(self, tokens): self.tokens = tokens self.Next()
    
    # Provide a simple token buffer. Parser.current is the current token the
    # parser is looking at. Parser.Next() reads another token from the lexer
@@ -1608,4 +1608,4 @@ mutable variables and var/in support:
    
    # Print out all of the generated code. print '', g_llvm_module
    
-   if **name** == '**main**\ ': main()
+   if **name** == '__main__': main()

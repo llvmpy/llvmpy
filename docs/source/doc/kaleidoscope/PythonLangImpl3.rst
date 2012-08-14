@@ -5,7 +5,7 @@ Chapter 3: Code generation to LLVM IR
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
-Introduction # {#intro}
+Introduction 
 =======================
 
 Welcome to Chapter 3 of the `Implementing a language with
@@ -25,7 +25,7 @@ page <http://www.mdevan.org/llvmpy/examples.html>`_
 
 --------------
 
-Code Generation Setup # {#basics}
+Code Generation Setup 
 =================================
 
 In order to generate LLVM IR, we want some simple setup to get started.
@@ -37,14 +37,14 @@ First we define code generation methods in each AST node class:
    # Expression class for numeric literals like
    "1.0". class NumberExpressionNode(ExpressionNode):
    
-   def **init**\ (self, value): self.value = value
+   def __init__(self, value): self.value = value
    
    def CodeGen(self): ...
    
    # Expression class for referencing a variable, like "a".
    class VariableExpressionNode(ExpressionNode):
    
-   def **init**\ (self, name): self.name = name
+   def __init__(self, name): self.name = name
    
    def CodeGen(self): ...
    
@@ -107,7 +107,7 @@ that this has already been done, and we'll just use it to emit code.
 
 --------------
 
-Expression Code Generation # {#exprs}
+Expression Code Generation 
 =====================================
 
 Generating LLVM code for expression nodes is very straightforward: less
@@ -254,7 +254,7 @@ basic framework.
 
 --------------
 
-Function Code Generation # {#funcs}
+Function Code Generation 
 ===================================
 
 Code generation for prototypes and functions must handle a number of
@@ -479,7 +479,7 @@ this bug; see what you can come up with! Here is a testcase:
 
 --------------
 
-Driver Changes and Closing Thoughts # {#driver}
+Driver Changes and Closing Thoughts 
 ===============================================
 
 For now, code generation to LLVM doesn't really get us much, except that
@@ -584,7 +584,7 @@ running code!
 
 --------------
 
-Full Code Listing # {#code}
+Full Code Listing 
 ===========================
 
 Here is the complete code listing for our running example, enhanced with
@@ -623,15 +623,15 @@ need to `download <../download.html>`_ and
    
    class ExternToken(object): pass
    
-   class IdentifierToken(object): def **init**\ (self, name): self.name =
+   class IdentifierToken(object): def __init__(self, name): self.name =
    name
    
-   class NumberToken(object): def **init**\ (self, value): self.value =
+   class NumberToken(object): def __init__(self, value): self.value =
    value
    
-   class CharacterToken(object): def **init**\ (self, char): self.char =
-   char def **eq**\ (self, other): return isinstance(other, CharacterToken)
-   and self.char == other.char def **ne**\ (self, other): return not self
+   class CharacterToken(object): def __init__(self, char): self.char =
+   char def __eq__(self, other): return isinstance(other, CharacterToken)
+   and self.char == other.char def __ne__(self, other): return not self
    == other
    
    # Regular expressions that tokens and comments of our language.
@@ -682,14 +682,14 @@ need to `download <../download.html>`_ and
    # Expression class for numeric literals like "1.0".
    class NumberExpressionNode(ExpressionNode):
    
-   def **init**\ (self, value): self.value = value
+   def __init__(self, value): self.value = value
    
    def CodeGen(self): return Constant.real(Type.double(), self.value)
    
    # Expression class for referencing a variable, like "a".
    class VariableExpressionNode(ExpressionNode):
    
-   def **init**\ (self, name): self.name = name
+   def __init__(self, name): self.name = name
    
    def CodeGen(self): if self.name in g_named_values: return
    g_named_values[self.name] else: raise RuntimeError('Unknown variable
@@ -698,7 +698,7 @@ need to `download <../download.html>`_ and
    # Expression class for a binary operator.
    class BinaryOperatorExpressionNode(ExpressionNode):
    
-   def **init**\ (self, operator, left, right): self.operator = operator
+   def __init__(self, operator, left, right): self.operator = operator
    self.left = left self.right = right
    
    def CodeGen(self): left = self.left.CodeGen() right =
@@ -722,7 +722,7 @@ need to `download <../download.html>`_ and
    # Expression class for function calls.
    class CallExpressionNode(ExpressionNode):
    
-   def **init**\ (self, callee, args): self.callee = callee self.args =
+   def __init__(self, callee, args): self.callee = callee self.args =
    args
    
    def CodeGen(self): # Look up the name in the global module table. callee
@@ -743,7 +743,7 @@ need to `download <../download.html>`_ and
    # takes).
    class PrototypeNode(object):
    
-   def **init**\ (self, name, args): self.name = name self.args = args
+   def __init__(self, name, args): self.name = name self.args = args
    
    def CodeGen(self): # Make the function type, eg. double(double,double).
    funct_type = Type.function( Type.double(), [Type.double()] \*
@@ -779,7 +779,7 @@ need to `download <../download.html>`_ and
    # This class represents a function definition itself.
    class FunctionNode(object):
    
-   def **init**\ (self, prototype, body): self.prototype = prototype
+   def __init__(self, prototype, body): self.prototype = prototype
    self.body = body
    
    def CodeGen(self): # Clear scope. g_named_values.clear()
@@ -812,7 +812,7 @@ need to `download <../download.html>`_ and
    
    class Parser(object):
    
-   def **init**\ (self, tokens, binop_precedence): self.tokens = tokens
+   def __init__(self, tokens, binop_precedence): self.tokens = tokens
    self.binop_precedence = binop_precedence self.Next()
    
    # Provide a simple token buffer. Parser.current is the current token the
@@ -976,4 +976,4 @@ need to `download <../download.html>`_ and
    
    # Print out all of the generated code. print '', g_llvm_module
    
-   if **name** == '**main**\ ': main()
+   if **name** == '__main__': main()
