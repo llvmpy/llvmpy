@@ -5,7 +5,7 @@ Chapter 7: Extending the Language: Mutable Variables / SSA construction
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
-Introduction # {#intro}
+Introduction 
 =======================
 
 Welcome to Chapter 7 of the `Implementing a language with
@@ -31,7 +31,7 @@ for your front-end to build SSA form: LLVM provides highly tuned and
 well tested support for this, though the way it works is a bit
 unexpected for some.
 
-Why is this a hard problem? # {#why}
+Why is this a hard problem? 
 ====================================
 
 To understand why mutable variables cause complexities in SSA
@@ -80,7 +80,7 @@ it. However, SSA construction requires non-trivial algorithms and data
 structures, so it is inconvenient and wasteful for every front-end to
 have to reproduce this logic.
 
-Memory in LLVM # {#memory}
+Memory in LLVM 
 ==========================
 
 The 'trick' here is that while LLVM does require all register values to
@@ -258,7 +258,7 @@ mutable variables now!
 
 --------------
 
-Mutable Variables in Kaleidoscope # {#kalvars}
+Mutable Variables in Kaleidoscope 
 ==============================================
 
 Now that we know the sort of problem we want to tackle, lets see what
@@ -299,7 +299,7 @@ operator, then extend Kaleidoscope to support new variable definitions.
 
 --------------
 
-Adjusting Existing Variables for Mutation # {#adjustments}
+Adjusting Existing Variables for Mutation 
 ==========================================================
 
 The symbol table in Kaleidoscope is managed at code generation time by
@@ -503,7 +503,7 @@ we'll add the assignment operator.
 
 --------------
 
-New Assignment Operator # {#assignment}
+New Assignment Operator 
 =======================================
 
 With our current framework, adding a new assignment operator is really
@@ -587,7 +587,7 @@ own local variables. Let's add this next!
 
 --------------
 
-User-defined Local Variables # {#localvars}
+User-defined Local Variables 
 ===========================================
 
 Adding var/in is just like any other other extensions we made to
@@ -802,7 +802,7 @@ dominance frontier" computation anywhere in sight.
 
 --------------
 
-Full Code Listing # {#code}
+Full Code Listing 
 ===========================
 
 Here is the complete code listing for our running example, enhanced with

@@ -5,7 +5,7 @@ Chapter 4: Adding JIT and Optimizer Support
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
-Introduction # {#intro}
+Introduction 
 =======================
 
 Welcome to Chapter 4 of the `Implementing a language with
@@ -18,7 +18,7 @@ code for the Kaleidoscope language.
 
 --------------
 
-Trivial Constant Folding # {#trivialconstfold}
+Trivial Constant Folding 
 ==============================================
 
 Our demonstration for Chapter 3 is elegant and easy to extend.
@@ -92,7 +92,7 @@ use, in the form of "passes".
 
 --------------
 
-LLVM Optimization Passes # {#optimizerpasses}
+LLVM Optimization Passes 
 =============================================
 
 LLVM provides many optimization passes, which do many different sorts of
@@ -216,7 +216,7 @@ about executing it!
 
 --------------
 
-Adding a JIT Compiler # {#jit}
+Adding a JIT Compiler 
 ==============================
 
 Code that is available in LLVM IR can have a wide variety of tools
@@ -388,7 +388,7 @@ issues along the way.
 
 --------------
 
-Full Code Listing # {#code}
+Full Code Listing 
 ===========================
 
 Here is the complete code listing for our running example, enhanced with

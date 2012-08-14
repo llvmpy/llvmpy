@@ -5,7 +5,7 @@ Chapter 5: Extending the Language: Control Flow
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
-Introduction # {#intro}
+Introduction 
 =======================
 
 Welcome to Chapter 5 of the `Implementing a language with
@@ -21,7 +21,7 @@ extend Kaleidoscope to have an if/then/else expression plus a simple
 
 --------------
 
-If/Then/Else # {#ifthen}
+If/Then/Else 
 ========================
 
 Extending Kaleidoscope to support if/then/else is quite straightforward.
@@ -60,7 +60,7 @@ down.
 Now that we know what we "want", let's break this down into its
 constituent pieces.
 
-Lexer Extensions for If/Then/Else ## {#iflexer}
+Lexer Extensions for If/Then/Else 
 -----------------------------------------------
 
 The lexer extensions are straightforward. First we add new token classes
@@ -88,7 +88,7 @@ pretty simple stuff:
 
 
 
-AST Extensions for If/Then/Else ## {#ifast}
+AST Extensions for If/Then/Else 
 -------------------------------------------
 
 To represent the new expression we add a new AST node for it:
@@ -109,7 +109,7 @@ To represent the new expression we add a new AST node for it:
 
 The AST node just has pointers to the various subexpressions.
 
-Parser Extensions for If/Then/Else ## {#ifparser}
+Parser Extensions for If/Then/Else 
 -------------------------------------------------
 
 Now that we have the relevant tokens coming from the lexer and we have
@@ -160,7 +160,7 @@ Next we hook it up as a primary expression:
 
 
 
-LLVM IR for If/Then/Else ## {#ifir}
+LLVM IR for If/Then/Else 
 -----------------------------------
 
 Now that we have it parsing and building the AST, the final piece is
@@ -260,7 +260,7 @@ really easy to generate the Phi node, so we choose to do it directly.
 
 Okay, enough of the motivation and overview, lets generate code!
 
-Code Generation for If/Then/Else ## {#ifcodegen}
+Code Generation for If/Then/Else 
 ------------------------------------------------
 
 In order to generate code for this, we implement the ``Codegen`` method
@@ -423,7 +423,7 @@ languages...
 
 --------------
 
-'for' Loop Expression # {#for}
+'for' Loop Expression 
 ==============================
 
 Now that we know how to add basic control flow constructs to the
@@ -456,7 +456,7 @@ the future when we have mutable variables, it will get more useful.
 As before, lets talk about the changes that we need to Kaleidoscope to
 support this.
 
-Lexer Extensions for the 'for' Loop ## {#forlexer}
+Lexer Extensions for the 'for' Loop 
 --------------------------------------------------
 
 The lexer extensions are the same sort of thing as for if/then/else:
@@ -490,7 +490,7 @@ The lexer extensions are the same sort of thing as for if/then/else:
 
 
 
-AST Extensions for the 'for' Loop ## {#forast}
+AST Extensions for the 'for' Loop 
 ----------------------------------------------
 
 The AST node is just as simple. It basically boils down to capturing the
@@ -510,7 +510,7 @@ variable name and the constituent expressions in the node.
 
 
 
-Parser Extensions for the 'for' Loop ## {#forparser}
+Parser Extensions for the 'for' Loop 
 ----------------------------------------------------
 
 The parser code is also fairly standard. The only interesting thing here
@@ -564,7 +564,7 @@ value to null in the AST node:
 
 
 
-LLVM IR for the 'for' Loop ## {#forir}
+LLVM IR for the 'for' Loop 
 --------------------------------------
 
 Now we get to the good part: the LLVM IR we want to generate for this
@@ -591,7 +591,7 @@ This loop contains all the same constructs we saw before: a phi node,
 several expressions, and some basic blocks. Lets see how this fits
 together.
 
-Code Generation for the 'for' Loop ## {#forcodegen}
+Code Generation for the 'for' Loop 
 ---------------------------------------------------
 
 The first part of Codegen is very simple: we just output the start
@@ -788,7 +788,7 @@ operators <PythonLangImpl6.html>`_ to our poor innocent language.
 
 --------------
 
-Full Code Listing # {#code}
+Full Code Listing 
 ===========================
 
 Here is the complete code listing for our running example, enhanced with

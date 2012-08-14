@@ -5,7 +5,7 @@ Chapter 6: Extending the Language: User-defined Operators
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
-Introduction # {#intro}
+Introduction 
 =======================
 
 Welcome to Chapter 6 of the `Implementing a language with
@@ -27,7 +27,7 @@ At the end of this tutorial, we'll run through an example Kaleidoscope
 application that `renders the Mandelbrot set <#example>`_. This gives an
 example of what you can build with Kaleidoscope and its feature set.
 
-User-defined Operators: the Idea # {#idea}
+User-defined Operators: the Idea 
 ==========================================
 
 The "operator overloading" that we will add to Kaleidoscope is more
@@ -77,7 +77,7 @@ operators.
 
 --------------
 
-User-defined Binary Operators # {#binary}
+User-defined Binary Operators 
 =========================================
 
 Adding support for user-defined binary operators is pretty simple with
@@ -266,7 +266,7 @@ the previous framework we built for other operators. Adding unary
 operators is a bit more challenging, because we don't have any framework
 for it yet - let's see what it takes.
 
-User-defined Unary Operators # {#unary}
+User-defined Unary Operators 
 =======================================
 
 Since we don't currently support unary operators in the Kaleidoscope
@@ -386,7 +386,7 @@ predefined operators.
 
 --------------
 
-Kicking the Tires # {#example}
+Kicking the Tires 
 ==============================
 
 It is somewhat hard to believe, but with a few simple extensions we've
@@ -674,7 +674,7 @@ front-end.
 
 --------------
 
-Full Code Listing # {#code}
+Full Code Listing 
 ===========================
 
 Here is the complete code listing for our running example, enhanced with

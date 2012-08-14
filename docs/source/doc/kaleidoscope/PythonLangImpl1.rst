@@ -94,7 +94,7 @@ play with languages!
 
 --------------
 
-The Basic Language # {#language}
+The Basic Language 
 ================================
 
 This tutorial will be illustrated with a toy language that we'll call
@@ -152,7 +152,7 @@ Lets dive into the implementation of this language!
 
 --------------
 
-The Lexer # {#lexer}
+The Lexer 
 ====================
 
 When it comes to implementing a language, the first thing needed is the

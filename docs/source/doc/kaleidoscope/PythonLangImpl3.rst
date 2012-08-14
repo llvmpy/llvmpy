@@ -5,7 +5,7 @@ Chapter 3: Code generation to LLVM IR
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
-Introduction # {#intro}
+Introduction 
 =======================
 
 Welcome to Chapter 3 of the `Implementing a language with
@@ -25,7 +25,7 @@ page <http://www.mdevan.org/llvmpy/examples.html>`_
 
 --------------
 
-Code Generation Setup # {#basics}
+Code Generation Setup 
 =================================
 
 In order to generate LLVM IR, we want some simple setup to get started.
@@ -107,7 +107,7 @@ that this has already been done, and we'll just use it to emit code.
 
 --------------
 
-Expression Code Generation # {#exprs}
+Expression Code Generation 
 =====================================
 
 Generating LLVM code for expression nodes is very straightforward: less
@@ -254,7 +254,7 @@ basic framework.
 
 --------------
 
-Function Code Generation # {#funcs}
+Function Code Generation 
 ===================================
 
 Code generation for prototypes and functions must handle a number of
@@ -479,7 +479,7 @@ this bug; see what you can come up with! Here is a testcase:
 
 --------------
 
-Driver Changes and Closing Thoughts # {#driver}
+Driver Changes and Closing Thoughts 
 ===============================================
 
 For now, code generation to LLVM doesn't really get us much, except that
@@ -584,7 +584,7 @@ running code!
 
 --------------
 
-Full Code Listing # {#code}
+Full Code Listing 
 ===========================
 
 Here is the complete code listing for our running example, enhanced with
