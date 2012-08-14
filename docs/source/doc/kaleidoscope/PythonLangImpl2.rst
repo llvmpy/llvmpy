@@ -753,19 +753,19 @@ external libraries at all for this.
       pass
    
    class IdentifierToken(object): 
-      def **init**\ (self, name): 
+      def __init__(self, name): 
          self.name = name
    
    class NumberToken(object): 
-      def **init**\ (self, value): 
+      def __init__(self, value): 
          self.value = value
    
    class CharacterToken(object): 
-      def **init**\ (self, char): 
+      def __init__(self, char): 
          self.char = char 
-      def **eq**\ (self, other): 
+      def __eq__(self, other): 
          return isinstance(other, CharacterToken) and self.char == other.char 
-      def **ne**\ (self, other): 
+      def __ne__(self, other): 
          return not self == other
    
    # Regular expressions that tokens and comments of our language.
@@ -815,24 +815,24 @@ external libraries at all for this.
    
    # Expression class for numeric literals like "1.0".
    class NumberExpressionNode(ExpressionNode): 
-      def **init**\ (self, value):
+      def __init__(self, value):
          self.value = value
    
    # Expression class for referencing a variable, like "a".
    class VariableExpressionNode(ExpressionNode): 
-      def **init**\ (self, name): 
+      def __init__(self, name): 
          self.name = name
    
    # Expression class for a binary operator.
    class BinaryOperatorExpressionNode(ExpressionNode): 
-      def **init**\ (self, operator, left, right): 
+      def __init__(self, operator, left, right): 
          self.operator = operator 
          self.left = left
          self.right = right
    
    # Expression class for function calls.
    class CallExpressionNode(ExpressionNode): 
-      def **init**\ (self, callee, args): 
+      def __init__(self, callee, args): 
          self.callee = callee 
          self.args = args
    
@@ -840,12 +840,12 @@ external libraries at all for this.
    # and its argument names (thus implicitly the number of arguments the function
    # takes).
    class PrototypeNode(object): 
-      def **init**\ (self, name, args): 
+      def __init__(self, name, args): 
          self.name = name 
          self.args = args
    
    # This class represents a function definition itself.
-   class FunctionNode(object): def **init**\ (self, prototype, body):
+   class FunctionNode(object): def __init__(self, prototype, body):
    self.prototype = prototype self.body = body
    
    Parser
