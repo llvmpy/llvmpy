@@ -511,12 +511,12 @@ the Builder. We will add optimizations explicitly in the next chapter.
    Read a function definition: 
    define double @foo(double %a, double %b) { 
    entry:
-      %multmp = fmul double %a, %a              ; [#uses=1] 
-      %multmp1 = fmul double 2.000000e+00, %a   ; [#uses=1] 
-      %multmp2 = fmul double %multmp1, %b       ; [#uses=1] 
-      %addtmp = fadd double %multmp, %multmp2   ; [#uses=1] 
-      %multmp3 = fmul double %b, %b             ; [#uses=1] 
-      %addtmp4 = fadd double %addtmp, %multmp3  ; [#uses=1] 
+      %multmp = fmul double %a, %a              ; <double> [#uses=1] 
+      %multmp1 = fmul double 2.000000e+00, %a   ; <double> [#uses=1] 
+      %multmp2 = fmul double %multmp1, %b       ; <double> [#uses=1] 
+      %addtmp = fadd double %multmp, %multmp2   ; <double> [#uses=1] 
+      %multmp3 = fmul double %b, %b             ; <double> [#uses=1] 
+      %addtmp4 = fadd double %addtmp, %multmp3  ; <double> [#uses=1] 
       ret double %addtmp4 
    }
 
@@ -530,9 +530,9 @@ LLVM builder calls that we use to create the instructions.
 
    ready> def bar(a) foo(a, 4.0) + bar(31337) Read a
    function definition: define double @bar(double %a) { entry: %calltmp =
-   call double @foo(double %a, double 4.000000e+00) ; [#uses=1] %calltmp1 =
-   call double @bar(double 3.133700e+04) ; [#uses=1] %addtmp = fadd double
-   %calltmp, %calltmp1 ; [#uses=1] ret double %addtmp }
+   call double @foo(double %a, double 4.000000e+00) ; <double> [#uses=1] %calltmp1 =
+   call double @bar(double 3.133700e+04) ; <double> [#uses=1] %addtmp = fadd double
+   %calltmp, %calltmp1 ; <double> [#uses=1] ret double %addtmp }
 
 
 
@@ -547,7 +547,7 @@ control flow to actually make recursion useful :).
    @cos(double)
    
    ready> cos(1.234) Read a top-level expression: define double @1() {
-   entry: %calltmp = call double @cos(double 1.234000e+00) ; [#uses=1] ret
+   entry: %calltmp = call double @cos(double 1.234000e+00) ; <double> [#uses=1] ret
    double %calltmp }
 
 
@@ -562,21 +562,21 @@ This shows an extern for the libm "cos" function, and a call to it.
    define double @0() { entry: ret double 9.000000e+00 }
    
    define double @foo(double %a, double %b) { entry: %multmp = fmul double
-   %a, %a ; [#uses=1] %multmp1 = fmul double 2.000000e+00, %a ; [#uses=1]
-   %multmp2 = fmul double %multmp1, %b ; [#uses=1] %addtmp = fadd double
-   %multmp, %multmp2 ; [#uses=1] %multmp3 = fmul double %b, %b ; [#uses=1]
-   %addtmp4 = fadd double %addtmp, %multmp3 ; [#uses=1] ret double %addtmp4
+   %a, %a ; <double> [#uses=1] %multmp1 = fmul double 2.000000e+00, %a ; <double> [#uses=1]
+   %multmp2 = fmul double %multmp1, %b ; <double> [#uses=1] %addtmp = fadd double
+   %multmp, %multmp2 ; <double> [#uses=1] %multmp3 = fmul double %b, %b ; <double> [#uses=1]
+   %addtmp4 = fadd double %addtmp, %multmp3 ; <double> [#uses=1] ret double %addtmp4
    }
    
    define double @bar(double %a) { entry: %calltmp = call double
-   @foo(double %a, double 4.000000e+00) ; [#uses=1] %calltmp1 = call double
-   @bar(double 3.133700e+04) ; [#uses=1] %addtmp = fadd double %calltmp,
-   %calltmp1 ; [#uses=1] ret double %addtmp }
+   @foo(double %a, double 4.000000e+00) ; <double> [#uses=1] %calltmp1 = call double
+   @bar(double 3.133700e+04) ; <double> [#uses=1] %addtmp = fadd double %calltmp,
+   %calltmp1 ; <double> [#uses=1] ret double %addtmp }
    
    declare double @cos(double)
    
    define double @1() { entry: %calltmp = call double @cos(double
-   1.234000e+00) ; [#uses=1] ret double %calltmp }
+   1.234000e+00) ; <double> [#uses=1] ret double %calltmp }
 
 
 

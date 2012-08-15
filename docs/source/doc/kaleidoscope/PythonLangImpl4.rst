@@ -73,9 +73,9 @@ slightly more complex example:
 
    ready> def test(x) (1+2+x)\*(x+(1+2)) Read a
    function definition: define double @test(double %x) { entry: %addtmp =
-   fadd double 3.000000e+00, %x ; [#uses=1] %addtmp1 = fadd double %x,
-   3.000000e+00 ; [#uses=1] %multmp = fmul double %addtmp, %addtmp1 ;
-   [#uses=1] ret double %multmp }
+   fadd double 3.000000e+00, %x ; <double> [#uses=1] %addtmp1 = fadd double %x,
+   3.000000e+00 ; <double> [#uses=1] %multmp = fmul double %addtmp, %addtmp1 ;
+   <double> [#uses=1] ret double %multmp }
 
 
 
@@ -196,7 +196,7 @@ our test above again:
    ready> def test(x) (1+2+x)\*(x+(1+2)) Read a
    function definition: define double @test(double %x) { entry: %addtmp =
    fadd double %x, 3.000000e+00 ; [#uses=2] %multmp = fmul double %addtmp,
-   %addtmp ; [#uses=1] ret double %multmp }
+   %addtmp ; <double> [#uses=1] ret double %multmp }
 
 
 
@@ -287,12 +287,12 @@ demonstrates very basic functionality, but can we do more?
 
    ready> def testfunc(x y) x + y\*2 Read a function
    definition: define double @testfunc(double %x, double %y) { entry:
-   %multmp = fmul double %y, 2.000000e+00 ; [#uses=1] %addtmp = fadd double
-   %multmp, %x ; [#uses=1] ret double %addtmp }
+   %multmp = fmul double %y, 2.000000e+00 ; <double> [#uses=1] %addtmp = fadd double
+   %multmp, %x ; <double> [#uses=1] ret double %addtmp }
    
    ready> testfunc(4, 10) Read a top level expression: define double @0() {
    entry: %calltmp = call double @testfunc(double 4.000000e+00, double
-   1.000000e+01) ; [#uses=1] ret double %calltmp }
+   1.000000e+01) ; <double> [#uses=1] ret double %calltmp }
    
    *Evaluated to: 24.0*
 
@@ -324,12 +324,12 @@ anonymous functions, you should get the idea by now :) :
    
    ready> def foo(x) sin(x)\ *sin(x) + cos(x)*\ cos(x) Read a function
    definition: define double @foo(double %x) { entry: %calltmp = call
-   double @sin(double %x) ; [#uses=1] %calltmp1 = call double @sin(double
-   %x) ; [#uses=1] %multmp = fmul double %calltmp, %calltmp1 ; [#uses=1]
-   %calltmp2 = call double @cos(double %x) ; [#uses=1] %calltmp3 = call
-   double @cos(double %x) ; [#uses=1] %multmp4 = fmul double %calltmp2,
-   %calltmp3 ; [#uses=1] %addtmp = fadd double %multmp, %multmp4 ;
-   [#uses=1] ret double %addtmp }
+   double @sin(double %x) ; <double> [#uses=1] %calltmp1 = call double @sin(double
+   %x) ; <double> [#uses=1] %multmp = fmul double %calltmp, %calltmp1 ; <double> [#uses=1]
+   %calltmp2 = call double @cos(double %x) ; <double> [#uses=1] %calltmp3 = call
+   double @cos(double %x) ; <double> [#uses=1] %multmp4 = fmul double %calltmp2,
+   %calltmp3 ; <double> [#uses=1] %addtmp = fadd double %multmp, %multmp4 ;
+   <double> [#uses=1] ret double %addtmp }
    
    ready> foo(4.0) *Evaluated to: 1.000000*
 
