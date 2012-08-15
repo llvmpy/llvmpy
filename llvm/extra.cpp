@@ -706,7 +706,7 @@ template <typename W, typename UW>
 void unwrap_vec(W *values, unsigned n, std::vector<UW *>& out)
 {
     out.clear();
-
+    out.reserve(n);
     while (n--) {
         UW *p = llvm::unwrap(*values);
         assert(p);
@@ -847,7 +847,7 @@ LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef module, int id,
     assert(modulep);
 
     llvm::Function *intfunc = llvm::Intrinsic::getDeclaration(modulep,
-				     llvm::Intrinsic::ID(id), types_vec[0]);
+				     llvm::Intrinsic::ID(id), types_vec);
 
     return wrap(intfunc);
 }

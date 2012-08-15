@@ -1054,7 +1054,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
     PyObject *obj1, *obj2;                                       \
     intype1 arg1;                                                \
-    intype2 *arg2v;                                              \
+    intype2 *arg2v = NULL;                                       \
     unsigned arg2n;                                              \
     int arg3;                                                    \
     outtype ret;                                                 \
@@ -1064,7 +1064,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
                                                                  \
     arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);         \
     arg2n = (unsigned) PyList_Size(obj2);                        \
-    if (!(arg2v = ( intype2 *)make_array_from_list(obj2, arg2n)))\
+    if (arg2n && !(arg2v = ( intype2 *)make_array_from_list(obj2, arg2n)))\
         return PyErr_NoMemory();                                 \
                                                                  \
     ret = func (arg1, arg2v, arg2n, arg3);                       \
