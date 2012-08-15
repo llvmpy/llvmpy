@@ -108,7 +108,7 @@ keywords:
    ``PrototypeNode``. To represent our new user-defined operators as
    prototypes, we have to extend the ``PrototypeNode`` like this:
    
-   {% highlight python %} # This class represents the "prototype" for a
+    # This class represents the "prototype" for a
    function, which captures its name, # and its argument names (thus
    implicitly the number of arguments the function # takes), as well as if
    it is an operator. class PrototypeNode(object):
@@ -454,7 +454,7 @@ denser the character:
    for the number of iterations it takes a function in the complex plane to
    converge:
    
-   {% highlight python %} # determine whether the specific location
+    # determine whether the specific location
    diverges. # Solve for z = z^2 + c in the complex plane. def
    mandelconverger(real imag iters creal cimag) if iters > 255 \|
    (real\ *real + imag*\ imag > 4) then iters else

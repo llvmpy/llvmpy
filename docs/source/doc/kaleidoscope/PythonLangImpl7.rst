@@ -181,7 +181,7 @@ using a PHI node:
    into SSA registers, inserting Phi nodes as appropriate. If you run this
    example through the pass, for example, you'll get:
    
-   {% highlight bash %} $ llvm-as < example.ll \| opt -mem2reg \| llvm-dis
+    $ llvm-as < example.ll \| opt -mem2reg \| llvm-dis
    
 
 
@@ -358,7 +358,7 @@ from the stack slot:
    with ``ForExpressionNode.CodeGen`` (see the `full code listing <#code>`_
    for the unabridged code):
    
-   {% highlight python %} def CodeGen(self): function =
+    def CodeGen(self): function =
    g_llvm_builder.basic_block.function
    
    ::
@@ -438,7 +438,7 @@ get good codegen once again:
    mem2reg optimization runs. For example, this is the before/after code
    for our recursive fib function. Before the optimization:
    
-   {% highlight llvm %} define double @fib(double %x) { entry: %x1 = alloca
+    define double @fib(double %x) { entry: %x1 = alloca
    double store double %x, double\* %x1 %x2 = load double\* %x1 %cmptmp =
    fcmp ult double %x2, 3.000000e+00 %booltmp = uitofp i1 %cmptmp to double
    %ifcond = fcmp one double %booltmp, 0.000000e+00 br i1 %ifcond, label
@@ -462,7 +462,7 @@ get good codegen once again:
    
    Here is the code after the mem2reg pass runs:
    
-   {% highlight llvm %} define double @fib(double %x) { entry: %cmptmp =
+    define double @fib(double %x) { entry: %cmptmp =
    fcmp ult double %x, 3.000000e+00 %booltmp = uitofp i1 %cmptmp to double
    %ifcond = fcmp one double %booltmp, 0.000000e+00 br i1 %ifcond, label
    %then, label %else then: br label %ifcont else: %subtmp = fsub double
@@ -524,7 +524,7 @@ step is to set a precedence:
    takes care of all the parsing and AST generation. We just need to
    implement codegen for the assignment operator. This looks like:
    
-   {% highlight python %} class
+    class
    BinaryOperatorExpressionNode(ExpressionNode): ... def CodeGen(self): # A
    special case for '=' because we don't want to emit the LHS as an #
    expression. if self.operator == '=': # Assignment requires the LHS to be
@@ -539,7 +539,7 @@ step is to set a precedence:
    is invalid to have ``(x+1) = expr`` -- only things like ``x = expr`` are
    allowed.
    
-   {% highlight python %} # Codegen the RHS. value = self.right.CodeGen()
+    # Codegen the RHS. value = self.right.CodeGen()
    
    ::
    

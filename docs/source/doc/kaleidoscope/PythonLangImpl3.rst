@@ -405,7 +405,7 @@ LLVM Function object that is ready to go for us.
 
    # Create a new basic block to start insertion into. 
    block = function.append_basic_block('entry') 
-   global g_llvm_builder g_llvm_builder = Builder.new(block) {% endhighlight %}
+   global g_llvm_builder g_llvm_builder = Builder.new(block) 
    
    Now we get to the point where ``g_llvm_builder`` is set up. The first
    line creates a new `basic
@@ -419,7 +419,7 @@ LLVM Function object that is ready to go for us.
    don't have any control flow, our functions will only contain one block
    at this point. We'll fix this in `Chapter 5 <PythonLangImpl5.html>`_ :).
    
-   {% highlight python %} # Finish off the function. try: return_value =
+    # Finish off the function. try: return_value =
    self.body.CodeGen() g_llvm_builder.ret(return_value)
    
    ::

@@ -610,7 +610,7 @@ expression for the loop value:
    of multiple blocks (e.g. if it contains an if/then/else or a for/in
    expression).
    
-   {% highlight python %} # Make the new basic block for the loop header,
+    # Make the new basic block for the loop header,
    inserting after current # block. function =
    g_llvm_builder.basic_block.function pre_header_block =
    g_llvm_builder.basic_block loop_block =

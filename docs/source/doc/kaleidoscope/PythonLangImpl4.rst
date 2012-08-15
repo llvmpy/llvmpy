@@ -270,7 +270,7 @@ this:
    
    With just these two changes, lets see how Kaleidoscope works now!
    
-   {% highlight python %} ready> 4+5 Read a top level expression: define
+    ready> 4+5 Read a top level expression: define
    double @0() { entry: ret double 9.000000e+00 }
    
    Evaluated to: 9.0
@@ -359,14 +359,14 @@ example, we can create a C file with the following simple function:
    
    We can then compile this into a shared library with GCC:
    
-   {% highlight bash %} gcc -shared -fPIC -o putchard.so putchard.c {%
+    gcc -shared -fPIC -o putchard.so putchard.c {%
    endhighlight %}
    
    Now we can load this library into the Python process using
    ``llvm.core.load_library_permanently`` and access it from Kaleidoscope
    to produce simple output to the console:
    
-   {% highlight python %} >>> import llvm.core >>>
+    >>> import llvm.core >>>
    llvm.core.load_library_permanently('/home/max/llvmpy-tutorial/putchard.so')
    >>> import kaleidoscope >>> kaleidoscope.main() ready> extern
    putchard(x) Read an extern: declare double @putchard(double)
