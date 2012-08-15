@@ -49,7 +49,8 @@ int LLVMInitializeNativeTargetAsmPrinter();
 
 
 LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
-                                             const char *features, int opt);
+                                             const char *features, int opt,
+                                             std::string &error);
 
 /*
  * Wraps EngineBuilder::selectTarget
@@ -66,7 +67,8 @@ void LLVMDisposeTargetMachine(LLVMTargetMachineRef tm);
  */
 unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
                                          LLVMModuleRef modref,
-                                         int assembly, unsigned * lenp);
+                                         int assembly, unsigned * lenp,
+                                         std::string &error);
 
 /*
  * Wraps TargetMachine::getTargetData
@@ -107,7 +109,7 @@ void LLVMPrintRegisteredTargetsForVersion();
  * Wraps TargetMachine::addPassesToEmitFile
  */
 unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
-                                           unsigned * lenp);
+                                           unsigned * lenp, std::string &error);
 
 /*
  * Wraps IRBuilder::CreateFence

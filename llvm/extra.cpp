@@ -133,10 +133,10 @@ int LLVMInitializeNativeTargetAsmPrinter()
 
 
 LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
-                                             const char *features, int opt)
+                                             const char *features, int opt,
+                                             std::string &error)
 {
     using namespace llvm;
-    std::string error;
     Triple TheTriple;
 
     // begin borrow from LLVM 3.2 code
@@ -153,7 +153,7 @@ LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
     }
 
     if (!TheTarget) {
-        fprintf(stderr, "%s\n", error.c_str());
+        error = "Unknown arch";
         return NULL;
     }
 
@@ -165,7 +165,7 @@ LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
     // end borrow from LLVM 3.2 code
 
     if (!TheTarget->hasTargetMachine()){
-        fprintf(stderr, "No target machine for %s\n", arch);
+        error = "No target machine for the arch";
         return NULL;
     }
 
@@ -177,7 +177,7 @@ LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
                                      OptLevelMap[opt]);
 
     if (!tm){
-        fprintf(stderr, "Cannot create target machine!\n");
+        error = "Cannot create target machine";
         return NULL;
     }
     return wrap(tm);
@@ -198,7 +198,8 @@ void LLVMDisposeTargetMachine(LLVMTargetMachineRef tm){
 
 unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
                                          LLVMModuleRef modref,
-                                         int assembly, unsigned * lenp)
+                                         int assembly, unsigned * lenp,
+                                         std::string &error)
 {
     using namespace llvm;
     assert(lenp);
@@ -217,7 +218,7 @@ unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
     PassManager pm;
 
     if (!tm->getTargetData()){
-        fprintf(stderr, "No target data in target machine");
+        error = "No target data in target machine";
         return NULL;
     }
 
@@ -231,8 +232,7 @@ unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
     }
 
     if ( failed ) {
-        fprintf(stderr, "No support\n");
-        fprintf(stderr, "%s\n", tm->getTargetData()->getStringRepresentation().c_str());
+        error = "No support for emit file";
         return NULL;
     }
 
@@ -248,6 +248,7 @@ unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
     size_t bclen = bc.size();
     unsigned char *bytes = new unsigned char[bclen];
     if (!bytes){
+        error = "Out of memory";
         return NULL;
     }
     memcpy(bytes, bc.data(), bclen);
@@ -295,7 +296,7 @@ LLVMTargetDataRef LLVMTargetMachineGetTargetData(LLVMTargetMachineRef tm)
 }
 
 unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
-                                           unsigned * lenp)
+                                           unsigned * lenp, std::string &error)
 {
     using namespace llvm;
     assert(lenp);
@@ -306,7 +307,7 @@ unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
     // select native default machine
     TargetMachine * tm = EngineBuilder(modulep).selectTarget();
 
-    return LLVMTargetMachineEmitFile(wrap(tm), module, assembly, lenp);
+    return LLVMTargetMachineEmitFile(wrap(tm), module, assembly, lenp, error);
 }
 
 static

@@ -200,8 +200,11 @@ _wLLVMGetNativeCodeFromModule(PyObject * self, PyObject * args)
 
     m = (LLVMModuleRef) PyCapsule_GetPointer(arg_m, NULL);
 
-    if ( !(bytes = LLVMGetNativeCodeFromModule(m, arg_use_asm, &len)) )
-        Py_RETURN_NONE;
+    std::string error;
+    bytes = LLVMGetNativeCodeFromModule(m, arg_use_asm, &len, error);
+    if ( !error.empty() ){
+        PyErr_SetString(PyExc_RuntimeError, error.c_str());
+    }
 
     ret = PyBytes_FromStringAndSize((char *)bytes, (Py_ssize_t)len);
     delete [] bytes;
@@ -1013,7 +1016,13 @@ _wLLVMTargetMachineLookup(PyObject * self, PyObject * args)
     if (!PyArg_ParseTuple(args, "sssi", &arch, &cpu, &features, &opt))
         return NULL;
 
-    LLVMTargetMachineRef tm = LLVMTargetMachineLookup(arch, cpu, features, opt);
+    std::string error;
+    LLVMTargetMachineRef tm = LLVMTargetMachineLookup(arch, cpu, features, opt,
+                                                      error);
+    if(!error.empty()){
+        PyErr_SetString(PyExc_RuntimeError, error.c_str());
+        return NULL;
+    }
     return ctor_LLVMTargetMachineRef(tm);
 }
 
@@ -1035,8 +1044,12 @@ _wLLVMTargetMachineEmitFile(PyObject * self, PyObject * args)
     tm = (LLVMTargetMachineRef) PyCapsule_GetPointer(arg_tm, NULL);
     m = (LLVMModuleRef) PyCapsule_GetPointer(arg_m, NULL);
 
-    if ( !(bytes = LLVMTargetMachineEmitFile(tm, m, arg_use_asm, &len)) )
-        Py_RETURN_NONE;
+    std::string error;
+    bytes = LLVMTargetMachineEmitFile(tm, m, arg_use_asm, &len, error);
+    if ( !error.empty() ){
+        PyErr_SetString(PyExc_RuntimeError, error.c_str());
+        return NULL;
+    }
 
     ret = PyBytes_FromStringAndSize((char *)bytes, (Py_ssize_t)len);
     delete [] bytes;

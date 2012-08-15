@@ -42,6 +42,11 @@ class TestTargetMachines(unittest.TestCase):
         m.verify()
         return m, func
 
+    def _build_bad_archname(self):
+        with self.assertRaises(RuntimeError):
+            tm = TargetMachine.lookup("ain't no arch name")
+
+
 if __name__ == '__main__':
     unittest.main()
 
