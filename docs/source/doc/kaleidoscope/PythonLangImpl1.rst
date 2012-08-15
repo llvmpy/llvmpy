@@ -26,7 +26,7 @@ We've tried to put this tutorial together in a way that makes chapters
 easy to skip over if you are already familiar with or are uninterested
 in the various pieces. The structure of the tutorial is:
 
--  **`Chapter 1 <#language>`_: Introduction to the Kaleidoscope
+-  :ref:`Chapter 1 <language>`: **Introduction to the Kaleidoscope
    language, and the definition of its Lexer** -- This shows where we
    are going and the basic functionality that we want it to do. In order
    to make this tutorial maximally understandable and hackable, we
@@ -34,44 +34,44 @@ in the various pieces. The structure of the tutorial is:
    parser generators. LLVM obviously works just fine with such tools,
    feel free to use one if you prefer.
 
--  **`Chapter 2 <PythonLangImpl2.html>`_: Implementing a Parser and
+-  `Chapter 2 <PythonLangImpl2.html>`_: **Implementing a Parser and
    AST** -- With the lexer in place, we can talk about parsing
    techniques and basic AST construction. This tutorial describes
    recursive descent parsing and operator precedence parsing. Nothing in
    Chapters 1 or 2 is LLVM-specific, the code doesn't even import the
    LLVM modules at this point. :)
 
--  **`Chapter 3 <PythonLangImpl3.html>`_: Code generation to LLVM IR**
+-  `Chapter 3 <PythonLangImpl3.html>`_: **Code generation to LLVM IR**
    -- With the AST ready, we can show off how easy generation of LLVM IR
    really is.
 
--  **`Chapter 4 <PythonLangImpl4.html>`_: Adding JIT and Optimizer
+-  `Chapter 4 <PythonLangImpl4.html>`_: **Adding JIT and Optimizer
    support** -- Because a lot of people are interested in using LLVM as
    a JIT, we'll dive right into it and show you the 3 lines it takes to
    add JIT support. LLVM is also useful in many other ways, but this is
    one simple and "sexy" way to shows off its power. :)
 
--  **`Chapter 5 <PythonLangImpl5.html>`_: Extending the Language:
+-  `Chapter 5 <PythonLangImpl5.html>`_: **Extending the Language:
    Control Flow** -- With the language up and running, we show how to
    extend it with control flow operations (if/then/else and a 'for'
    loop). This gives us a chance to talk about simple SSA construction
    and control flow.
 
--  **`Chapter 6 <PythonLangImpl6.html>`_: Extending the Language:
+-  `Chapter 6 <PythonLangImpl6.html>`_: **Extending the Language:
    User-defined Operators** -- This is a silly but fun chapter that
    talks about extending the language to let the user program define
    their own arbitrary unary and binary operators (with assignable
    precedence!). This lets us build a significant piece of the
    "language" as library routines.
 
--  **`Chapter 7 <PythonLangImpl7.html>`_: Extending the Language:
+-  `Chapter 7 <PythonLangImpl7.html>`_: **Extending the Language:
    Mutable Variables** -- This chapter talks about adding user-defined
    local variables along with an assignment operator. The interesting
    part about this is how easy and trivial it is to construct SSA form
    in LLVM: no, LLVM does *not* require your front-end to construct SSA
    form!
 
--  **`Chapter 8 <PythonLangImpl8.html>`_: Conclusion and other useful
+-  `Chapter 8 <PythonLangImpl8.html>`_: **Conclusion and other useful
    LLVM tidbits** -- This chapter wraps up the series by talking about
    potential ways to extend the language, but also includes a bunch of
    pointers to info about "special topics" like adding garbage
@@ -93,6 +93,8 @@ compilers don't need to be scary creatures - it can be a lot of fun to
 play with languages!
 
 --------------
+
+.. _language:
 
 The Basic Language 
 ================================
