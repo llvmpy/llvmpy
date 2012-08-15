@@ -35,18 +35,23 @@ First we define code generation methods in each AST node class:
 .. code-block:: python
 
    # Expression class for numeric literals like
-   "1.0". class NumberExpressionNode(ExpressionNode):
+   "1.0". 
+   class NumberExpressionNode(ExpressionNode):
    
-   def __init__(self, value): self.value = value
+      def __init__(self, value): 
+         self.value = value
+      
+      def CodeGen(self): 
+         ...
    
-   def CodeGen(self): ...
-   
-   # Expression class for referencing a variable, like "a".
-   class VariableExpressionNode(ExpressionNode):
-   
-   def __init__(self, name): self.name = name
-   
-   def CodeGen(self): ...
+      # Expression class for referencing a variable, like "a".
+      class VariableExpressionNode(ExpressionNode):
+      
+      def __init__(self, name): 
+         self.name = name
+      
+      def CodeGen(self): 
+         ...
    
    ...
 
@@ -117,8 +122,8 @@ First we'll do numeric literals:
 
 .. code-block:: python
 
-   def CodeGen(self): return
-   Constant.real(Type.double(), self.value)
+   def CodeGen(self): 
+      return Constant.real(Type.double(), self.value)
 
 
 
@@ -133,9 +138,11 @@ one directly.
 
 .. code-block:: python
 
-   def CodeGen(self): if self.name in
-   g_named_values: return g_named_values[self.name] else: raise
-   RuntimeError('Unknown variable name: ' + self.name)
+   def CodeGen(self): 
+      if self.name in g_named_values: 
+         return g_named_values[self.name] 
+      else: 
+         raise RuntimeError('Unknown variable name: ' + self.name)
 
 
 
@@ -152,23 +159,22 @@ and for `local variables <PythonLangImpl7.html#localvars>`_.
 
 .. code-block:: python
 
-   def CodeGen(self): left = self.left.CodeGen()
-   right = self.right.CodeGen()
-   
-   ::
-   
-   if self.operator == '+':
-   return g_llvm_builder.fadd(left, right, 'addtmp')
-   elif self.operator == '-':
-   return g_llvm_builder.fsub(left, right, 'subtmp')
-   elif self.operator == '*':
-   return g_llvm_builder.fmul(left, right, 'multmp')
-   elif self.operator == '<':
-   result = g_llvm_builder.fcmp(FCMP_ULT, left, right, 'cmptmp')
-   # Convert bool 0 or 1 to double 0.0 or 1.0.
-   return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
-   else:
-   raise RuntimeError('Unknown binary operator.')
+   def CodeGen(self): 
+      left = self.left.CodeGen()
+      right = self.right.CodeGen()
+
+      if self.operator == '+':
+         return g_llvm_builder.fadd(left, right, 'addtmp')
+      elif self.operator == '-':
+         return g_llvm_builder.fsub(left, right, 'subtmp')
+      elif self.operator == '*':
+         return g_llvm_builder.fmul(left, right, 'multmp')
+      elif self.operator == '<':
+         result = g_llvm_builder.fcmp(FCMP_ULT, left, right, 'cmptmp')
+         # Convert bool 0 or 1 to double 0.0 or 1.0.
+         return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
+      else:
+         raise RuntimeError('Unknown binary operator.')
    
    
 
@@ -213,19 +219,17 @@ the input value.
 
 .. code-block:: python
 
-   def CodeGen(self): # Look up the name in the
-   global module table. callee =
-   g_llvm_module.get_function_named(self.callee)
-   
-   ::
-   
-   # Check for argument mismatch error.
-   if len(callee.args) != len(self.args):
-   raise RuntimeError('Incorrect number of arguments passed.')
-   
-   arg_values = [i.CodeGen() for i in self.args]
-   
-   return g_llvm_builder.call(callee, arg_values, 'calltmp')
+   def CodeGen(self): 
+      # Look up the name in the global module table. 
+      callee = g_llvm_module.get_function_named(self.callee)
+
+      # Check for argument mismatch error.
+      if len(callee.args) != len(self.args):
+         raise RuntimeError('Incorrect number of arguments passed.')
+      
+      arg_values = [i.CodeGen() for i in self.args]
+      
+      return g_llvm_builder.call(callee, arg_values, 'calltmp')
    
    
 
@@ -267,13 +271,12 @@ with:
 
 .. code-block:: python
 
-   def CodeGen(self): # Make the function type, eg.
-   double(double,double). funct_type = Type.function( Type.double(),
-   [Type.double()] \* len(self.args), False)
-   
-   ::
-   
-   function = Function.new(g_llvm_module, funct_type, self.name)
+   def CodeGen(self): 
+      # Make the function type, eg.
+      double(double,double). funct_type = Type.function( 
+         Type.double(), [Type.double()] \* len(self.args), False)
+     
+      function = Function.new(g_llvm_module, funct_type, self.name)
    
    
 
@@ -303,10 +306,10 @@ the function call code above.
 .. code-block:: python
 
    # If the name conflicted, there was already
-   something with the same name. # If it has a body, don't allow
-   redefinition or reextern. if function.name != self.name:
-   function.delete() function =
-   g_llvm_module.get_function_named(self.name)
+   something with the same name. # If it has a body, don't allow redefinition or reextern. 
+   if function.name != self.name:
+      function.delete() 
+      function = g_llvm_module.get_function_named(self.name)
 
 
 
@@ -333,16 +336,14 @@ name.
 
 .. code-block:: python
 
-   # If the function already has a body, reject
-   this. if not function.is_declaration: raise RuntimeError('Redefinition
-   of function.')
-   
-   ::
-   
+   # If the function already has a body, reject this.  
+   if not function.is_declaration: 
+      raise RuntimeError('Redefinition of function.')
+
    # If F took a different number of args, reject.
    if len(callee.args) != len(self.args):
-   raise RuntimeError('Redeclaration of a function with different number '
-   'of args.')
+      raise RuntimeError('Redeclaration of a function with different number ' 
+                         'of args.')
    
    
 
@@ -358,13 +359,12 @@ match up. If not, we emit an error.
 
 .. code-block:: python
 
-   # Set names for all arguments and add them to the
-   variables symbol table. for arg, arg_name in zip(function.args,
-   self.args): arg.name = arg_name # Add arguments to variable symbol
-   table. g_named_values[arg_name] = arg
-   
-   ::
-   
+   # Set names for all arguments and add them to the variables symbol table. 
+   for arg, arg_name in zip(function.args, self.args): 
+      arg.name = arg_name 
+      # Add arguments to variable symbol
+      table. g_named_values[arg_name] = arg
+
    return function
    
    
@@ -383,13 +383,12 @@ caller.
 
 .. code-block:: python
 
-   def CodeGen(self): # Clear scope.
-   g_named_values.clear()
-   
-   ::
-   
-   # Create a function object.
-   function = self.prototype.CodeGen()
+   def CodeGen(self): 
+      # Clear scope.
+      g_named_values.clear()
+
+      # Create a function object.
+      function = self.prototype.CodeGen()
    
    
 
@@ -404,10 +403,9 @@ LLVM Function object that is ready to go for us.
 
 .. code-block:: python
 
-   # Create a new basic block to start insertion
-   into. block = function.append_basic_block('entry') global
-   g_llvm_builder g_llvm_builder = Builder.new(block) {% endhighlight
-   %}
+   # Create a new basic block to start insertion into. 
+   block = function.append_basic_block('entry') 
+   global g_llvm_builder g_llvm_builder = Builder.new(block) {% endhighlight %}
    
    Now we get to the point where ``g_llvm_builder`` is set up. The first
    line creates a new `basic
