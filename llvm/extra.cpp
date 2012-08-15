@@ -54,6 +54,7 @@
 #include "llvm/Support/CallSite.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Target/TargetData.h"
+#include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
 
 #include "llvm/IntrinsicInst.h"
@@ -84,6 +85,7 @@
 
 namespace llvm{
 DEFINE_SIMPLE_CONVERSION_FUNCTIONS(EngineBuilder, LLVMEngineBuilderRef)
+DEFINE_SIMPLE_CONVERSION_FUNCTIONS(TargetMachine, LLVMTargetMachineRef)
 }
 /*
  * For use in LLVMDumpPasses to dump passes.
@@ -113,15 +115,96 @@ char *do_print(W obj)
     return strdup(buf.str().c_str());
 }
 
-unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
-                                           unsigned * lenp)
+namespace {
+using namespace llvm;
+const CodeGenOpt::Level OptLevelMap[] = {
+    CodeGenOpt::None,
+    CodeGenOpt::Less,
+    CodeGenOpt::Default,
+    CodeGenOpt::Aggressive,
+};
+} // end anony namespace
+
+
+int LLVMInitializeNativeTargetAsmPrinter()
+{
+    return llvm::InitializeNativeTargetAsmPrinter();
+}
+
+
+LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
+                                             const char *features, int opt,
+                                             std::string &error)
+{
+    using namespace llvm;
+    Triple TheTriple;
+
+    // begin borrow from LLVM 3.2 code
+    // because we don't have 3 argument version of lookup() in 3.1
+    const Target * TheTarget = NULL;
+
+    const std::string ArchName(arch);
+    for (TargetRegistry::iterator it = TargetRegistry::begin(),
+        ie = TargetRegistry::end(); it != ie; ++it) {
+        if (ArchName == it->getName()) {
+            TheTarget = &*it;
+            break;
+        }
+    }
+
+    if (!TheTarget) {
+        error = "Unknown arch";
+        return NULL;
+    }
+
+    Triple::ArchType Type = Triple::getArchTypeForLLVMName(ArchName);
+
+    if (Type != Triple::UnknownArch){
+        TheTriple.setArch(Type);
+    }
+    // end borrow from LLVM 3.2 code
+
+    if (!TheTarget->hasTargetMachine()){
+        error = "No target machine for the arch";
+        return NULL;
+    }
+
+    TargetOptions no_target_options;
+    TargetMachine * tm = TheTarget->createTargetMachine(
+                                     TheTriple.str(), cpu, features,
+                                     no_target_options,
+                                     Reloc::Default, CodeModel::Default,
+                                     OptLevelMap[opt]);
+
+    if (!tm){
+        error = "Cannot create target machine";
+        return NULL;
+    }
+    return wrap(tm);
+}
+
+
+LLVMTargetMachineRef LLVMTargetMachineFromEngineBuilder(LLVMEngineBuilderRef eb)
+{
+    using namespace llvm;
+    TargetMachine * tm = unwrap(eb)->selectTarget();
+    return wrap(tm);
+}
+
+void LLVMDisposeTargetMachine(LLVMTargetMachineRef tm){
+    delete llvm::unwrap(tm);
+}
+
+
+unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
+                                         LLVMModuleRef modref,
+                                         int assembly, unsigned * lenp,
+                                         std::string &error)
 {
     using namespace llvm;
     assert(lenp);
 
-    InitializeNativeTargetAsmPrinter();
-
-    Module *modulep = unwrap(module);
+    Module *modulep = unwrap(modref);
     assert(modulep);
 
     // get objectcode into a string
@@ -130,16 +213,14 @@ unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
 
     formatted_raw_ostream fso(buf);
 
-    TargetMachine * tm = EngineBuilder(modulep).selectTarget();
+    TargetMachine * tm = unwrap(tmref);
 
     PassManager pm;
 
     if (!tm->getTargetData()){
-        printf("No target data in target machine");
+        error = "No target data in target machine";
         return NULL;
     }
-
-    //printf("%s\n", modulep->getDataLayout().c_str());
 
     pm.add(new TargetData(*tm->getTargetData()));
 
@@ -151,8 +232,7 @@ unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
     }
 
     if ( failed ) {
-        printf("No support\n");
-        printf("%s\n", tm->getTargetData()->getStringRepresentation().c_str());
+        error = "No support for emit file";
         return NULL;
     }
 
@@ -168,6 +248,7 @@ unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
     size_t bclen = bc.size();
     unsigned char *bytes = new unsigned char[bclen];
     if (!bytes){
+        error = "Out of memory";
         return NULL;
     }
     memcpy(bytes, bc.data(), bclen);
@@ -177,6 +258,57 @@ unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
     return bytes;
 }
 
+const char* LLVMTargetMachineGetTargetName(LLVMTargetMachineRef tm)
+{
+    return strdup(llvm::unwrap(tm)->getTarget().getName());
+}
+
+const char* LLVMTargetMachineGetTargetShortDescription(LLVMTargetMachineRef tm)
+{
+    return strdup(llvm::unwrap(tm)->getTarget().getShortDescription());
+}
+
+const char* LLVMTargetMachineGetTriple(LLVMTargetMachineRef tm)
+{
+    return strdup(llvm::unwrap(tm)->getTargetTriple().str().c_str());
+}
+
+const char* LLVMTargetMachineGetCPU(LLVMTargetMachineRef tm)
+{
+    return strdup(llvm::unwrap(tm)->getTargetCPU().str().c_str());
+}
+
+const char* LLVMTargetMachineGetFS(LLVMTargetMachineRef tm)
+{
+    return strdup(llvm::unwrap(tm)->getTargetFeatureString().str().c_str());
+}
+
+void LLVMPrintRegisteredTargetsForVersion(){
+    llvm::TargetRegistry::printRegisteredTargetsForVersion();
+}
+
+
+
+LLVMTargetDataRef LLVMTargetMachineGetTargetData(LLVMTargetMachineRef tm)
+{
+    using namespace llvm;
+    return wrap(new TargetData(*unwrap(tm)->getTargetData()));
+}
+
+unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
+                                           unsigned * lenp, std::string &error)
+{
+    using namespace llvm;
+    assert(lenp);
+
+    Module *modulep = unwrap(module);
+    assert(modulep);
+
+    // select native default machine
+    TargetMachine * tm = EngineBuilder(modulep).selectTarget();
+
+    return LLVMTargetMachineEmitFile(wrap(tm), module, assembly, lenp, error);
+}
 
 static
 llvm::AtomicOrdering atomic_ordering_from_string(const char * ordering)
@@ -333,15 +465,7 @@ void LLVMEngineBuilderForceInterpreter(LLVMEngineBuilderRef eb)
 
 void LLVMEngineBuilderSetOptLevel(LLVMEngineBuilderRef eb, int level)
 {
-    using namespace llvm;
-    const CodeGenOpt::Level level_map[] = {
-        CodeGenOpt::None,
-        CodeGenOpt::Less,
-        CodeGenOpt::Default,
-        CodeGenOpt::Aggressive,
-    };
-
-    unwrap(eb)->setOptLevel(level_map[level]);
+    unwrap(eb)->setOptLevel(OptLevelMap[level]);
 }
 
 

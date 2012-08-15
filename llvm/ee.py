@@ -231,6 +231,12 @@ class EngineBuilder(object):
             raise llvm.LLVMException(ret)
         return ExecutionEngine(ret, self._module)
 
+    def select_target(self):
+        '''get the corresponding target machine
+        '''
+        ptr = _core.LLVMTargetMachineFromEngineBuilder(self.ptr)
+        return TargetMachine(ptr)
+
 #===----------------------------------------------------------------------===
 # Execution engine
 #===----------------------------------------------------------------------===
@@ -293,3 +299,74 @@ class ExecutionEngine(object):
         td._own(self)
         return td
 
+
+#===----------------------------------------------------------------------===
+# Target machine
+#===----------------------------------------------------------------------===
+
+def print_registered_targets():
+    '''
+    Note: print directly to stdout
+    '''
+    _core.LLVMPrintRegisteredTargetsForVersion()
+
+class TargetMachine(object):
+
+    @staticmethod
+    def lookup(arch, cpu='', features='', opt=2):
+        '''create a targetmachine given an architecture name
+
+        For a list of architectures,
+            use: `llc -help`
+
+        For a list of available CPUs,
+            use: `llvm-as < /dev/null | llc -march=xyz -mcpu=help`
+
+        For a list of available attributes (features),
+            use: `llvm-as < /dev/null | llc -march=xyz -mattr=help`
+        '''
+        ptr = _core.LLVMTargetMachineLookup(arch, cpu, features, opt)
+        return TargetMachine(ptr)
+
+    def __init__(self, ptr):
+        self.ptr = ptr
+
+    def __del__(self):
+        _core.LLVMDisposeTargetMachine(self.ptr)
+
+    def emit_assembly(self, module):
+        '''returns byte string of the module as assembly code of the target machine
+        '''
+        return _core.LLVMTargetMachineEmitFile(self.ptr, module.ptr, True)
+
+    def emit_object(self, module):
+        '''returns byte string of the module as assembly code of the target machine
+        '''
+        return _core.LLVMTargetMachineEmitFile(self.ptr, module.ptr, False)
+
+    @property
+    def target_data(self):
+        '''get target data of this machine
+        '''
+        ptr = _core.LLVMTargetMachineGetTargetData(self.ptr)
+        return TargetData(ptr)
+
+    @property
+    def target_name(self):
+        return _core.LLVMTargetMachineGetTargetName(self.ptr)
+
+    @property
+    def target_short_description(self):
+        return _core.LLVMTargetMachineGetTargetShortDescription(self.ptr)
+
+    @property
+    def triple(self):
+        return _core.LLVMTargetMachineGetTriple(self.ptr)
+
+    @property
+    def cpu(self):
+        return _core.LLVMTargetMachineGetCPU(self.ptr)
+
+    @property
+    def feature_string(self):
+        return _core.LLVMTargetMachineGetFS(self.ptr)

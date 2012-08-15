@@ -93,6 +93,7 @@ _declare_std_ctor(LLVMGenericValueRef)
 // extra LLVM classes
 _declare_std_ctor(LLVMPassManagerBuilderRef)
 _declare_std_ctor(LLVMEngineBuilderRef)
+_declare_std_ctor(LLVMTargetMachineRef)
 
 /* standard types */
 _declare_std_ctor(int)
@@ -144,6 +145,17 @@ PyObject *make_list_from_LLVMValueRef_array(LLVMValueRef *p, unsigned n);
  *** PyCapsule Calls
  ******************************************************************************
  *****************************************************************************/
+
+
+#define _wrap_none2none(func)                               \
+static PyObject *                                           \
+_w ## func(PyObject * self, PyObject * args)    \
+{                                                           \
+    if (!PyArg_ParseTuple(args, ""))                        \
+        return NULL;                                        \
+    func();                                                 \
+    Py_RETURN_NONE;                                         \
+}
 
 /**
  * Wrap LLVM functions of the type

@@ -200,8 +200,11 @@ _wLLVMGetNativeCodeFromModule(PyObject * self, PyObject * args)
 
     m = (LLVMModuleRef) PyCapsule_GetPointer(arg_m, NULL);
 
-    if ( !(bytes = LLVMGetNativeCodeFromModule(m, arg_use_asm, &len)) )
-        Py_RETURN_NONE;
+    std::string error;
+    bytes = LLVMGetNativeCodeFromModule(m, arg_use_asm, &len, error);
+    if ( !error.empty() ){
+        PyErr_SetString(PyExc_RuntimeError, error.c_str());
+    }
 
     ret = PyBytes_FromStringAndSize((char *)bytes, (Py_ssize_t)len);
     delete [] bytes;
@@ -888,16 +891,15 @@ _wrap_obj2none(LLVMDisposePassManager, LLVMPassManagerRef)
 _wrap_none2str(LLVMDumpPasses)
 _wrap_objstr2obj(LLVMAddPassByName, LLVMPassManagerRef, int)
 
-static PyObject *
-_wLLVMInitializePasses(PyObject * self, PyObject * args)
-{
-    if (!PyArg_ParseTuple(args, ""))
-        return NULL;
-    LLVMInitializePasses();
-    Py_RETURN_NONE;
-}
+
+_wrap_none2none(LLVMInitializePasses)
 
 _wrap_none2obj(LLVMInitializeNativeTarget, int)
+_wrap_none2obj(LLVMInitializeNativeTargetAsmPrinter, int)
+_wrap_none2none(LLVMInitializePTXTarget)
+_wrap_none2none(LLVMInitializePTXTargetInfo)
+_wrap_none2none( LLVMInitializePTXTargetMC )
+_wrap_none2none(LLVMInitializePTXAsmPrinter)
 
 
 /*===----------------------------------------------------------------------===*/
@@ -993,6 +995,77 @@ _wrap_pass( UnifyFunctionExitNodes )
 
 _wrap_pass( Internalize2 )
 */
+
+
+/*===----------------------------------------------------------------------===*/
+/* Target Machine                                                             */
+/*===----------------------------------------------------------------------===*/
+
+_wrap_obj2obj(LLVMTargetMachineFromEngineBuilder, LLVMEngineBuilderRef,
+              LLVMTargetMachineRef)
+_wrap_obj2none(LLVMDisposeTargetMachine, LLVMTargetMachineRef)
+
+static PyObject *
+_wLLVMTargetMachineLookup(PyObject * self, PyObject * args)
+{
+    const char *arch;
+    const char *cpu;
+    const char *features;
+    int opt;
+
+    if (!PyArg_ParseTuple(args, "sssi", &arch, &cpu, &features, &opt))
+        return NULL;
+
+    std::string error;
+    LLVMTargetMachineRef tm = LLVMTargetMachineLookup(arch, cpu, features, opt,
+                                                      error);
+    if(!error.empty()){
+        PyErr_SetString(PyExc_RuntimeError, error.c_str());
+        return NULL;
+    }
+    return ctor_LLVMTargetMachineRef(tm);
+}
+
+static PyObject *
+_wLLVMTargetMachineEmitFile(PyObject * self, PyObject * args)
+{
+    PyObject * ret;
+    unsigned len;
+    unsigned char * bytes;
+    LLVMTargetMachineRef tm;
+    LLVMModuleRef m;
+
+    PyObject *arg_tm, *arg_m;
+    int arg_use_asm;
+
+    if (!PyArg_ParseTuple(args, "OOi", &arg_tm, &arg_m, &arg_use_asm))
+        return NULL;
+
+    tm = (LLVMTargetMachineRef) PyCapsule_GetPointer(arg_tm, NULL);
+    m = (LLVMModuleRef) PyCapsule_GetPointer(arg_m, NULL);
+
+    std::string error;
+    bytes = LLVMTargetMachineEmitFile(tm, m, arg_use_asm, &len, error);
+    if ( !error.empty() ){
+        PyErr_SetString(PyExc_RuntimeError, error.c_str());
+        return NULL;
+    }
+
+    ret = PyBytes_FromStringAndSize((char *)bytes, (Py_ssize_t)len);
+    delete [] bytes;
+    return ret;
+}
+
+_wrap_obj2obj(LLVMTargetMachineGetTargetData, LLVMTargetMachineRef,
+              LLVMTargetDataRef)
+_wrap_obj2str(LLVMTargetMachineGetTargetName, LLVMTargetMachineRef)
+_wrap_obj2str(LLVMTargetMachineGetTargetShortDescription, LLVMTargetMachineRef)
+_wrap_obj2str(LLVMTargetMachineGetTriple, LLVMTargetMachineRef)
+_wrap_obj2str(LLVMTargetMachineGetCPU, LLVMTargetMachineRef)
+_wrap_obj2str(LLVMTargetMachineGetFS, LLVMTargetMachineRef)
+_wrap_none2none(LLVMPrintRegisteredTargetsForVersion)
+
+
 /*===----------------------------------------------------------------------===*/
 /* Target Data                                                                */
 /*===----------------------------------------------------------------------===*/
@@ -1744,7 +1817,13 @@ static PyMethodDef core_methods[] = {
     _method( LLVMDumpPasses )
     _method( LLVMAddPassByName )
     _method( LLVMInitializePasses )
+
     _method( LLVMInitializeNativeTarget )
+    _method( LLVMInitializeNativeTargetAsmPrinter )
+    _method( LLVMInitializePTXTarget )
+    _method( LLVMInitializePTXTargetInfo )
+    _method( LLVMInitializePTXTargetMC )
+    _method( LLVMInitializePTXAsmPrinter )
 
     /* Passes */
 
@@ -1834,6 +1913,19 @@ static PyMethodDef core_methods[] = {
 
     _pass( Internalize2 )
     */
+
+    /* Target Machine */
+    _method( LLVMTargetMachineFromEngineBuilder )
+    _method( LLVMDisposeTargetMachine )
+    _method( LLVMTargetMachineLookup )
+    _method( LLVMTargetMachineEmitFile )
+    _method( LLVMTargetMachineGetTargetData )
+    _method( LLVMTargetMachineGetTargetName )
+    _method( LLVMTargetMachineGetTargetShortDescription )
+    _method( LLVMTargetMachineGetTriple )
+    _method( LLVMTargetMachineGetCPU )
+    _method( LLVMTargetMachineGetFS )
+    _method( LLVMPrintRegisteredTargetsForVersion )
 
     /* Target Data */
     _method( LLVMCreateTargetData )

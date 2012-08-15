@@ -2143,5 +2143,13 @@ def inline_function(call):
 #===----------------------------------------------------------------------===
 if _core.LLVMInitializeNativeTarget():
     raise llvm.LLVMException("No native target!?")
+if _core.LLVMInitializeNativeTargetAsmPrinter():
+    # should this be an optional feature?
+    # should user trigger the initialization?
+    raise llvm.LLVMException("No native asm printer!?")
 
-
+if True: # use PTX
+    _core.LLVMInitializePTXTarget()
+    _core.LLVMInitializePTXTargetInfo()
+    _core.LLVMInitializePTXTargetMC()
+    _core.LLVMInitializePTXAsmPrinter()
