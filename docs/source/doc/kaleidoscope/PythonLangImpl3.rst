@@ -419,13 +419,13 @@ LLVM Function object that is ready to go for us.
    don't have any control flow, our functions will only contain one block
    at this point. We'll fix this in `Chapter 5 <PythonLangImpl5.html>`_ :).
    
-    # Finish off the function. try: return_value =
-   self.body.CodeGen() g_llvm_builder.ret(return_value)
-   
-   ::
-   
-   # Validate the generated code, checking for consistency.
-   function.verify()
+    # Finish off the function. 
+    try: 
+      return_value = self.body.CodeGen() 
+      g_llvm_builder.ret(return_value)
+
+      # Validate the generated code, checking for consistency.
+      function.verify()
    
    
 
@@ -445,9 +445,9 @@ Once the function is finished and validated, we return it.
 
 .. code-block:: python
 
-   except: function.delete() raise
-   
-   ::
+   except: 
+      function.delete() 
+      raise
    
    return function
    
@@ -469,9 +469,9 @@ this bug; see what you can come up with! Here is a testcase:
 
 .. code-block:: python
 
-   extern foo(a b) # ok, defines foo. def foo(a b) c
-   # error, 'c' is invalid. def bar() foo(1, 2) # error, unknown function
-   "foo"
+   extern foo(a b)      # ok, defines foo. 
+   def foo(a b) c       # error, 'c' is invalid. 
+   def bar() foo(1, 2)  # error, unknown function "foo"
 
 
 
@@ -489,8 +489,12 @@ example:
 
 .. code-block:: bash
 
-   ready> 4+5 Read a top-level expression: define
-   double @0() { entry: ret double 9.000000e+00 }
+   ready> 4+5 
+   Read a top-level expression: 
+   define double @0() { 
+   entry: 
+      ret double 9.000000e+00 
+   }
 
 
 
@@ -503,13 +507,18 @@ the Builder. We will add optimizations explicitly in the next chapter.
 
 .. code-block:: bash
 
-   ready> def foo(a b) a\ *a + 2*\ a\ *b + b*\ b Read
-   a function definition: define double @foo(double %a, double %b) { entry:
-   %multmp = fmul double %a, %a ; [#uses=1] %multmp1 = fmul double
-   2.000000e+00, %a ; [#uses=1] %multmp2 = fmul double %multmp1, %b ;
-   [#uses=1] %addtmp = fadd double %multmp, %multmp2 ; [#uses=1] %multmp3 =
-   fmul double %b, %b ; [#uses=1] %addtmp4 = fadd double %addtmp, %multmp3
-   ; [#uses=1] ret double %addtmp4 }
+   ready> def foo(a b) a *a + 2* a *b + b* b 
+   Read a function definition: 
+   define double @foo(double %a, double %b) { 
+   entry:
+      %multmp = fmul double %a, %a              ; [#uses=1] 
+      %multmp1 = fmul double 2.000000e+00, %a   ; [#uses=1] 
+      %multmp2 = fmul double %multmp1, %b       ; [#uses=1] 
+      %addtmp = fadd double %multmp, %multmp2   ; [#uses=1] 
+      %multmp3 = fmul double %b, %b             ; [#uses=1] 
+      %addtmp4 = fadd double %addtmp, %multmp3  ; [#uses=1] 
+      ret double %addtmp4 
+   }
 
 
 
