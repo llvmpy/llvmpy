@@ -41,10 +41,10 @@ First we define code generation methods in each AST node class:
          self.value = value
       
       def CodeGen(self): 
-         ...
+         ... 
    
-      # Expression class for referencing a variable, like "a".
-      class VariableExpressionNode(ExpressionNode):
+   # Expression class for referencing a variable, like "a".
+   class VariableExpressionNode(ExpressionNode):
       
       def __init__(self, name): 
          self.name = name
@@ -277,9 +277,9 @@ with:
 .. code-block:: python
 
    def CodeGen(self): 
-      # Make the function type, eg.
-      double(double,double). funct_type = Type.function( 
-         Type.double(), [Type.double()] \* len(self.args), False)
+      # Make the function type, eg. double(double,double). 
+      funct_type = Type.function( 
+         Type.double(), [Type.double()] * len(self.args), False)
      
       function = Function.new(g_llvm_module, funct_type, self.name)
    
@@ -300,7 +300,7 @@ The final line above actually creates the function that the prototype
 will correspond to. This indicates the type and name to use, as well as
 which module to insert into. Note that by default, the function will
 have `external
-linkage <<http://www.llvm.org/docs/LangRef.html#linkage>`_, which means
+linkage <http://www.llvm.org/docs/LangRef.html#linkage>`_, which means
 that the function may be defined outside the current module and/or that
 it is callable by functions outside the module. The name passed in is
 the name the user specified: since ``g_llvm_module`` is specified, this
