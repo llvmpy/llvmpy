@@ -34,8 +34,7 @@ First we define code generation methods in each AST node class:
 
 .. code-block:: python
 
-   # Expression class for numeric literals like
-   "1.0". 
+   # Expression class for numeric literals like "1.0". 
    class NumberExpressionNode(ExpressionNode):
    
       def __init__(self, value): 
@@ -54,6 +53,8 @@ First we define code generation methods in each AST node class:
          ...
    
    ...
+
+
 
 
 
@@ -84,6 +85,8 @@ during code generation:
    # A dictionary that keeps track of which values are defined in the current scope
    # and what their LLVM representation is.
    g_named_values = {}
+
+
 
 
 
@@ -124,6 +127,8 @@ First we'll do numeric literals:
 
    def CodeGen(self): 
       return Constant.real(Type.double(), self.value)
+
+
 
 
 
@@ -305,8 +310,8 @@ the function call code above.
 
 .. code-block:: python
 
-   # If the name conflicted, there was already
-   something with the same name. # If it has a body, don't allow redefinition or reextern. 
+   # If the name conflicted, there was already something with the same name. 
+   # If it has a body, don't allow redefinition or reextern. 
    if function.name != self.name:
       function.delete() 
       function = g_llvm_module.get_function_named(self.name)
@@ -406,19 +411,25 @@ LLVM Function object that is ready to go for us.
    # Create a new basic block to start insertion into. 
    block = function.append_basic_block('entry') 
    global g_llvm_builder g_llvm_builder = Builder.new(block) 
+
+
+
+
+
+Now we get to the point where ``g_llvm_builder`` is set up. The first
+line creates a new `basic
+block <http://en.wikipedia.org/wiki/Basic_block>`_ (named "entry"),
+which is inserted into the function. The second line declares that the
+global ``g_llvm_builder`` object is to be changed. The last line creates
+a new builder that is set up to insert new instructions into the basic
+block we just created. Basic blocks in LLVM are an important part of
+functions that define the `Control Flow
+Graph <http://en.wikipedia.org/wiki/Control_flow_graph>`_. Since we
+don't have any control flow, our functions will only contain one block
+at this point. We'll fix this in `Chapter 5 <PythonLangImpl5.html>`_ :).
    
-   Now we get to the point where ``g_llvm_builder`` is set up. The first
-   line creates a new `basic
-   block <http://en.wikipedia.org/wiki/Basic_block>`_ (named "entry"),
-   which is inserted into the function. The second line declares that the
-   global ``g_llvm_builder`` object is to be changed. The last line creates
-   a new builder that is set up to insert new instructions into the basic
-   block we just created. Basic blocks in LLVM are an important part of
-   functions that define the `Control Flow
-   Graph <http://en.wikipedia.org/wiki/Control_flow_graph>`_. Since we
-   don't have any control flow, our functions will only contain one block
-   at this point. We'll fix this in `Chapter 5 <PythonLangImpl5.html>`_ :).
-   
+.. code-block:: python
+
     # Finish off the function. 
     try: 
       return_value = self.body.CodeGen() 
