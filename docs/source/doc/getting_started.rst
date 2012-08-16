@@ -13,10 +13,10 @@ with the LLVM APIs. It should also be easier to create working
 prototypes and experimental languages using this medium.
 
 Together with `clang <http://clang.llvm.org/>`_ or
-`llvm-gcc <http://llvm.org/cmds/llvmgcc.html>`_ it also a provides a
-means to quickly instrument C and C++ sources. For e.g., llvm-gcc can be
-used to generate the LLVM assembly for a given C source file, which can
-then be loaded and manipulated (adding profiling code to every function,
+`llvm-gcc <http://llvm.org/releases/2.7/docs/CommandGuide/html/llvmgcc.html>`_ 
+it also a provides a means to quickly instrument C and C++ sources. For e.g., 
+llvm-gcc can be used to generate the LLVM assembly for a given C source file, 
+which can then be loaded and manipulated (adding profiling code to every function,
 say) using a llvmpy based Python script.
 
 License
@@ -49,7 +49,7 @@ welcome).
 Installation
 ============
 
-The Git repo of llvmpy is at https://github.com/numba/llvmpy.git.
+The Git repo of llvmpy is at https://github.com/llvmpy/llvmpy.git.
 You'll need to build and install it before it can be used. At least the
 following will be required for this:
 
