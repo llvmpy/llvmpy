@@ -406,7 +406,7 @@ prototype. Code generation of the prototype ensures that there is an
 LLVM Function object that is ready to go for us.
 
 
-::
+.. code-block:: python
 
    # Create a new basic block to start insertion into. 
    block = function.append_basic_block('entry') 
@@ -429,7 +429,7 @@ Graph <http://en.wikipedia.org/wiki/Control_flow_graph>`_. Since we
 don't have any control flow, our functions will only contain one block
 at this point. We'll fix this in `Chapter 5 <PythonLangImpl5.html>`_ :).
    
-::
+.. code-block:: python
 
    # Finish off the function. 
    try: 

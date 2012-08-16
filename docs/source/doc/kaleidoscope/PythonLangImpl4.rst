@@ -28,9 +28,13 @@ however, does give us obvious optimizations when compiling simple code:
 
 .. code-block:: bash
 
-   ready> def test(x) 1+2+x Read function definition:
-   define double @test(double %x) { entry: %addtmp = fadd double
-   3.000000e+00, %x ret double %addtmp }
+   ready> def test(x) 1+2+x 
+   Read function definition:
+   define double @test(double %x) { 
+   entry: 
+      %addtmp = fadd double 3.000000e+00, %x 
+      ret double %addtmp 
+   }
 
 
 
@@ -40,10 +44,14 @@ input. That would be:
 
 .. code-block:: bash
 
-   ready> def test(x) 1+2+x Read function definition:
-   define double @test(double %x) { entry: %addtmp = fadd double
-   2.000000e+00, 1.000000e+00 %addtmp1 = fadd double %addtmp, %x ret double
-   %addtmp1 }
+   ready> def test(x) 1+2+x 
+   Read function definition:
+   define double @test(double %x) { 
+      entry: 
+      %addtmp = fadd double 2.000000e+00, 1.000000e+00 
+      %addtmp1 = fadd double %addtmp, %x 
+      ret double %addtmp1 
+   }
 
 
 
@@ -71,11 +79,15 @@ slightly more complex example:
 
 .. code-block:: bash
 
-   ready> def test(x) (1+2+x)\*(x+(1+2)) Read a
-   function definition: define double @test(double %x) { entry: %addtmp =
-   fadd double 3.000000e+00, %x ; <double> [#uses=1] %addtmp1 = fadd double %x,
-   3.000000e+00 ; <double> [#uses=1] %multmp = fmul double %addtmp, %addtmp1 ;
-   <double> [#uses=1] ret double %multmp }
+   ready> def test(x) (1+2+x)*(x+(1+2)) 
+   Read a function definition: 
+   define double @test(double %x) { 
+   entry: 
+      %addtmp = fadd double 3.000000e+00, %x   ; <double> [#uses=1] 
+      %addtmp1 = fadd double %x, 3.000000e+00  ; <double> [#uses=1] 
+      %multmp = fmul double %addtmp, %addtmp1  ; <double> [#uses=1] 
+      ret double %multmp 
+   }
 
 
 
@@ -138,17 +150,20 @@ this:
    
    ...
    
-   def main(): # Set up the optimizer pipeline. Start with registering info
-   about how the # target lays out data structures.
-   g_llvm_pass_manager.add(g_llvm_executor.target_data) # Do simple
-   "peephole" optimizations and bit-twiddling optzns.
-   g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING) # Reassociate
-   expressions. g_llvm_pass_manager.add(PASS_REASSOCIATE) # Eliminate
-   Common SubExpressions. g_llvm_pass_manager.add(PASS_GVN) # Simplify
-   the control flow graph (deleting unreachable blocks, etc).
-   g_llvm_pass_manager.add(PASS_CFG_SIMPLIFICATION)
-   
-   g_llvm_pass_manager.initialize()
+   def main(): 
+      # Set up the optimizer pipeline. Start with registering info about how the 
+      # target lays out data structures.
+      g_llvm_pass_manager.add(g_llvm_executor.target_data) 
+      # Do simple "peephole" optimizations and bit-twiddling optzns.
+      g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING) 
+      # Reassociate expressions. 
+      g_llvm_pass_manager.add(PASS_REASSOCIATE) 
+      # Eliminate Common SubExpressions. 
+      g_llvm_pass_manager.add(PASS_GVN) 
+      # Simplify the control flow graph (deleting unreachable blocks, etc).
+      g_llvm_pass_manager.add(PASS_CFG_SIMPLIFICATION)
+      
+      g_llvm_pass_manager.initialize()
 
 
 
@@ -193,10 +208,14 @@ our test above again:
 
 .. code-block:: bash
 
-   ready> def test(x) (1+2+x)\*(x+(1+2)) Read a
-   function definition: define double @test(double %x) { entry: %addtmp =
-   fadd double %x, 3.000000e+00 ; [#uses=2] %multmp = fmul double %addtmp,
-   %addtmp ; <double> [#uses=1] ret double %multmp }
+   ready> def test(x) (1+2+x)*(x+(1+2)) 
+   Read a function definition: 
+   define double @test(double %x) { 
+   entry: 
+      %addtmp = fadd double %x, 3.000000e+00 ; <double> [#uses=2] 
+      %multmp = fmul double %addtmp, %addtmp ; <double> [#uses=1] 
+      ret double %multmp 
+   }
 
 
 
@@ -239,8 +258,8 @@ done by adding and initializing a global variable:
 
 .. code-block:: python
 
-   # The LLVM execution engine. g_llvm_executor =
-   ExecutionEngine.new(g_llvm_module)
+   # The LLVM execution engine. 
+   g_llvm_executor = ExecutionEngine.new(g_llvm_module)
 
 
 
@@ -258,12 +277,17 @@ this:
 
 .. code-block:: python
 
-   def HandleTopLevelExpression(self): try: function
-   = self.ParseTopLevelExpr().CodeGen() result =
-   g_llvm_executor.run_function(function, []) print 'Evaluated to:',
-   result.as_real(Type.double()) except Exception, e: print 'Error:', e
-   try: self.Next() # Skip for error recovery. except: pass {% endhighlight
-   %}
+   def HandleTopLevelExpression(self): 
+      try: 
+         function = self.ParseTopLevelExpr().CodeGen() 
+         result = g_llvm_executor.run_function(function, []) 
+         print 'Evaluated to:', result.as_real(Type.double()) 
+      except Exception, e: 
+         print 'Error:', e
+      try: 
+         self.Next() # Skip for error recovery. 
+      except: 
+         pass {% endhighlight %}
    
    Recall that we compile top-level expressions into a self-contained LLVM
    function that takes no arguments and returns the computed double.
