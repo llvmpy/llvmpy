@@ -194,7 +194,7 @@ numeric value of a number). First, we define the possibilities:
 
 Each token yielded by our lexer will be of one of the above types. For
 simple tokens that are always the same, like the "def" keyword, the
-lexer will yield ``DefToken()``>. Identifiers, numbers and characters,
+lexer will yield ``DefToken()``. Identifiers, numbers and characters,
 on the other hand, have extra data, so when the lexer encounteres the
 number 123.45, it will emit it as ``NumberToken(123.45)``. An identifier
 ``foo`` will be emitted as ``IdentifierToken('foo')``. And finally, an
