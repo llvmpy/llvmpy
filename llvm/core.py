@@ -1959,6 +1959,13 @@ class Builder(object):
     # obsolete synonym for extract_value
     getresult = extract_value
 
+    def insert_value(self, retval, rhs, idx, name=""):
+        check_is_value(retval)
+        check_is_value(rhs)
+        return _make_value(
+            _core.LLVMBuildInsertValue(self.ptr, retval.ptr, rhs.ptr, idx,
+                                       name))
+
     def phi(self, ty, name=""):
         check_is_type(ty)
         return _make_value(_core.LLVMBuildPhi(self.ptr, ty.ptr, name))

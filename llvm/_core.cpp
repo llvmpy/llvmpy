@@ -778,6 +778,7 @@ _wrap_objstrint2obj(LLVMBuildFence, LLVMBuilderRef, LLVMValueRef)
 /* Miscellaneous instructions */
 
 _wrap_objobjintstr2obj(LLVMBuildGetResult, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
+_wrap_objobjobjintstr2obj(LLVMBuildInsertValue, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobjstr2obj(LLVMBuildPhi, LLVMBuilderRef, LLVMTypeRef, LLVMValueRef)
 _wrap_objobjliststr2obj(LLVMBuildCall, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobjobjobjstr2obj(LLVMBuildSelect, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
@@ -1764,6 +1765,7 @@ static PyMethodDef core_methods[] = {
 
     /* Miscellaneous instructions */
     _method( LLVMBuildGetResult )
+    _method( LLVMBuildInsertValue )
     _method( LLVMBuildPhi )
     _method( LLVMBuildCall )
     _method( LLVMBuildSelect )
