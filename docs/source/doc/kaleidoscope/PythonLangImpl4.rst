@@ -287,15 +287,21 @@ this:
       try: 
          self.Next() # Skip for error recovery. 
       except: 
-         pass {% endhighlight %}
+         pass 
    
-   Recall that we compile top-level expressions into a self-contained LLVM
-   function that takes no arguments and returns the computed double.
-   
-   With just these two changes, lets see how Kaleidoscope works now!
-   
-    ready> 4+5 Read a top level expression: define
-   double @0() { entry: ret double 9.000000e+00 }
+Recall that we compile top-level expressions into a self-contained LLVM
+function that takes no arguments and returns the computed double.
+
+With just these two changes, lets see how Kaleidoscope works now!
+
+.. code-block:: bash
+
+   ready> 4+5 
+   Read a top level expression: 
+   define double @0() { 
+   entry: 
+      ret double 9.000000e+00 
+   }
    
    Evaluated to: 9.0
 
@@ -307,16 +313,24 @@ synthesize for each top-level expression that is typed in. This
 demonstrates very basic functionality, but can we do more?
 
 
-.. code-block:: python
+.. code-block:: bash
 
-   ready> def testfunc(x y) x + y\*2 Read a function
-   definition: define double @testfunc(double %x, double %y) { entry:
-   %multmp = fmul double %y, 2.000000e+00 ; <double> [#uses=1] %addtmp = fadd double
-   %multmp, %x ; <double> [#uses=1] ret double %addtmp }
+   ready> def testfunc(x y) x + y*2 
+   Read a function definition: 
+   define double @testfunc(double %x, double %y) { 
+   entry:
+      %multmp = fmul double %y, 2.000000e+00 ; <double> [#uses=1] 
+      %addtmp = fadd double %multmp, %x ; <double> [#uses=1] 
+      ret double %addtmp 
+   }
    
-   ready> testfunc(4, 10) Read a top level expression: define double @0() {
-   entry: %calltmp = call double @testfunc(double 4.000000e+00, double
-   1.000000e+01) ; <double> [#uses=1] ret double %calltmp }
+   ready> testfunc(4, 10) 
+   Read a top level expression: 
+   define double @0() {
+   entry: 
+      %calltmp = call double @testfunc(double 4.000000e+00, double 1.000000e+01) ; <double> [#uses=1] 
+      ret double %calltmp 
+   }
    
    *Evaluated to: 24.0*
 
@@ -339,23 +353,33 @@ anonymous functions, you should get the idea by now :) :
 
 .. code-block:: bash
 
-   ready> extern sin(x) Read an extern: declare double
-   @sin(double)
+   ready> extern sin(x) 
+   Read an extern: 
+   declare double @sin(double)
    
-   ready> extern cos(x) Read an extern: declare double @cos(double)
+   ready> extern cos(x) 
+   Read an extern: 
+   declare double @cos(double)
    
-   ready> sin(1.0) *Evaluated to: 0.841470984808*
+   ready> sin(1.0) 
+   *Evaluated to: 0.841470984808*
    
-   ready> def foo(x) sin(x)\ *sin(x) + cos(x)*\ cos(x) Read a function
-   definition: define double @foo(double %x) { entry: %calltmp = call
-   double @sin(double %x) ; <double> [#uses=1] %calltmp1 = call double @sin(double
-   %x) ; <double> [#uses=1] %multmp = fmul double %calltmp, %calltmp1 ; <double> [#uses=1]
-   %calltmp2 = call double @cos(double %x) ; <double> [#uses=1] %calltmp3 = call
-   double @cos(double %x) ; <double> [#uses=1] %multmp4 = fmul double %calltmp2,
-   %calltmp3 ; <double> [#uses=1] %addtmp = fadd double %multmp, %multmp4 ;
-   <double> [#uses=1] ret double %addtmp }
+   ready> def foo(x) sin(x) *sin(x) + cos(x)* cos(x) 
+   Read a function definition: 
+   define double @foo(double %x) { 
+   entry: 
+      %calltmp = call double @sin(double %x)      ; <double> [#uses=1] 
+      %calltmp1 = call double @sin(double %x)     ; <double> [#uses=1] 
+      %multmp = fmul double %calltmp, %calltmp1   ; <double> [#uses=1]
+      %calltmp2 = call double @cos(double %x)     ; <double> [#uses=1] 
+      %calltmp3 = call double @cos(double %x)     ; <double> [#uses=1] 
+      %multmp4 = fmul double %calltmp2, %calltmp3 ; <double> [#uses=1] 
+      %addtmp = fadd double %multmp, %multmp4     ; <double> [#uses=1] 
+      ret double %addtmp 
+   }
    
-   ready> foo(4.0) *Evaluated to: 1.000000*
+   ready> foo(4.0) 
+   *Evaluated to: 1.000000*
 
 
 
