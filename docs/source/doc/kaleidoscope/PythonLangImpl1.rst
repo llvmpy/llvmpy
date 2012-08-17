@@ -160,7 +160,7 @@ The Lexer
 When it comes to implementing a language, the first thing needed is the
 ability to process a text file and recognize what it says. The
 traditional way to do this is to use a
-`lexer <http://en.wikipedia.org/wiki/Lexical_analysis>`_" (aka
+`lexer <http://en.wikipedia.org/wiki/Lexical_analysis>`_ (aka
 'scanner') to break the input up into "tokens". Each token returned by
 the lexer includes a token type and potentially some metadata (e.g. the
 numeric value of a number). First, we define the possibilities:
@@ -238,14 +238,10 @@ ignoring whitespace between tokens:
 .. code-block:: python
 
    def Tokenize(string):
-       while string: # Skip whitespace.
+       while string:  # Skip whitespace.
            if string[0].isspace():
               string = string[1:]
               continue
-   
-   ::
-   
-   ...
    
    
 
@@ -271,9 +267,9 @@ ignore the captured match:
 
 .. code-block:: python
 
-   # Check if any of the regexes matched and yield
-   # the appropriate result.
-   if comment_match:
+    # Check if any of the regexes matched and yield
+    # the appropriate result.
+    if comment_match:
       comment = comment_match.group(0)
       string = string[len(comment):]
    
@@ -281,27 +277,27 @@ For numbers, we yield the captured match, converted to a float and
 tagged with the appropriate token type:
    
 .. code-block:: python
- 
-   elif number_match: 
-        number = number_match.group(0)
-        yield NumberToken(float(number))
-        string = string[len(number):]
+
+    elif number_match: 
+      number = number_match.group(0)
+      yield NumberToken(float(number))
+      string = string[len(number):]
 
 The identifier case is a little more complex. We have to check for
 keywords to decide whether we have captured an identifier or a keyword:
 
 .. code-block:: python
 
-   elif identifier_match:
-       identifier = identifier_match.group(0)
-       # Check if we matched a keyword.
-       if identifier == 'def':
-          yield DefToken()
-       elif identifier == 'extern':
-          yield ExternToken()
-       else: 
-          yield IdentifierToken(identifier)
-       string = string[len(identifier):]
+    elif identifier_match:
+      identifier = identifier_match.group(0)
+      # Check if we matched a keyword.
+      if identifier == 'def':
+        yield DefToken()
+      elif identifier == 'extern':
+        yield ExternToken()
+      else: 
+        yield IdentifierToken(identifier)
+      string = string[len(identifier):]
 
 
 Finally, if we haven't recognized a comment, a number of an identifier,
@@ -311,9 +307,9 @@ used, for example, for operators like ``+`` or ``*``:
 
 .. code-block:: python
 
-   else: # Yield the unknown character.
-       yield CharacterToken(string[0])
-       string = string[1:]
+    else: # Yield the unknown character.
+      yield CharacterToken(string[0])
+      string = string[1:]
 
 
 Once we're done with the loop, we return a final end-of-file token:
@@ -321,5 +317,5 @@ Once we're done with the loop, we return a final end-of-file token:
 
 .. code-block:: python
 
-   yield EOFToken()
+    yield EOFToken()
 

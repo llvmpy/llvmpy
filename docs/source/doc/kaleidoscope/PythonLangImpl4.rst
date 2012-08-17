@@ -284,10 +284,10 @@ this:
          print 'Evaluated to:', result.as_real(Type.double()) 
       except Exception, e: 
          print 'Error:', e
-      try: 
-         self.Next() # Skip for error recovery. 
-      except: 
-         pass 
+         try: 
+            self.Next() # Skip for error recovery. 
+         except: 
+            pass 
    
 Recall that we compile top-level expressions into a self-contained LLVM
 function that takes no arguments and returns the computed double.
@@ -400,9 +400,10 @@ example, we can create a C file with the following simple function:
 
 .. code-block:: c
 
-   #include
+   #include <stdio.h>
    
-   double putchard(double x) { putchar((char)x); return 0; } {%
+   double putchard(double x) { 
+      putchar((char)x); return 0; } {%
    endhighlight %}
    
    We can then compile this into a shared library with GCC:

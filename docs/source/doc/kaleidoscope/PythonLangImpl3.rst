@@ -439,7 +439,6 @@ at this point. We'll fix this in `Chapter 5 <PythonLangImpl5.html>`_ :).
       # Validate the generated code, checking for consistency.
       function.verify()
    
-   
 
 
 
@@ -642,8 +641,10 @@ need to `download <../download.html>`_ and
    import re 
    from llvm.core import Module, Constant, Type, Function, Builder, FCMP_ULT
    
-   Globals
-   -------
+Globals
+-------
+
+.. code-block:: python
    
    # The LLVM module, which holds all the IR code.
    g_llvm_module = Module.new('my cool jit')
@@ -655,8 +656,10 @@ need to `download <../download.html>`_ and
    # and what their LLVM representation is.
    g_named_values = {}
    
-   Lexer
-   -----
+Lexer
+-----
+
+.. code-block:: python
    
    # The lexer yields one of these types for each token.
    class EOFToken(object): 
@@ -678,55 +681,58 @@ need to `download <../download.html>`_ and
    
    class CharacterToken(object): 
       def __init__(self, char): 
-         self.char = char def __eq__(self, other): 
+         self.char = char 
+      def __eq__(self, other): 
             return isinstance(other, CharacterToken)and self.char == other.char 
       def __ne__(self, other): 
          return not self == other
    
-   # Regular expressions that tokens and comments of our language.
-   REGEX_NUMBER = re.compile('[0-9]+(?:.[0-9]+)?')
-   REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9]\ *')
-   REGEX_COMMENT = re.compile('#.*')
-   
-   def Tokenize(string): 
-      while string: 
-      # Skip whitespace. 
-      if string[0].isspace(): 
-         string = string[1:] 
-         continue
-   
-      # Run regexes.
-      comment_match = REGEX_COMMENT.match(string)
-      number_match = REGEX_NUMBER.match(string)
-      identifier_match = REGEX_IDENTIFIER.match(string)
+      # Regular expressions that tokens and comments of our language.
+      REGEX_NUMBER = re.compile('[0-9]+(?:.[0-9]+)?')
+      REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9]\ *')
+      REGEX_COMMENT = re.compile('#.*')
       
-      # Check if any of the regexes matched and yield the appropriate result.
-      if comment_match:
-         comment = comment_match.group(0)
-         string = string[len(comment):]
-      elif number_match:
-         number = number_match.group(0)
-         yield NumberToken(float(number))
-         string = string[len(number):]
-      elif identifier_match:
-         identifier = identifier_match.group(0)
-         # Check if we matched a keyword.
-         if identifier == 'def':
-            yield DefToken()
-         elif identifier == 'extern':
-            yield ExternToken()
-         else:
-            yield IdentifierToken(identifier)
-            string = string[len(identifier):]
-      else:
-         # Yield the ASCII value of the unknown character.
-         yield CharacterToken(string[0])
-         string = string[1:]
+      def Tokenize(string): 
+         while string: 
+            # Skip whitespace. 
+            if string[0].isspace(): 
+               string = string[1:] 
+               continue
+         
+            # Run regexes.
+            comment_match = REGEX_COMMENT.match(string)
+            number_match = REGEX_NUMBER.match(string)
+            identifier_match = REGEX_IDENTIFIER.match(string)
+            
+            # Check if any of the regexes matched and yield the appropriate result.
+            if comment_match:
+               comment = comment_match.group(0)
+               string = string[len(comment):]
+            elif number_match:
+               number = number_match.group(0)
+               yield NumberToken(float(number))
+               string = string[len(number):]
+            elif identifier_match:
+               identifier = identifier_match.group(0)
+               # Check if we matched a keyword.
+               if identifier == 'def':
+                  yield DefToken()
+               elif identifier == 'extern':
+                  yield ExternToken()
+               else:
+                  yield IdentifierToken(identifier)
+                  string = string[len(identifier):]
+            else:
+               # Yield the ASCII value of the unknown character.
+               yield CharacterToken(string[0])
+               string = string[1:]
+         
+         yield EOFToken()
    
-   yield EOFToken()
-   
-   Abstract Syntax Tree (aka Parse Tree)
-   -------------------------------------
+Abstract Syntax Tree (aka Parse Tree)
+-------------------------------------
+
+.. code-block:: python
 
    # Base class for all expression nodes.
    class ExpressionNode(object): 
@@ -756,25 +762,27 @@ need to `download <../download.html>`_ and
    # Expression class for a binary operator.
    class BinaryOperatorExpressionNode(ExpressionNode):
    
-      def __init__(self, operator, left, right): self.operator = operator
-      self.left = left self.right = right
+      def __init__(self, operator, left, right): 
+         self.operator = operator
+         self.left = left 
+         self.right = right
       
       def CodeGen(self): 
          left = self.left.CodeGen() 
          right = self.right.CodeGen()
 
-      if self.operator == '+':
-         return g_llvm_builder.fadd(left, right, 'addtmp')
-      elif self.operator == '-':
-         return g_llvm_builder.fsub(left, right, 'subtmp')
-      elif self.operator == '*':
-         return g_llvm_builder.fmul(left, right, 'multmp')
-      elif self.operator == '<':
-         result = g_llvm_builder.fcmp(FCMP_ULT, left, right, 'cmptmp')
-         # Convert bool 0 or 1 to double 0.0 or 1.0.
-         return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
-      else:
-         raise RuntimeError('Unknown binary operator.')
+         if self.operator == '+':
+            return g_llvm_builder.fadd(left, right, 'addtmp')
+         elif self.operator == '-':
+            return g_llvm_builder.fsub(left, right, 'subtmp')
+         elif self.operator == '*':
+            return g_llvm_builder.fmul(left, right, 'multmp')
+         elif self.operator == '<':
+            result = g_llvm_builder.fcmp(FCMP_ULT, left, right, 'cmptmp')
+            # Convert bool 0 or 1 to double 0.0 or 1.0.
+            return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
+         else:
+            raise RuntimeError('Unknown binary operator.')
    
    # Expression class for function calls.
    class CallExpressionNode(ExpressionNode):
@@ -787,13 +795,13 @@ need to `download <../download.html>`_ and
          # Look up the name in the global module table. 
          callee = g_llvm_module.get_function_named(self.callee)
 
-      # Check for argument mismatch error.
-      if len(callee.args) != len(self.args):
-         raise RuntimeError('Incorrect number of arguments passed.')
-      
-      arg_values = [i.CodeGen() for i in self.args]
-      
-      return g_llvm_builder.call(callee, arg_values, 'calltmp')
+         # Check for argument mismatch error.
+         if len(callee.args) != len(self.args):
+            raise RuntimeError('Incorrect number of arguments passed.')
+         
+         arg_values = [i.CodeGen() for i in self.args]
+         
+         return g_llvm_builder.call(callee, arg_values, 'calltmp')
    
    # This class represents the "prototype" for a function, which captures its name,
    # and its argument names (thus implicitly the number of arguments the function
@@ -805,9 +813,9 @@ need to `download <../download.html>`_ and
          self.args = args
       
       def CodeGen(self): 
-      # Make the function type, eg. double(double,double).
-      funct_type = Type.function( 
-         Type.double(), [Type.double()] * len(self.args), False)
+         # Make the function type, eg. double(double,double).
+         funct_type = Type.function( 
+            Type.double(), [Type.double()] * len(self.args), False)
 
          function = Function.new(g_llvm_module, funct_type, self.name)
       
@@ -866,8 +874,10 @@ need to `download <../download.html>`_ and
          
          return function
    
-   Parser
-   ------
+Parser
+------
+
+.. code-block:: python
 
    class Parser(object):
       
@@ -877,13 +887,13 @@ need to `download <../download.html>`_ and
          self.Next()
    
       # Provide a simple token buffer. Parser.current is the current token the
-      # parser is looking at. Parser.Next() reads another token from the lexer
-      and # updates Parser.current with its results. 
+      # parser is looking at. Parser.Next() reads another token from the lexer and 
+      # updates Parser.current with its results. 
       def Next(self):
          self.current = self.tokens.next()
       
-      # Gets the precedence of the current token, or -1 if the token is not a
-      binary # operator. 
+      # Gets the precedence of the current token, or -1 if the token is not a binary 
+      # operator. 
       def GetCurrentTokenPrecedence(self): 
          if isinstance(self.current, CharacterToken): 
             return self.binop_precedence.get(self.current.char, -1) 
@@ -893,7 +903,7 @@ need to `download <../download.html>`_ and
       # identifierexpr ::= identifier | identifier '(' expression* ')' 
       def ParseIdentifierExpr(self): 
          identifier_name = self.current.name
-         self.Next() # eat identifier.
+         self.Next()  # eat identifier.
 
          if self.current != CharacterToken('('):  # Simple variable reference.
             return VariableExpressionNode(identifier_name)
@@ -916,7 +926,7 @@ need to `download <../download.html>`_ and
       # numberexpr ::= number 
       def ParseNumberExpr(self): 
          result = NumberExpressionNode(self.current.value) 
-         self.Next() # consume the number. 
+         self.Next()  # consume the number. 
          return result
       
       # parenexpr ::= '(' expression ')' 
@@ -948,25 +958,25 @@ need to `download <../download.html>`_ and
          while True: 
             precedence = self.GetCurrentTokenPrecedence()
 
-         # If this is a binary operator that binds at least as tightly as the
-         # current one, consume it; otherwise we are done.
-         if precedence < left_precedence:
-            return left
-         
-         binary_operator = self.current.char
-         self.Next()  # eat the operator.
-         
-         # Parse the primary expression after the binary operator.
-         right = self.ParsePrimary()
-         
-         # If binary_operator binds less tightly with right than the operator after
-         # right, let the pending operator take right as its left.
-         next_precedence = self.GetCurrentTokenPrecedence()
-         if precedence < next_precedence:
-            right = self.ParseBinOpRHS(right, precedence + 1)
-         
-         # Merge left/right.
-         left = BinaryOperatorExpressionNode(binary_operator, left, right)
+            # If this is a binary operator that binds at least as tightly as the
+            # current one, consume it; otherwise we are done.
+            if precedence < left_precedence:
+               return left
+            
+            binary_operator = self.current.char
+            self.Next()  # eat the operator.
+            
+            # Parse the primary expression after the binary operator.
+            right = self.ParsePrimary()
+            
+            # If binary_operator binds less tightly with right than the operator after
+            # right, let the pending operator take right as its left.
+            next_precedence = self.GetCurrentTokenPrecedence()
+            if precedence < next_precedence:
+               right = self.ParseBinOpRHS(right, precedence + 1)
+            
+            # Merge left/right.
+            left = BinaryOperatorExpressionNode(binary_operator, left, right)
       
       # expression ::= primary binoprhs 
       def ParseExpression(self): 
@@ -1000,7 +1010,7 @@ need to `download <../download.html>`_ and
       
       # definition ::= 'def' prototype expression 
       def ParseDefinition(self):
-         self.Next() # eat def. 
+         self.Next()  # eat def. 
          proto = self.ParsePrototype() 
          body = self.ParseExpression() 
          return FunctionNode(proto, body)
@@ -1011,7 +1021,7 @@ need to `download <../download.html>`_ and
          return FunctionNode(proto, self.ParseExpression())
       
       # external ::= 'extern' prototype 
-         def ParseExtern(self): 
+      def ParseExtern(self): 
          self.Next()  # eat extern. 
          return self.ParsePrototype()
       
@@ -1026,17 +1036,19 @@ need to `download <../download.html>`_ and
          self.Handle(self.ParseTopLevelExpr, 'Read a top-level expression:')
       
       def Handle(self, function, message): 
-      try: 
-         print message, function().CodeGen() 
-      except Exception, e: 
-         print 'Error:', e 
-         try:
-            self.Next() # Skip for error recovery. 
-         except: 
-            pass
+         try: 
+            print message, function().CodeGen() 
+         except Exception, e: 
+            print 'Error:', e 
+            try:
+               self.Next() # Skip for error recovery. 
+            except: 
+               pass
    
-   Main driver code.
-   -----------------
+Main driver code.
+-----------------
+
+.. code-block:: python
    
    def main(): 
       # Install standard binary operators. 
