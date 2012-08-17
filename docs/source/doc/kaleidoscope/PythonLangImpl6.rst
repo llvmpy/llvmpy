@@ -91,8 +91,7 @@ keywords:
    BinaryToken(object): pass class UnaryToken(object): pass ... def
    Tokenize(string): ... elif identifier == 'in': yield InToken() elif
    identifier == 'binary': yield BinaryToken() elif identifier == 'unary':
-   yield UnaryToken() else: yield IdentifierToken(identifier) {%
-   endhighlight %}
+   yield UnaryToken() else: yield IdentifierToken(identifier) 
    
    This just adds lexer support for the unary and binary keywords, like we
    did in `previous chapters <PythonLangImpl5.html#iflexer>`_. One nice
@@ -446,8 +445,7 @@ denser the character:
    ' else if d > 4 then putchard(46) # '.' else if d > 2 then putchard(43)
    # '+' else putchard(42); # '*' ... ready> printdensity(1):
    printdensity(2): printdensity(3) : printdensity(4): printdensity(5):
-   printdensity(9): putchard(10)*\ ++.. Evaluated to 0.000000 {%
-   endhighlight %}
+   printdensity(9): putchard(10)*\ ++.. Evaluated to 0.000000 
    
    Based on these simple primitive operations, we can start to define more
    interesting things. For example, here's a little function that solves

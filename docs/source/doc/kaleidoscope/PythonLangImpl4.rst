@@ -403,13 +403,11 @@ example, we can create a C file with the following simple function:
    #include <stdio.h>
    
    double putchard(double x) { 
-      putchar((char)x); return 0; } {%
-   endhighlight %}
+      putchar((char)x); return 0; } 
    
    We can then compile this into a shared library with GCC:
    
-    gcc -shared -fPIC -o putchard.so putchard.c {%
-   endhighlight %}
+    gcc -shared -fPIC -o putchard.so putchard.c 
    
    Now we can load this library into the Python process using
    ``llvm.core.load_library_permanently`` and access it from Kaleidoscope

@@ -601,8 +601,7 @@ expression for the loop value:
 .. code-block:: python
 
    def CodeGen(self): # Emit the start code first,
-   without 'variable' in scope. start_value = self.start.CodeGen() {%
-   endhighlight %}
+   without 'variable' in scope. start_value = self.start.CodeGen() 
    
    With this out of the way, the next step is to set up the LLVM basic
    block for the start of the loop body. In the case above, the whole loop

@@ -350,8 +350,7 @@ from the stack slot:
    def CodeGen(self): if self.name in
    g_named_values: return
    g_llvm_builder.load(g_named_values[self.name], self.name) else:
-   raise RuntimeError('Unknown variable name: ' + self.name) {%
-   endhighlight %}
+   raise RuntimeError('Unknown variable name: ' + self.name) 
    
    As you can see, this is pretty straightforward. Now we need to update
    the things that define the variables to set up the alloca. We'll start
@@ -431,8 +430,7 @@ get good codegen once again:
    g_llvm_pass_manager.add(PASS_PROMOTE_MEMORY_TO_REGISTER) # Do
    simple "peephole" optimizations and bit-twiddling optzns.
    g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING) # Reassociate
-   expressions. g_llvm_pass_manager.add(PASS_REASSOCIATE) {%
-   endhighlight %}
+   expressions. g_llvm_pass_manager.add(PASS_REASSOCIATE) 
    
    It is interesting to see what the code looks like before and after the
    mem2reg optimization runs. For example, this is the before/after code
@@ -448,8 +446,7 @@ get good codegen once again:
    %subtmp5 = fsub double %x4, 2.000000e+00 %calltmp6 = call double
    @fib(double %subtmp5) %addtmp = fadd double %calltmp, %calltmp6 br label
    %ifcont ifcont: ; preds = %else, %then %iftmp = phi double [
-   1.000000e+00, %then ], [ %addtmp, %else ] ret double %iftmp } {%
-   endhighlight %}
+   1.000000e+00, %then ], [ %addtmp, %else ] ret double %iftmp } 
    
    Here there is only one variable (x, the input argument) but you can
    still see the extremely simple-minded code generation strategy we are
@@ -517,8 +514,7 @@ step is to set a precedence:
    def main(): ... # Install standard binary
    operators. # 1 is lowest possible precedence. 40 is the highest.
    g_binop_precedence['='] = 2 g_binop_precedence['<'] = 10
-   g_binop_precedence['+'] = 20 g_binop_precedence['-'] = 20 {%
-   endhighlight %}
+   g_binop_precedence['+'] = 20 g_binop_precedence['-'] = 20 
    
    Now that the parser knows the precedence of the binary operator, it
    takes care of all the parsing and AST generation. We just need to
@@ -529,8 +525,7 @@ step is to set a precedence:
    special case for '=' because we don't want to emit the LHS as an #
    expression. if self.operator == '=': # Assignment requires the LHS to be
    an identifier. if not isinstance(self.left, VariableExpressionNode):
-   raise RuntimeError('Destination of "=" must be a variable.') {%
-   endhighlight %}
+   raise RuntimeError('Destination of "=" must be a variable.') 
    
    Unlike the rest of the binary operators, our assignment operator doesn't
    follow the "emit LHS, emit RHS, do computation" model. As such, it is
