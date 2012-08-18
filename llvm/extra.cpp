@@ -893,6 +893,7 @@ LLVMModuleRef LLVMGetModuleFromBitcode(const char *bitcode, unsigned bclen,
     return wrap(modulep);
 }
 
+#if LLVM_VERSION_MAJOR <= 3 && LLVM_VERSION_MINOR < 2
 unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, unsigned int mode,
 			 char **out)
 {
@@ -909,6 +910,7 @@ unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, unsigned int mod
 
     return 1;
 }
+#endif
 
 unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, unsigned *lenp)
 {

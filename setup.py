@@ -29,7 +29,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import sys, os
+import sys, os, re
 from distutils.core import setup, Extension
 
 LLVM_PY_VERSION = '0.8.2'
@@ -72,6 +72,20 @@ def get_llvm_config():
 
     return (lc, True)
 
+def get_version(llvm_config):
+    # get version number; treat it as fixed point
+    re_version = re.compile(r'(\d+)\.(\d+)')
+    raw = _run(llvm_config + ' --version')
+    major, minor = map(int, re_version.match(raw).groups())
+    return major, minor
+
+def auto_intrinsic_gen(llvm_config, incdir):
+    # let's do auto intrinsic generation
+    print("Generate intrinsic IDs")
+    from tools import intrgen
+    path = "%s/llvm/Intrinsics.gen" % incdir
+    with open('llvm/_intrinsic_ids.py', 'w') as fout:
+        intrgen.gen(path, fout)
 
 def call_setup(llvm_config):
 
@@ -79,7 +93,26 @@ def call_setup(llvm_config):
     libdir      = _run(llvm_config + ' --libdir')
     ldflags     = _run(llvm_config + ' --ldflags')
 
-    ptx_components = ['ptx', 'ptxasmprinter', 'ptxcodegen', 'ptxdesc', 'ptxinfo']
+    llvm_version = get_version(llvm_config)
+    print('LLVM version = %d.%d' % llvm_version)
+
+    auto_intrinsic_gen(llvm_config, incdir)
+
+    if llvm_version <= (3, 1): # select between PTX & NVPTX
+        print('Using PTX')
+        ptx_components = ['ptx',
+                          'ptxasmprinter',
+                          'ptxcodegen',
+                          'ptxdesc',
+                          'ptxinfo']
+    else:
+        print('Using NVPTX')
+        ptx_components = ['nvptx',
+                          'nvptxasmprinter',
+                          'nvptxcodegen',
+                          'nvptxdesc',
+                          'nvptxinfo']
+
 
     libs_core, objs_core = get_libs_and_objs(llvm_config,
         ['core', 'analysis', 'scalaropts', 'executionengine',

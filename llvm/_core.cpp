@@ -43,6 +43,11 @@
 #include "llvm-c/ExecutionEngine.h"
 #include "llvm-c/Target.h"
 #include "llvm-c/Transforms/IPO.h"
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
+    #include "llvm-c/Linker.h"
+#else
+    typedef unsigned int LLVMLinkerMode;
+#endif
 
 /* libc includes */
 #include <stdarg.h> /* for malloc(), free() */
@@ -225,7 +230,7 @@ _wLLVMLinkModules(PyObject *self, PyObject *args)
     dest = (LLVMModuleRef) PyCapsule_GetPointer(dest_obj, NULL);
     src = (LLVMModuleRef) PyCapsule_GetPointer(src_obj, NULL);
 
-    if (!LLVMLinkModules(dest, src, mode, &errmsg)) {
+    if (!LLVMLinkModules(dest, src, (LLVMLinkerMode)mode, &errmsg)) {
         if (errmsg) {
             ret = PyUnicode_FromString(errmsg);
             LLVMDisposeMessage(errmsg);
@@ -897,11 +902,17 @@ _wrap_none2none(LLVMInitializePasses)
 
 _wrap_none2obj(LLVMInitializeNativeTarget, int)
 _wrap_none2obj(LLVMInitializeNativeTargetAsmPrinter, int)
+#if LLVM_HAS_NVPTX
+_wrap_none2none(LLVMInitializeNVPTXTarget)
+_wrap_none2none(LLVMInitializeNVPTXTargetInfo)
+_wrap_none2none( LLVMInitializeNVPTXTargetMC )
+_wrap_none2none(LLVMInitializeNVPTXAsmPrinter)
+#else
 _wrap_none2none(LLVMInitializePTXTarget)
 _wrap_none2none(LLVMInitializePTXTargetInfo)
 _wrap_none2none( LLVMInitializePTXTargetMC )
 _wrap_none2none(LLVMInitializePTXAsmPrinter)
-
+#endif
 
 /*===----------------------------------------------------------------------===*/
 /* Passes                                                                     */
@@ -1822,11 +1833,17 @@ static PyMethodDef core_methods[] = {
 
     _method( LLVMInitializeNativeTarget )
     _method( LLVMInitializeNativeTargetAsmPrinter )
+#if LLVM_HAS_NVPTX
+    _method( LLVMInitializeNVPTXTarget )
+    _method( LLVMInitializeNVPTXTargetInfo )
+    _method( LLVMInitializeNVPTXTargetMC )
+    _method( LLVMInitializeNVPTXAsmPrinter )
+#else
     _method( LLVMInitializePTXTarget )
     _method( LLVMInitializePTXTargetInfo )
     _method( LLVMInitializePTXTargetMC )
     _method( LLVMInitializePTXAsmPrinter )
-
+#endif
     /* Passes */
 
     /*

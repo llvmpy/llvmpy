@@ -6,7 +6,7 @@
 
 import sys
 
-def gen(f):
+def gen(f, out=sys.stdout):
     intr = []
     maxw = 0
     flag = False
@@ -26,7 +26,8 @@ def gen(f):
     idx = 1
     for i in intr:
         s = 'INTR_' + i.upper()
-        print('%s = %d' % (s.ljust(maxw), idx))
+        out.write('%s = %d\n' % (s.ljust(maxw), idx))
         idx += 1
 
-gen(sys.argv[1])
+if __name__ == '__main__':
+    gen(sys.argv[1])
