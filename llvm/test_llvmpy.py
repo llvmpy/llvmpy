@@ -4,6 +4,7 @@ LLVM tests
 import os
 import sys
 import unittest
+import subprocess
 
 is_py3k = bool(sys.version_info[0] == 3)
 
@@ -14,7 +15,8 @@ else:
 
 
 from llvm import __version__
-from llvm.core import Module, Type, GlobalVariable, Function, Builder
+from llvm.core import (Module, Type, GlobalVariable, Function, Builder,
+                       Constant)
 import llvm.passes as lp
 import llvm.ee as le
 
@@ -287,6 +289,53 @@ class TestObjCache(unittest.TestCase):
         self.assert_(f1.args[0] is v2)
 
 tests.append(TestObjCache)
+
+# ---------------------------------------------------------------------------
+
+class TestNative(unittest.TestCase):
+
+    def _make_module(self):
+        m = Module.new('module1')
+        m.add_global_variable(Type.int(), 'i')
+
+        fty = Type.function(Type.int(), [])
+        f = m.add_function(fty, name='main')
+
+        bldr = Builder.new(f.append_basic_block('entry'))
+        bldr.ret(Constant.int(Type.int(), 0xab))
+
+        return m
+
+    def _compile(self, src):
+        dst = '/tmp/llvmobj.out'
+        s = subprocess.call(['cc', '-o', dst, src])
+        if s != 0:
+            raise Exception("Cannot compile")
+
+        s = subprocess.call([dst])
+        self.assertEqual(s, 0xab)
+
+    def test_assembly(self):
+        m = self._make_module()
+        output = m.to_native_assembly()
+
+        src = '/tmp/llvmasm.s'
+        with open(src, 'wb') as fout:
+            fout.write(output)
+
+        self._compile(src)
+
+    def test_object(self):
+        m = self._make_module()
+        output = m.to_native_object()
+
+        src = '/tmp/llvmobj.o'
+        with open(src, 'wb') as fout:
+            fout.write(output)
+
+        self._compile(src)
+
+tests.append(TestNative)
 
 # ---------------------------------------------------------------------------
 
