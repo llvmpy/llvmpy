@@ -6,10 +6,11 @@ from llvm import LLVMException
 import logging, unittest
 
 class TestOpaque(unittest.TestCase):
+
     def test_opaque(self):
         # Create an opaque type
         ts = Type.opaque('mystruct')
-        self.assertIn('type opaque', str(ts))
+        self.assertTrue('type opaque' in str(ts))
         self.assertTrue(ts.is_opaque)
         self.assertTrue(ts.is_identified)
         self.assertFalse(ts.is_literal)

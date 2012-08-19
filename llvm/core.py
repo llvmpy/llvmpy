@@ -2155,8 +2155,19 @@ if _core.LLVMInitializeNativeTargetAsmPrinter():
     # should user trigger the initialization?
     raise llvm.LLVMException("No native asm printer!?")
 
-if True: # use PTX
-    _core.LLVMInitializePTXTarget()
-    _core.LLVMInitializePTXTargetInfo()
-    _core.LLVMInitializePTXTargetMC()
-    _core.LLVMInitializePTXAsmPrinter()
+
+HAS_PTX = HAS_NVPTX = False
+if True: # use PTX?
+    try:
+        _core.LLVMInitializePTXTarget()
+        _core.LLVMInitializePTXTargetInfo()
+        _core.LLVMInitializePTXTargetMC()
+        _core.LLVMInitializePTXAsmPrinter()
+        HAS_PTX = True
+    except AttributeError:
+        _core.LLVMInitializeNVPTXTarget()
+        _core.LLVMInitializeNVPTXTargetInfo()
+        _core.LLVMInitializeNVPTXTargetMC()
+        _core.LLVMInitializeNVPTXAsmPrinter()
+        HAS_NVPTX = True
+

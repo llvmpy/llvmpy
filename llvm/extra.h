@@ -37,13 +37,25 @@
 #ifndef LLVM_PY_EXTRA_H
 #define LLVM_PY_EXTRA_H
 
+// select PTX or NVPTX
+
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
+    #define LLVM_HAS_NVPTX 1
+#else
+    #define LLVM_HAS_NVPTX 0
+#endif
+
+
 #include "llvm-c/Transforms/PassManagerBuilder.h"
 
 #include "llvm_c_extra.h"
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+const char * LLVMGetHostCPUName();
 
 int LLVMInitializeNativeTargetAsmPrinter();
 
@@ -171,6 +183,16 @@ void LLVMEngineBuilderForceInterpreter(LLVMEngineBuilderRef eb);
  * Wraps EngineBuilder::setOptLevel
  */
 void LLVMEngineBuilderSetOptLevel(LLVMEngineBuilderRef eb, int level);
+
+/*
+ * Wraps EngineBuilder::setMCPU
+ */
+void LLVMEngineBuilderSetMCPU(LLVMEngineBuilderRef eb, const char * mcpu);
+
+/*
+ * Wraps EngineBuilder::setMAttrs
+ */
+void LLVMEngineBuilderSetMAttrs(LLVMEngineBuilderRef eb, const char * mattrs);
 
 /*
  * Wraps EngineBuilder::setErrorStr and EngineBuilder::create
@@ -381,12 +403,13 @@ LLVMModuleRef LLVMGetModuleFromAssembly(const char *asmtxt, char **out);
 LLVMModuleRef LLVMGetModuleFromBitcode(const char *bc, unsigned bclen,
     char **out);
 
+#if LLVM_VERSION_MAJOR <= 3 && LLVM_VERSION_MINOR < 2
 /* Wraps llvm::Linker::LinkModules().  Returns 0 on failure (with errmsg
  * filled in) and 1 on success.  Dispose error message after use with
  * LLVMDisposeMessage(). */
 unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src,
 			 unsigned int, char **errmsg);
-
+#endif
 /* Returns pointer to a heap-allocated block of `*len' bytes containing bit code
  * for the given module. NULL on error. */
 unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, unsigned *len);

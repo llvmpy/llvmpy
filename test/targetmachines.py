@@ -1,5 +1,5 @@
 from llvm.core import *
-from llvm.ee import TargetMachine, EngineBuilder, print_registered_targets
+from llvm.ee import *
 import unittest
 
 class TestTargetMachines(unittest.TestCase):
@@ -17,19 +17,25 @@ class TestTargetMachines(unittest.TestCase):
         self.assertTrue(tm.target_short_description)
         self.assertTrue(tm.triple)
         self.assertIn('foo', tm.emit_assembly(m).decode('utf-8'))
+        self.assertTrue(get_host_cpu_name())
 
     def test_ptx(self):
+        if HAS_PTX:
+            arch = 'ptx64'
+        elif HAS_NVPTX:
+            arch = 'nvptx64'
+        else:
+            return # skip this test
         m, func = self._build_module()
         func.calling_convention = CC_PTX_KERNEL # set calling conv
-        ptxtm = TargetMachine.lookup(arch='ptx64', cpu='compute_20',
-                                     features='-double')
+        ptxtm = TargetMachine.lookup(arch=arch, cpu='compute_20')
         self.assertTrue(ptxtm.triple)
         self.assertTrue(ptxtm.cpu)
-        self.assertTrue(ptxtm.feature_string)
         ptxasm = ptxtm.emit_assembly(m).decode('utf-8')
         self.assertIn('foo', ptxasm)
-        self.assertIn('map_f64_to_f32', ptxasm)
-        self.assertIn('compute_10', ptxasm)
+        if HAS_NVPTX:
+            self.assertIn('.address_size 64', ptxasm)
+        self.assertIn('compute_20', ptxasm)
 
     def _build_module(self):
         m = Module.new('TestTargetMachines')

@@ -88,21 +88,19 @@ class TestAtomic(unittest.TestCase):
 
         for ordering in test_these_orderings:
             loaded = bldr.atomic_load(ptr, ordering)
-            self.assertIn('load atomic', str(loaded))
+            self.assert_('load atomic' in str(loaded))
             self.assertEqual(ordering,
                              str(loaded).strip().split(' ')[-3].rstrip(','))
-            self.assertIn('align 1', str(loaded))
+            self.assert_('align 1' in str(loaded))
 
             stored = bldr.atomic_store(loaded, ptr, ordering)
-            self.assertIn('store atomic', str(stored))
+            self.assert_('store atomic' in str(stored))
             self.assertEqual(ordering,
                              str(stored).strip().split(' ')[-3].rstrip(','))
-            self.assertIn('align 1', str(stored))
+            self.assert_('align 1' in str(stored))
 
             fenced = bldr.fence(ordering)
             self.assertEqual(['fence', ordering], str(fenced).strip().split(' '))
 
 if __name__ == '__main__':
     unittest.main()
-
-
