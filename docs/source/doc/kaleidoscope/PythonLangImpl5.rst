@@ -1375,7 +1375,7 @@ Parser
          
          return ForExpressionNode(loop_variable, start, end, step, body)
       
-      # primary ::= identifierexpr \| numberexpr \| parenexpr \| ifexpr \|
+      # primary ::= identifierexpr | numberexpr | parenexpr | ifexpr |
       forexpr def ParsePrimary(self): if isinstance(self.current,
       IdentifierToken): return self.ParseIdentifierExpr() elif
       isinstance(self.current, NumberToken): return self.ParseNumberExpr()

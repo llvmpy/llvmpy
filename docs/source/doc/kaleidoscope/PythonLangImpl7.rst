@@ -181,7 +181,7 @@ using a PHI node:
    into SSA registers, inserting Phi nodes as appropriate. If you run this
    example through the pass, for example, you'll get:
    
-    $ llvm-as < example.ll \| opt -mem2reg \| llvm-dis
+    $ llvm-as < example.ll | opt -mem2reg | llvm-dis
    
 
 
@@ -628,8 +628,8 @@ do is add it as a primary expression:
 
 .. code-block:: python
 
-   # primary ::= # dentifierexpr \| numberexpr \|
-   parenexpr \| ifexpr \| forexpr \| varexpr def ParsePrimary(self): if
+   # primary ::= # dentifierexpr | numberexpr |
+   parenexpr | ifexpr | forexpr | varexpr def ParsePrimary(self): if
    isinstance(self.current, IdentifierToken): return
    self.ParseIdentifierExpr() elif isinstance(self.current, NumberToken):
    return self.ParseNumberExpr() elif isinstance(self.current, IfToken):
@@ -1304,7 +1304,7 @@ mutable variables and var/in support:
    isinstance(self.current, CharacterToken): return
    g_binop_precedence.get(self.current.char, -1) else: return -1
    
-   # identifierexpr ::= identifier \| identifier '(' expression\* ')' def
+   # identifierexpr ::= identifier | identifier '(' expression\* ')' def
    ParseIdentifierExpr(self): identifier_name = self.current.name
    self.Next() # eat identifier.
    
@@ -1444,8 +1444,8 @@ mutable variables and var/in support:
    
    return VarExpressionNode(variables, body)
    
-   # primary ::= # dentifierexpr \| numberexpr \| parenexpr \| ifexpr \|
-   forexpr \| varexpr def ParsePrimary(self): if isinstance(self.current,
+   # primary ::= # dentifierexpr | numberexpr | parenexpr | ifexpr |
+   forexpr | varexpr def ParsePrimary(self): if isinstance(self.current,
    IdentifierToken): return self.ParseIdentifierExpr() elif
    isinstance(self.current, NumberToken): return self.ParseNumberExpr()
    elif isinstance(self.current, IfToken): return self.ParseIfExpr() elif
@@ -1454,7 +1454,7 @@ mutable variables and var/in support:
    self.current == CharacterToken('('): return self.ParseParenExpr() else:
    raise RuntimeError('Unknown token when expecting an expression.')
    
-   # unary ::= primary \| unary_operator unary def ParseUnary(self): # If
+   # unary ::= primary | unary_operator unary def ParseUnary(self): # If
    the current token is not an operator, it must be a primary expression.
    if (not isinstance(self.current, CharacterToken) or self.current in
    [CharacterToken('('), CharacterToken(',')]): return self.ParsePrimary()

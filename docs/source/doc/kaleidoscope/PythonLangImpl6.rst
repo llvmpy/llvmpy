@@ -60,10 +60,10 @@ binary operators. An example of this is:
    def binary> 10 (LHS RHS) RHS < LHS
    
    # Binary "logical or", (note that it does not "short circuit").
-   def binary\| 5 (LHS RHS) if LHS then 1 else if RHS then 1 else 0
+   def binary| 5 (LHS RHS) if LHS then 1 else if RHS then 1 else 0
    
    # Define = with slightly lower precedence than relationals.
-   def binary= 9 (LHS RHS) !(LHS < RHS \| LHS > RHS)
+   def binary= 9 (LHS RHS) !(LHS < RHS | LHS > RHS)
 
 
 
@@ -101,7 +101,7 @@ keywords:
    any new AST or parser support.
    
    On the other hand, we have to be able to represent the definitions of
-   these new operators, in the "def binary\| 5" part of the function
+   these new operators, in the "def binary| 5" part of the function
    definition. In our grammar so far, the "name" for the function
    definition is parsed as the "prototype" production and into the
    ``PrototypeNode``. To represent our new user-defined operators as
@@ -294,7 +294,7 @@ simple: we'll add a new function to do it:
 
 .. code-block:: python
 
-   # unary ::= primary \| unary_operator unary def
+   # unary ::= primary | unary_operator unary def
    ParseUnary(self): # If the current token is not an operator, it must be
    a primary expression. if (not isinstance(self.current, CharacterToken)
    or self.current in [CharacterToken('('), CharacterToken(',')]): return
@@ -419,13 +419,13 @@ We can also define a bunch of other "primitive" operations, such as:
    def binary> 10 (LHS RHS) RHS < LHS
    
    # Binary logical or, which does not short circuit.
-   def binary\| 5 (LHS RHS) if LHS then 1 else if RHS then 1 else 0
+   def binary| 5 (LHS RHS) if LHS then 1 else if RHS then 1 else 0
    
    # Binary logical and, which does not short circuit.
    def binary& 6 (LHS RHS) if !LHS then 0 else !!RHS
    
    # Define = with slightly lower precedence than relationals.
-   def binary = 9 (LHS RHS) !(LHS < RHS \| LHS > RHS)
+   def binary = 9 (LHS RHS) !(LHS < RHS | LHS > RHS)
    
    
 
@@ -454,7 +454,7 @@ denser the character:
    
     # determine whether the specific location
    diverges. # Solve for z = z^2 + c in the complex plane. def
-   mandelconverger(real imag iters creal cimag) if iters > 255 \|
+   mandelconverger(real imag iters creal cimag) if iters > 255 |
    (real\ *real + imag*\ imag > 4) then iters else
    mandelconverger(real\ *real - imag*\ imag + creal, 2\ *real*\ imag +
    cimag, iters+1, creal, cimag)
@@ -1095,7 +1095,7 @@ the if/then/else and for expressions:
    isinstance(self.current, CharacterToken): return
    g_binop_precedence.get(self.current.char, -1) else: return -1
    
-   # identifierexpr ::= identifier \| identifier '(' expression\* ')' def
+   # identifierexpr ::= identifier | identifier '(' expression\* ')' def
    ParseIdentifierExpr(self): identifier_name = self.current.name
    self.Next() # eat identifier.
    
@@ -1196,7 +1196,7 @@ the if/then/else and for expressions:
    
    return ForExpressionNode(loop_variable, start, end, step, body)
    
-   # primary ::= identifierexpr \| numberexpr \| parenexpr \| ifexpr \|
+   # primary ::= identifierexpr | numberexpr | parenexpr | ifexpr |
    forexpr def ParsePrimary(self): if isinstance(self.current,
    IdentifierToken): return self.ParseIdentifierExpr() elif
    isinstance(self.current, NumberToken): return self.ParseNumberExpr()
@@ -1205,7 +1205,7 @@ the if/then/else and for expressions:
    self.current == CharacterToken('('): return self.ParseParenExpr() else:
    raise RuntimeError('Unknown token when expecting an expression.')
    
-   # unary ::= primary \| unary_operator unary def ParseUnary(self): # If
+   # unary ::= primary | unary_operator unary def ParseUnary(self): # If
    the current token is not an operator, it must be a primary expression.
    if (not isinstance(self.current, CharacterToken) or self.current in
    [CharacterToken('('), CharacterToken(',')]): return self.ParsePrimary()
