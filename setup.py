@@ -28,57 +28,48 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import sys, os, re
+import sys
+import os
+import re
 from distutils.core import setup, Extension
+
 
 LLVM_PY_VERSION = '0.8.2'
 
+llvm_config = os.environ('LLVM_CONFIG_PATH', 'llvm-config')
 
-def _run(cmd):
+def run_llvm_config(args):
+    cmd = llvm_config + ' ' + ' '.join(args)
     return os.popen(cmd).read().rstrip()
 
+if run_llvm_config(['version']) == '':
+    print("Cannot invoke llvm-config.")
+    print("Try setting LLVM_CONFIG_PATH=/path/to/llvm-config")
+    sys.exit(1)
 
-def get_libs_and_objs(llvm_config, components):
-    parts = _run(llvm_config + ' --libs ' + ' '.join(components)).split()
+
+def get_libs_and_objs(components):
+    parts = run_llvm_config([' --libs'] + components)
     libs = []
     objs = []
     for part in parts:
         if part.startswith('-l'):
             libs.append(part[2:])
         elif part.endswith('.o'):
-#            objs.append(part[:-2])
-            objs.append(part) # eh, looks like we need the .o after all
-    return (libs, objs)
+            objs.append(part)
+    return libs, objs
 
 
-def get_llvm_config():
-
-    # get from command-line, or use default
-    lc = 'llvm-config'
-    i = 0
-    while i < len(sys.argv):
-        arg = sys.argv[i]
-        if arg.startswith('--llvm-config='):
-            del sys.argv[i]
-            lc = arg.split('=')[1]
-        else:
-            i += 1
-
-    # see if it works
-    version = _run(lc + ' --version')
-    if version == '':
-        return (lc, False) # didn't work
-
-    return (lc, True)
-
-def get_version(llvm_config):
+def get_llvm_version():
     # get version number; treat it as fixed point
-    re_version = re.compile(r'(\d+)\.(\d+)')
-    raw = _run(llvm_config + ' --version')
-    major, minor = map(int, re_version.match(raw).groups())
-    return major, minor
+    pat = re.compile(r'(\d+)\.(\d+)')
+    m = pat.search(run_llvm_config([' --version']))
+    if m is None:
+        sys.exit('could not determine llvm version')
+    return tuple(map(int, m.groups()))
 
-def auto_intrinsic_gen(llvm_config, incdir):
+
+def auto_intrinsic_gen(incdir):
     # let's do auto intrinsic generation
     print("Generate intrinsic IDs")
     from tools import intrgen
@@ -86,89 +77,63 @@ def auto_intrinsic_gen(llvm_config, incdir):
     with open('llvm/_intrinsic_ids.py', 'w') as fout:
         intrgen.gen(path, fout)
 
-def call_setup(llvm_config):
 
-    incdir      = _run(llvm_config + ' --includedir')
-    libdir      = _run(llvm_config + ' --libdir')
+incdir = run_llvm_config(['--includedir'])
+libdir = run_llvm_config(['--libdir'])
 
-    llvm_version = get_version(llvm_config)
-    print('LLVM version = %d.%d' % llvm_version)
+llvm_version = get_llvm_version()
+print('LLVM version = %d.%d' % llvm_version)
 
-    auto_intrinsic_gen(llvm_config, incdir)
+auto_intrinsic_gen(incdir)
 
-    if llvm_version <= (3, 1): # select between PTX & NVPTX
-        print('Using PTX')
-        ptx_components = ['ptx',
-                          'ptxasmprinter',
-                          'ptxcodegen',
-                          'ptxdesc',
-                          'ptxinfo']
-    else:
-        print('Using NVPTX')
-        ptx_components = ['nvptx',
-                          'nvptxasmprinter',
-                          'nvptxcodegen',
-                          'nvptxdesc',
-                          'nvptxinfo']
+if llvm_version <= (3, 1): # select between PTX & NVPTX
+    print('Using PTX')
+    ptx_components = ['ptx',
+                      'ptxasmprinter',
+                      'ptxcodegen',
+                      'ptxdesc',
+                      'ptxinfo']
+else:
+    print('Using NVPTX')
+    ptx_components = ['nvptx',
+                      'nvptxasmprinter',
+                      'nvptxcodegen',
+                      'nvptxdesc',
+                      'nvptxinfo']
 
+libs_core, objs_core = get_libs_and_objs(
+    ['core', 'analysis', 'scalaropts', 'executionengine',
+     'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
+     'instrumentation', 'ipa', 'ipo', 'transformutils',
+     'asmparser', 'linker', 'support', 'vectorize']
+     + ptx_components)
 
-    libs_core, objs_core = get_libs_and_objs(llvm_config,
-        ['core', 'analysis', 'scalaropts', 'executionengine',
-         'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
-         'instrumentation', 'ipa', 'ipo', 'transformutils',
-         'asmparser', 'linker', 'support', 'vectorize']
-         + ptx_components)
+std_libs = ['pthread', 'm', 'stdc++', 'dl']
+extra_link_args = ["-fPIC"]
+if sys.platform == 'darwin':
+    std_libs.append("ffi")
 
-    std_libs    = [ 'pthread', 'm', 'stdc++' ]
-    extra_link_args = ["-fPIC"]
-    if not ("openbsd" in sys.platform or "freebsd" in sys.platform):
-        std_libs.append("dl")
-    if sys.platform == 'darwin':
-        std_libs.append("ffi")
+ext_core = Extension(
+    name='llvm._core',
+    sources=['llvm/_core.cpp', 'llvm/wrap.cpp', 'llvm/extra.cpp'],
+    define_macros = [('__STDC_CONSTANT_MACROS', None),
+                     ('__STDC_LIMIT_MACROS', None),
+                     ('_GNU_SOURCE', None)],
+    include_dirs = ['/usr/include', incdir],
+    library_dirs = [libdir],
+    libraries = std_libs + libs_core,
+    extra_objects = objs_core,
+    extra_link_args = extra_link_args,
+)
 
-    ext_core = Extension(
-        'llvm._core',
-        ['llvm/_core.cpp', 'llvm/wrap.cpp', 'llvm/extra.cpp'],
-        define_macros = [
-            ('__STDC_CONSTANT_MACROS', None),
-            ('__STDC_LIMIT_MACROS', None),
-            ('_GNU_SOURCE', None)],
-        include_dirs = ['/usr/include', incdir],
-        library_dirs = [libdir],
-        libraries = std_libs + libs_core,
-        extra_objects = objs_core,
-        extra_link_args = extra_link_args)
-
-    setup(
-        name='llvm-py',
-        version=LLVM_PY_VERSION,
-        description='Python Bindings for LLVM',
-        author='Mahadevan R',
-        author_email='mdevan@mdevan.org',
-        url='http://www.mdevan.org/llvm-py/',
-        packages=['llvm'],
-        py_modules = [ 'llvm.core' ],
-        ext_modules = [ ext_core ],)
-
-
-def main():
-
-    # get llvm config
-    llvm_config, is_good = get_llvm_config()
-    if is_good:
-        print("Using llvm-config=" + llvm_config)
-    else:
-        print("Cannot invoke llvm-config (tried '%s')." % llvm_config)
-        print("Try again with --llvm-config=/path/to/llvm-config.")
-        return 1
-
-    # setup
-    call_setup(llvm_config)
-
-    # done
-    return 0
-
-
-ev = main()
-sys.exit(ev)
-
+setup(
+    name = 'llvm-py',
+    version = LLVM_PY_VERSION,
+    description = 'Python Bindings for LLVM',
+    author = 'Mahadevan R',
+    author_email = 'mdevan@mdevan.org',
+    url = 'http://www.llvmpy.org/',
+    packages = ['llvm'],
+    py_modules = ['llvm.core'],
+    ext_modules = [ ext_core ],
+)
