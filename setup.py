@@ -36,20 +36,20 @@ from distutils.core import setup, Extension
 
 LLVM_PY_VERSION = '0.8.2'
 
-llvm_config = os.environ('LLVM_CONFIG_PATH', 'llvm-config')
+llvm_config = os.environ.get('LLVM_CONFIG_PATH', 'llvm-config')
 
 def run_llvm_config(args):
     cmd = llvm_config + ' ' + ' '.join(args)
     return os.popen(cmd).read().rstrip()
 
-if run_llvm_config(['version']) == '':
+if run_llvm_config(['--version']) == '':
     print("Cannot invoke llvm-config.")
     print("Try setting LLVM_CONFIG_PATH=/path/to/llvm-config")
     sys.exit(1)
 
 
 def get_libs_and_objs(components):
-    parts = run_llvm_config([' --libs'] + components)
+    parts = run_llvm_config(['--libs'] + components)
     libs = []
     objs = []
     for part in parts:
