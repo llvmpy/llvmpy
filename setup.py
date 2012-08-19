@@ -87,7 +87,7 @@ extra_link_args = ["-fPIC"]
 if sys.platform == 'darwin':
     std_libs.append("ffi")
 
-kwds = dict(ext_modules = Extension(
+kwds = dict(ext_modules = [Extension(
     name='llvm._core',
     sources=['llvm/_core.cpp', 'llvm/wrap.cpp', 'llvm/extra.cpp'],
     define_macros = [('__STDC_CONSTANT_MACROS', None),
@@ -97,7 +97,7 @@ kwds = dict(ext_modules = Extension(
     library_dirs = [libdir],
     libraries = std_libs + libs_core,
     extra_objects = objs_core,
-    extra_link_args = extra_link_args))
+    extra_link_args = extra_link_args)])
 
 # Read version from llvm/__init__.py
 pat = re.compile(r'__version__\s*=\s*(\S+)', re.M)
