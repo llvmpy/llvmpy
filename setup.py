@@ -49,7 +49,7 @@ if run_llvm_config(['--version']) == '':
 
 
 def get_libs_and_objs(components):
-    parts = run_llvm_config(['--libs'] + components)
+    parts = run_llvm_config(['--libs'] + components).split()
     libs = []
     objs = []
     for part in parts:
