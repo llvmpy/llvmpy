@@ -37,6 +37,8 @@ from distutils.core import setup, Extension
 LLVM_PY_VERSION = '0.8.2'
 
 llvm_config = os.environ.get('LLVM_CONFIG_PATH', 'llvm-config')
+# set LLVMPY_DYNLINK=1, if you want to link _core.so dynamically to libLLVM.so
+dynlink = int(os.environ.get('LLVMPY_DYNLINK', 0))
 
 def run_llvm_config(args):
     cmd = llvm_config + ' ' + ' '.join(args)
@@ -86,27 +88,30 @@ print('LLVM version = %d.%d' % llvm_version)
 
 auto_intrinsic_gen(incdir)
 
-if llvm_version <= (3, 1): # select between PTX & NVPTX
-    print('Using PTX')
-    ptx_components = ['ptx',
-                      'ptxasmprinter',
-                      'ptxcodegen',
-                      'ptxdesc',
-                      'ptxinfo']
+if dynlink:
+    libs_core = ['LLVM-%d.%d' % llvm_version]
+    objs_core = []
 else:
-    print('Using NVPTX')
-    ptx_components = ['nvptx',
-                      'nvptxasmprinter',
-                      'nvptxcodegen',
-                      'nvptxdesc',
-                      'nvptxinfo']
-
-libs_core, objs_core = get_libs_and_objs(
-    ['core', 'analysis', 'scalaropts', 'executionengine',
-     'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
-     'instrumentation', 'ipa', 'ipo', 'transformutils',
-     'asmparser', 'linker', 'support', 'vectorize']
-     + ptx_components)
+    if llvm_version <= (3, 1): # select between PTX & NVPTX
+        print('Using PTX')
+        ptx_components = ['ptx',
+                          'ptxasmprinter',
+                          'ptxcodegen',
+                          'ptxdesc',
+                          'ptxinfo']
+    else:
+        print('Using NVPTX')
+        ptx_components = ['nvptx',
+                          'nvptxasmprinter',
+                          'nvptxcodegen',
+                          'nvptxdesc',
+                          'nvptxinfo']
+    libs_core, objs_core = get_libs_and_objs(
+        ['core', 'analysis', 'scalaropts', 'executionengine',
+         'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
+         'instrumentation', 'ipa', 'ipo', 'transformutils',
+         'asmparser', 'linker', 'support', 'vectorize']
+        + ptx_components)
 
 std_libs = ['pthread', 'm', 'stdc++', 'dl']
 extra_link_args = ["-fPIC"]
