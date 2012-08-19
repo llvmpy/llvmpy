@@ -101,7 +101,7 @@ entry:
         pm = lp.PassManager.new()
 
         # Add the target data as the first "pass". This is mandatory.
-        pm.add(lp.TargetData.new(''))
+        pm.add(le.TargetData.new(''))
 
         # Add the inlining pass.
         pm.add(lp.PASS_INLINE)
@@ -125,7 +125,7 @@ entry:
         fpm = lp.FunctionPassManager.new(m)
 
         # Add the target data as first "pass". This is mandatory.
-        fpm.add(lp.TargetData.new(''))
+        fpm.add(le.TargetData.new(''))
 
         # Add a DCE pass
         fpm.add(lp.PASS_ADCE)
@@ -181,6 +181,9 @@ entry:
 
         # Make sure test2 has changed
         self.assertNotEqual(str(fn_test2).strip(), original_test2.strip())
+
+    def test_dump_passes(self):
+        self.assertTrue(len(lp.PASSES)>0, msg="Cannot have no passes")
 
 tests.append(TestPasses)
 
