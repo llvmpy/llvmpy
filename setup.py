@@ -4,7 +4,6 @@ import re
 from distutils.core import setup, Extension
 
 
-LLVM_PY_VERSION = '0.8.2'
 
 llvm_config = os.environ.get('LLVM_CONFIG_PATH', 'llvm-config')
 # set LLVMPY_DYNLINK=1, if you want to link _core.so dynamically to libLLVM.so
@@ -88,7 +87,7 @@ extra_link_args = ["-fPIC"]
 if sys.platform == 'darwin':
     std_libs.append("ffi")
 
-ext_core = Extension(
+kwds = dict(ext_modules = Extension(
     name='llvm._core',
     sources=['llvm/_core.cpp', 'llvm/wrap.cpp', 'llvm/extra.cpp'],
     define_macros = [('__STDC_CONSTANT_MACROS', None),
@@ -98,17 +97,20 @@ ext_core = Extension(
     library_dirs = [libdir],
     libraries = std_libs + libs_core,
     extra_objects = objs_core,
-    extra_link_args = extra_link_args,
-)
+    extra_link_args = extra_link_args))
+
+# Read version from llvm/__init__.py
+pat = re.compile(r'__version__\s*=\s*(\S+)', re.M)
+data = open('llvm/__init__.py').read()
+kwds['version'] = eval(pat.search(data).group(1))
 
 setup(
     name = 'llvm-py',
-    version = LLVM_PY_VERSION,
     description = 'Python bindings for LLVM',
     author = 'Mahadevan R',
     author_email = 'mdevan@mdevan.org',
     url = 'http://www.llvmpy.org/',
     packages = ['llvm'],
     py_modules = ['llvm.core'],
-    ext_modules = [ ext_core ],
+    **kwds
 )
