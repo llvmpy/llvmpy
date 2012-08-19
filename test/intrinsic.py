@@ -102,7 +102,7 @@ class TestIntrinsic(unittest.TestCase):
 
         golden = math.sin(1.234)
         answer = retval.as_real(Type.float())
-        self.assertLess(abs(answer-golden)/golden, 1e-5)
+        self.assertTrue(abs(answer-golden)/golden < 1e-5)
 
 
 if __name__ == '__main__':
