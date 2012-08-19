@@ -27,7 +27,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
 
 import sys, os, re
 from distutils.core import setup, Extension
@@ -91,7 +90,6 @@ def call_setup(llvm_config):
 
     incdir      = _run(llvm_config + ' --includedir')
     libdir      = _run(llvm_config + ' --libdir')
-    ldflags     = _run(llvm_config + ' --ldflags')
 
     llvm_version = get_version(llvm_config)
     print('LLVM version = %d.%d' % llvm_version)
