@@ -125,10 +125,8 @@ def call_setup(llvm_config):
     extra_link_args = ["-fPIC"]
     if not ("openbsd" in sys.platform or "freebsd" in sys.platform):
         std_libs.append("dl")
-    if "darwin" in sys.platform:
+    if sys.platform == 'darwin':
         std_libs.append("ffi")
-        extra_link_args += ['-framework', 'Python']
-
 
     ext_core = Extension(
         'llvm._core',
