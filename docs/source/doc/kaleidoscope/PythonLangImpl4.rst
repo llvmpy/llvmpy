@@ -906,7 +906,7 @@ Main driver code.
          '<': 10, 
          '+': 20, 
          '-': 20,
-         '\*': 40 
+         '*': 40 
       }
       
       # Run the main "interpreter loop". 

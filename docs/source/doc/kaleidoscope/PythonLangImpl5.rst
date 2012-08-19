@@ -1384,7 +1384,7 @@ Parser
       self.current == CharacterToken('('): return self.ParseParenExpr() else:
       raise RuntimeError('Unknown token when expecting an expression.')
       
-      # binoprhs ::= (operator primary)\* def ParseBinOpRHS(self, left,
+      # binoprhs ::= (operator primary)* def ParseBinOpRHS(self, left,
       left_precedence): # If this is a binary operator, find its precedence.
       while True: precedence = self.GetCurrentTokenPrecedence()
       
@@ -1413,7 +1413,7 @@ Parser
       # expression ::= primary binoprhs def ParseExpression(self): left =
       self.ParsePrimary() return self.ParseBinOpRHS(left, 0)
       
-      # prototype ::= id '(' id\* ')' def ParsePrototype(self): if not
+      # prototype ::= id '(' id* ')' def ParsePrototype(self): if not
       isinstance(self.current, IdentifierToken): raise RuntimeError('Expected
       function name in prototype.')
       
@@ -1481,7 +1481,7 @@ Parser
    
    # Install standard binary operators. # 1 is lowest possible precedence.
    40 is the highest. operator_precedence = { '<': 10, '+': 20, '-': 20,
-   '\*': 40 }
+   '*': 40 }
    
    # Run the main "interpreter loop". while True: print 'ready>', try: raw
    = raw_input() except KeyboardInterrupt: break

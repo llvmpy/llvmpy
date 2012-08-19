@@ -413,8 +413,8 @@ it returns the expression that is passed into it. In our example above,
 the code passes the expression for ``a`` into ``ParseBinOpRHS`` and the
 current token is ``+``.
 
-The precedence value passed into ``ParseBinOpRHS`` indicates the \*
-minimal operator precedence \* that the function is allowed to eat. For
+The precedence value passed into ``ParseBinOpRHS`` indicates the *
+minimal operator precedence * that the function is allowed to eat. For
 example, if the current pair stream is ``[+, x]`` and ``ParseBinOpRHS``
 is passed in a precedence of 40, it will not consume any tokens (because
 the precedence of '+' is only 20). With this in mind, ``ParseBinOpRHS``

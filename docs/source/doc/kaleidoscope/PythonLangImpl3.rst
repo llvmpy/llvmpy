@@ -983,7 +983,7 @@ Parser
          left = self.ParsePrimary() 
          return self.ParseBinOpRHS(left, 0)
       
-      # prototype ::= id '(' id\* ')' 
+      # prototype ::= id '(' id* ')' 
       def ParsePrototype(self): 
          if not isinstance(self.current, IdentifierToken): 
             raise RuntimeError('Expected function name in prototype.')

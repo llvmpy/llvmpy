@@ -53,11 +53,11 @@ two values. The LLVM IR that we want for this example looks like this:
 
 .. code-block:: llvm
 
-   @G = weak global i32 0 ; type of @G is i32\* @H =
-   weak global i32 0 ; type of @H is i32\* define i32 @test(i1 %Condition)
+   @G = weak global i32 0 ; type of @G is i32* @H =
+   weak global i32 0 ; type of @H is i32* define i32 @test(i1 %Condition)
    { entry: br i1 %Condition, label %cond_true, label %cond_false
-   cond_true: %X.0 = load i32\* @G br label %cond_next cond_false: %X.1
-   = load i32\* @H br label %cond_next cond_next: %X.2 = phi i32 [ %X.1,
+   cond_true: %X.0 = load i32* @G br label %cond_next cond_false: %X.1
+   = load i32* @H br label %cond_next cond_next: %X.2 = phi i32 [ %X.1,
    %cond_false ], [ %X.0, %cond_true ] ret i32 %X.2 }
 
 
@@ -102,7 +102,7 @@ In LLVM, all memory accesses are explicit with load/store instructions,
 and it is carefully designed not to have (or need) an "address-of"
 operator. Notice how the type of the @G/@H global variables is actually
 "i32\ *" even though the variable is defined as "i32". What this means
-is that @G defines*\ space\* for an i32 in the global data area, but its
+is that @G defines*\ space* for an i32 in the global data area, but its
 *name* actually refers to the address for that space. Stack variables
 work the same way, except that instead of being declared with global
 variable definitions, they are declared with the `LLVM alloca
@@ -114,7 +114,7 @@ instruction <http://www.llvm.org/docs/LangRef.html#i_alloca>`_:
    define i32 @example() { entry: %X = alloca i32 ;
    type of %X is i32\ *. ... %tmp = load i32* %X ; load the stack value %X
    from the stack. %tmp2 = add i32 %tmp, 1 ; increment it store i32 %tmp2,
-   i32\* %X ; store it back ...
+   i32* %X ; store it back ...
 
 
 
@@ -128,13 +128,13 @@ using a PHI node:
 
 .. code-block:: llvm
 
-   @G = weak global i32 0 ; type of @G is i32\* @H =
-   weak global i32 0 ; type of @H is i32\* define i32 @test(i1 %Condition)
+   @G = weak global i32 0 ; type of @G is i32* @H =
+   weak global i32 0 ; type of @H is i32* define i32 @test(i1 %Condition)
    { entry: %X = alloca i32 ; type of %X is i32\ *. br i1 %Condition, label
    %cond_true, label %cond_false cond_true: %X.0 = load i32* @G store
-   i32 %X.0, i32\* %X ; Update X br label %cond_next cond_false: %X.1 =
-   load i32\* @H store i32 %X.1, i32\* %X ; Update X br label %cond_next
-   cond_next: %X.2 = load i32\* %X ; Read X ret i32 %X.2 } {% endhighlight
+   i32 %X.0, i32* %X ; Update X br label %cond_next cond_false: %X.1 =
+   load i32* @H store i32 %X.1, i32* %X ; Update X br label %cond_next
+   cond_next: %X.2 = load i32* %X ; Read X ret i32 %X.2 } {% endhighlight
    %}
    
    With this, we have discovered a way to handle arbitrary mutable
@@ -191,8 +191,8 @@ using a PHI node:
 
    @G = weak global i32 0 @H = weak global i32 0
    define i32 @test(i1 %Condition) { entry: br i1 %Condition, label
-   %cond_true, label %cond_false cond_true: %X.0 = load i32\* @G br
-   label %cond_next cond_false: %X.1 = load i32\* @H br label %cond_next
+   %cond_true, label %cond_false cond_true: %X.0 = load i32* @G br
+   label %cond_next cond_false: %X.1 = load i32* @H br label %cond_next
    cond_next: %X.01 = phi i32 [ %X.1, %cond_false ], [ %X.0, %cond_true
    ] ret i32 %X.01 }
 
@@ -437,12 +437,12 @@ get good codegen once again:
    for our recursive fib function. Before the optimization:
    
     define double @fib(double %x) { entry: %x1 = alloca
-   double store double %x, double\* %x1 %x2 = load double\* %x1 %cmptmp =
+   double store double %x, double* %x1 %x2 = load double* %x1 %cmptmp =
    fcmp ult double %x2, 3.000000e+00 %booltmp = uitofp i1 %cmptmp to double
    %ifcond = fcmp one double %booltmp, 0.000000e+00 br i1 %ifcond, label
    %then, label %else then: ; preds = %entry br label %ifcont else: ; preds
-   = %entry %x3 = load double\* %x1 %subtmp = fsub double %x3, 1.000000e+00
-   %calltmp = call double @fib(double %subtmp) %x4 = load double\* %x1
+   = %entry %x3 = load double* %x1 %subtmp = fsub double %x3, 1.000000e+00
+   %calltmp = call double @fib(double %subtmp) %x4 = load double* %x1
    %subtmp5 = fsub double %x4, 2.000000e+00 %calltmp6 = call double
    @fib(double %subtmp5) %addtmp = fadd double %calltmp, %calltmp6 br label
    %ifcont ifcont: ; preds = %else, %then %iftmp = phi double [
@@ -1208,7 +1208,7 @@ mutable variables and var/in support:
    def GetOperatorName(self): assert self.is_operator return self.name[-1]
    
    def CodeGen(self): # Make the function type, eg. double(double,double).
-   funct_type = Type.function( Type.double(), [Type.double()] \*
+   funct_type = Type.function( Type.double(), [Type.double()] *
    len(self.args), False)
    
    ::
@@ -1304,7 +1304,7 @@ mutable variables and var/in support:
    isinstance(self.current, CharacterToken): return
    g_binop_precedence.get(self.current.char, -1) else: return -1
    
-   # identifierexpr ::= identifier | identifier '(' expression\* ')' def
+   # identifierexpr ::= identifier | identifier '(' expression* ')' def
    ParseIdentifierExpr(self): identifier_name = self.current.name
    self.Next() # eat identifier.
    
@@ -1466,7 +1466,7 @@ mutable variables and var/in support:
    self.Next()  # eat the operator.
    return UnaryExpressionNode(operator, self.ParseUnary())
    
-   # binoprhs ::= (binary_operator unary)\* def ParseBinOpRHS(self, left,
+   # binoprhs ::= (binary_operator unary)* def ParseBinOpRHS(self, left,
    left_precedence): # If this is a binary operator, find its precedence.
    while True: precedence = self.GetCurrentTokenPrecedence()
    
@@ -1495,7 +1495,7 @@ mutable variables and var/in support:
    # expression ::= unary binoprhs def ParseExpression(self): left =
    self.ParseUnary() return self.ParseBinOpRHS(left, 0)
    
-   # prototype # ::= id '(' id\* ')' # ::= binary LETTER number? (id, id) #
+   # prototype # ::= id '(' id* ')' # ::= binary LETTER number? (id, id) #
    ::= unary LETTER (id) def ParsePrototype(self): precedence = None if
    isinstance(self.current, IdentifierToken): kind = 'normal'
    function_name = self.current.name self.Next() # eat function name. elif
@@ -1582,7 +1582,7 @@ mutable variables and var/in support:
    # Install standard binary operators. # 1 is lowest possible precedence.
    40 is the highest. g_binop_precedence['='] = 2
    g_binop_precedence['<'] = 10 g_binop_precedence['+'] = 20
-   g_binop_precedence['-'] = 20 g_binop_precedence['\*'] = 40
+   g_binop_precedence['-'] = 20 g_binop_precedence['*'] = 40
    
    # Run the main "interpreter loop". while True: print 'ready<', try: raw
    = raw_input() except KeyboardInterrupt: break
