@@ -1013,6 +1013,8 @@ _wrap_pass( Internalize2 )
 /* Target Machine                                                             */
 /*===----------------------------------------------------------------------===*/
 
+_wrap_none2str(LLVMGetHostCPUName);
+
 _wrap_obj2obj(LLVMTargetMachineFromEngineBuilder, LLVMEngineBuilderRef,
               LLVMTargetMachineRef)
 _wrap_obj2none(LLVMDisposeTargetMachine, LLVMTargetMachineRef)
@@ -1133,6 +1135,8 @@ _wrap_obj2none(LLVMDisposeEngineBuilder, LLVMEngineBuilderRef)
 _wrap_obj2none(LLVMEngineBuilderForceJIT, LLVMEngineBuilderRef)
 _wrap_obj2none(LLVMEngineBuilderForceInterpreter, LLVMEngineBuilderRef)
 _wrap_objint2none(LLVMEngineBuilderSetOptLevel, LLVMEngineBuilderRef)
+_wrap_objstr2none(LLVMEngineBuilderSetMCPU, LLVMEngineBuilderRef)
+_wrap_objstr2none(LLVMEngineBuilderSetMAttrs, LLVMEngineBuilderRef)
 
 static PyObject *
 _wLLVMEngineBuilderCreate(PyObject *self, PyObject *args)
@@ -1944,7 +1948,9 @@ static PyMethodDef core_methods[] = {
     _method( LLVMTargetMachineGetTriple )
     _method( LLVMTargetMachineGetCPU )
     _method( LLVMTargetMachineGetFS )
+
     _method( LLVMPrintRegisteredTargetsForVersion )
+    _method( LLVMGetHostCPUName )
 
     /* Target Data */
     _method( LLVMCreateTargetData )
@@ -1971,6 +1977,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMEngineBuilderForceJIT )
     _method( LLVMEngineBuilderForceInterpreter )
     _method( LLVMEngineBuilderSetOptLevel )
+    _method( LLVMEngineBuilderSetMCPU )
+    _method( LLVMEngineBuilderSetMAttrs )
     _method( LLVMEngineBuilderCreate )
 
     /* Execution Engine */

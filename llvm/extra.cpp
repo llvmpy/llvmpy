@@ -56,6 +56,7 @@
 #include "llvm/Target/TargetData.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
+#include "llvm/Support/Host.h"
 
 #include "llvm/IntrinsicInst.h"
 #include "llvm/Analysis/Verifier.h"
@@ -125,6 +126,19 @@ const CodeGenOpt::Level OptLevelMap[] = {
 };
 } // end anony namespace
 
+
+const char * LLVMGetHostCPUName()
+{
+    return strdup(llvm::sys::getHostCPUName().c_str());
+}
+
+const char * LLVMGetHostCPUFeatures()
+{
+    // placeholder
+    // TODO not implemented even in LLVM3.2svn
+    // llvm::sys::getHostCPUFeatures
+    return NULL;
+}
 
 int LLVMInitializeNativeTargetAsmPrinter()
 {
@@ -442,8 +456,7 @@ LLVMValueRef LLVMBuildAtomicCmpXchg(LLVMBuilderRef builder, LLVMValueRef ptr,
 
 LLVMEngineBuilderRef LLVMCreateEngineBuilder(LLVMModuleRef mod)
 {
-    using namespace llvm;
-    return wrap(new EngineBuilder(unwrap(mod)));
+    return llvm::wrap(new EngineBuilder(unwrap(mod)));
 }
 
 void LLVMDisposeEngineBuilder(LLVMEngineBuilderRef eb)
@@ -468,6 +481,21 @@ void LLVMEngineBuilderSetOptLevel(LLVMEngineBuilderRef eb, int level)
     unwrap(eb)->setOptLevel(OptLevelMap[level]);
 }
 
+void LLVMEngineBuilderSetMCPU(LLVMEngineBuilderRef eb, const char * mcpu)
+{   // TODO add test when llvm3.2 releases
+    unwrap(eb)->setMCPU(mcpu); // does not work in llvm3.1
+}
+
+void LLVMEngineBuilderSetMAttrs(LLVMEngineBuilderRef eb, const char * mattrs)
+{   // TODO add test when llvm3.2 releases
+    std::vector<std::string> tokenized;
+    std::istringstream iss(mattrs);
+    std::string buf;
+    while ( iss >> buf ){
+        tokenized.push_back(buf);
+    }
+    unwrap(eb)->setMAttrs(tokenized); // does not work in llvm3.1
+}
 
 LLVMExecutionEngineRef LLVMEngineBuilderCreate(LLVMEngineBuilderRef eb, std::string & error)
 {

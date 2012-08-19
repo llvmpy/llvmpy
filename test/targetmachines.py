@@ -1,5 +1,5 @@
 from llvm.core import *
-from llvm.ee import TargetMachine, EngineBuilder, print_registered_targets
+from llvm.ee import *
 import unittest
 
 class TestTargetMachines(unittest.TestCase):
@@ -17,6 +17,7 @@ class TestTargetMachines(unittest.TestCase):
         self.assertTrue(tm.target_short_description)
         self.assertTrue(tm.triple)
         self.assertIn('foo', tm.emit_assembly(m).decode('utf-8'))
+        self.assertTrue(get_host_cpu_name())
 
     def test_ptx(self):
         if HAS_PTX:

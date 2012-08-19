@@ -225,6 +225,14 @@ class EngineBuilder(object):
         _core.LLVMEngineBuilderSetOptLevel(self.ptr, level)
         return self
 
+    def mattrs(self, string):
+        '''set machine attributes as a comma/space separated string
+
+        e.g: +sse,-3dnow
+        '''
+        _core.LLVMEngineBuilderSetMAttrs(self.ptr, string.replace(',', ' '))
+        return self
+
     def create(self):
         ret = _core.LLVMEngineBuilderCreate(self.ptr)
         if isinstance(ret, str):
@@ -309,6 +317,11 @@ def print_registered_targets():
     Note: print directly to stdout
     '''
     _core.LLVMPrintRegisteredTargetsForVersion()
+
+def get_host_cpu_name():
+    '''return the string name of the host CPU
+    '''
+    return _core.LLVMGetHostCPUName()
 
 class TargetMachine(object):
 

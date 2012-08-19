@@ -55,6 +55,8 @@
 extern "C" {
 #endif
 
+const char * LLVMGetHostCPUName();
+
 int LLVMInitializeNativeTargetAsmPrinter();
 
 
@@ -181,6 +183,16 @@ void LLVMEngineBuilderForceInterpreter(LLVMEngineBuilderRef eb);
  * Wraps EngineBuilder::setOptLevel
  */
 void LLVMEngineBuilderSetOptLevel(LLVMEngineBuilderRef eb, int level);
+
+/*
+ * Wraps EngineBuilder::setMCPU
+ */
+void LLVMEngineBuilderSetMCPU(LLVMEngineBuilderRef eb, const char * mcpu);
+
+/*
+ * Wraps EngineBuilder::setMAttrs
+ */
+void LLVMEngineBuilderSetMAttrs(LLVMEngineBuilderRef eb, const char * mattrs);
 
 /*
  * Wraps EngineBuilder::setErrorStr and EngineBuilder::create
