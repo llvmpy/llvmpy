@@ -933,171 +933,183 @@ Abstract Syntax Tree (aka Parse Tree)
          self.left = left 
          self.right = right
       
-      def CodeGen(self): left = self.left.CodeGen() 
-      right = self.right.CodeGen()
+      def CodeGen(self): 
+         left = self.left.CodeGen() 
+         right = self.right.CodeGen()
 
-      if self.operator == '+':
-      return g_llvm_builder.fadd(left, right, 'addtmp')
-      elif self.operator == '-':
-      return g_llvm_builder.fsub(left, right, 'subtmp')
-      elif self.operator == '*':
-      return g_llvm_builder.fmul(left, right, 'multmp')
-      elif self.operator == '<':
-      result = g_llvm_builder.fcmp(FCMP_ULT, left, right, 'cmptmp')
-      # Convert bool 0 or 1 to double 0.0 or 1.0.
-      return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
-      else:
-      function = g_llvm_module.get_function_named('binary' + self.operator)
-      return g_llvm_builder.call(function, [left, right], 'binop')
+         if self.operator == '+':
+            return g_llvm_builder.fadd(left, right, 'addtmp')
+         elif self.operator == '-':
+            return g_llvm_builder.fsub(left, right, 'subtmp')
+         elif self.operator == '*':
+            return g_llvm_builder.fmul(left, right, 'multmp')
+         elif self.operator == '<':
+            result = g_llvm_builder.fcmp(FCMP_ULT, left, right, 'cmptmp')
+            # Convert bool 0 or 1 to double 0.0 or 1.0.
+            return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
+         else:
+            function = g_llvm_module.get_function_named('binary' + self.operator)
+            return g_llvm_builder.call(function, [left, right], 'binop')
    
    # Expression class for function calls.
    class CallExpressionNode(ExpressionNode):
    
-   def __init__(self, callee, args): self.callee = callee self.args =
-   args
-   
-   def CodeGen(self): # Look up the name in the global module table. callee
-   = g_llvm_module.get_function_named(self.callee)
-   
-   ::
-   
-   # Check for argument mismatch error.
-   if len(callee.args) != len(self.args):
-   raise RuntimeError('Incorrect number of arguments passed.')
-   
-   arg_values = [i.CodeGen() for i in self.args]
-   
-   return g_llvm_builder.call(callee, arg_values, 'calltmp')
+      def __init__(self, callee, args): 
+         self.callee = callee 
+         self.args = args
+      
+      def CodeGen(self): 
+         # Look up the name in the global module table. 
+         callee = g_llvm_module.get_function_named(self.callee)
+
+         # Check for argument mismatch error.
+         if len(callee.args) != len(self.args):
+            raise RuntimeError('Incorrect number of arguments passed.')
+         
+         arg_values = [i.CodeGen() for i in self.args]
+         
+         return g_llvm_builder.call(callee, arg_values, 'calltmp')
    
    # Expression class for if/then/else.
    class IfExpressionNode(ExpressionNode):
    
-   def __init__(self, condition, then_branch, else_branch):
-   self.condition = condition self.then_branch = then_branch
-   self.else_branch = else_branch
-   
-   def CodeGen(self): condition = self.condition.CodeGen()
-   
-   ::
-   
-   # Convert condition to a bool by comparing equal to 0.0.
-   condition_bool = g_llvm_builder.fcmp(
-   FCMP_ONE, condition, Constant.real(Type.double(), 0), 'ifcond')
-   
-   function = g_llvm_builder.basic_block.function
-   
-   # Create blocks for the then and else cases. Insert the 'then' block at the
-   # end of the function.
-   then_block = function.append_basic_block('then')
-   else_block = function.append_basic_block('else')
-   merge_block = function.append_basic_block('ifcond')
-   
-   g_llvm_builder.cbranch(condition_bool, then_block, else_block)
-   
-   # Emit then value.
-   g_llvm_builder.position_at_end(then_block)
-   then_value = self.then_branch.CodeGen()
-   g_llvm_builder.branch(merge_block)
-   
-   # Codegen of 'Then' can change the current block; update then_block for the
-   # PHI node.
-   then_block = g_llvm_builder.basic_block
-   
-   # Emit else block.
-   g_llvm_builder.position_at_end(else_block)
-   else_value = self.else_branch.CodeGen()
-   g_llvm_builder.branch(merge_block)
-   
-   # Codegen of 'Else' can change the current block, update else_block for the
-   # PHI node.
-   else_block = g_llvm_builder.basic_block
-   
-   # Emit merge block.
-   g_llvm_builder.position_at_end(merge_block)
-   phi = g_llvm_builder.phi(Type.double(), 'iftmp')
-   phi.add_incoming(then_value, then_block)
-   phi.add_incoming(else_value, else_block)
-   
-   return phi
+      def __init__(self, condition, then_branch, else_branch):
+         self.condition = condition 
+         self.then_branch = then_branch
+         self.else_branch = else_branch
+      
+      def CodeGen(self): condition = self.condition.CodeGen()
+
+         # Convert condition to a bool by comparing equal to 0.0.
+         condition_bool = g_llvm_builder.fcmp(
+         FCMP_ONE, condition, Constant.real(Type.double(), 0), 'ifcond')
+         
+         function = g_llvm_builder.basic_block.function
+         
+         # Create blocks for the then and else cases. Insert the 'then' block at the
+         # end of the function.
+         then_block = function.append_basic_block('then')
+         else_block = function.append_basic_block('else')
+         merge_block = function.append_basic_block('ifcond')
+         
+         g_llvm_builder.cbranch(condition_bool, then_block, else_block)
+         
+         # Emit then value.
+         g_llvm_builder.position_at_end(then_block)
+         then_value = self.then_branch.CodeGen()
+         g_llvm_builder.branch(merge_block)
+         
+         # Codegen of 'Then' can change the current block; update then_block for the
+         # PHI node.
+         then_block = g_llvm_builder.basic_block
+         
+         # Emit else block.
+         g_llvm_builder.position_at_end(else_block)
+         else_value = self.else_branch.CodeGen()
+         g_llvm_builder.branch(merge_block)
+         
+         # Codegen of 'Else' can change the current block, update else_block for the
+         # PHI node.
+         else_block = g_llvm_builder.basic_block
+         
+         # Emit merge block.
+         g_llvm_builder.position_at_end(merge_block)
+         phi = g_llvm_builder.phi(Type.double(), 'iftmp')
+         phi.add_incoming(then_value, then_block)
+         phi.add_incoming(else_value, else_block)
+         
+         return phi
    
    # Expression class for for/in.
    class ForExpressionNode(ExpressionNode):
    
-   def __init__(self, loop_variable, start, end, step, body):
-   self.loop_variable = loop_variable self.start = start self.end = end
-   self.step = step self.body = body
-   
-   def CodeGen(self): # Output this as: # ... # start = startexpr # goto
-   loop # loop: # variable = phi [start, loopheader], [nextvariable,
-   loopend] # ... # bodyexpr # ... # loopend: # step = stepexpr #
-   nextvariable = variable + step # endcond = endexpr # br endcond, loop,
-   endloop # outloop:
-   
-   ::
-   
-   # Emit the start code first, without 'variable' in scope.
-   start_value = self.start.CodeGen()
-   
-   # Make the new basic block for the loop header, inserting after current
-   # block.
-   function = g_llvm_builder.basic_block.function
-   pre_header_block = g_llvm_builder.basic_block
-   loop_block = function.append_basic_block('loop')
-   
-   # Insert an explicit fallthrough from the current block to the loop_block.
-   g_llvm_builder.branch(loop_block)
-   
-   # Start insertion in loop_block.
-   g_llvm_builder.position_at_end(loop_block)
-   
-   # Start the PHI node with an entry for start.
-   variable_phi = g_llvm_builder.phi(Type.double(), self.loop_variable)
-   variable_phi.add_incoming(start_value, pre_header_block)
-   
-   # Within the loop, the variable is defined equal to the PHI node.  If it
-   # shadows an existing variable, we have to restore it, so save it now.
-   old_value = g_named_values.get(self.loop_variable, None)
-   g_named_values[self.loop_variable] = variable_phi
-   
-   # Emit the body of the loop.  This, like any other expr, can change the
-   # current BB.  Note that we ignore the value computed by the body.
-   self.body.CodeGen()
-   
-   # Emit the step value.
-   if self.step:
-   step_value = self.step.CodeGen()
-   else:
-   # If not specified, use 1.0.
-   step_value = Constant.real(Type.double(), 1)
-   
-   next_value = g_llvm_builder.fadd(variable_phi, step_value, 'next')
-   
-   # Compute the end condition and convert it to a bool by comparing to 0.0.
-   end_condition = self.end.CodeGen()
-   end_condition_bool = g_llvm_builder.fcmp(
-   FCMP_ONE, end_condition, Constant.real(Type.double(), 0), 'loopcond')
-   
-   # Create the "after loop" block and insert it.
-   loop_end_block = g_llvm_builder.basic_block
-   after_block = function.append_basic_block('afterloop')
-   
-   # Insert the conditional branch into the end of loop_end_block.
-   g_llvm_builder.cbranch(end_condition_bool, loop_block, after_block)
-   
-   # Any new code will be inserted in after_block.
-   g_llvm_builder.position_at_end(after_block)
-   
-   # Add a new entry to the PHI node for the backedge.
-   variable_phi.add_incoming(next_value, loop_end_block)
-   
-   # Restore the unshadowed variable.
-   if old_value:
-   g_named_values[self.loop_variable] = old_value
-   else:
-   del g_named_values[self.loop_variable]
-   
-   # for expr always returns 0.0.
-   return Constant.real(Type.double(), 0)
+      def __init__(self, loop_variable, start, end, step, body):
+         self.loop_variable = loop_variable 
+         self.start = start 
+         self.end = end
+         self.step = step 
+         self.body = body
+      
+      def CodeGen(self): 
+         # Output this as: 
+         #   ... 
+         #   start = startexpr 
+         #   goto loop 
+         # loop: 
+         #   variable = phi [start, loopheader], [nextvariable, loopend] 
+         #   ... 
+         #   bodyexpr 
+         #   ... 
+         # loopend: 
+         #   step = stepexpr 
+         #   nextvariable = variable + step 
+         #   endcond = endexpr 
+         #   br endcond, loop, endloop 
+         # outloop:
+
+         # Emit the start code first, without 'variable' in scope.
+         start_value = self.start.CodeGen()
+         
+         # Make the new basic block for the loop header, inserting after current
+         # block.
+         function = g_llvm_builder.basic_block.function
+         pre_header_block = g_llvm_builder.basic_block
+         loop_block = function.append_basic_block('loop')
+         
+         # Insert an explicit fallthrough from the current block to the loop_block.
+         g_llvm_builder.branch(loop_block)
+         
+         # Start insertion in loop_block.
+         g_llvm_builder.position_at_end(loop_block)
+         
+         # Start the PHI node with an entry for start.
+         variable_phi = g_llvm_builder.phi(Type.double(), self.loop_variable)
+         variable_phi.add_incoming(start_value, pre_header_block)
+         
+         # Within the loop, the variable is defined equal to the PHI node.  If it
+         # shadows an existing variable, we have to restore it, so save it now.
+         old_value = g_named_values.get(self.loop_variable, None)
+         g_named_values[self.loop_variable] = variable_phi
+         
+         # Emit the body of the loop.  This, like any other expr, can change the
+         # current BB.  Note that we ignore the value computed by the body.
+         self.body.CodeGen()
+         
+         # Emit the step value.
+         if self.step:
+            step_value = self.step.CodeGen()
+         else:
+            # If not specified, use 1.0.
+            step_value = Constant.real(Type.double(), 1)
+         
+         next_value = g_llvm_builder.fadd(variable_phi, step_value, 'next')
+         
+         # Compute the end condition and convert it to a bool by comparing to 0.0.
+         end_condition = self.end.CodeGen()
+         end_condition_bool = g_llvm_builder.fcmp(
+            FCMP_ONE, end_condition, Constant.real(Type.double(), 0), 'loopcond')
+         
+         # Create the "after loop" block and insert it.
+         loop_end_block = g_llvm_builder.basic_block
+         after_block = function.append_basic_block('afterloop')
+         
+         # Insert the conditional branch into the end of loop_end_block.
+         g_llvm_builder.cbranch(end_condition_bool, loop_block, after_block)
+         
+         # Any new code will be inserted in after_block.
+         g_llvm_builder.position_at_end(after_block)
+         
+         # Add a new entry to the PHI node for the backedge.
+         variable_phi.add_incoming(next_value, loop_end_block)
+         
+         # Restore the unshadowed variable.
+         if old_value:
+            g_named_values[self.loop_variable] = old_value
+         else:
+            del g_named_values[self.loop_variable]
+         
+         # for expr always returns 0.0.
+         return Constant.real(Type.double(), 0)
    
    # Expression class for a unary operator.
    class UnaryExpressionNode(ExpressionNode):
