@@ -24,7 +24,7 @@ is good or bad. In this tutorial we'll assume that it is okay to use
 this as a way to show some interesting parsing techniques.
 
 At the end of this tutorial, we'll run through an example Kaleidoscope
-application that `renders the Mandelbrot set <#example>`_. This gives an
+application that :ref:`renders the Mandelbrot set <example>`. This gives an
 example of what you can build with Kaleidoscope and its feature set.
 
 User-defined Operators: the Idea 
@@ -53,17 +53,29 @@ binary operators. An example of this is:
 
 .. code-block:: python
 
-   # Logical unary not. def unary!(v) if v then 0
-   else 1
+   # Logical unary not. 
+   def unary!(v) 
+      if v then 
+         0
+      else 
+         1
    
    # Define > with the same precedence as <.
-   def binary> 10 (LHS RHS) RHS < LHS
+   def binary> 10 (LHS RHS) 
+      RHS < LHS
    
    # Binary "logical or", (note that it does not "short circuit").
-   def binary| 5 (LHS RHS) if LHS then 1 else if RHS then 1 else 0
+   def binary| 5 (LHS RHS) 
+      if LHS then 
+         1 
+      else if RHS then 
+         1 
+      else 
+         0
    
    # Define = with slightly lower precedence than relationals.
-   def binary= 9 (LHS RHS) !(LHS < RHS | LHS > RHS)
+   def binary= 9 (LHS RHS) 
+      !(LHS < RHS | LHS > RHS)
 
 
 
@@ -87,40 +99,60 @@ keywords:
 
 .. code-block:: python
 
-   class InToken(object): pass class
-   BinaryToken(object): pass class UnaryToken(object): pass ... def
-   Tokenize(string): ... elif identifier == 'in': yield InToken() elif
-   identifier == 'binary': yield BinaryToken() elif identifier == 'unary':
-   yield UnaryToken() else: yield IdentifierToken(identifier) 
+   class InToken(object): 
+      pass 
+   class BinaryToken(object): 
+      pass 
+   class UnaryToken(object): 
+      pass 
+   ... 
+   def Tokenize(string): 
+      ... 
+         elif identifier == 'in': 
+            yield InToken() 
+         elif identifier == 'binary': 
+            yield BinaryToken() 
+         elif identifier == 'unary':
+            yield UnaryToken() 
+         else: 
+            yield IdentifierToken(identifier) 
    
-   This just adds lexer support for the unary and binary keywords, like we
-   did in `previous chapters <PythonLangImpl5.html#iflexer>`_. One nice
-   thing about our current AST, is that we represent binary operators with
-   full generalisation by using their ASCII code as the opcode. For our
-   extended operators, we'll use this same representation, so we don't need
-   any new AST or parser support.
+This just adds lexer support for the unary and binary keywords, like we
+did in `previous chapters <PythonLangImpl5.html#iflexer>`_. One nice
+thing about our current AST, is that we represent binary operators with
+full generalisation by using their ASCII code as the opcode. For our
+extended operators, we'll use this same representation, so we don't need
+any new AST or parser support.
+
+On the other hand, we have to be able to represent the definitions of
+these new operators, in the "def binary| 5" part of the function
+definition. In our grammar so far, the "name" for the function
+definition is parsed as the "prototype" production and into the
+``PrototypeNode``. To represent our new user-defined operators as
+prototypes, we have to extend the ``PrototypeNode`` like this:
+
+.. code-block:: python
+
+   # This class represents the "prototype" for a function, which captures its name, 
+   # and its argument names (thus implicitly the number of arguments the function 
+   # takes), as well as if it is an operator. 
+   class PrototypeNode(object):
    
-   On the other hand, we have to be able to represent the definitions of
-   these new operators, in the "def binary| 5" part of the function
-   definition. In our grammar so far, the "name" for the function
-   definition is parsed as the "prototype" production and into the
-   ``PrototypeNode``. To represent our new user-defined operators as
-   prototypes, we have to extend the ``PrototypeNode`` like this:
+      def __init__(self, name, args, is_operator=False, precedence=0):
+         self.name = name 
+         self.args = args 
+         self.is_operator = is_operator
+         self.precedence = precedence
    
-    # This class represents the "prototype" for a
-   function, which captures its name, # and its argument names (thus
-   implicitly the number of arguments the function # takes), as well as if
-   it is an operator. class PrototypeNode(object):
-   
-   def __init__(self, name, args, is_operator=False, precedence=0):
-   self.name = name self.args = args self.is_operator = is_operator
-   self.precedence = precedence
-   
-   def IsBinaryOp(self): return self.is_operator and len(self.args) == 2
-   
-   def GetOperatorName(self): assert self.is_operator return self.name[-1]
-   
-   def CodeGen(self): ...
+      def IsBinaryOp(self): 
+         return self.is_operator and len(self.args) == 2
+      
+      def GetOperatorName(self): 
+         assert self.is_operator 
+         return self.name[-1]
+      
+      def CodeGen(self): 
+         ...
 
 
 
@@ -134,42 +166,51 @@ user-defined operator, we need to parse it:
 
 .. code-block:: python
 
-   # prototype # ::= id '(' id* ')' # ::= binary
-   LETTER number? (id, id) # ::= unary LETTER (id) def
-   ParsePrototype(self): precedence = None if isinstance(self.current,
-   IdentifierToken): kind = 'normal' function_name = self.current.name
-   self.Next() # eat function name. elif isinstance(self.current,
-   BinaryToken): kind = 'binary' self.Next() # eat 'binary'. if not
-   isinstance(self.current, CharacterToken): raise RuntimeError('Expected
-   an operator after "binary".') function_name = 'binary' +
-   self.current.char self.Next() # eat the operator. if
-   isinstance(self.current, NumberToken): if not 1 <= self.current.value <=
-   100: raise RuntimeError('Invalid precedence: must be in range [1,
-   100].') precedence = self.current.value self.Next() # eat the
-   precedence. else: raise RuntimeError('Expected function name, "unary" or
-   "binary" in ' 'prototype.')
-   
-   ::
-   
-   if self.current != CharacterToken('('):
-   raise RuntimeError('Expected "(" in prototype.')
-   self.Next()  # eat '('.
-   
-   arg_names = []
-   while isinstance(self.current, IdentifierToken):
-   arg_names.append(self.current.name)
-   self.Next()
-   
-   if self.current != CharacterToken(')'):
-   raise RuntimeError('Expected ")" in prototype.')
-   
-   # Success.
-   self.Next()  # eat ')'.
-   
-   if kind == 'binary' and len(arg_names) != 2:
-   raise RuntimeError('Invalid number of arguments for a binary operator.')
-   
-   return PrototypeNode(function_name, arg_names, kind != 'normal', precedence)
+   # prototype 
+   # ::= id '(' id* ')' 
+   # ::= binary LETTER number? (id, id) 
+   # ::= unary LETTER (id) 
+   def ParsePrototype(self): 
+      precedence = None 
+      if isinstance(self.current, IdentifierToken): 
+         kind = 'normal' 
+         function_name = self.current.name
+         self.Next()  # eat function name. 
+      elif isinstance(self.current, BinaryToken): 
+         kind = 'binary' 
+         self.Next()  # eat 'binary'. 
+         if not isinstance(self.current, CharacterToken): 
+            raise RuntimeError('Expected an operator after "binary".') 
+         function_name = 'binary' + self.current.char 
+         self.Next() # eat the operator. 
+         if isinstance(self.current, NumberToken): 
+            if not 1 <= self.current.value <= 100: 
+               raise RuntimeError('Invalid precedence: must be in range [1, 100].') 
+            precedence = self.current.value 
+            self.Next()  # eat the precedence. 
+      else: 
+         raise RuntimeError('Expected function name, "unary" or "binary" in ' 
+                            'prototype.')
+
+      if self.current != CharacterToken('('):
+         raise RuntimeError('Expected "(" in prototype.')
+      self.Next()  # eat '('.
+      
+      arg_names = []
+      while isinstance(self.current, IdentifierToken):
+         arg_names.append(self.current.name)
+         self.Next()
+      
+      if self.current != CharacterToken(')'):
+         raise RuntimeError('Expected ")" in prototype.')
+      
+      # Success.
+      self.Next()  # eat ')'.
+      
+      if kind == 'binary' and len(arg_names) != 2:
+         raise RuntimeError('Invalid number of arguments for a binary operator.')
+      
+      return PrototypeNode(function_name, arg_names, kind != 'normal', precedence)
    
    
 
@@ -189,24 +230,23 @@ default case for our existing binary operator node:
 
 .. code-block:: python
 
-   def CodeGen(self): left = self.left.CodeGen()
-   right = self.right.CodeGen()
-   
-   ::
-   
-   if self.operator == '+':
-   return g_llvm_builder.fadd(left, right, 'addtmp')
-   elif self.operator == '-':
-   return g_llvm_builder.fsub(left, right, 'subtmp')
-   elif self.operator == '*':
-   return g_llvm_builder.fmul(left, right, 'multmp')
-   elif self.operator == '<':
-   result = g_llvm_builder.fcmp(FCMP_ULT, left, right, 'cmptmp')
-   # Convert bool 0 or 1 to double 0.0 or 1.0.
-   return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
-   else:
-   function = g_llvm_module.get_function_named('binary' + self.operator)
-   return g_llvm_builder.call(function, [left, right], 'binop')
+   def CodeGen(self): 
+      left = self.left.CodeGen()
+      right = self.right.CodeGen()
+
+      if self.operator == '+':
+         return g_llvm_builder.fadd(left, right, 'addtmp')
+      elif self.operator == '-':
+         return g_llvm_builder.fsub(left, right, 'subtmp')
+      elif self.operator == '*':
+         return g_llvm_builder.fmul(left, right, 'multmp')
+      elif self.operator == '<':
+         result = g_llvm_builder.fcmp(FCMP_ULT, left, right, 'cmptmp')
+         # Convert bool 0 or 1 to double 0.0 or 1.0.
+         return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
+      else:
+         function = g_llvm_module.get_function_named('binary' + self.operator)
+         return g_llvm_builder.call(function, [left, right], 'binop')
    
    
 
@@ -226,31 +266,38 @@ whenever we define a new binary operator:
 .. code-block:: python
 
    # The binary operator precedence chart.
-   g_binop_precedence = {} ... class FunctionNode(object): ... def
-   CodeGen(self): ... # Create a function object. function =
-   self.prototype.CodeGen()
+   g_binop_precedence = {} 
+   ... 
+   class FunctionNode(object): 
+      ... 
+      def CodeGen(self): 
+         ... 
+         # Create a function object. 
+         function = self.prototype.CodeGen()
+
+         # If this is a binary operator, install its precedence.
+         if self.prototype.IsBinaryOp():
+            operator = self.prototype.GetOperatorName()
+            g_binop_precedence[operator] = self.prototype.precedence
+         ...
+         # Finish off the function.
+         try:
+            ...
+         except:
+            function.delete()
+            if self.prototype.IsBinaryOp():
+               del g_binop_precedence[self.prototype.GetOperatorName()]
+            raise
+         
+         return function
    
-   ::
-   
-   # If this is a binary operator, install its precedence.
-   if self.prototype.IsBinaryOp():
-   operator = self.prototype.GetOperatorName()
-   g_binop_precedence[operator] = self.prototype.precedence
-   ...
-   # Finish off the function.
-   try:
-   ...
-   except:
-   function.delete()
-   if self.prototype.IsBinaryOp():
-   del g_binop_precedence[self.prototype.GetOperatorName()]
-   raise
-   
-   return function
-   
-   ... def main(): ... g_binop_precedence['<'] = 10
-   g_binop_precedence['+'] = 20 g_binop_precedence['-'] = 20
-   g_binop_precedence['*'] = 40 ...
+   ... 
+   def main(): 
+      ... 
+      g_binop_precedence['<'] = 10
+      g_binop_precedence['+'] = 20 g_binop_precedence['-'] = 20
+      g_binop_precedence['*'] = 40 
+      ...
 
 
 
@@ -276,13 +323,15 @@ that, we need an AST node:
 
 .. code-block:: python
 
-   # Expression class for a unary operator. class
-   UnaryExpressionNode(ExpressionNode):
+   # Expression class for a unary operator. 
+   class UnaryExpressionNode(ExpressionNode):
    
-   def __init__(self, operator, operand): self.operator = operator
-   self.operand = operand
-   
-   def CodeGen(self): ...
+      def __init__(self, operator, operand): 
+         self.operator = operator
+         self.operand = operand
+      
+      def CodeGen(self): 
+         ...
 
 
 
@@ -294,18 +343,17 @@ simple: we'll add a new function to do it:
 
 .. code-block:: python
 
-   # unary ::= primary | unary_operator unary def
-   ParseUnary(self): # If the current token is not an operator, it must be
-   a primary expression. if (not isinstance(self.current, CharacterToken)
-   or self.current in [CharacterToken('('), CharacterToken(',')]): return
-   self.ParsePrimary()
-   
-   ::
-   
-   # If this is a unary operator, read it.
-   operator = self.current.char
-   self.Next()  # eat the operator.
-   return UnaryExpressionNode(operator, self.ParseUnary())
+   # unary ::= primary | unary_operator unary 
+   def ParseUnary(self): 
+      # If the current token is not an operator, it must be a primary expression. 
+      if (not isinstance(self.current, CharacterToken) or 
+         self.current in [CharacterToken('('), CharacterToken(',')]): 
+      return self.ParsePrimary()
+
+      # If this is a unary operator, read it.
+      operator = self.current.chara
+      self.Next()  # eat the operator.
+      return UnaryExpressionNode(operator, self.ParseUnary())
    
    
 
@@ -325,12 +373,17 @@ call ParseUnary instead:
 
 .. code-block:: python
 
-   # binoprhs ::= (binary_operator unary)* def
-   ParseBinOpRHS(self, left, left_precedence): ... # Parse the unary
-   expression after the binary operator. right = self.ParseUnary() ...
+   # binoprhs ::= (binary_operator unary)* 
+   def ParseBinOpRHS(self, left, left_precedence): 
+      ... 
+         # Parse the unary expression after the binary operator. 
+         right = self.ParseUnary() 
+      ...
    
-   # expression ::= unary binoprhs def ParseExpression(self): left =
-   self.ParseUnary() return self.ParseBinOpRHS(left, 0)
+   # expression ::= unary binoprhs 
+   def ParseExpression(self): 
+      left = self.ParseUnary() 
+      return self.ParseBinOpRHS(left, 0)
 
 
 
@@ -342,23 +395,33 @@ operator code above with:
 
 .. code-block:: python
 
-   # prototype # ::= id '(' id* ')' # ::= binary
-   LETTER number? (id, id) # ::= unary LETTER (id) def
-   ParsePrototype(self): precedence = None if isinstance(self.current,
-   IdentifierToken): ... elif isinstance(self.current, UnaryToken): kind =
-   'unary' self.Next() # eat 'unary'. if not isinstance(self.current,
-   CharacterToken): raise RuntimeError('Expected an operator after
-   "unary".') function_name = 'unary' + self.current.char self.Next() #
-   eat the operator. elif isinstance(self.current, BinaryToken): ... else:
-   raise RuntimeError('Expected function name, "unary" or "binary" in '
-   'prototype.') ... if kind == 'unary' and len(arg_names) != 1: raise
-   RuntimeError('Invalid number of arguments for a unary operator.') elif
-   kind == 'binary' and len(arg_names) != 2: raise RuntimeError('Invalid
-   number of arguments for a binary operator.')
-   
-   ::
-   
-   return PrototypeNode(function_name, arg_names, kind != 'normal', precedence)
+   # prototype 
+   # ::= id '(' id* ')' 
+   # ::= binary LETTER number? (id, id) 
+   # ::= unary LETTER (id) 
+   def ParsePrototype(self): 
+      precedence = None 
+      if isinstance(self.current, IdentifierToken): 
+         ... 
+      elif isinstance(self.current, UnaryToken): 
+         kind = 'unary' 
+         self.Next()  # eat 'unary'. 
+         if not isinstance(self.current, CharacterToken): 
+            raise RuntimeError('Expected an operator after "unary".') 
+         function_name = 'unary' + self.current.char 
+         self.Next()  #eat the operator. 
+      elif isinstance(self.current, BinaryToken): 
+         ... 
+      else:
+         raise RuntimeError('Expected function name, "unary" or "binary" in '
+                            'prototype.') 
+      ... 
+      if kind == 'unary' and len(arg_names) != 1: 
+         raise RuntimeError('Invalid number of arguments for a unary operator.') 
+      elif kind == 'binary' and len(arg_names) != 2: 
+         raise RuntimeError('Invalid number of arguments for a binary operator.')
+
+      return PrototypeNode(function_name, arg_names, kind != 'normal', precedence)
    
    
 
@@ -372,10 +435,12 @@ unary operators. It looks like this:
 
 .. code-block:: python
 
-   class UnaryExpressionNode(ExpressionNode): ...
-   def CodeGen(self): operand = self.operand.CodeGen() function =
-   g_llvm_module.get_function_named('unary' + self.operator) return
-   g_llvm_builder.call(function, [operand], 'unop')
+   class UnaryExpressionNode(ExpressionNode): 
+      ...
+      def CodeGen(self): 
+         operand = self.operand.CodeGen() 
+         function = g_llvm_module.get_function_named('unary' + self.operator) 
+         return g_llvm_builder.call(function, [operand], 'unop')
 
 
 
@@ -397,10 +462,17 @@ operator (assuming we import ``putchard`` as described in Chapter 4):
 
 .. code-block:: python
 
-   ready> def binary : 1 (x y) 0 # Low-precedence
-   operator that ignores operands. ... ready> extern putchard(x) ... ready>
-   def printd(x) putchard(x) : putchard(10) .. ready> printd(65) :
-   printd(66) : printd(67) A B C Evaluated to: 0.0
+   ready> def binary : 1 (x y) 0 # Low-precedence operator that ignores operands. 
+   ... 
+   ready> extern putchard(x) 
+   ... 
+   ready> def printd(x) putchard(x) : putchard(10) 
+   .. 
+   ready> printd(65) : printd(66) : printd(67) 
+   A 
+   B 
+   C 
+   Evaluated to: 0.0
 
 
 
@@ -409,23 +481,40 @@ We can also define a bunch of other "primitive" operations, such as:
 
 .. code-block:: python
 
-   # Logical unary not. def unary!(v) if v then 0
-   else 1
+   # Logical unary not. 
+   def unary!(v) 
+      if v then 
+         0
+      else 
+         1
    
    # Unary negate.
-   def unary-(v) 0-v
+   def unary-(v) 
+      0-v
    
    # Define > with the same precedence as <.
-   def binary> 10 (LHS RHS) RHS < LHS
+   def binary> 10 (LHS RHS) 
+      RHS < LHS
    
    # Binary logical or, which does not short circuit.
-   def binary| 5 (LHS RHS) if LHS then 1 else if RHS then 1 else 0
+   def binary| 5 (LHS RHS) 
+   if LHS then 
+      1 
+   else if RHS then 
+      1 
+   else 
+      0
    
    # Binary logical and, which does not short circuit.
-   def binary& 6 (LHS RHS) if !LHS then 0 else !!RHS
+   def binary& 6 (LHS RHS) 
+      if !LHS then 
+         0 
+      else 
+         !!RHS
    
    # Define = with slightly lower precedence than relationals.
-   def binary = 9 (LHS RHS) !(LHS < RHS | LHS > RHS)
+   def binary = 9 (LHS RHS) 
+      !(LHS < RHS | LHS > RHS)
    
    
 
@@ -441,20 +530,33 @@ denser the character:
 
    ready>
    
-   extern putchard(char) def printdensity(d) if d > 8 then putchard(32) # '
-   ' else if d > 4 then putchard(46) # '.' else if d > 2 then putchard(43)
-   # '+' else putchard(42); # '*' ... ready> printdensity(1):
-   printdensity(2): printdensity(3) : printdensity(4): printdensity(5):
-   printdensity(9): putchard(10)*\ ++.. Evaluated to 0.000000 
+   extern putchard(char) 
+   def printdensity(d) 
+   if d > 8 then 
+   putchard(32) # ' ' 
+   else if d > 4 then 
+   putchard(46) # '.' 
+   else if d > 2 then 
+   putchard(43) # '+' 
+   else 
+   putchard(42); # '*' 
+   ... 
+   ready> printdensity(1): printdensity(2): printdensity(3) : 
+               printdensity(4): printdensity(5):   printdensity(9): putchard(10)
+   *++.. 
+   Evaluated to 0.000000 
    
-   Based on these simple primitive operations, we can start to define more
-   interesting things. For example, here's a little function that solves
-   for the number of iterations it takes a function in the complex plane to
-   converge:
+Based on these simple primitive operations, we can start to define more
+interesting things. For example, here's a little function that solves
+for the number of iterations it takes a function in the complex plane to
+converge:
+
+.. code-block:: python
    
-    # determine whether the specific location
-   diverges. # Solve for z = z^2 + c in the complex plane. def
-   mandelconverger(real imag iters creal cimag) if iters > 255 |
+   # determine whether the specific location diverges. 
+   # Solve for z = z^2 + c in the complex plane. 
+   def mandelconverger(real imag iters creal cimag)
+      if iters > 255 |
    (real\ *real + imag*\ imag > 4) then iters else
    mandelconverger(real\ *real - imag*\ imag + creal, 2\ *real*\ imag +
    cimag, iters+1, creal, cimag)
@@ -464,6 +566,7 @@ denser the character:
    
 
 
+.. _example:
 
 This "z = z2 + c" function is a beautiful little creature that is the
 basis for computation of the `Mandelbrot
