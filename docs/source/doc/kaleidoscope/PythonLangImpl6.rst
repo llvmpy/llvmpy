@@ -764,16 +764,21 @@ the if/then/else and for expressions:
 
    #!/usr/bin/env python
    
-   import re from llvm.core import Module, Constant, Type, Function,
-   Builder from llvm.ee import ExecutionEngine, TargetData from llvm.passes
-   import FunctionPassManager
+   import re 
+   from llvm.core import Module, Constant, Type, Function, Builder 
+   from llvm.ee import ExecutionEngine, TargetData 
+   from llvm.passes import FunctionPassManager
    
-   from llvm.core import FCMP_ULT, FCMP_ONE from llvm.passes import
-   (PASS_INSTRUCTION_COMBINING, PASS_REASSOCIATE, PASS_GVN,
-   PASS_CFG_SIMPLIFICATION)
+   from llvm.core import FCMP_ULT, FCMP_ONE 
+   from llvm.passes import (PASS_INSTRUCTION_COMBINING, 
+                            PASS_REASSOCIATE, 
+                            PASS_GVN, 
+                            PASS_CFG_SIMPLIFICATION)
    
-   Globals
-   -------
+Globals
+-------
+
+.. code-block:: python
    
    # The LLVM module, which holds all the IR code.
    g_llvm_module = Module.new('my cool jit')
@@ -794,126 +799,156 @@ the if/then/else and for expressions:
    # The binary operator precedence chart.
    g_binop_precedence = {}
    
-   Lexer
-   -----
+Lexer
+-----
+
+.. code-block:: python
    
    # The lexer yields one of these types for each token.
-   class EOFToken(object): pass class DefToken(object): pass class
-   ExternToken(object): pass class IfToken(object): pass class
-   ThenToken(object): pass class ElseToken(object): pass class
-   ForToken(object): pass class InToken(object): pass class
-   BinaryToken(object): pass class UnaryToken(object): pass
+   class EOFToken(object): 
+      pass 
+   class DefToken(object): 
+      pass 
+   class ExternToken(object): 
+      pass 
+   class IfToken(object): 
+      pass 
+   class ThenToken(object): 
+      pass 
+   class ElseToken(object): 
+      pass 
+   class ForToken(object): 
+      pass 
+   class InToken(object): 
+      pass 
+   class BinaryToken(object): 
+      pass 
+   class UnaryToken(object): 
+      pass
    
-   class IdentifierToken(object): def __init__(self, name): self.name =
-   name
+   class IdentifierToken(object): def __init__(self, name): 
+      self.name = name
    
-   class NumberToken(object): def __init__(self, value): self.value =
-   value
+   class NumberToken(object): def __init__(self, value): 
+      self.value = value
    
-   class CharacterToken(object): def __init__(self, char): self.char =
-   char def __eq__(self, other): return isinstance(other, CharacterToken)
-   and self.char == other.char def __ne__(self, other): return not self
-   == other
+   class CharacterToken(object): 
+      def __init__(self, char): 
+         self.char = char 
+      def __eq__(self, other): 
+         return isinstance(other, CharacterToken) and self.char == other.char 
+      def __ne__(self, other): 
+         return not self == other
    
    # Regular expressions that tokens and comments of our language.
-   REGEX_NUMBER = re.compile('[0-9]+(?:.[0-9]+)?') REGEX_IDENTIFIER =
-   re.compile('[a-zA-Z][a-zA-Z0-9]\ *') REGEX_COMMENT = re.compile('#.*')
+   REGEX_NUMBER = re.compile('[0-9]+(?:\.[0-9]+)?') 
+   REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9] *') 
+   REGEX_COMMENT = re.compile('#.*')
    
-   def Tokenize(string): while string: # Skip whitespace. if
-   string[0].isspace(): string = string[1:] continue
-   
-   ::
-   
-   # Run regexes.
-   comment_match = REGEX_COMMENT.match(string)
-   number_match = REGEX_NUMBER.match(string)
-   identifier_match = REGEX_IDENTIFIER.match(string)
-   
-   # Check if any of the regexes matched and yield the appropriate result.
-   if comment_match:
-   comment = comment_match.group(0)
-   string = string[len(comment):]
-   elif number_match:
-   number = number_match.group(0)
-   yield NumberToken(float(number))
-   string = string[len(number):]
-   elif identifier_match:
-   identifier = identifier_match.group(0)
-   # Check if we matched a keyword.
-   if identifier == 'def':
-   yield DefToken()
-   elif identifier == 'extern':
-   yield ExternToken()
-   elif identifier == 'if':
-   yield IfToken()
-   elif identifier == 'then':
-   yield ThenToken()
-   elif identifier == 'else':
-   yield ElseToken()
-   elif identifier == 'for':
-   yield ForToken()
-   elif identifier == 'in':
-   yield InToken()
-   elif identifier == 'binary':
-   yield BinaryToken()
-   elif identifier == 'unary':
-   yield UnaryToken()
-   else:
-   yield IdentifierToken(identifier)
-   string = string[len(identifier):]
-   else:
-   # Yield the ASCII value of the unknown character.
-   yield CharacterToken(string[0])
-   string = string[1:]
+   def Tokenize(string): 
+      while string: 
+         # Skip whitespace. 
+         if string[0].isspace(): 
+            string = string[1:] 
+            continue
+
+         # Run regexes.
+         comment_match = REGEX_COMMENT.match(string)
+         number_match = REGEX_NUMBER.match(string)
+         identifier_match = REGEX_IDENTIFIER.match(string)
+         
+         # Check if any of the regexes matched and yield the appropriate result.
+         if comment_match:
+            comment = comment_match.group(0)
+            string = string[len(comment):]
+         elif number_match:
+            number = number_match.group(0)
+            yield NumberToken(float(number))
+            string = string[len(number):]
+         elif identifier_match:
+            identifier = identifier_match.group(0)
+            # Check if we matched a keyword.
+            if identifier == 'def':
+               yield DefToken()
+            elif identifier == 'extern':
+               yield ExternToken()
+            elif identifier == 'if':
+               yield IfToken()
+            elif identifier == 'then':
+               yield ThenToken()
+            elif identifier == 'else':
+               yield ElseToken()
+            elif identifier == 'for':
+               yield ForToken()
+            elif identifier == 'in':
+               yield InToken()
+            elif identifier == 'binary':
+               yield BinaryToken()
+            elif identifier == 'unary':
+               yield UnaryToken()
+            else:
+               yield IdentifierToken(identifier)
+            string = string[len(identifier):]
+         else:
+            # Yield the ASCII value of the unknown character.
+            yield CharacterToken(string[0])
+            string = string[1:]
    
    yield EOFToken()
    
-   Abstract Syntax Tree (aka Parse Tree)
-   -------------------------------------
+Abstract Syntax Tree (aka Parse Tree)
+-------------------------------------
    
+   .. code-block:: python
+
    # Base class for all expression nodes.
-   class ExpressionNode(object): pass
+   class ExpressionNode(object): 
+      pass
    
    # Expression class for numeric literals like "1.0".
    class NumberExpressionNode(ExpressionNode):
    
-   def __init__(self, value): self.value = value
-   
-   def CodeGen(self): return Constant.real(Type.double(), self.value)
+      def __init__(self, value): 
+         self.value = value
+      
+      def CodeGen(self): return Constant.real(Type.double(), self.value)
    
    # Expression class for referencing a variable, like "a".
    class VariableExpressionNode(ExpressionNode):
    
-   def __init__(self, name): self.name = name
-   
-   def CodeGen(self): if self.name in g_named_values: return
-   g_named_values[self.name] else: raise RuntimeError('Unknown variable
-   name: ' + self.name)
+      def __init__(self, name): 
+         self.name = name
+      
+      def CodeGen(self): 
+         if self.name in g_named_values: 
+            return g_named_values[self.name] 
+         else: 
+            raise RuntimeError('Unknown variable name: ' + self.name)
    
    # Expression class for a binary operator.
    class BinaryOperatorExpressionNode(ExpressionNode):
    
-   def __init__(self, operator, left, right): self.operator = operator
-   self.left = left self.right = right
-   
-   def CodeGen(self): left = self.left.CodeGen() right =
-   self.right.CodeGen()
-   
-   ::
-   
-   if self.operator == '+':
-   return g_llvm_builder.fadd(left, right, 'addtmp')
-   elif self.operator == '-':
-   return g_llvm_builder.fsub(left, right, 'subtmp')
-   elif self.operator == '*':
-   return g_llvm_builder.fmul(left, right, 'multmp')
-   elif self.operator == '<':
-   result = g_llvm_builder.fcmp(FCMP_ULT, left, right, 'cmptmp')
-   # Convert bool 0 or 1 to double 0.0 or 1.0.
-   return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
-   else:
-   function = g_llvm_module.get_function_named('binary' + self.operator)
-   return g_llvm_builder.call(function, [left, right], 'binop')
+      def __init__(self, operator, left, right): 
+         self.operator = operator
+         self.left = left 
+         self.right = right
+      
+      def CodeGen(self): left = self.left.CodeGen() 
+      right = self.right.CodeGen()
+
+      if self.operator == '+':
+      return g_llvm_builder.fadd(left, right, 'addtmp')
+      elif self.operator == '-':
+      return g_llvm_builder.fsub(left, right, 'subtmp')
+      elif self.operator == '*':
+      return g_llvm_builder.fmul(left, right, 'multmp')
+      elif self.operator == '<':
+      result = g_llvm_builder.fcmp(FCMP_ULT, left, right, 'cmptmp')
+      # Convert bool 0 or 1 to double 0.0 or 1.0.
+      return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
+      else:
+      function = g_llvm_module.get_function_named('binary' + self.operator)
+      return g_llvm_builder.call(function, [left, right], 'binop')
    
    # Expression class for function calls.
    class CallExpressionNode(ExpressionNode):
