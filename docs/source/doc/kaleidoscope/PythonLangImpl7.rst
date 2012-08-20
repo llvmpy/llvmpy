@@ -102,7 +102,7 @@ In LLVM, all memory accesses are explicit with load/store instructions,
 and it is carefully designed not to have (or need) an "address-of"
 operator. Notice how the type of the @G/@H global variables is actually
 "i32\ *" even though the variable is defined as "i32". What this means
-is that @G defines*\ space* for an i32 in the global data area, but its
+is that @G defines* space* for an i32 in the global data area, but its
 *name* actually refers to the address for that space. Stack variables
 work the same way, except that instead of being declared with global
 variable definitions, they are declared with the `LLVM alloca

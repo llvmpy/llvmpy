@@ -557,8 +557,8 @@ converge:
    # Solve for z = z^2 + c in the complex plane. 
    def mandelconverger(real imag iters creal cimag)
       if iters > 255 |
-   (real\ *real + imag*\ imag > 4) then iters else
-   mandelconverger(real\ *real - imag*\ imag + creal, 2\ *real*\ imag +
+   (real*real + imag* imag > 4) then iters else
+   mandelconverger(real*real - imag* imag + creal, 2\ *real* imag +
    cimag, iters+1, creal, cimag)
    
    # return the number of iterations required for the iteration to escape
@@ -589,7 +589,7 @@ but we can whip together something using the density plotter above:
    # mandel - This is a convenient helper function for ploting the mandelbrot set
    # from the specified position with the specified Magnification.
    def mandel(realstart imagstart realmag imagmag) mandelhelp(realstart,
-   realstart+realmag\ *78, realmag, imagstart, imagstart+imagmag*\ 40,
+   realstart+realmag\ *78, realmag, imagstart, imagstart+imagmag* 40,
    imagmag);
 
 
