@@ -94,29 +94,22 @@ LLVMX86Info
 def get_llvm_config():
 
     # get from command-line, or use default
-    llvm_dir = '../llvm-2.9'
-    llvm_build_dir = None
+    llvm_dir = r'C:\Program Files\LLVM 3.1.1'
     i = 0
     while i < len(sys.argv):
         arg = sys.argv[i]
         if arg.startswith('--llvm-dir='):
             del sys.argv[i]
             llvm_dir = arg.split('=')[1]
-        elif arg.startswith('--llvm-build-dir='):
-            del sys.argv[i]
-            llvm_build_dir = arg.split('=')[1]
         else:
             i += 1
-    if llvm_build_dir is None:
-        llvm_build_dir = os.path.join( llvm_dir, 'build' )
-    good = os.path.isdir( llvm_dir ) and os.path.isdir( llvm_build_dir )
-    return (llvm_dir, llvm_build_dir, good)
+    good = os.path.isdir( llvm_dir )
+    return (llvm_dir, good)
 
 
-def call_setup(llvm_dir, llvm_build_dir):
-    incdirs = [os.path.join( llvm_dir, 'include' ),
-               os.path.join( llvm_build_dir, 'include') ]
-    libdir = os.path.join( llvm_build_dir, 'lib', 'Release' )
+def call_setup(llvm_dir):
+    incdirs = [os.path.join(llvm_dir, 'include')]
+    libdir = os.path.join(llvm_dir, 'lib')
 
     libs_core, objs_core = get_libs_and_objs(libdir)
     std_libs = []
@@ -144,15 +137,15 @@ def call_setup(llvm_dir, llvm_build_dir):
 def main():
 
     # get llvm config
-    llvm_dir, llvm_build_dir, is_good = get_llvm_config()
-    print("Using llvm-dir=" + llvm_dir + " and llvm-build-dir=" + llvm_build_dir)
+    llvm_dir, is_good = get_llvm_config()
+    print("Using llvm-dir=" + llvm_dir)
     if not is_good:
-        print("Cannot find llvm-dir or llvm-build-dir")
-        print("Try again with --llvm-dir=/path/to/llvm-top-dir --llvm-build-dir=/path/to/llvm/cmake/dir.")
+        print("Cannot find llvm-dir")
+        print("Try again with --llvm-dir=/path/to/llvm-top-dir.")
         return 1
 
     # setup
-    call_setup(llvm_dir, llvm_build_dir)
+    call_setup(llvm_dir)
 
     # done
     return 0
