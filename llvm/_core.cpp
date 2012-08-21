@@ -905,16 +905,18 @@ _wrap_none2none(LLVMInitializePasses)
 
 _wrap_none2obj(LLVMInitializeNativeTarget, int)
 _wrap_none2obj(LLVMInitializeNativeTargetAsmPrinter, int)
-#if LLVM_HAS_NVPTX
+#if !defined(LLVM_DISABLE_PTX)
+# if LLVM_HAS_NVPTX
 _wrap_none2none(LLVMInitializeNVPTXTarget)
 _wrap_none2none(LLVMInitializeNVPTXTargetInfo)
 _wrap_none2none( LLVMInitializeNVPTXTargetMC )
 _wrap_none2none(LLVMInitializeNVPTXAsmPrinter)
-#else
+# else
 _wrap_none2none(LLVMInitializePTXTarget)
 _wrap_none2none(LLVMInitializePTXTargetInfo)
 _wrap_none2none( LLVMInitializePTXTargetMC )
 _wrap_none2none(LLVMInitializePTXAsmPrinter)
+# endif
 #endif
 
 /*===----------------------------------------------------------------------===*/
@@ -1843,16 +1845,18 @@ static PyMethodDef core_methods[] = {
 
     _method( LLVMInitializeNativeTarget )
     _method( LLVMInitializeNativeTargetAsmPrinter )
-#if LLVM_HAS_NVPTX
+#if !defined(LLVM_DISABLE_PTX)
+# if LLVM_HAS_NVPTX
     _method( LLVMInitializeNVPTXTarget )
     _method( LLVMInitializeNVPTXTargetInfo )
     _method( LLVMInitializeNVPTXTargetMC )
     _method( LLVMInitializeNVPTXAsmPrinter )
-#else
+# else
     _method( LLVMInitializePTXTarget )
     _method( LLVMInitializePTXTargetInfo )
     _method( LLVMInitializePTXTargetMC )
     _method( LLVMInitializePTXAsmPrinter )
+# endif
 #endif
     /* Passes */
 
