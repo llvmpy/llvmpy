@@ -56,6 +56,7 @@ def auto_intrinsic_gen(incdir):
 
 incdir = run_llvm_config(['--includedir'])
 libdir = run_llvm_config(['--libdir'])
+ldflags = run_llvm_config(['--ldflags'])
 
 llvm_version = get_llvm_version()
 print('LLVM version = %d.%d' % llvm_version)
@@ -90,14 +91,7 @@ else:
          'asmparser', 'linker', 'support', 'vectorize']
         + ptx_components)
 
-std_libs = ['pthread', 'm', 'stdc++', 'dl']
-extra_link_args = ["-fPIC"]
-if sys.platform == 'darwin':
-    std_libs.append("ffi")
-elif sys.platform == 'win32':
-    std_libs = []
-    extra_link_args = []
-
+extra_link_args = ldflags.split()
 kwds = dict(ext_modules = [Extension(
     name='llvm._core',
     sources=['llvm/_core.cpp', 'llvm/wrap.cpp', 'llvm/extra.cpp'],
@@ -106,7 +100,7 @@ kwds = dict(ext_modules = [Extension(
                      ('_GNU_SOURCE', None)],
     include_dirs = ['/usr/include', incdir],
     library_dirs = [libdir],
-    libraries = std_libs + libs_core,
+    libraries = libs_core,
     extra_objects = objs_core,
     extra_link_args = extra_link_args)])
 
