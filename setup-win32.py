@@ -56,7 +56,6 @@ LLVMArchive
 LLVMAsmPrinter
 LLVMHello
 LLVMDebugger
-LLVMX86AsmPrinter
 llvm_headers_do_not_build
 ModuleMaker
 opt
@@ -71,6 +70,7 @@ LLVMBitWriter
 LLVMCodeGen
 LLVMCore
 LLVMExecutionEngine
+LLVMInstCombine
 LLVMInstrumentation
 LLVMInterpreter
 LLVMipa
@@ -78,15 +78,21 @@ LLVMipo
 LLVMJIT
 LLVMLinker
 LLVMMC
+LLVMMCParser
 LLVMScalarOpts
 LLVMSelectionDAG
 LLVMSupport
-LLVMSystem
 LLVMTarget
 LLVMTransformUtils
+LLVMVectorize
 LLVMX86AsmParser
+LLVMX86AsmPrinter
 LLVMX86CodeGen
+LLVMX86Desc
 LLVMX86Info
+LLVMX86Utils
+Advapi32
+Shell32
 """.split()
     return (libs, [])
 
