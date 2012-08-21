@@ -105,7 +105,9 @@ keywords:
       pass 
    class UnaryToken(object): 
       pass 
+
    ... 
+
    def Tokenize(string): 
       ... 
          elif identifier == 'in': 
@@ -295,7 +297,8 @@ whenever we define a new binary operator:
    def main(): 
       ... 
       g_binop_precedence['<'] = 10
-      g_binop_precedence['+'] = 20 g_binop_precedence['-'] = 20
+      g_binop_precedence['+'] = 20 
+      g_binop_precedence['-'] = 20
       g_binop_precedence['*'] = 40 
       ...
 
@@ -347,8 +350,8 @@ simple: we'll add a new function to do it:
    def ParseUnary(self): 
       # If the current token is not an operator, it must be a primary expression. 
       if (not isinstance(self.current, CharacterToken) or 
-         self.current in [CharacterToken('('), CharacterToken(',')]): 
-      return self.ParsePrimary()
+            self.current in [CharacterToken('('), CharacterToken(',')]): 
+         return self.ParsePrimary()
 
       # If this is a unary operator, read it.
       operator = self.current.chara
@@ -826,11 +829,13 @@ Lexer
    class UnaryToken(object): 
       pass
    
-   class IdentifierToken(object): def __init__(self, name): 
-      self.name = name
+   class IdentifierToken(object): 
+      def __init__(self, name): 
+         self.name = name
    
-   class NumberToken(object): def __init__(self, value): 
-      self.value = value
+   class NumberToken(object): 
+      def __init__(self, value): 
+         self.value = value
    
    class CharacterToken(object): 
       def __init__(self, char): 
@@ -894,12 +899,12 @@ Lexer
             yield CharacterToken(string[0])
             string = string[1:]
    
-   yield EOFToken()
+      yield EOFToken()
    
 Abstract Syntax Tree (aka Parse Tree)
 -------------------------------------
    
-   .. code-block:: python
+.. code-block:: python
 
    # Base class for all expression nodes.
    class ExpressionNode(object): 
@@ -911,7 +916,8 @@ Abstract Syntax Tree (aka Parse Tree)
       def __init__(self, value): 
          self.value = value
       
-      def CodeGen(self): return Constant.real(Type.double(), self.value)
+      def CodeGen(self): 
+         return Constant.real(Type.double(), self.value)
    
    # Expression class for referencing a variable, like "a".
    class VariableExpressionNode(ExpressionNode):
@@ -978,7 +984,9 @@ Abstract Syntax Tree (aka Parse Tree)
          self.then_branch = then_branch
          self.else_branch = else_branch
       
-      def CodeGen(self): condition = self.condition.CodeGen()
+      def CodeGen(self): 
+
+         condition = self.condition.CodeGen()
 
          # Convert condition to a bool by comparing equal to 0.0.
          condition_bool = g_llvm_builder.fcmp(
@@ -1114,370 +1122,436 @@ Abstract Syntax Tree (aka Parse Tree)
    # Expression class for a unary operator.
    class UnaryExpressionNode(ExpressionNode):
    
-   def __init__(self, operator, operand): self.operator = operator
-   self.operand = operand
-   
-   def CodeGen(self): operand = self.operand.CodeGen() function =
-   g_llvm_module.get_function_named('unary' + self.operator) return
-   g_llvm_builder.call(function, [operand], 'unop')
+      def __init__(self, operator, operand): 
+         self.operator = operator
+         self.operand = operand
+      
+      def CodeGen(self): 
+         operand = self.operand.CodeGen() 
+         function = g_llvm_module.get_function_named('unary' + self.operator) 
+         return g_llvm_builder.call(function, [operand], 'unop')
    
    # This class represents the "prototype" for a function, which captures its name,
    # and its argument names (thus implicitly the number of arguments the function
    # takes), as well as if it is an operator.
    class PrototypeNode(object):
    
-   def __init__(self, name, args, is_operator=False, precedence=0):
-   self.name = name self.args = args self.is_operator = is_operator
-   self.precedence = precedence
-   
-   def IsBinaryOp(self): return self.is_operator and len(self.args) == 2
-   
-   def GetOperatorName(self): assert self.is_operator return self.name[-1]
-   
-   def CodeGen(self): # Make the function type, eg. double(double,double).
-   funct_type = Type.function( Type.double(), [Type.double()] *
-   len(self.args), False)
-   
-   ::
-   
-   function = Function.new(g_llvm_module, funct_type, self.name)
-   
-   # If the name conflicted, there was already something with the same name.
-   # If it has a body, don't allow redefinition or reextern.
-   if function.name != self.name:
-   function.delete()
-   function = g_llvm_module.get_function_named(self.name)
-   
-   # If the function already has a body, reject this.
-   if not function.is_declaration:
-   raise RuntimeError('Redefinition of function.')
-   
-   # If the function took a different number of args, reject.
-   if len(function.args) != len(self.args):
-   raise RuntimeError('Redeclaration of a function with different number '
-   'of args.')
-   
-   # Set names for all arguments and add them to the variables symbol table.
-   for arg, arg_name in zip(function.args, self.args):
-   arg.name = arg_name
-   # Add arguments to variable symbol table.
-   g_named_values[arg_name] = arg
-   
-   return function
+      def __init__(self, name, args, is_operator=False, precedence=0):
+         self.name = name 
+         self.args = args 
+         self.is_operator = is_operator
+         self.precedence = precedence
+      
+      def IsBinaryOp(self): 
+         return self.is_operator and len(self.args) == 2
+      
+      def GetOperatorName(self): 
+         assert self.is_operator 
+         return self.name[-1]
+      
+      def CodeGen(self): 
+         # Make the function type, eg. double(double,double).
+         funct_type = Type.function( 
+            Type.double(), [Type.double()] * len(self.args), False)
+
+         function = Function.new(g_llvm_module, funct_type, self.name)
+         
+         # If the name conflicted, there was already something with the same name.
+         # If it has a body, don't allow redefinition or reextern.
+         if function.name != self.name:
+            function.delete()
+            function = g_llvm_module.get_function_named(self.name)
+            
+            # If the function already has a body, reject this.
+            if not function.is_declaration:
+               raise RuntimeError('Redefinition of function.')
+            
+            # If the function took a different number of args, reject.
+            if len(function.args) != len(self.args):
+               raise RuntimeError('Redeclaration of a function with different number '
+                                  'of args.')
+         
+         # Set names for all arguments and add them to the variables symbol table.
+         for arg, arg_name in zip(function.args, self.args):
+            arg.name = arg_name
+            # Add arguments to variable symbol table.
+            g_named_values[arg_name] = arg
+         
+         return function
    
    # This class represents a function definition itself.
    class FunctionNode(object):
    
-   def __init__(self, prototype, body): self.prototype = prototype
-   self.body = body
+      def __init__(self, prototype, body): 
+         self.prototype = prototype
+         self.body = body
+      
+      def CodeGen(self): 
+         # Clear scope. 
+         g_named_values.clear()
+
+         # Create a function object.
+         function = self.prototype.CodeGen()
+         
+         # If this is a binary operator, install its precedence.
+         if self.prototype.IsBinaryOp():
+            operator = self.prototype.GetOperatorName()
+            g_binop_precedence[operator] = self.prototype.precedence
+         
+         # Create a new basic block to start insertion into.
+         block = function.append_basic_block('entry')
+         global g_llvm_builder
+         g_llvm_builder = Builder.new(block)
+         
+         # Finish off the function.
+         try:
+            return_value = self.body.CodeGen()
+            g_llvm_builder.ret(return_value)
+         
+            # Validate the generated code, checking for consistency.
+            function.verify()
+            
+            # Optimize the function.
+            g_llvm_pass_manager.run(function)
+         except:
+            function.delete()
+            if self.prototype.IsBinaryOp():
+               del g_binop_precedence[self.prototype.GetOperatorName()]
+            raise
+         
+         return function
    
-   def CodeGen(self): # Clear scope. g_named_values.clear()
-   
-   ::
-   
-   # Create a function object.
-   function = self.prototype.CodeGen()
-   
-   # If this is a binary operator, install its precedence.
-   if self.prototype.IsBinaryOp():
-   operator = self.prototype.GetOperatorName()
-   g_binop_precedence[operator] = self.prototype.precedence
-   
-   # Create a new basic block to start insertion into.
-   block = function.append_basic_block('entry')
-   global g_llvm_builder
-   g_llvm_builder = Builder.new(block)
-   
-   # Finish off the function.
-   try:
-   return_value = self.body.CodeGen()
-   g_llvm_builder.ret(return_value)
-   
-   # Validate the generated code, checking for consistency.
-   function.verify()
-   
-   # Optimize the function.
-   g_llvm_pass_manager.run(function)
-   except:
-   function.delete()
-   if self.prototype.IsBinaryOp():
-   del g_binop_precedence[self.prototype.GetOperatorName()]
-   raise
-   
-   return function
-   
-   Parser
-   ------
+Parser
+------
+
+.. code-block:: python
    
    class Parser(object):
    
-   def __init__(self, tokens): self.tokens = tokens self.Next()
-   
-   # Provide a simple token buffer. Parser.current is the current token the
-   # parser is looking at. Parser.Next() reads another token from the lexer
-   and # updates Parser.current with its results. def Next(self):
-   self.current = self.tokens.next()
-   
-   # Gets the precedence of the current token, or -1 if the token is not a
-   binary # operator. def GetCurrentTokenPrecedence(self): if
-   isinstance(self.current, CharacterToken): return
-   g_binop_precedence.get(self.current.char, -1) else: return -1
-   
-   # identifierexpr ::= identifier | identifier '(' expression* ')' def
-   ParseIdentifierExpr(self): identifier_name = self.current.name
-   self.Next() # eat identifier.
-   
-   ::
-   
-   if self.current != CharacterToken('('):  # Simple variable reference.
-   return VariableExpressionNode(identifier_name)
-   
-   # Call.
-   self.Next()  # eat '('.
-   args = []
-   if self.current != CharacterToken(')'):
-   while True:
-   args.append(self.ParseExpression())
-   if self.current == CharacterToken(')'):
-   break
-   elif self.current != CharacterToken(','):
-   raise RuntimeError('Expected ")" or "," in argument list.')
-   self.Next()
-   
-   self.Next()  # eat ')'.
-   return CallExpressionNode(identifier_name, args)
-   
-   # numberexpr ::= number def ParseNumberExpr(self): result =
-   NumberExpressionNode(self.current.value) self.Next() # consume the
-   number. return result
-   
-   # parenexpr ::= '(' expression ')' def ParseParenExpr(self): self.Next()
-   # eat '('.
-   
-   ::
-   
-   contents = self.ParseExpression()
-   
-   if self.current != CharacterToken(')'):
-   raise RuntimeError('Expected ")".')
-   self.Next()  # eat ')'.
-   
-   return contents
-   
-   # ifexpr ::= 'if' expression 'then' expression 'else' expression def
-   ParseIfExpr(self): self.Next() # eat the if.
-   
-   ::
-   
-   # condition.
-   condition = self.ParseExpression()
-   
-   if not isinstance(self.current, ThenToken):
-   raise RuntimeError('Expected "then".')
-   self.Next()  # eat the then.
-   
-   then_branch = self.ParseExpression()
-   
-   if not isinstance(self.current, ElseToken):
-   raise RuntimeError('Expected "else".')
-   self.Next()  # eat the else.
-   
-   else_branch = self.ParseExpression()
-   
-   return IfExpressionNode(condition, then_branch, else_branch)
-   
-   # forexpr ::= 'for' identifier '=' expr ',' expr (',' expr)? 'in'
-   expression def ParseForExpr(self): self.Next() # eat the for.
-   
-   ::
-   
-   if not isinstance(self.current, IdentifierToken):
-   raise RuntimeError('Expected identifier after for.')
-   
-   loop_variable = self.current.name
-   self.Next()  # eat the identifier.
-   
-   if self.current != CharacterToken('='):
-   raise RuntimeError('Expected "=" after for variable.')
-   self.Next()  # eat the '='.
-   
-   start = self.ParseExpression()
-   
-   if self.current != CharacterToken(','):
-   raise RuntimeError('Expected "," after for start value.')
-   self.Next()  # eat the ','.
-   
-   end = self.ParseExpression()
-   
-   # The step value is optional.
-   if self.current == CharacterToken(','):
-   self.Next()  # eat the ','.
-   step = self.ParseExpression()
-   else:
-   step = None
-   
-   if not isinstance(self.current, InToken):
-   raise RuntimeError('Expected "in" after for variable specification.')
-   self.Next()  # eat 'in'.
-   
-   body = self.ParseExpression()
-   
-   return ForExpressionNode(loop_variable, start, end, step, body)
-   
-   # primary ::= identifierexpr | numberexpr | parenexpr | ifexpr |
-   forexpr def ParsePrimary(self): if isinstance(self.current,
-   IdentifierToken): return self.ParseIdentifierExpr() elif
-   isinstance(self.current, NumberToken): return self.ParseNumberExpr()
-   elif isinstance(self.current, IfToken): return self.ParseIfExpr() elif
-   isinstance(self.current, ForToken): return self.ParseForExpr() elif
-   self.current == CharacterToken('('): return self.ParseParenExpr() else:
-   raise RuntimeError('Unknown token when expecting an expression.')
-   
-   # unary ::= primary | unary_operator unary def ParseUnary(self): # If
-   the current token is not an operator, it must be a primary expression.
-   if (not isinstance(self.current, CharacterToken) or self.current in
-   [CharacterToken('('), CharacterToken(',')]): return self.ParsePrimary()
-   
-   ::
-   
-   # If this is a unary operator, read it.
-   operator = self.current.char
-   self.Next()  # eat the operator.
-   return UnaryExpressionNode(operator, self.ParseUnary())
-   
-   # binoprhs ::= (binary_operator unary)* def ParseBinOpRHS(self, left,
-   left_precedence): # If this is a binary operator, find its precedence.
-   while True: precedence = self.GetCurrentTokenPrecedence()
-   
-   ::
-   
-   # If this is a binary operator that binds at least as tightly as the
-   # current one, consume it; otherwise we are done.
-   if precedence < left_precedence:
-   return left
-   
-   binary_operator = self.current.char
-   self.Next()  # eat the operator.
-   
-   # Parse the unary expression after the binary operator.
-   right = self.ParseUnary()
-   
-   # If binary_operator binds less tightly with right than the operator after
-   # right, let the pending operator take right as its left.
-   next_precedence = self.GetCurrentTokenPrecedence()
-   if precedence < next_precedence:
-   right = self.ParseBinOpRHS(right, precedence + 1)
-   
-   # Merge left/right.
-   left = BinaryOperatorExpressionNode(binary_operator, left, right)
-   
-   # expression ::= unary binoprhs def ParseExpression(self): left =
-   self.ParseUnary() return self.ParseBinOpRHS(left, 0)
-   
-   # prototype # ::= id '(' id* ')' # ::= binary LETTER number? (id, id) #
-   ::= unary LETTER (id) def ParsePrototype(self): precedence = None if
-   isinstance(self.current, IdentifierToken): kind = 'normal'
-   function_name = self.current.name self.Next() # eat function name. elif
-   isinstance(self.current, UnaryToken): kind = 'unary' self.Next() # eat
-   'unary'. if not isinstance(self.current, CharacterToken): raise
-   RuntimeError('Expected an operator after "unary".') function_name =
-   'unary' + self.current.char self.Next() # eat the operator. elif
-   isinstance(self.current, BinaryToken): kind = 'binary' self.Next() # eat
-   'binary'. if not isinstance(self.current, CharacterToken): raise
-   RuntimeError('Expected an operator after "binary".') function_name =
-   'binary' + self.current.char self.Next() # eat the operator. if
-   isinstance(self.current, NumberToken): if not 1 <= self.current.value <=
-   100: raise RuntimeError('Invalid precedence: must be in range [1,
-   100].') precedence = self.current.value self.Next() # eat the
-   precedence. else: raise RuntimeError('Expected function name, "unary" or
-   "binary" in ' 'prototype.')
-   
-   ::
-   
-   if self.current != CharacterToken('('):
-   raise RuntimeError('Expected "(" in prototype.')
-   self.Next()  # eat '('.
-   
-   arg_names = []
-   while isinstance(self.current, IdentifierToken):
-   arg_names.append(self.current.name)
-   self.Next()
-   
-   if self.current != CharacterToken(')'):
-   raise RuntimeError('Expected ")" in prototype.')
-   
-   # Success.
-   self.Next()  # eat ')'.
-   
-   if kind == 'unary' and len(arg_names) != 1:
-   raise RuntimeError('Invalid number of arguments for a unary operator.')
-   elif kind == 'binary' and len(arg_names) != 2:
-   raise RuntimeError('Invalid number of arguments for a binary operator.')
-   
-   return PrototypeNode(function_name, arg_names, kind != 'normal', precedence)
-   
-   # definition ::= 'def' prototype expression def ParseDefinition(self):
-   self.Next() # eat def. proto = self.ParsePrototype() body =
-   self.ParseExpression() return FunctionNode(proto, body)
-   
-   # toplevelexpr ::= expression def ParseTopLevelExpr(self): proto =
-   PrototypeNode('', []) return FunctionNode(proto, self.ParseExpression())
-   
-   # external ::= 'extern' prototype def ParseExtern(self): self.Next() #
-   eat extern. return self.ParsePrototype()
-   
-   # Top-Level parsing def HandleDefinition(self):
-   self.Handle(self.ParseDefinition, 'Read a function definition:')
-   
-   def HandleExtern(self): self.Handle(self.ParseExtern, 'Read an extern:')
-   
-   def HandleTopLevelExpression(self): try: function =
-   self.ParseTopLevelExpr().CodeGen() result =
-   g_llvm_executor.run_function(function, []) print 'Evaluated to:',
-   result.as_real(Type.double()) except Exception, e: print 'Error:', e
-   try: self.Next() # Skip for error recovery. except: pass
-   
-   def Handle(self, function, message): try: print message,
-   function().CodeGen() except Exception, e: print 'Error:', e try:
-   self.Next() # Skip for error recovery. except: pass
-   
-   Main driver code.
-   -----------------
-   
-   def main(): # Set up the optimizer pipeline. Start with registering info
-   about how the # target lays out data structures.
-   g_llvm_pass_manager.add(g_llvm_executor.target_data) # Do simple
-   "peephole" optimizations and bit-twiddling optzns.
-   g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING) # Reassociate
-   expressions. g_llvm_pass_manager.add(PASS_REASSOCIATE) # Eliminate
-   Common SubExpressions. g_llvm_pass_manager.add(PASS_GVN) # Simplify
-   the control flow graph (deleting unreachable blocks, etc).
-   g_llvm_pass_manager.add(PASS_CFG_SIMPLIFICATION)
-   
-   g_llvm_pass_manager.initialize()
-   
-   # Install standard binary operators. # 1 is lowest possible precedence.
-   40 is the highest. g_binop_precedence['<'] = 10
-   g_binop_precedence['+'] = 20 g_binop_precedence['-'] = 20
-   g_binop_precedence['*'] = 40
-   
-   # Run the main "interpreter loop". while True: print 'ready>', try: raw
-   = raw_input() except KeyboardInterrupt: break
-   
-   ::
-   
-   parser = Parser(Tokenize(raw))
-   while True:
-   # top ::= definition | external | expression | EOF
-   if isinstance(parser.current, EOFToken):
-   break
-   if isinstance(parser.current, DefToken):
-   parser.HandleDefinition()
-   elif isinstance(parser.current, ExternToken):
-   parser.HandleExtern()
-   else:
-   parser.HandleTopLevelExpression()
-   
-   # Print out all of the generated code. print '', g_llvm_module
-   
-   if **name** == '__main__': main()
+      def __init__(self, tokens): 
+         self.tokens = tokens 
+         self.Next()
+      
+      # Provide a simple token buffer. Parser.current is the current token the
+      # parser is looking at. Parser.Next() reads another token from the lexer and 
+      # updates Parser.current with its results. 
+      def Next(self):
+         self.current = self.tokens.next()
+      
+      # Gets the precedence of the current token, or -1 if the token is not a binary 
+      # operator. 
+      def GetCurrentTokenPrecedence(self): 
+         if isinstance(self.current, CharacterToken): 
+            return g_binop_precedence.get(self.current.char, -1) 
+         else: 
+            return -1
+      
+      # identifierexpr ::= identifier | identifier '(' expression* ')' 
+      def ParseIdentifierExpr(self): 
+         identifier_name = self.current.name
+         self.Next()  # eat identifier.
+
+         if self.current != CharacterToken('('):  # Simple variable reference.
+            return VariableExpressionNode(identifier_name)
+         
+         # Call.
+         self.Next()  # eat '('.
+         args = []
+         if self.current != CharacterToken(')'):
+            while True:
+               args.append(self.ParseExpression())
+               if self.current == CharacterToken(')'):
+                  break
+               elif self.current != CharacterToken(','):
+                  raise RuntimeError('Expected ")" or "," in argument list.')
+               self.Next()
+         
+         self.Next()  # eat ')'.
+         return CallExpressionNode(identifier_name, args)
+      
+      # numberexpr ::= number 
+      def ParseNumberExpr(self): 
+         result = NumberExpressionNode(self.current.value) 
+         self.Next()  # consume the number. 
+         return result
+      
+      # parenexpr ::= '(' expression ')' 
+      def ParseParenExpr(self): 
+         self.Next()  # eat '('.
+
+         contents = self.ParseExpression()
+         
+         if self.current != CharacterToken(')'):
+            raise RuntimeError('Expected ")".')
+         self.Next()  # eat ')'.
+         
+         return contents
+      
+      # ifexpr ::= 'if' expression 'then' expression 'else' expression 
+      def ParseIfExpr(self): 
+         self.Next()  # eat the if.
+
+         # condition.
+         condition = self.ParseExpression()
+         
+         if not isinstance(self.current, ThenToken):
+            raise RuntimeError('Expected "then".')
+         self.Next()  # eat the then.
+         
+         then_branch = self.ParseExpression()
+         
+         if not isinstance(self.current, ElseToken):
+            raise RuntimeError('Expected "else".')
+         self.Next()  # eat the else.
+         
+         else_branch = self.ParseExpression()
+         
+         return IfExpressionNode(condition, then_branch, else_branch)
+      
+      # forexpr ::= 'for' identifier '=' expr ',' expr (',' expr)? 'in' expression 
+      def ParseForExpr(self): 
+         self.Next()  # eat the for.
+
+         if not isinstance(self.current, IdentifierToken):
+            raise RuntimeError('Expected identifier after for.')
+         
+         loop_variable = self.current.name
+         self.Next()  # eat the identifier.
+         
+         if self.current != CharacterToken('='):
+            raise RuntimeError('Expected "=" after for variable.')
+         self.Next()  # eat the '='.
+         
+         start = self.ParseExpression()
+         
+         if self.current != CharacterToken(','):
+            raise RuntimeError('Expected "," after for start value.')
+         self.Next()  # eat the ','.
+         
+         end = self.ParseExpression()
+         
+         # The step value is optional.
+         if self.current == CharacterToken(','):
+            self.Next()  # eat the ','.
+            step = self.ParseExpression()
+         else:
+            step = None
+         
+         if not isinstance(self.current, InToken):
+            raise RuntimeError('Expected "in" after for variable specification.')
+         self.Next()  # eat 'in'.
+         
+         body = self.ParseExpression()
+         
+         return ForExpressionNode(loop_variable, start, end, step, body)
+      
+      # primary ::= identifierexpr | numberexpr | parenexpr | ifexpr | forexpr 
+      def ParsePrimary(self): 
+         if isinstance(self.current, IdentifierToken): 
+            return self.ParseIdentifierExpr() 
+         elif isinstance(self.current, NumberToken): 
+            return self.ParseNumberExpr()
+         elif isinstance(self.current, IfToken): 
+            return self.ParseIfExpr() 
+         elif isinstance(self.current, ForToken): 
+            return self.ParseForExpr() 
+         elif self.current == CharacterToken('('): 
+            return self.ParseParenExpr() 
+         else:
+            raise RuntimeError('Unknown token when expecting an expression.')
+      
+      # unary ::= primary | unary_operator unary 
+      def ParseUnary(self): 
+         # If the current token is not an operator, it must be a primary expression.
+         if (not isinstance(self.current, CharacterToken) or 
+               self.current in [CharacterToken('('), CharacterToken(',')]): 
+            return self.ParsePrimary()
+
+         # If this is a unary operator, read it.
+         operator = self.current.char
+         self.Next()  # eat the operator.
+         return UnaryExpressionNode(operator, self.ParseUnary())
+      
+      # binoprhs ::= (binary_operator unary)* 
+      def ParseBinOpRHS(self, left, left_precedence): 
+      # If this is a binary operator, find its precedence.
+         while True: 
+            precedence = self.GetCurrentTokenPrecedence()
+
+         # If this is a binary operator that binds at least as tightly as the
+         # current one, consume it; otherwise we are done.
+         if precedence < left_precedence:
+            return left
+         
+         binary_operator = self.current.char
+         self.Next()  # eat the operator.
+         
+         # Parse the unary expression after the binary operator.
+         right = self.ParseUnary()
+         
+         # If binary_operator binds less tightly with right than the operator after
+         # right, let the pending operator take right as its left.
+         next_precedence = self.GetCurrentTokenPrecedence()
+         if precedence < next_precedence:
+            right = self.ParseBinOpRHS(right, precedence + 1)
+         
+         # Merge left/right.
+         left = BinaryOperatorExpressionNode(binary_operator, left, right)
+      
+      # expression ::= unary binoprhs 
+      def ParseExpression(self): 
+         left = self.ParseUnary() 
+         return self.ParseBinOpRHS(left, 0)
+      
+      # prototype # ::= id '(' id* ')' 
+      # ::= binary LETTER number? (id, id) 
+      # ::= unary LETTER (id) 
+      def ParsePrototype(self): 
+         precedence = None 
+         if isinstance(self.current, IdentifierToken): 
+            kind = 'normal'
+            function_name = self.current.name 
+            self.Next()  # eat function name. 
+         elif isinstance(self.current, UnaryToken): 
+            kind = 'unary' 
+            self.Next()  # eat 'unary'. 
+            if not isinstance(self.current, CharacterToken): 
+               raise RuntimeError('Expected an operator after "unary".') 
+            function_name = 'unary' + self.current.char 
+            self.Next() # eat the operator. 
+         elif isinstance(self.current, BinaryToken): 
+            kind = 'binary' 
+            self.Next()  # eat 'binary'. 
+            if not isinstance(self.current, CharacterToken): 
+               raise RuntimeError('Expected an operator after "binary".') 
+            function_name = 'binary' + self.current.char 
+            self.Next()  # eat the operator. 
+            if isinstance(self.current, NumberToken): 
+               if not 1 <= self.current.value <= 100: 
+                  raise RuntimeError('Invalid precedence: must be in range [1, 100].') 
+            precedence = self.current.value 
+            self.Next()  # eat the precedence. 
+         else: 
+            raise RuntimeError('Expected function name, "unary" or "binary" in '
+                               'prototype.')
+
+            if self.current != CharacterToken('('):
+               raise RuntimeError('Expected "(" in prototype.')
+            self.Next()  # eat '('.
+            
+            arg_names = []
+            while isinstance(self.current, IdentifierToken):
+               arg_names.append(self.current.name)
+               self.Next()
+            
+            if self.current != CharacterToken(')'):
+               raise RuntimeError('Expected ")" in prototype.')
+            
+            # Success.
+            self.Next()  # eat ')'.
+            
+            if kind == 'unary' and len(arg_names) != 1:
+               raise RuntimeError('Invalid number of arguments for a unary operator.')
+            elif kind == 'binary' and len(arg_names) != 2:
+               raise RuntimeError('Invalid number of arguments for a binary operator.')
+            
+            return PrototypeNode(function_name, arg_names, kind != 'normal', precedence)
+      
+      # definition ::= 'def' prototype expression 
+      def ParseDefinition(self):
+         self.Next()  # eat def. 
+         proto = self.ParsePrototype() 
+         body = self.ParseExpression() 
+         return FunctionNode(proto, body)
+      
+      # toplevelexpr ::= expression 
+      def ParseTopLevelExpr(self): 
+         proto = PrototypeNode('', []) 
+         return FunctionNode(proto, self.ParseExpression())
+      
+      # external ::= 'extern' prototype 
+      def ParseExtern(self): 
+         self.Next()  # eat extern. 
+         return self.ParsePrototype()
+      
+      # Top-Level parsing 
+      def HandleDefinition(self):
+         self.Handle(self.ParseDefinition, 'Read a function definition:')
+      
+      def HandleExtern(self): 
+         self.Handle(self.ParseExtern, 'Read an extern:')
+      
+      def HandleTopLevelExpression(self): 
+         try: 
+            function = self.ParseTopLevelExpr().CodeGen() 
+            result = g_llvm_executor.run_function(function, []) 
+            print 'Evaluated to:', result.as_real(Type.double()) 
+         except Exception, e: 
+            print 'Error:', e
+         try: 
+            self.Next() # Skip for error recovery. 
+         except: 
+            pass
+      
+      def Handle(self, function, message): 
+         try: 
+            print message, function().CodeGen() 
+         except Exception, e: 
+            print 'Error:', e 
+            try:
+               self.Next() # Skip for error recovery. 
+            except: 
+               pass
+   
+Main driver code.
+-----------------
+
+.. code-block:: python
+   
+   def main(): 
+      # Set up the optimizer pipeline. Start with registering info about how the 
+      # target lays out data structures.
+      g_llvm_pass_manager.add(g_llvm_executor.target_data) 
+      # Do simple "peephole" optimizations and bit-twiddling optzns.
+      g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING) 
+      # Reassociate expressions. 
+      g_llvm_pass_manager.add(PASS_REASSOCIATE) 
+      # Eliminate Common SubExpressions. 
+      g_llvm_pass_manager.add(PASS_GVN) 
+      # Simplify the control flow graph (deleting unreachable blocks, etc).
+      g_llvm_pass_manager.add(PASS_CFG_SIMPLIFICATION)
+      
+      g_llvm_pass_manager.initialize()
+      
+      # Install standard binary operators. 
+      # 1 is lowest possible precedence. 40 is the highest. 
+      g_binop_precedence['<'] = 10
+      g_binop_precedence['+'] = 20 
+      g_binop_precedence['-'] = 20
+      g_binop_precedence['*'] = 40
+      
+      # Run the main "interpreter loop". 
+      while True: 
+         print 'ready>', 
+         try: 
+            raw = raw_input() 
+         except KeyboardInterrupt: 
+            break
+
+      parser = Parser(Tokenize(raw))
+      while True:
+         # top ::= definition | external | expression | EOF
+         if isinstance(parser.current, EOFToken):
+            break
+         if isinstance(parser.current, DefToken):
+            parser.HandleDefinition()
+         elif isinstance(parser.current, ExternToken):
+            parser.HandleExtern()
+         else:
+            parser.HandleTopLevelExpression()
+      
+      # Print out all of the generated code. 
+      print '', g_llvm_module
+   
+   if __name__ == '__main__': 
+      main()
