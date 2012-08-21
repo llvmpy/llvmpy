@@ -2169,9 +2169,12 @@ if True: # use PTX?
         _core.LLVMInitializePTXAsmPrinter()
         HAS_PTX = True
     except AttributeError:
-        _core.LLVMInitializeNVPTXTarget()
-        _core.LLVMInitializeNVPTXTargetInfo()
-        _core.LLVMInitializeNVPTXTargetMC()
-        _core.LLVMInitializeNVPTXAsmPrinter()
-        HAS_NVPTX = True
+        try:
+            _core.LLVMInitializeNVPTXTarget()
+            _core.LLVMInitializeNVPTXTargetInfo()
+            _core.LLVMInitializeNVPTXTargetMC()
+            _core.LLVMInitializeNVPTXAsmPrinter()
+            HAS_NVPTX = True
+        except AttributeError:
+            pass
 
