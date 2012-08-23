@@ -115,7 +115,7 @@ following simple example computes `Fibonacci
 numbers <http://en.wikipedia.org/wiki/Fibonacci_number>`_:
 
 
-.. code-block::
+.. code-block:: python
 
    # Compute the x'th fibonacci number. 
    def fib(x):
@@ -135,7 +135,7 @@ LLVM JIT makes this completely trivial). This means that you can use the
 useful for mutually recursive functions). For example:
 
 
-.. code-block:: 
+.. code-block:: python
 
    extern sin(arg); 
    extern cos(arg); 
