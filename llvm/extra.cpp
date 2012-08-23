@@ -126,6 +126,15 @@ const CodeGenOpt::Level OptLevelMap[] = {
 };
 } // end anony namespace
 
+void LLVMLdSetAlignment(LLVMValueRef inst, unsigned align)
+{
+    return llvm::unwrap<LoadInst>(inst)->setAlignment(align);
+}
+
+void LLVMStSetAlignment(LLVMValueRef inst, unsigned align)
+{
+    return llvm::unwrap<StoreInst>(inst)->setAlignment(align);
+}
 
 const char * LLVMGetHostCPUName()
 {

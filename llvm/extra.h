@@ -55,6 +55,16 @@
 extern "C" {
 #endif
 
+/*
+ * Wraps LoadInst::SetAlignment
+ */
+void LLVMLdSetAlignment(LLVMValueRef inst, unsigned align);
+
+/*
+ * Wraps StoreInst::SetAlignment
+ */
+void LLVMStSetAlignment(LLVMValueRef inst, unsigned align);
+
 const char * LLVMGetHostCPUName();
 
 int LLVMInitializeNativeTargetAsmPrinter();

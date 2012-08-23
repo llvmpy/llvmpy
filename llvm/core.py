@@ -1840,17 +1840,21 @@ class Builder(object):
         check_is_value(ptr)
         return _make_value(_core.LLVMBuildFree(self.ptr, ptr.ptr))
 
-    def load(self, ptr, name="", volatile=False):
+    def load(self, ptr, name="", align=0, volatile=False):
         check_is_value(ptr)
         inst = _make_value(_core.LLVMBuildLoad(self.ptr, ptr.ptr, name))
+        if align:
+            _core.LLVMLdSetAlignment(inst.ptr, align)
         if volatile:
             inst.set_volatile(volatile)
         return inst
 
-    def store(self, value, ptr, volatile=False):
+    def store(self, value, ptr, align=0, volatile=False):
         check_is_value(value)
         check_is_value(ptr)
         inst = _make_value(_core.LLVMBuildStore(self.ptr, value.ptr, ptr.ptr))
+        if align:
+            _core.LLVMStSetAlignment(inst.ptr, align)
         if volatile:
             inst.set_volatile(volatile)
         return inst
