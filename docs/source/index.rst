@@ -16,6 +16,9 @@ Contents:
    doc/llvm_cbuilder.rst
    doc/llpython/index.rst
    doc/examples.rst
+   doc/llvmcore.rst 
+   doc/llvmee.rst
+   doc/llvmpasses.rst
 
 
 Indices and tables
