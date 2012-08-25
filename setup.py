@@ -4,8 +4,13 @@ import re
 from distutils.core import setup, Extension
 
 
+# On win32, there is a fake llvm-config since llvm doesn't supply one
+if sys.platform == 'win32':
+    default_llvm_config = 'python llvm-config-win32.py'
+else:
+    default_llvm_config = 'llvm-config'
 
-llvm_config = os.environ.get('LLVM_CONFIG_PATH', 'llvm-config')
+llvm_config = os.environ.get('LLVM_CONFIG_PATH', default_llvm_config)
 # set LLVMPY_DYNLINK=1, if you want to link _core.so dynamically to libLLVM.so
 dynlink = int(os.environ.get('LLVMPY_DYNLINK', 0))
 
@@ -61,7 +66,10 @@ if dynlink:
     libs_core = ['LLVM-%d.%d' % llvm_version]
     objs_core = []
 else:
-    if llvm_version <= (3, 1): # select between PTX & NVPTX
+    if sys.platform == 'win32':
+        print('PTX is disabled on Win32 at the moment')
+        ptx_components = []
+    elif llvm_version <= (3, 1): # select between PTX & NVPTX
         print('Using PTX')
         ptx_components = ['ptx',
                           'ptxasmprinter',
@@ -86,6 +94,9 @@ std_libs = ['pthread', 'm', 'stdc++', 'dl']
 extra_link_args = ["-fPIC"]
 if sys.platform == 'darwin':
     std_libs.append("ffi")
+elif sys.platform == 'win32':
+    std_libs = []
+    extra_link_args = []
 
 kwds = dict(ext_modules = [Extension(
     name='llvm._core',
