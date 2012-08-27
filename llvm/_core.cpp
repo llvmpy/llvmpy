@@ -43,6 +43,8 @@
 #include "llvm-c/ExecutionEngine.h"
 #include "llvm-c/Target.h"
 #include "llvm-c/Transforms/IPO.h"
+
+#include "llvm/Support/CommandLine.h"
 #if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
     #include "llvm-c/Linker.h"
 #else
@@ -1413,6 +1415,20 @@ _wLLVMLoadLibraryPermanently(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *
+_wLLVMParseEnvOpts(PyObject *self, PyObject *args)
+{
+    const char * progname;
+    const char * envname;
+    if(!PyArg_ParseTuple(args, "ss", &progname, &envname)) {
+        return NULL;
+    }
+
+    llvm::cl::ParseEnvironmentOptions(progname, envname);
+
+    Py_RETURN_NONE;
+}
+
 //_wrap_obj2obj(LLVMInlineFunction, LLVMValueRef, int)
 
 /* Expose the void* inside a PyCObject as a PyLong. This allows us to
@@ -2015,6 +2031,8 @@ static PyMethodDef core_methods[] = {
     /* Misc */
     _method( LLVMGetIntrinsic )
     _method( LLVMLoadLibraryPermanently )
+    _method( LLVMParseEnvOpts )
+
     //_method( LLVMInlineFunction )
     _method( PyCObjectVoidPtrToPyLong )
     { NULL }

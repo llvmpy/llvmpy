@@ -2147,7 +2147,8 @@ def inline_function(call):
     check_is_value(call)
     return _core.LLVMInlineFunction(call.ptr)
 
-
+def parse_environment_options(progname, envname):
+    _core.LLVMParseEnvOpts(progname, envname)
 
 #===----------------------------------------------------------------------===
 # Initialization
@@ -2177,4 +2178,5 @@ if True: # use PTX?
             HAS_NVPTX = True
         except AttributeError:
             pass
+
 
