@@ -1,8 +1,8 @@
 import sys, os
 
-def find_path_of(filename):
+def find_path_of(filename, envvar='PATH'):
     """Finds the path from $PATH where the file exists, returns None if not found."""
-    pathlist = os.getenv('PATH').split(os.pathsep)
+    pathlist = os.getenv(envvar).split(os.pathsep)
     for path in pathlist:
         if os.path.exists(os.path.join(path, filename)):
             return os.path.abspath(path)
@@ -50,6 +50,12 @@ Advapi32
 Shell32
 """.split():
         print('-l%s' % lib)
+        # Look for the PTX .lib in %LIBPATH%
+        if find_path_of('LLVMPTXCodeGen.lib', 'LIBPATH') != None:
+            print('-lLLVMPTXAsmPrinter')
+            print('-lLLVMPTXCodeGen')
+            print('-lLLVMPTXDesc')
+            print('-lLLVMPTXInfo')
 elif sys.argv[1] == '--includedir': 
     llvmbin = find_path_of('llvm-tblgen.exe')
     if llvmbin is None:

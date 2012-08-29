@@ -45,14 +45,9 @@
     #define LLVM_HAS_NVPTX 0
 #endif
 
-#if defined(_WIN32)
-    #define LLVM_DISABLE_PTX
-#endif
-
 #include "llvm-c/Transforms/PassManagerBuilder.h"
 
 #include "llvm_c_extra.h"
-
 
 #ifdef __cplusplus
 extern "C" {

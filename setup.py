@@ -68,7 +68,10 @@ if dynlink:
     objs_core = []
 else:
     if sys.platform == 'win32':
-        print('PTX is disabled on Win32 at the moment')
+        # XXX: If found, the PTX components are returned by llvm-config-win32.py,
+        #      regardless of whether we ask for them. There should be a better way
+        #      eventually.
+        print('PTX is included on Win32 at if found by llvm-config-win32.py')
         ptx_components = []
     elif llvm_version <= (3, 1): # select between PTX & NVPTX
         print('Using PTX')
@@ -91,13 +94,20 @@ else:
          'asmparser', 'linker', 'support', 'vectorize']
         + ptx_components)
 
+macros = [('__STDC_CONSTANT_MACROS', None),
+          ('__STDC_LIMIT_MACROS', None)]
+if sys.platform == 'win32':
+    # If no PTX lib got added, disable PTX in the build
+    if 'LLVMPTXCodeGen' not in libs_core:
+        macros.append(('LLVM_DISABLE_PTX', None)),
+else:
+    macros.append(('_GNU_SOURCE', None))
+
 extra_link_args = ldflags.split()
 kwds = dict(ext_modules = [Extension(
     name='llvm._core',
     sources=['llvm/_core.cpp', 'llvm/wrap.cpp', 'llvm/extra.cpp'],
-    define_macros = [('__STDC_CONSTANT_MACROS', None),
-                     ('__STDC_LIMIT_MACROS', None),
-                     ('_GNU_SOURCE', None)],
+    define_macros = macros,
     include_dirs = ['/usr/include', incdir],
     library_dirs = [libdir],
     libraries = libs_core,
