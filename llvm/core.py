@@ -1172,7 +1172,9 @@ class Constant(User):
 
 
 class ConstantExpr(Constant):
-    pass
+    @property
+    def opcode(self):
+        return _core.LLVMGetConstOpcode(self.ptr)
 
 
 class ConstantAggregateZero(Constant):
