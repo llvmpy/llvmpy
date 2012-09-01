@@ -2,7 +2,7 @@
 Common classes related to LLVM.
 """
 
-__version__ = '0.8.2'
+__version__ = '0.8.3'
 
 
 from weakref import WeakValueDictionary
