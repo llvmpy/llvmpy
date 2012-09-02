@@ -412,6 +412,10 @@ unsigned LLVMInstGetOpcode(LLVMValueRef inst);
 /* Wraps llvm::CmpInst::getPredicate(). */
 unsigned LLVMCmpInstGetPredicate(LLVMValueRef cmpinst);
 
+/* Wraps llvm::CallSite::getCalledFunction.
+ */
+LLVMValueRef LLVMInstGetCalledFunction(LLVMValueRef inst);
+
 /* Wraps llvm::ParseAssemblyString(). Returns a module reference or NULL (with
  * `out' pointing to an error message). Dispose error message after use, via
  * LLVMDisposeMessage(). */

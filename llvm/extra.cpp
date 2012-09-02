@@ -750,6 +750,12 @@ unsigned LLVMCmpInstGetPredicate(LLVMValueRef cmpinst)
     return instp->getPredicate();
 }
 
+LLVMValueRef LLVMInstGetCalledFunction(LLVMValueRef inst)
+{
+    llvm::Instruction *instp = llvm::unwrap<llvm::Instruction>(inst);
+    return llvm::wrap(CallSite(instp).getCalledFunction());
+}
+
 /* llvm::unwrap a set of `n' wrapped objects starting at `values',
  * into a vector of pointers to llvm::unwrapped objects `out'. */
 template <typename W, typename UW>
