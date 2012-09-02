@@ -1501,6 +1501,12 @@ class CallOrInvokeInstruction(Instruction):
     def set_parameter_alignment(self, idx, align):
         _core.LLVMSetInstrParamAlignment(self.ptr, idx, align)
 
+    @property
+    def called_function(self):
+        function = _core.LLVMInstGetCalledFunction(self.ptr)
+        if function: # Return value can be None on indirect call/invoke
+            return _make_value(function)
+
     # tail call is valid only for 'call', not 'invoke'
     # disabled for now
     #def _get_tc(self): return _core.LLVMIsTailCall(self.ptr)

@@ -61,6 +61,8 @@ entry:
         self.assertEqual(len(i1.operands), 3)
         self.assertEqual(len(i2.operands), 2)
 
+        self.assert_(i1.called_function is prod)
+
 tests.append(TestOperands)
 
 # ---------------------------------------------------------------------------

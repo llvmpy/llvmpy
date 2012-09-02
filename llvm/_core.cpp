@@ -645,7 +645,7 @@ _wrap_objintenum2none(LLVMRemoveInstrAttribute, LLVMValueRef, LLVMAttribute)
 _wrap_objintint2none(LLVMSetInstrParamAlignment, LLVMValueRef)
 _wrap_obj2obj(LLVMIsTailCall, LLVMValueRef, int)
 _wrap_objint2none(LLVMSetTailCall, LLVMValueRef)
-
+_wrap_obj2obj(LLVMInstGetCalledFunction, LLVMValueRef, LLVMValueRef)
 
 /*===-- PHI Nodes --------------------------------------------------------===*/
 
@@ -1716,6 +1716,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMAddInstrAttribute )
     _method( LLVMRemoveInstrAttribute )
     _method( LLVMSetInstrParamAlignment )
+    _method( LLVMInstGetCalledFunction )
 
     /* PHI Nodes */
     _method( LLVMAddIncoming1 )
