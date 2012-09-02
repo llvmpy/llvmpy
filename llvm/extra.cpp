@@ -126,6 +126,19 @@ const CodeGenOpt::Level OptLevelMap[] = {
 };
 } // end anony namespace
 
+
+
+
+const char *LLVMGetConstExprOpcodeName(LLVMValueRef inst)
+{
+    return llvm::unwrap<llvm::ConstantExpr>(inst)->getOpcodeName();
+}
+
+unsigned LLVMGetConstExprOpcode(LLVMValueRef inst)
+{
+    return llvm::unwrap<llvm::ConstantExpr>(inst)->getOpcode();
+}
+
 void LLVMLdSetAlignment(LLVMValueRef inst, unsigned align)
 {
     return llvm::unwrap<LoadInst>(inst)->setAlignment(align);

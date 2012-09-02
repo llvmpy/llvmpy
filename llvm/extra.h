@@ -53,6 +53,18 @@
 extern "C" {
 #endif
 
+
+
+/*
+ * Wraps ConstantExpr::getOpcodeName();
+ */
+const char *LLVMGetConstExprOpcodeName(LLVMValueRef inst);
+
+/*
+ * Wraps ConstantExpr::getOpcode();
+ */
+unsigned LLVMGetConstExprOpcode(LLVMValueRef inst);
+
 /*
  * Wraps LoadInst::SetAlignment
  */
