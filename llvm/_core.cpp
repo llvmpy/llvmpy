@@ -485,6 +485,7 @@ _wrap_list2obj(LLVMConstVector, LLVMValueRef, LLVMValueRef)
 
 /* Constant expressions */
 
+_wrap_obj2obj(LLVMGetConstOpcode, LLVMValueRef, int)
 _wrap_obj2obj(LLVMSizeOf, LLVMTypeRef, LLVMValueRef)
 _wrap_obj2obj(LLVMConstNeg, LLVMValueRef, LLVMValueRef)
 _wrap_obj2obj(LLVMConstNot, LLVMValueRef, LLVMValueRef)
@@ -1579,6 +1580,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMConstVector )
 
     /* Constant expressions */
+    _method( LLVMGetConstOpcode )
     _method( LLVMSizeOf )
     _method( LLVMConstNeg )
     _method( LLVMConstNot )
