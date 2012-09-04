@@ -1032,16 +1032,15 @@ int LLVMInlineFunction(LLVMValueRef call)
     llvm::Value *callp = llvm::unwrap(call);
     assert(callp);
 
-//    llvm::CallSite cs = llvm::CallSite::get(callp);
-    llvm::CallSite cs;
+    llvm::InlineFunctionInfo unused;
+
     llvm::Instruction *II = llvm::dyn_cast<llvm::Instruction>(callp);
     if (II->getOpcode() == llvm::Instruction::Call)
-        cs = llvm::CallSite(static_cast<llvm::CallInst*>(II));
+        return llvm::InlineFunction(static_cast<llvm::CallInst*>(II), unused);
     else if (II->getOpcode() == llvm::Instruction::Invoke)
-        cs = llvm::CallSite(static_cast<llvm::InvokeInst*>(II));
-
-    llvm::InlineFunctionInfo unused;
-    return llvm::InlineFunction(cs, unused);
+        return llvm::InlineFunction(static_cast<llvm::InvokeInst*>(II), unused);
+    else
+        return 0;
 }
 
 unsigned LLVMGetParamAlignment(LLVMValueRef arg)

@@ -449,8 +449,9 @@ void *LLVMGetPointerToFunction(LLVMExecutionEngineRef ee, LLVMValueRef fn);
 
 /* Wraps llvm::InlineFunction(). Inlines a function. C is the call
  * instruction, created by LLVMBuildCall. Even if it fails, the Function
- * containing the call is still in a proper state (not changed). */
-//int LLVMInlineFunction(LLVMValueRef call);
+ * containing the call is still in a proper state (not changed).
+ */
+int LLVMInlineFunction(LLVMValueRef call);
 
 /* Wraps llvm::getAlignmentFromAttrs from Attributes.h. Compliments the
  * already available LLVMSetParamAlignment(). */

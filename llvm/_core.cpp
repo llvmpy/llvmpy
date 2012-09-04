@@ -1431,7 +1431,7 @@ _wLLVMParseEnvOpts(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-//_wrap_obj2obj(LLVMInlineFunction, LLVMValueRef, int)
+_wrap_obj2obj(LLVMInlineFunction, LLVMValueRef, int)
 
 /* Expose the void* inside a PyCObject as a PyLong. This allows us to
  * use it as a unique ID. */
@@ -2038,7 +2038,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMLoadLibraryPermanently )
     _method( LLVMParseEnvOpts )
 
-    //_method( LLVMInlineFunction )
+    _method( LLVMInlineFunction )
     _method( PyCObjectVoidPtrToPyLong )
     { NULL }
 };
