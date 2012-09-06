@@ -1428,6 +1428,17 @@ class Function(GlobalValue):
         return _core.LLVMVerifyFunction(self.ptr) != 0
 
 #===----------------------------------------------------------------------===
+# MetaData
+#===----------------------------------------------------------------------===
+
+class MetaData(Value):
+    @staticmethod
+    def get(module, values):
+        vs = unpack_values(values)
+        ptr = _core.LLVMMetaDataGet(module.ptr, vs)
+        return MetaData(ptr)
+
+#===----------------------------------------------------------------------===
 # Instruction
 #===----------------------------------------------------------------------===
 
@@ -1476,6 +1487,9 @@ class Instruction(User):
 
     def set_volatile(self, flag):
         return _core.LLVMSetVolatile(self.ptr, int(bool(flag)))
+
+    def set_metadata(self, kind, metadata):
+        return _core.LLVMInstSetMetaData(self.ptr, kind, metadata.ptr)
 
     @property
     def opcode(self):

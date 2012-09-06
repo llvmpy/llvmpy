@@ -53,15 +53,25 @@
 extern "C" {
 #endif
 
-
+/*
+ * Wraps Instruction::setMetadata()
+ */
+void LLVMInstSetMetaData(LLVMValueRef instref, const char* mdkind,
+                         LLVMValueRef metaref);
 
 /*
- * Wraps ConstantExpr::getOpcodeName();
+ * Wraps MDNode::get()
+ */
+LLVMValueRef LLVMMetaDataGet(LLVMModuleRef modref, LLVMValueRef * valrefs,
+                             unsigned valct);
+
+/*
+ * Wraps ConstantExpr::getOpcodeName()
  */
 const char *LLVMGetConstExprOpcodeName(LLVMValueRef inst);
 
 /*
- * Wraps ConstantExpr::getOpcode();
+ * Wraps ConstantExpr::getOpcode()
  */
 unsigned LLVMGetConstExprOpcode(LLVMValueRef inst);
 

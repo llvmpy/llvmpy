@@ -618,6 +618,11 @@ _wrap_objstr2obj(LLVMAppendBasicBlock, LLVMValueRef, LLVMBasicBlockRef)
 _wrap_objstr2obj(LLVMInsertBasicBlock, LLVMBasicBlockRef, LLVMBasicBlockRef)
 _wrap_obj2none(LLVMDeleteBasicBlock, LLVMBasicBlockRef)
 
+
+/*===-- MetaData -----------------------------------------------------===*/
+
+_wrap_objlist2obj(LLVMMetaDataGet, LLVMModuleRef, LLVMValueRef, LLVMValueRef)
+
 /*===-- Instructions -----------------------------------------------------===*/
 
 _wrap_obj2obj(LLVMGetInstructionParent, LLVMValueRef, LLVMBasicBlockRef)
@@ -635,6 +640,8 @@ _wrap_obj2obj(LLVMInstIsVolatile,     LLVMValueRef, int)
 _wrap_objint2none(LLVMSetVolatile,    LLVMValueRef)
 _wrap_obj2obj(LLVMInstGetOpcode,      LLVMValueRef, int)
 _wrap_obj2str(LLVMInstGetOpcodeName,  LLVMValueRef)
+
+_wrap_objstrobj2none(LLVMInstSetMetaData, LLVMValueRef, LLVMValueRef)
 
 /*===-- Call Sites (Call or Invoke) --------------------------------------===*/
 
@@ -1691,6 +1698,9 @@ static PyMethodDef core_methods[] = {
     _method( LLVMInsertBasicBlock )
     _method( LLVMDeleteBasicBlock )
 
+    /* MetaData */
+    _method( LLVMMetaDataGet )
+
     /* Instructions */
     _method( LLVMGetInstructionParent )
     _method( LLVMGetFirstInstruction )
@@ -1707,6 +1717,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMSetVolatile )
     _method( LLVMInstGetOpcode )
     _method( LLVMInstGetOpcodeName )
+
+    _method( LLVMInstSetMetaData )
 
     /* Call Sites (Call or Invoke) */
     _method( LLVMSetInstructionCallConv )

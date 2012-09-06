@@ -83,11 +83,11 @@
 #include "extra.h"
 #include "llvm_c_extra.h"
 
-
 namespace llvm{
 DEFINE_SIMPLE_CONVERSION_FUNCTIONS(EngineBuilder, LLVMEngineBuilderRef)
 DEFINE_SIMPLE_CONVERSION_FUNCTIONS(TargetMachine, LLVMTargetMachineRef)
 }
+
 /*
  * For use in LLVMDumpPasses to dump passes.
  */
@@ -127,7 +127,27 @@ const CodeGenOpt::Level OptLevelMap[] = {
 } // end anony namespace
 
 
+void LLVMInstSetMetaData(LLVMValueRef instref, const char* mdkind,
+                         LLVMValueRef metaref)
+{
+    using namespace llvm;
+    unwrap<Instruction>(instref)->setMetadata(mdkind, unwrap<MDNode>(metaref));
+}
 
+LLVMValueRef LLVMMetaDataGet(LLVMModuleRef modref, LLVMValueRef * valrefs,
+                             unsigned valct)
+{
+    using namespace llvm;
+    LLVMContext & context = unwrap(modref)->getContext();
+    std::vector<Value*> vals;
+    vals.reserve(valct);
+    for(unsigned i = 0; i < valct; ++i ){
+        vals.push_back(unwrap(valrefs[i]));
+    }
+
+    MDNode * const node = MDNode::get(context, vals);
+    return wrap(node);
+}
 
 const char *LLVMGetConstExprOpcodeName(LLVMValueRef inst)
 {
