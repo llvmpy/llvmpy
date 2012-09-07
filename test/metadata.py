@@ -23,6 +23,20 @@ class TestMetaData(unittest.TestCase):
 
         self.assertIn('!nontemporal', str(loadinst))
 
+    def test_meta_load_invariant(self):
+        module = Module.new('test_meta_load_invariant')
+        func = module.add_function(Type.function(Type.void(), []),
+                                   name='test_load_invariant')
+        bldr = Builder.new(func.append_basic_block('entry'))
+        addr = Constant.int(Type.int(), 0xdeadbeef)
+        loadinst = bldr.load(bldr.inttoptr(addr, Type.pointer(Type.int(8))),
+                             invariant=True)
+
+        bldr.ret_void()
+        module.verify()
+
+        self.assertIn('!invariant.load', str(loadinst))
+
 if __name__ == '__main__':
     unittest.main()
 

@@ -1866,13 +1866,17 @@ class Builder(object):
         check_is_value(ptr)
         return _make_value(_core.LLVMBuildFree(self.ptr, ptr.ptr))
 
-    def load(self, ptr, name="", align=0, volatile=False):
+    def load(self, ptr, name="", align=0, volatile=False, invariant=False):
         check_is_value(ptr)
         inst = _make_value(_core.LLVMBuildLoad(self.ptr, ptr.ptr, name))
         if align:
             _core.LLVMLdSetAlignment(inst.ptr, align)
         if volatile:
             inst.set_volatile(volatile)
+        if invariant:
+            mod = self.basic_block.function.module
+            md = MetaData.get(mod, []) # empty metadata node
+            inst.set_metadata('invariant.load', md)
         return inst
 
     def store(self, value, ptr, align=0, volatile=False):
