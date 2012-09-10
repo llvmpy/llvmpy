@@ -461,6 +461,8 @@ _wLLVMConstReal(PyObject *self, PyObject *args)
 }
 
 _wrap_objstr2obj(LLVMConstRealOfString, LLVMTypeRef, LLVMValueRef)
+_wrap_obj2obj(LLVMConstIntGetZExtValue, LLVMValueRef, llvmwrap_ull)
+_wrap_obj2obj(LLVMConstIntGetSExtValue, LLVMValueRef, llvmwrap_ll)
 
 /* Operations on composite constants */
 
@@ -1581,6 +1583,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMConstInt )
     _method( LLVMConstReal )
     _method( LLVMConstRealOfString )
+    _method( LLVMConstIntGetZExtValue )
+    _method( LLVMConstIntGetSExtValue )
 
     /* Operations on composite constants */
     _method( LLVMConstString )

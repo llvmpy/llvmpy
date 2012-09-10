@@ -72,6 +72,10 @@ PyObject *ctor_llvmwrap_ull(llvmwrap_ull ull)
     return PyLong_FromUnsignedLongLong(ull);
 }
 
+PyObject *ctor_llvmwrap_ll(llvmwrap_ll ll)
+{
+    return PyLong_FromLongLong(ll);
+}
 
 /*===----------------------------------------------------------------------===*/
 /* Helper functions                                                           */
