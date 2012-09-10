@@ -1193,7 +1193,17 @@ class ConstantDataVector(Constant):
     pass
 
 class ConstantInt(Constant):
-    pass
+    @property
+    def z_ext_value(self):
+        '''Obtain the zero extended value for an integer constant value.'''
+        # Warning: assertion failure when value does not fit in 64 bits
+        return _core.LLVMConstIntGetZExtValue(self.ptr)
+
+    @property
+    def s_ext_value(self):
+        '''Obtain the sign extended value for an integer constant value.'''
+        # Warning: assertion failure when value does not fit in 64 bits
+        return _core.LLVMConstIntGetSExtValue(self.ptr)
 
 
 class ConstantFP(Constant):

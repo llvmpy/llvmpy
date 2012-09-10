@@ -64,6 +64,7 @@
 /*===----------------------------------------------------------------------===*/
 
 typedef unsigned long long llvmwrap_ull;
+typedef long long llvmwrap_ll;
 
 /*===----------------------------------------------------------------------===*/
 /* Type ctor/dtor                                                             */
@@ -98,6 +99,7 @@ _declare_std_ctor(LLVMTargetMachineRef)
 /* standard types */
 _declare_std_ctor(int)
 _declare_std_ctor(llvmwrap_ull)
+_declare_std_ctor(llvmwrap_ll)
 
 
 /*===----------------------------------------------------------------------===*/
