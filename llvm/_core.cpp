@@ -559,10 +559,11 @@ _wrap_obj2none(LLVMDeleteGlobal, LLVMValueRef)
 _wrap_obj2obj(LLVMHasInitializer, LLVMValueRef, int)
 _wrap_obj2obj(LLVMGetInitializer, LLVMValueRef, LLVMValueRef)
 _wrap_objobj2none(LLVMSetInitializer, LLVMValueRef, LLVMValueRef)
-_wrap_objint2none(LLVMSetThreadLocal, LLVMValueRef)
 _wrap_objint2none(LLVMSetGlobalConstant, LLVMValueRef)
-_wrap_obj2obj(LLVMIsThreadLocal, LLVMValueRef, int)
 _wrap_obj2obj(LLVMIsGlobalConstant, LLVMValueRef, int)
+_wrap_objint2none(LLVMSetThreadLocal, LLVMValueRef)
+_wrap_obj2obj(LLVMIsThreadLocal, LLVMValueRef, int)
+
 
 /*===-- Functions --------------------------------------------------------===*/
 
@@ -1655,8 +1656,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMGetInitializer )
     _method( LLVMSetInitializer )
     _method( LLVMSetThreadLocal )
-    _method( LLVMSetGlobalConstant )
     _method( LLVMIsThreadLocal )
+    _method( LLVMSetGlobalConstant )
     _method( LLVMIsGlobalConstant )
 
     /* Functions */

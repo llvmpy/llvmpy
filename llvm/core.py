@@ -1265,7 +1265,6 @@ class GlobalValue(Constant):
     def module(self):
         return Module(_core.LLVMGetGlobalParent(self.ptr))
 
-
 class GlobalVariable(GlobalValue):
 
     @staticmethod
@@ -1298,6 +1297,9 @@ class GlobalVariable(GlobalValue):
         check_is_constant(const)
         _core.LLVMSetInitializer(self.ptr, const.ptr)
 
+    def _del_initializer(self):
+        check_is_constant(const)
+
     initializer = property(_get_initializer, _set_initializer)
 
     def _get_is_global_constant(self):
@@ -1310,6 +1312,13 @@ class GlobalVariable(GlobalValue):
     global_constant = \
         property(_get_is_global_constant, _set_is_global_constant)
 
+    def _get_thread_local(self):
+        return bool(_core.LLVMIsThreadLocal(self.ptr))
+    def _set_thread_local(self, value):
+        value = _to_int(value)
+        _core.LLVMSetThreadLocal(self.ptr, value)
+
+    thread_local = property(_get_thread_local, _set_thread_local)
 
 class Argument(Value):
 
