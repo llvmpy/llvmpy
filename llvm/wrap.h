@@ -122,13 +122,34 @@ void **make_array_from_list(PyObject *list, int n);
 /**
  * Given an array of LLVMTypeRef's, create a PyList object.
  */
-PyObject *make_list_from_LLVMTypeRef_array(LLVMTypeRef *p, unsigned n);
+PyObject *make_list_from_LLVMTypeRef_array(LLVMTypeRef *p, size_t n);
 
 /**
  * Given an array of LLVMValueRef's, create a PyList object.
  */
-PyObject *make_list_from_LLVMValueRef_array(LLVMValueRef *p, unsigned n);
+PyObject *make_list_from_LLVMValueRef_array(LLVMValueRef *p, size_t n);
 
+/*===----------------------------------------------------------------------===*/
+/* Template functions                                                         */
+
+// wrap the cast
+template <typename LLTYPE>
+LLTYPE pycap_get( PyObject* obj )
+{
+    return static_cast<LLTYPE> ( PyCapsule_GetPointer(obj, NULL) );
+}
+
+template <typename LLTYPE>
+LLTYPE get_object_arg( PyObject* obj )
+{
+    return static_cast<LLTYPE> ( get_object_arg(obj) );
+}
+
+template <typename LLTYPE>
+LLTYPE make_array_from_list(PyObject *list, int n)
+{
+    return reinterpret_cast<LLTYPE>(make_array_from_list(list, n)) ;
+}
 
 /*===----------------------------------------------------------------------===*/
 /* Wrapper macros                                                             */
@@ -167,7 +188,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
     intype1 arg1;                                       \
                                                         \
-    if (!(arg1 = ( intype1 )get_object_arg(args)))      \
+    if (!(arg1 = get_object_arg<intype1>(args)))        \
         return NULL;                                    \
                                                         \
     return ctor_ ## outtype ( func (arg1));             \
@@ -198,14 +219,12 @@ static PyObject *                                        \
 _w ## func (PyObject *self, PyObject *args)              \
 {                                                        \
     PyObject *obj1, *obj2;                               \
-    intype1 arg1;                                        \
-    intype2 arg2;                                        \
                                                          \
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))     \
         return NULL;                                     \
                                                          \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL); \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL); \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);    \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);    \
                                                          \
     return ctor_ ## outtype ( func (arg1, arg2));        \
 }
@@ -219,14 +238,12 @@ static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
     PyObject *obj1, *obj2;                              \
-    intype1 arg1;                                       \
-    intype2 arg2;                                       \
                                                         \
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))    \
         return NULL;                                    \
                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);\
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);\
+    intype1 arg1 = pycap_get< intype1 > (obj1);         \
+    intype2 arg2 = pycap_get< intype2 > (obj2);         \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
@@ -241,13 +258,12 @@ static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
     PyObject *obj1;                                     \
-    intype1 arg1;                                       \
-    unsigned int arg2;                                  \
+    size_t arg2;                                        \
                                                         \
     if (!PyArg_ParseTuple(args, "OI", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);\
+    const intype1 arg1 = pycap_get< intype1 > (obj1);   \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2));       \
 }
@@ -261,16 +277,13 @@ static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
     PyObject *obj1, *obj2, *obj3;                                       \
-    intype1 arg1;                                                       \
-    intype2 arg2;                                                       \
-    intype3 arg3;                                                       \
                                                                         \
     if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))            \
         return NULL;                                                    \
                                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
                                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3));                 \
 }
@@ -284,16 +297,13 @@ static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
     PyObject *obj1, *obj2, *obj3;                               \
-    intype1 arg1;                                               \
-    intype2 arg2;                                               \
-    intype3 arg3;                                               \
                                                                 \
     if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))    \
         return NULL;                                            \
                                                                 \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);        \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);        \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);        \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);           \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);           \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);           \
                                                                 \
     func (arg1, arg2, arg3);                                    \
     Py_RETURN_NONE;                                             \
@@ -307,16 +317,14 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    unsigned int arg1;                                          \
+    size_t arg1;                                                \
     PyObject *obj2, *obj3;                                      \
-    intype2 arg2;                                               \
-    intype3 arg3;                                               \
                                                                 \
     if (!PyArg_ParseTuple(args, "IOO", &arg1, &obj2, &obj3))    \
         return NULL;                                            \
                                                                 \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);        \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);        \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);           \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);           \
                                                                 \
     return ctor_ ## outtype ( func (arg1, arg2, arg3));         \
 }
@@ -331,14 +339,12 @@ _w ## func (PyObject *self, PyObject *args)                               \
 {                                                                         \
     intype1 arg1;                                                         \
     PyObject *obj2, *obj3;                                                \
-    intype2 arg2;                                                         \
-    intype3 arg3;                                                         \
                                                                           \
     if (!PyArg_ParseTuple(args, "IOO", &arg1, &obj2, &obj3))              \
         return NULL;                                                      \
                                                                           \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                  \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                  \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                     \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);                     \
                                                                           \
     return ctor_ ## outtype ( func (arg1, arg2, arg3));                   \
 }
@@ -398,7 +404,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
     intype1 arg1;                                       \
                                                         \
-    if (!(arg1 = ( intype1 )get_object_arg(args)))      \
+    if (!(arg1 = get_object_arg<intype1>(args)))        \
         return NULL;                                    \
                                                         \
     return PyUnicode_FromString( func (arg1));          \
@@ -414,7 +420,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
     intype1 arg1;                                       \
                                                         \
-    if (!(arg1 = ( intype1 )get_object_arg(args)))      \
+    if (!(arg1 = get_object_arg<intype1>(args)))        \
         return NULL;                                    \
                                                         \
     func (arg1);                                        \
@@ -431,12 +437,11 @@ _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
     PyObject *obj1;                                     \
     const char *arg2;                                   \
-    intype1 arg1;                                       \
                                                         \
     if (!PyArg_ParseTuple(args, "Os", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);\
+    const intype1 arg1 = pycap_get< intype1 > (obj1);   \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
@@ -452,12 +457,11 @@ _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
     PyObject *obj1;                                     \
     const char *arg2;                                   \
-    intype1 arg1;                                       \
                                                         \
     if (!PyArg_ParseTuple(args, "Os", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);\
+    const intype1 arg1 = pycap_get< intype1 > (obj1);   \
                                                         \
     return ctor_ ## outtype ( func (arg1, arg2));       \
 }
@@ -472,12 +476,11 @@ _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
     PyObject *obj1;                                     \
     int arg2;                                           \
-    intype1 arg1;                                       \
                                                         \
     if (!PyArg_ParseTuple(args, "Oi", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);\
+    const intype1 arg1 = pycap_get< intype1 > (obj1);   \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
@@ -491,14 +494,13 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    PyObject *obj1;                                     \
-    intype1 arg1;                                       \
     intype2 arg2;                                       \
+    PyObject *obj1;                                     \
                                                         \
     if (!PyArg_ParseTuple(args, "Oi", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);\
+    const intype1 arg1 = pycap_get< intype1 > (obj1);   \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
@@ -513,15 +515,13 @@ static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
     PyObject *obj1, *obj2;                                      \
-    intype1 arg1;                                               \
-    intype2 arg2;                                               \
     const char *arg3;                                           \
                                                                 \
     if (!PyArg_ParseTuple(args, "OOs", &obj1, &obj2, &arg3))    \
         return NULL;                                            \
                                                                 \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);        \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);        \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);           \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);           \
                                                                 \
     return ctor_ ## outtype ( func (arg1, arg2, arg3));         \
 }
@@ -535,15 +535,13 @@ static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
     PyObject *obj1, *obj2;                                      \
-    intype1 arg1;                                               \
-    intype2 arg2;                                               \
     int arg3;                                                   \
                                                                 \
     if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3))    \
         return NULL;                                            \
                                                                 \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);        \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);        \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);           \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);           \
                                                                 \
     return ctor_ ## outtype ( func (arg1, arg2, arg3)) ;        \
 }
@@ -557,15 +555,13 @@ static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
     PyObject *obj1, *obj2;                                      \
-    intype1 arg1;                                               \
-    intype2 arg2;                                               \
     unsigned long long arg3;                                    \
                                                                 \
     if (!PyArg_ParseTuple(args, "OOK", &obj1, &obj2, &arg3))    \
         return NULL;                                            \
                                                                 \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);        \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);        \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);           \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);           \
                                                                 \
     return ctor_ ## outtype ( func (arg1, arg2, arg3)) ;        \
 }
@@ -579,13 +575,12 @@ static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
     PyObject *obj1;                                             \
-    intype1 arg1;                                               \
     int arg2, arg3;                                             \
                                                                 \
     if (!PyArg_ParseTuple(args, "Oii", &obj1, &arg2, &arg3))    \
         return NULL;                                            \
                                                                 \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);        \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);           \
                                                                 \
     func (arg1, arg2, arg3);                                    \
     Py_RETURN_NONE;                                             \
@@ -600,14 +595,13 @@ static PyObject *                                             \
 _w ## func (PyObject *self, PyObject *args)                   \
 {                                                             \
     PyObject *obj1;                                           \
-    intype1 arg1;                                             \
     int arg2;                                                 \
     intype3 arg3;                                             \
                                                               \
     if (!PyArg_ParseTuple(args, "Oii", &obj1, &arg2, &arg3))  \
         return NULL;                                          \
                                                               \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);      \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);         \
                                                               \
     func (arg1, arg2, arg3);                                  \
     Py_RETURN_NONE;                                           \
@@ -622,15 +616,13 @@ static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
     PyObject *obj1, *obj3;                                      \
-    intype1 arg1;                                               \
     const char *arg2;                                           \
-    intype3 arg3;                                               \
                                                                 \
     if (!PyArg_ParseTuple(args, "OsO", &obj1, &arg2, &obj3))    \
         return NULL;                                            \
                                                                 \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);        \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);        \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);           \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);           \
                                                                 \
     return ctor_ ## outtype ( func (arg1, arg2, arg3));         \
 }
@@ -644,15 +636,13 @@ static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
     PyObject *obj1, *obj3;                                      \
-    intype1 arg1;                                               \
     const char *arg2;                                           \
-    intype3 arg3;                                               \
                                                                 \
     if (!PyArg_ParseTuple(args, "OsO", &obj1, &arg2, &obj3))    \
         return NULL;                                            \
                                                                 \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);        \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);        \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);           \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);           \
                                                                 \
     func(arg1, arg2, arg3);                                     \
                                                                 \
@@ -669,16 +659,14 @@ static PyObject *                                                     \
 _w ## func (PyObject *self, PyObject *args)                           \
 {                                                                     \
     PyObject *obj1, *obj2;                                            \
-    intype1 arg1;                                                     \
-    intype2 arg2;                                                     \
     int arg3;                                                         \
     const char *arg4;                                                 \
                                                                       \
     if (!PyArg_ParseTuple(args, "OOis", &obj1, &obj2, &arg3, &arg4))  \
         return NULL;                                                  \
                                                                       \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);              \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);              \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                 \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                 \
                                                                       \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4)) ;        \
 }
@@ -692,9 +680,6 @@ static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
   PyObject *obj1, *obj2, *obj3;                                         \
-  intype1 arg1;                                                         \
-  intype2 arg2;                                                         \
-  intype3 arg3;                                                         \
   int arg4;                                                             \
   const char *arg5;                                                     \
                                                                         \
@@ -702,9 +687,9 @@ _w ## func (PyObject *self, PyObject *args)                             \
                         &arg5))                                         \
     return NULL;                                                        \
                                                                         \
-  arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                  \
-  arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                  \
-  arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                  \
+  const intype1 arg1 = pycap_get< intype1 > (obj1);                     \
+  const intype2 arg2 = pycap_get< intype2 > (obj2);                     \
+  const intype3 arg3 = pycap_get< intype3 > (obj3);                     \
                                                                         \
   return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5)) ;      \
 }
@@ -718,17 +703,14 @@ static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
     PyObject *obj1, *obj2, *obj3;                                       \
-    intype1 arg1;                                                       \
-    intype2 arg2;                                                       \
-    intype3 arg3;                                                       \
     const char *arg4;                                                   \
                                                                         \
     if (!PyArg_ParseTuple(args, "OOOs", &obj1, &obj2, &obj3, &arg4))    \
         return NULL;                                                    \
                                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
                                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));           \
 }
@@ -742,16 +724,14 @@ static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
     PyObject *obj1, *obj2;                                              \
-    intype1 arg1;                                                       \
-    intype2 arg2;                                                       \
     const char *arg3;                                                   \
     int arg4;                                                           \
                                                                         \
     if (!PyArg_ParseTuple(args, "OOsi", &obj1, &obj2, &arg3, &arg4))    \
         return NULL;                                                    \
                                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
                                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));           \
 }
@@ -767,8 +747,6 @@ static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
     PyObject *obj1, *obj2;                                              \
-    intype1 arg1;                                                       \
-    intype2 arg2;                                                       \
     int arg3;                                                           \
     const char *arg4;                                                   \
     int arg5;                                                           \
@@ -776,10 +754,10 @@ _w ## func (PyObject *self, PyObject *args)                             \
     if (!PyArg_ParseTuple(args, "OOisi", &obj1, &obj2, &arg3, &arg4, &arg5))    \
         return NULL;                                                    \
                                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
                                                                         \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5));           \
+    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5));     \
 }
 
 /**
@@ -791,14 +769,13 @@ static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
     PyObject *obj1;                                                     \
-    intype1 arg1;                                                       \
     const char *arg2;                                                   \
     int arg3;                                                           \
                                                                         \
-    if (!PyArg_ParseTuple(args, "Osi", &obj1, &arg2, &arg3))    \
+    if (!PyArg_ParseTuple(args, "Osi", &obj1, &arg2, &arg3))            \
         return NULL;                                                    \
                                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
                                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3));     \
 }
@@ -813,18 +790,15 @@ static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
     PyObject *obj1, *obj2, *obj3;                                       \
-    intype1 arg1;                                                       \
-    intype2 arg2;                                                       \
-    intype3 arg3;                                                       \
     const char *arg4;                                                   \
     int arg5;                                                           \
                                                                         \
     if (!PyArg_ParseTuple(args, "OOOsi", &obj1, &obj2, &obj3, &arg4, &arg5))    \
         return NULL;                                                    \
                                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
                                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5));     \
 }
@@ -841,9 +815,6 @@ static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
     PyObject *obj1, *obj2, *obj3;                                       \
-    intype1 arg1;                                                       \
-    intype2 arg2;                                                       \
-    intype3 arg3;                                                       \
     int arg4;                                                           \
     const char *arg5;                                                   \
     int arg6;                                                           \
@@ -851,9 +822,9 @@ _w ## func (PyObject *self, PyObject *args)                             \
     if (!PyArg_ParseTuple(args, "OOOisi", &obj1, &obj2, &obj3, &arg4, &arg5, &arg6))    \
         return NULL;                                                    \
                                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
                                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5, arg6));     \
 }
@@ -867,20 +838,16 @@ static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
     PyObject *obj1, *obj2, *obj3, *obj4;                                \
-    intype1 arg1;                                                       \
-    intype2 arg2;                                                       \
-    intype3 arg3;                                                       \
-    intype4 arg4;                                                       \
     const char *arg5;                                                   \
     int arg6;                                                           \
                                                                         \
     if (!PyArg_ParseTuple(args, "OOOOsi", &obj1, &obj2, &obj3, &obj4, &arg5, &arg6))   \
         return NULL;                                                    \
                                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                \
-    arg4 = ( intype4 ) PyCapsule_GetPointer(obj4, NULL);                \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
+    const intype4 arg4 = pycap_get< intype4 > (obj4);                   \
                                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5, arg6));     \
 }
@@ -895,19 +862,16 @@ static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
     PyObject *obj1, *obj3, *obj4;                                       \
-    intype1 arg1;                                                       \
     const char *arg2;                                                   \
-    intype3 arg3;                                                       \
-    intype4 arg4;                                                       \
     const char *arg5;                                                   \
     int arg6;                                                           \
                                                                         \
     if (!PyArg_ParseTuple(args, "OsOOsi", &obj1, &arg2, &obj3, &obj4, &arg5, &arg6))   \
         return NULL;                                                    \
                                                                         \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                \
-    arg4 = ( intype4 ) PyCapsule_GetPointer(obj4, NULL);                \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
+    const intype4 arg4 = pycap_get< intype4 > (obj4);                   \
                                                                         \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5, arg6));     \
 }
@@ -921,17 +885,14 @@ static PyObject *                                                           \
 _w ## func (PyObject *self, PyObject *args)                                 \
 {                                                                           \
     PyObject *obj1, *obj2, *obj3;                                           \
-    intype1 arg1;                                                           \
-    intype2 arg2;                                                           \
-    intype3 arg3;                                                           \
     int arg4;                                                               \
                                                                             \
     if (!PyArg_ParseTuple(args, "OOOi", &obj1, &obj2, &obj3, &arg4))        \
         return NULL;                                                        \
                                                                             \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                    \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                    \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                    \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                       \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                       \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);                       \
                                                                             \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));               \
 }
@@ -945,19 +906,14 @@ static PyObject *                                                               
 _w ## func (PyObject *self, PyObject *args)                                         \
 {                                                                                   \
     PyObject *obj1, *obj2, *obj3, *obj4;                                            \
-    intype1 arg1;                                                                   \
-    intype2 arg2;                                                                   \
-    intype3 arg3;                                                                   \
-    intype4 arg4;                                                                   \
                                                                                     \
     if (!PyArg_ParseTuple(args, "OOOO", &obj1, &obj2, &obj3, &obj4))                \
         return NULL;                                                                \
                                                                                     \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                            \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                            \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                            \
-    arg4 = ( intype4 ) PyCapsule_GetPointer(obj4, NULL);                            \
-                                                                                    \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                               \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                               \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);                               \
+    const intype4 arg4 = pycap_get< intype4 > (obj4);                               \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));                       \
 }
 
@@ -970,19 +926,15 @@ static PyObject *                                                               
 _w ## func (PyObject *self, PyObject *args)                                         \
 {                                                                                   \
     PyObject *obj1, *obj2, *obj3, *obj4;                                            \
-    intype1 arg1;                                                                   \
-    intype2 arg2;                                                                   \
-    intype3 arg3;                                                                   \
-    intype4 arg4;                                                                   \
     const char *arg5;                                                               \
                                                                                     \
     if (!PyArg_ParseTuple(args, "OOOOs", &obj1, &obj2, &obj3, &obj4, &arg5))        \
         return NULL;                                                                \
                                                                                     \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                            \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                            \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                            \
-    arg4 = ( intype4 ) PyCapsule_GetPointer(obj4, NULL);                            \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                               \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                               \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);                               \
+    const intype4 arg4 = pycap_get< intype4 > (obj4);                               \
                                                                                     \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5));                 \
 }
@@ -996,18 +948,15 @@ static PyObject *                                                               
 _w ## func (PyObject *self, PyObject *args)                                           \
 {                                                                                     \
     PyObject *obj1, *obj3, *obj4;                                                     \
-    intype1 arg1;                                                                     \
-    intype2 arg2;                                                                     \
-    intype3 arg3;                                                                     \
-    intype4 arg4;                                                                     \
+    intype2 arg2 ;                                                                    \
     const char *arg5;                                                                 \
                                                                                       \
     if (!PyArg_ParseTuple(args, "OiOOs", &obj1, &arg2, &obj3, &obj4, &arg5))          \
         return NULL;                                                                  \
                                                                                       \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                              \
-    arg3 = ( intype3 ) PyCapsule_GetPointer(obj3, NULL);                              \
-    arg4 = ( intype4 ) PyCapsule_GetPointer(obj4, NULL);                              \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                                 \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);                                 \
+    const intype4 arg4 = pycap_get< intype4 > (obj4);                                 \
                                                                                       \
     return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5));                   \
 }
@@ -1022,21 +971,18 @@ static PyObject *                                                \
 _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
     PyObject *obj1, *obj2;                                       \
-    intype1 arg1;                                                \
-    intype2 *arg2v;                                              \
-    unsigned arg2n;                                              \
-    outtype ret;                                                 \
                                                                  \
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))             \
         return NULL;                                             \
                                                                  \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);         \
-    arg2n = (unsigned) PyList_Size(obj2);                        \
-    if (!(arg2v = ( intype2 *)make_array_from_list(obj2, arg2n)))\
+    const intype1 arg1 = pycap_get< intype1 > (obj1);            \
+    const size_t arg2n = PyList_Size(obj2);                      \
+    intype2 *arg2v;                                              \
+    if (!(arg2v = make_array_from_list< intype2 *>(obj2, arg2n))) \
         return PyErr_NoMemory();                                 \
                                                                  \
-    ret = func (arg1, arg2v, arg2n);                             \
-    free(arg2v);                                                 \
+    outtype ret = func (arg1, arg2v, arg2n);                     \
+    delete [] arg2v ;                                            \
     return ctor_ ## outtype (ret);                               \
 }
 
@@ -1051,19 +997,17 @@ _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
     PyObject *obj1;                                              \
     int arg2;                                                    \
-    intype1 *arg1v;                                              \
-    unsigned arg1n;                                              \
-    outtype ret;                                                 \
                                                                  \
     if (!PyArg_ParseTuple(args, "Oi", &obj1, &arg2))             \
         return NULL;                                             \
                                                                  \
-    arg1n = (unsigned) PyList_Size(obj1);                        \
-    if (!(arg1v = ( intype1 *)make_array_from_list(obj1, arg1n)))\
+    const size_t arg1n = PyList_Size(obj1);                      \
+    intype1 *arg1v;                                              \
+    if (!(arg1v = make_array_from_list< intype1 *>(obj1, arg1n)))\
         return PyErr_NoMemory();                                 \
                                                                  \
-    ret = func (arg1v, arg1n, arg2);                             \
-    free(arg1v);                                                 \
+    outtype ret = func (arg1v, arg1n, arg2);                     \
+    delete [] arg1v;                                             \
     return ctor_ ## outtype (ret);                               \
 }
 
@@ -1077,19 +1021,17 @@ static PyObject *                                                \
 _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
     PyObject *obj1;                                              \
-    intype1 *arg1v;                                              \
-    unsigned arg1n;                                              \
-    outtype ret;                                                 \
                                                                  \
     if (!PyArg_ParseTuple(args, "O", &obj1))                     \
         return NULL;                                             \
                                                                  \
-    arg1n = (unsigned) PyList_Size(obj1);                        \
-    if (!(arg1v = ( intype1 *)make_array_from_list(obj1, arg1n)))\
+    const size_t arg1n = PyList_Size(obj1);                      \
+    intype1 *arg1v;                                              \
+    if (!(arg1v = make_array_from_list< intype1 *>(obj1, arg1n)))\
         return PyErr_NoMemory();                                 \
                                                                  \
-    ret = func (arg1v, arg1n);                                   \
-    free(arg1v);                                                 \
+    outtype ret = func (arg1v, arg1n);                           \
+    delete [] arg1v;                                             \
     return ctor_ ## outtype (ret);                               \
 }
 
@@ -1103,22 +1045,19 @@ static PyObject *                                                \
 _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
     PyObject *obj1, *obj2;                                       \
-    intype1 arg1;                                                \
-    intype2 *arg2v = NULL;                                       \
-    unsigned arg2n;                                              \
     int arg3;                                                    \
-    outtype ret;                                                 \
                                                                  \
     if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3))     \
         return NULL;                                             \
                                                                  \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);         \
-    arg2n = (unsigned) PyList_Size(obj2);                        \
-    if (arg2n && !(arg2v = ( intype2 *)make_array_from_list(obj2, arg2n)))\
+    intype1 arg1 = pycap_get< intype1 > (obj1);                  \
+    const size_t arg2n = PyList_Size(obj2);                      \
+    intype2 *arg2v = NULL;                                       \
+    if (arg2n && !(arg2v = make_array_from_list< intype2 *>(obj2, arg2n)))\
         return PyErr_NoMemory();                                 \
                                                                  \
-    ret = func (arg1, arg2v, arg2n, arg3);                       \
-    free(arg2v);                                                 \
+    outtype ret = func (arg1, arg2v, arg2n, arg3);               \
+    delete [] arg2v ;                                            \
     return ctor_ ## outtype (ret);                               \
 }
 
@@ -1133,21 +1072,19 @@ static PyObject *                                                \
 _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
     PyObject *obj1, *obj2;                                       \
-    intype1 arg1;                                                \
-    intype2 *arg2v;                                              \
-    unsigned arg2n;                                              \
     int arg3;                                                    \
                                                                  \
     if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3))     \
         return NULL;                                             \
                                                                  \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);         \
-    arg2n = (unsigned) PyList_Size(obj2);                        \
-    if (!(arg2v = ( intype2 *)make_array_from_list(obj2, arg2n)))\
+    const intype1 arg1 = pycap_get< intype1 > (obj1);            \
+    const size_t arg2n = PyList_Size(obj2);                      \
+    intype2 *arg2v;                                              \
+    if (!(arg2v = make_array_from_list< intype2 *>(obj2, arg2n)))\
         return PyErr_NoMemory();                                 \
                                                                  \
     func (arg1, arg2v, arg2n, arg3);                             \
-    free(arg2v);                                                 \
+    delete [] arg2v ;                                            \
     Py_RETURN_NONE;                                              \
 }
 
@@ -1161,22 +1098,19 @@ static PyObject *                                                \
 _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
     PyObject *obj1, *obj3;                                       \
-    intype1 arg1;                                                \
     int arg2;                                                    \
-    intype3 *arg3v;                                              \
-    unsigned arg3n;                                              \
-    outtype ret;                                                 \
                                                                  \
     if (!PyArg_ParseTuple(args, "OiO", &obj1, &arg2, &obj3))     \
         return NULL;                                             \
                                                                  \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);         \
-    arg3n = (unsigned) PyList_Size(obj3);                        \
-    if (!(arg3v = ( intype3 *)make_array_from_list(obj3, arg3n)))\
+    const intype1 arg1 = pycap_get< intype1 > (obj1);            \
+    const size_t arg3n = PyList_Size(obj3);                      \
+    intype3 *arg3v;                                              \
+    if (!(arg3v = make_array_from_list< intype3 *>(obj3, arg3n))) \
         return PyErr_NoMemory();                                 \
                                                                  \
-    ret = func (arg1, arg2, arg3v, arg3n);                       \
-    free(arg3v);                                                 \
+    outtype ret = func (arg1, arg2, arg3v, arg3n);               \
+    delete [] arg3v ;                                            \
     return ctor_ ## outtype (ret);                               \
 }
 
@@ -1190,23 +1124,19 @@ static PyObject *                                                           \
 _w ## func (PyObject *self, PyObject *args)                                 \
 {                                                                           \
     PyObject *obj1, *obj2, *obj3;                                           \
-    intype1 arg1;                                                           \
-    intype2 arg2;                                                           \
-    intype3 *arg3v;                                                         \
-    unsigned arg3n;                                                         \
-    outtype ret;                                                            \
                                                                             \
     if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))                \
         return NULL;                                                        \
                                                                             \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                    \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                    \
-    arg3n = (unsigned) PyList_Size(obj3);                                   \
-    if (!(arg3v = ( intype3 *)make_array_from_list(obj3, arg3n)))           \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                       \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                       \
+    const size_t arg3n = PyList_Size(obj3);                                 \
+    intype3 *arg3v;                                                         \
+    if (!(arg3v = make_array_from_list< intype3 *>(obj3, arg3n)))           \
         return PyErr_NoMemory();                                            \
                                                                             \
-    ret = func (arg1, arg2, arg3v, arg3n);                                  \
-    free(arg3v);                                                            \
+    outtype ret = func (arg1, arg2, arg3v, arg3n);                          \
+    delete [] arg3v ;                                                       \
     return ctor_ ## outtype (ret);                                          \
 }
 
@@ -1221,23 +1151,19 @@ _w ## func (PyObject *self, PyObject *args)                                 \
 {                                                                           \
     PyObject *obj1, *obj2, *obj3;                                           \
     const char *arg4;                                                       \
-    intype1 arg1;                                                           \
-    intype2 arg2;                                                           \
-    intype3 *arg3v;                                                         \
-    unsigned arg3n;                                                         \
-    outtype ret;                                                            \
                                                                             \
     if (!PyArg_ParseTuple(args, "OOOs", &obj1, &obj2, &obj3, &arg4))        \
         return NULL;                                                        \
                                                                             \
-    arg1 = ( intype1 ) PyCapsule_GetPointer(obj1, NULL);                    \
-    arg2 = ( intype2 ) PyCapsule_GetPointer(obj2, NULL);                    \
-    arg3n = ( unsigned ) PyList_Size(obj3);                                 \
-    if (!(arg3v = ( intype3 *)make_array_from_list(obj3, arg3n)))           \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);                       \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);                       \
+    const size_t arg3n = PyList_Size(obj3);                                 \
+    intype3 *arg3v;                                                         \
+    if (!(arg3v = make_array_from_list< intype3 *>(obj3, arg3n)))           \
         return PyErr_NoMemory();                                            \
                                                                             \
-    ret = func (arg1, arg2, arg3v, arg3n, arg4);                            \
-    free(arg3v);                                                            \
+    outtype ret = func (arg1, arg2, arg3v, arg3n, arg4);                    \
+    delete [] arg3v ;                                                       \
     return ctor_ ## outtype (ret);                                          \
 }
 
@@ -1252,18 +1178,15 @@ static PyObject *                                                   \
 _w ## func (PyObject *self, PyObject *args)                         \
 {                                                                   \
     intype1 arg1;                                                   \
-    char *val;                                                      \
-    PyObject *ret;                                                  \
                                                                     \
-    if (!(arg1= ( intype1 ) get_object_arg(args)))                  \
+    if (!(arg1 = get_object_arg<intype1>(args)))                    \
         return NULL;                                                \
                                                                     \
-    val = func (arg1);                                              \
-    ret = PyUnicode_FromString(val);                                \
-    LLVMDisposeMessage(val);                                        \
+    const char *val = func (arg1);                                  \
+    PyObject *ret = PyUnicode_FromString(val);                      \
+    LLVMDisposeMessage(const_cast<char*>(val));                     \
     return ret;                                                     \
 }
 
 
 #endif /* LLVM_PY_WRAP_H */
-

@@ -51,9 +51,6 @@
     typedef unsigned int LLVMLinkerMode;
 #endif
 
-/* libc includes */
-#include <stdarg.h> /* for malloc(), free() */
-
 /* Compatibility with Python 2.4: Py_ssize_t is not available. */
 #ifndef PY_SSIZE_T_MAX
 typedef int Py_ssize_t;
@@ -67,13 +64,12 @@ static PyObject *
 _wLLVMModuleCreateWithName(PyObject *self, PyObject *args)
 {
     const char *s;
-    LLVMModuleRef module;
 
     if (!PyArg_ParseTuple(args, "s:LLVMModuleCreateWithName", &s)) {
         return NULL;
     }
 
-    module = LLVMModuleCreateWithName(s);
+    const LLVMModuleRef module = LLVMModuleCreateWithName(s);
     return ctor_LLVMModuleRef(module);
 }
 
@@ -95,16 +91,13 @@ _wrap_objstrobj2obj(LLVMModuleGetOrInsertFunction, LLVMModuleRef,
 static PyObject *
 _wLLVMVerifyModule(PyObject *self, PyObject *args)
 {
-    char *outmsg;
-    PyObject *ret;
-    LLVMModuleRef m;
+    const LLVMModuleRef m = get_object_arg<LLVMModuleRef>(args) ;
+    if (!m) return NULL;
 
-    if (!(m = (LLVMModuleRef)get_object_arg(args)))
-        return NULL;
-
-    outmsg = 0;
+    char *outmsg = 0;
     (void) LLVMVerifyModule(m, LLVMReturnStatusAction, &outmsg);
 
+    PyObject *ret;
     if (outmsg) {
         ret = PyUnicode_FromString(outmsg);
         LLVMDisposeMessage(outmsg);
@@ -122,13 +115,13 @@ _wLLVMVerifyModule(PyObject *self, PyObject *args)
 static PyObject*
 _wLLVMGetModuleFromAssembly(PyObject *self, PyObject *args)
 {
-    char * str;
+    const char * str;
     if ( !PyArg_ParseTuple(args, "s", &str) ){
         return NULL;
     }
 
     char * outmsg = 0;
-    LLVMModuleRef mod = LLVMGetModuleFromAssembly(str, &outmsg);
+    const LLVMModuleRef mod = LLVMGetModuleFromAssembly(str, &outmsg);
 
     if ( !mod ){
         if ( outmsg ){
@@ -146,19 +139,18 @@ _wLLVMGetModuleFromAssembly(PyObject *self, PyObject *args)
 static PyObject *
 _wLLVMGetModuleFromBitcode(PyObject *self, PyObject *args)
 {
-    PyObject *obj, *ret;
-    Py_ssize_t len;
-    char *start, *outmsg;
-    LLVMModuleRef m;
+    PyObject *obj ;
 
     if (!PyArg_ParseTuple(args, "S", &obj))
         return NULL;
 
-    start = PyBytes_AsString(obj);
-    len = PyBytes_Size(obj);
+    const char *start = PyBytes_AsString(obj);
+    const Py_ssize_t len = PyBytes_Size(obj);
 
-    outmsg = 0;
-    m = LLVMGetModuleFromBitcode(start, len, &outmsg);
+    char *outmsg = 0;
+    LLVMModuleRef m = LLVMGetModuleFromBitcode(start, len, &outmsg);
+
+    PyObject *ret;
     if (!m) {
         if (outmsg) {
             ret = PyUnicode_FromString(outmsg);
@@ -175,29 +167,23 @@ _wLLVMGetModuleFromBitcode(PyObject *self, PyObject *args)
 static PyObject *
 _wLLVMGetBitcodeFromModule(PyObject *self, PyObject *args)
 {
-    PyObject *ret;
-    unsigned len;
-    unsigned char *bytes;
-    LLVMModuleRef m;
 
-    if (!(m = (LLVMModuleRef)get_object_arg(args)))
-        return NULL;
+    const LLVMModuleRef m = get_object_arg<LLVMModuleRef>(args) ;
+    if (!m ) return NULL;
 
-    if (!(bytes = LLVMGetBitcodeFromModule(m, &len)))
-        Py_RETURN_NONE;
+    size_t len;
+    unsigned const char *ubytes = LLVMGetBitcodeFromModule(m, &len) ;
+    if ( !ubytes ) Py_RETURN_NONE;
 
-    ret = PyBytes_FromStringAndSize((char *)bytes, (Py_ssize_t)len);
-    LLVMDisposeMessage((char *)bytes);
+    const char *chars = reinterpret_cast<const char*>(ubytes) ;
+    PyObject *ret = PyBytes_FromStringAndSize(chars, len);
+    LLVMDisposeMessage(const_cast<char*>(chars));
     return ret;
 }
 
 static PyObject *
 _wLLVMGetNativeCodeFromModule(PyObject * self, PyObject * args)
 {
-    PyObject * ret;
-    unsigned len;
-    unsigned char * bytes;
-    LLVMModuleRef m;
 
     PyObject * arg_m;
     int arg_use_asm;
@@ -205,33 +191,38 @@ _wLLVMGetNativeCodeFromModule(PyObject * self, PyObject * args)
     if (!PyArg_ParseTuple(args, "Oi", &arg_m, &arg_use_asm))
         return NULL;
 
-    m = (LLVMModuleRef) PyCapsule_GetPointer(arg_m, NULL);
+    const LLVMModuleRef m = pycap_get<LLVMModuleRef>( arg_m ) ;
 
     std::string error;
-    bytes = LLVMGetNativeCodeFromModule(m, arg_use_asm, &len, error);
+    size_t len;
+    unsigned const char * ubytes
+        = LLVMGetNativeCodeFromModule(m, arg_use_asm, &len, error);
     if ( !error.empty() ){
         PyErr_SetString(PyExc_RuntimeError, error.c_str());
     }
 
-    ret = PyBytes_FromStringAndSize((char *)bytes, (Py_ssize_t)len);
-    delete [] bytes;
+    const char *chars = reinterpret_cast<const char*>(ubytes) ;
+    PyObject * ret = PyBytes_FromStringAndSize(chars, len);
+
+    LLVMDisposeMessage(const_cast<char*>(chars));
+
     return ret;
 }
 
 static PyObject *
 _wLLVMLinkModules(PyObject *self, PyObject *args)
 {
-    PyObject *dest_obj, *src_obj, *ret;
-    LLVMModuleRef dest, src;
-    char *errmsg;
-    unsigned int mode = 0;
+    size_t mode = 0;
 
+    PyObject *dest_obj, *src_obj ;
     if (!PyArg_ParseTuple(args, "OO|I", &dest_obj, &src_obj, &mode))
         return NULL;
 
-    dest = (LLVMModuleRef) PyCapsule_GetPointer(dest_obj, NULL);
-    src = (LLVMModuleRef) PyCapsule_GetPointer(src_obj, NULL);
+    const LLVMModuleRef dest = pycap_get<LLVMModuleRef>(dest_obj ) ;
+    const LLVMModuleRef src = pycap_get<LLVMModuleRef>(src_obj) ;
 
+    PyObject *ret;
+    char *errmsg;
     if (!LLVMLinkModules(dest, src, (LLVMLinkerMode)mode, &errmsg)) {
         if (errmsg) {
             ret = PyUnicode_FromString(errmsg);
@@ -291,29 +282,27 @@ typedef unsigned (*arrcnt_fn_t)(LLVMTypeRef ty);
 static PyObject *
 obj2arr(PyObject *self, PyObject *args, arrcnt_fn_t cntfunc, obj2arr_fn_t arrfunc)
 {
-    LLVMTypeRef type, *param_types;
-    unsigned param_count;
-    PyObject *list;
+    size_t param_count;
 
     /* get the function object ptr */
-    if (!(type = (LLVMTypeRef)get_object_arg(args)))
-        return NULL;
+    const LLVMTypeRef type = get_object_arg<LLVMTypeRef>(args) ;
+    if (!type) return NULL;
 
     /* get param count */
     param_count = cntfunc(type);
 
     /* alloc enough space for all of them */
-    if (!(param_types = (LLVMTypeRef *)malloc(sizeof(LLVMTypeRef) * param_count)))
-        return PyErr_NoMemory();
+    LLVMTypeRef* param_types = new LLVMTypeRef[param_count] ;
 
     /* call LLVM func */
     arrfunc(type, param_types);
 
     /* create a list from the array */
-    list = make_list_from_LLVMTypeRef_array(param_types, param_count);
+    PyObject *list
+        = make_list_from_LLVMTypeRef_array(param_types, param_count);
 
     /* free temp storage */
-    free(param_types);
+    delete [] param_types ;
 
     return list;
 }
@@ -337,7 +326,8 @@ _wrap_objstr2none(LLVMSetStructName, LLVMTypeRef)
 static PyObject *
 _wLLVMGetStructElementTypes(PyObject *self, PyObject *args)
 {
-    return obj2arr(self, args, LLVMCountStructElementTypes, LLVMGetStructElementTypes);
+    return obj2arr(self, args, LLVMCountStructElementTypes,
+            LLVMGetStructElementTypes);
 }
 
 
@@ -392,13 +382,11 @@ _wrap_obj2obj(LLVMValueGetNumUses, LLVMValueRef, int)
 static PyObject *
 _wLLVMValueGetUses(PyObject *self, PyObject *args)
 {
-    LLVMValueRef value;
-
-    if (!(value = (LLVMValueRef)get_object_arg(args)))
-        return NULL;
+    const LLVMValueRef value = get_object_arg<LLVMValueRef>(args) ;
+    if (!value) return NULL;
 
     LLVMValueRef *uses = 0;
-    unsigned n = LLVMValueGetUses(value, &uses);
+    size_t n = LLVMValueGetUses(value, &uses);
 
     PyObject *list = make_list_from_LLVMValueRef_array(uses, n);
     if (n > 0)
@@ -431,15 +419,14 @@ _wLLVMConstInt(PyObject *self, PyObject *args)
     PyObject *obj;
     unsigned long long n;
     int sign_extend;
-    LLVMTypeRef ty;
-    LLVMValueRef val;
 
     if (!PyArg_ParseTuple(args, "OKi", &obj, &n, &sign_extend))
         return NULL;
 
-    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj, NULL);
+    const LLVMTypeRef ty = pycap_get<LLVMTypeRef>( obj ) ;
 
-    val = LLVMConstInt(ty, n, sign_extend);
+    const LLVMValueRef val = LLVMConstInt(ty, n, sign_extend);
+
     return ctor_LLVMValueRef(val);
 }
 
@@ -448,15 +435,13 @@ _wLLVMConstReal(PyObject *self, PyObject *args)
 {
     PyObject *obj;
     double d;
-    LLVMTypeRef ty;
-    LLVMValueRef val;
 
     if (!PyArg_ParseTuple(args, "Od", &obj, &d))
         return NULL;
 
-    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj, NULL);
+    const LLVMTypeRef ty = pycap_get<LLVMTypeRef>( obj ) ;
 
-    val = LLVMConstReal(ty, d);
+    const LLVMValueRef val = LLVMConstReal(ty, d);
     return ctor_LLVMValueRef(val);
 }
 
@@ -469,13 +454,12 @@ _wLLVMConstString(PyObject *self, PyObject *args)
 {
     const char *s;
     int dont_null_terminate;
-    LLVMValueRef val;
 
     if (!PyArg_ParseTuple(args, "si:LLVMConstString", &s, &dont_null_terminate)) {
         return NULL;
     }
 
-    val = LLVMConstString(s, strlen(s), dont_null_terminate);
+    LLVMValueRef val = LLVMConstString(s, strlen(s), dont_null_terminate);
     return ctor_LLVMValueRef(val);
 }
 
@@ -587,10 +571,8 @@ _wrap_objenum2none(LLVMRemoveFunctionAttr, LLVMValueRef, LLVMAttribute)
 static PyObject *
 _wLLVMVerifyFunction(PyObject *self, PyObject *args)
 {
-    LLVMValueRef fn;
-
-    if (!(fn = (LLVMValueRef)get_object_arg(args)))
-        return NULL;
+    const LLVMValueRef fn = get_object_arg<LLVMValueRef>(args);
+    if (!fn) return NULL;
 
     return ctor_int(LLVMVerifyFunction(fn, LLVMReturnStatusAction));
 }
@@ -692,33 +674,28 @@ _wLLVMBuildInvoke(PyObject *self, PyObject *args)
 {
     PyObject *obj1, *obj2, *obj3, *obj4, *obj5;
     const char *name;
-    LLVMBuilderRef builder;
-    LLVMValueRef func;
-    LLVMValueRef *fnargs;
-    unsigned fnarg_count;
-    LLVMBasicBlockRef then_blk, catch_blk;
-    LLVMValueRef inst;
 
     if (!PyArg_ParseTuple(args, "OOOOOs:LLVMBuildInvoke", &obj1, &obj2, &obj3, &obj4, &obj5, &name)) {
         return NULL;
     }
 
-    builder = (LLVMBuilderRef) PyCapsule_GetPointer(obj1, NULL);
-    func = (LLVMValueRef) PyCapsule_GetPointer(obj2, NULL);
+    const LLVMBuilderRef builder = pycap_get<LLVMBuilderRef>( obj1);
+    const LLVMValueRef func = pycap_get<LLVMValueRef>( obj2 ) ;
 
-
-    fnarg_count = (unsigned) PyList_Size(obj3);
-    fnargs = (LLVMValueRef *)make_array_from_list(obj3, fnarg_count);
+    size_t fnarg_count = PyList_Size(obj3);
+    LLVMValueRef *fnargs
+        = make_array_from_list<LLVMValueRef *>(obj3, fnarg_count);
     if (!fnargs)
         return PyErr_NoMemory();
 
-    then_blk = (LLVMBasicBlockRef) PyCapsule_GetPointer(obj4, NULL);
-    catch_blk = (LLVMBasicBlockRef) PyCapsule_GetPointer(obj5, NULL);
+    const LLVMBasicBlockRef then_blk = pycap_get<LLVMBasicBlockRef> ( obj4 ) ;
+    const LLVMBasicBlockRef catch_blk = pycap_get<LLVMBasicBlockRef> ( obj5 ) ;
 
+    const LLVMValueRef inst
+        = LLVMBuildInvoke(builder, func, fnargs, fnarg_count, then_blk,
+                catch_blk, name);
 
-    inst = LLVMBuildInvoke(builder, func, fnargs, fnarg_count, then_blk, catch_blk, name);
-
-    free(fnargs);
+    delete [] fnargs;
 
     return ctor_LLVMValueRef(inst);
 }
@@ -816,13 +793,13 @@ _wLLVMCreateMemoryBufferWithContentsOfFile(PyObject *self, PyObject *args)
 {
     const char *path;
     LLVMMemoryBufferRef ref;
-    char *outmsg;
     PyObject *ret;
 
     if (!PyArg_ParseTuple(args, "s:LLVMCreateMemoryBufferWithContentsOfFile", &path)) {
         return NULL;
     }
 
+    char *outmsg;
     if (!LLVMCreateMemoryBufferWithContentsOfFile(path, &ref, &outmsg)) {
         ret = ctor_LLVMMemoryBufferRef(ref);
     } else {
@@ -836,10 +813,9 @@ _wLLVMCreateMemoryBufferWithContentsOfFile(PyObject *self, PyObject *args)
 static PyObject *
 _wLLVMCreateMemoryBufferWithSTDIN(PyObject *self, PyObject *args)
 {
+    PyObject *ret;
     LLVMMemoryBufferRef ref;
     char *outmsg;
-    PyObject *ret;
-
     if (!LLVMCreateMemoryBufferWithSTDIN(&ref, &outmsg)) {
         ret = ctor_LLVMMemoryBufferRef(ref);
     } else {
@@ -1059,11 +1035,6 @@ _wLLVMTargetMachineLookup(PyObject * self, PyObject * args)
 static PyObject *
 _wLLVMTargetMachineEmitFile(PyObject * self, PyObject * args)
 {
-    PyObject * ret;
-    unsigned len;
-    unsigned char * bytes;
-    LLVMTargetMachineRef tm;
-    LLVMModuleRef m;
 
     PyObject *arg_tm, *arg_m;
     int arg_use_asm;
@@ -1071,18 +1042,22 @@ _wLLVMTargetMachineEmitFile(PyObject * self, PyObject * args)
     if (!PyArg_ParseTuple(args, "OOi", &arg_tm, &arg_m, &arg_use_asm))
         return NULL;
 
-    tm = (LLVMTargetMachineRef) PyCapsule_GetPointer(arg_tm, NULL);
-    m = (LLVMModuleRef) PyCapsule_GetPointer(arg_m, NULL);
+    const LLVMTargetMachineRef tm
+        = pycap_get<LLVMTargetMachineRef>( arg_tm ) ;
+    const LLVMModuleRef m = pycap_get<LLVMModuleRef>( arg_m ) ;
 
     std::string error;
-    bytes = LLVMTargetMachineEmitFile(tm, m, arg_use_asm, &len, error);
+    size_t len;
+    unsigned const char * ubytes
+        = LLVMTargetMachineEmitFile(tm, m, arg_use_asm, &len, error);
     if ( !error.empty() ){
         PyErr_SetString(PyExc_RuntimeError, error.c_str());
         return NULL;
     }
 
-    ret = PyBytes_FromStringAndSize((char *)bytes, (Py_ssize_t)len);
-    delete [] bytes;
+    const char *chars = reinterpret_cast<const char*>(ubytes) ;
+    PyObject * ret = PyBytes_FromStringAndSize(chars, len);
+    delete [] ubytes;
     return ret;
 }
 
@@ -1106,15 +1081,11 @@ _wrap_obj2none(LLVMDisposeTargetData, LLVMTargetDataRef)
 static PyObject *
 _wLLVMTargetDataAsString(PyObject *self, PyObject *args)
 {
-    LLVMTargetDataRef td;
-    char *tdrep = 0;
-    PyObject *ret;
+    const LLVMTargetDataRef td = get_object_arg<LLVMTargetDataRef>(args);
+    if (!td) return NULL;
 
-    if (!(td = (LLVMTargetDataRef)get_object_arg(args)))
-        return NULL;
-
-    tdrep = LLVMCopyStringRepOfTargetData(td);
-    ret = PyUnicode_FromString(tdrep);
+    char *tdrep = LLVMCopyStringRepOfTargetData(td);
+    PyObject *ret = PyUnicode_FromString(tdrep);
     LLVMDisposeMessage(tdrep);
     return ret;
 }
@@ -1157,13 +1128,13 @@ _wrap_objstr2none(LLVMEngineBuilderSetMAttrs, LLVMEngineBuilderRef)
 static PyObject *
 _wLLVMEngineBuilderCreate(PyObject *self, PyObject *args)
 {
-    LLVMEngineBuilderRef obj;
-    if (!(obj = (LLVMEngineBuilderRef)get_object_arg(args)))
+    const LLVMEngineBuilderRef obj
+        = get_object_arg<LLVMEngineBuilderRef>(args) ;
+    if (!obj)
         return NULL;
 
     std::string outmsg;
-
-    LLVMExecutionEngineRef ee = LLVMEngineBuilderCreate(obj, outmsg);
+    const LLVMExecutionEngineRef ee = LLVMEngineBuilderCreate(obj, outmsg);
 
     PyObject * ret;
     if( !ee ){ // check if error message is set.
@@ -1182,24 +1153,23 @@ _wLLVMEngineBuilderCreate(PyObject *self, PyObject *args)
 static PyObject *
 _wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
 {
-    LLVMModuleRef mod;
     PyObject *obj;
     int force_interpreter;
-    LLVMExecutionEngineRef ee;
     char *outmsg = 0;
-    PyObject *ret;
     int error;
 
     if (!PyArg_ParseTuple(args, "Oi", &obj, &force_interpreter))
         return NULL;
 
-    mod = (LLVMModuleRef) PyCapsule_GetPointer(obj, NULL);
+    const LLVMModuleRef mod = pycap_get<LLVMModuleRef>( obj ) ;
 
+    LLVMExecutionEngineRef ee;
     if (force_interpreter)
         error = LLVMCreateInterpreterForModule(&ee, mod, &outmsg);
     else
         error = LLVMCreateJITCompilerForModule(&ee, mod, 1 /*fast*/, &outmsg);
 
+    PyObject *ret;
     if (error) {
         ret = PyUnicode_FromString(outmsg);
         LLVMDisposeMessage(outmsg);
@@ -1215,14 +1185,12 @@ _wLLVMGetPointerToFunction(PyObject *self, PyObject *args)
 {
     PyObject *obj_ee;
     PyObject *obj_fn;
-    LLVMExecutionEngineRef ee;
-    LLVMValueRef fn;
 
     if (!PyArg_ParseTuple(args, "OO", &obj_ee, &obj_fn))
         return NULL;
 
-    ee = (LLVMExecutionEngineRef) PyCapsule_GetPointer(obj_ee, NULL);
-    fn = (LLVMValueRef) PyCapsule_GetPointer(obj_fn, NULL);
+    const LLVMExecutionEngineRef ee = pycap_get<LLVMExecutionEngineRef>(obj_ee ) ;
+    const LLVMValueRef fn = pycap_get<LLVMValueRef>( obj_fn ) ;
 
     return PyLong_FromVoidPtr(LLVMGetPointerToFunction(ee,fn));
 }
@@ -1238,19 +1206,18 @@ static PyObject *
 _wLLVMRemoveModule2(PyObject *self, PyObject *args)
 {
     PyObject *obj_ee;
-    PyObject *obj_mod;
-    LLVMExecutionEngineRef ee;
-    LLVMModuleRef mod, mod_new = 0;
-    char *outmsg = 0;
-    PyObject *ret;
 
+    PyObject *obj_mod;
     if (!PyArg_ParseTuple(args, "OO", &obj_ee, &obj_mod))
         return NULL;
 
-    ee = (LLVMExecutionEngineRef) PyCapsule_GetPointer(obj_ee, NULL);
-    mod = (LLVMModuleRef) PyCapsule_GetPointer(obj_mod, NULL);
+    const LLVMExecutionEngineRef ee = pycap_get<LLVMExecutionEngineRef>( obj_ee ) ;
+    const LLVMModuleRef mod = pycap_get<LLVMModuleRef>(obj_mod) ;
 
+    char *outmsg = 0;
+    LLVMModuleRef mod_new = 0;
     LLVMRemoveModule(ee, mod, &mod_new, &outmsg);
+    PyObject *ret;
     if (mod_new) {
         ret = ctor_LLVMModuleRef(mod_new);
     } else {
@@ -1286,7 +1253,6 @@ static PyObject *
 _wLLVMCreateGenericValueOfInt(PyObject *self, PyObject *args)
 {
     PyObject *obj1;
-    LLVMTypeRef ty;
     unsigned long long n;
     int is_signed;
     LLVMGenericValueRef gv;
@@ -1294,7 +1260,7 @@ _wLLVMCreateGenericValueOfInt(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OLi", &obj1, &n, &is_signed))
         return NULL;
 
-    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj1, NULL);
+    const LLVMTypeRef ty = pycap_get<LLVMTypeRef>( obj1 ) ;
 
     gv = LLVMCreateGenericValueOfInt(ty, n, is_signed);
     return ctor_LLVMGenericValueRef(gv);
@@ -1304,14 +1270,13 @@ static PyObject *
 _wLLVMCreateGenericValueOfFloat(PyObject *self, PyObject *args)
 {
     PyObject *obj1;
-    LLVMTypeRef ty;
     double d;
     LLVMGenericValueRef gv;
 
     if (!PyArg_ParseTuple(args, "Od", &obj1, &d))
         return NULL;
 
-    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj1, NULL);
+    const LLVMTypeRef ty = pycap_get<LLVMTypeRef>( obj1 ) ;
 
     gv = LLVMCreateGenericValueOfFloat(ty, d);
     return ctor_LLVMGenericValueRef(gv);
@@ -1324,16 +1289,13 @@ _wLLVMCreateGenericValueOfPointer(PyObject *self, PyObject *args)
 //    LLVMTypeRef ty; //unused?
     unsigned long long n_;
     size_t n;
-    LLVMGenericValueRef gv;
 
     if (!PyArg_ParseTuple(args, "L", &n_))
         return NULL;
 
     n=n_;
 
-//    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj1, NULL);
-
-    gv = LLVMCreateGenericValueOfPointer((void*)n);
+    const LLVMGenericValueRef gv = LLVMCreateGenericValueOfPointer((void*)n);
     return ctor_LLVMGenericValueRef(gv);
 }
 
@@ -1342,13 +1304,12 @@ _wLLVMGenericValueToInt(PyObject *self, PyObject *args)
 {
     PyObject *obj1;
     int is_signed;
-    LLVMGenericValueRef gv;
     unsigned long long val;
 
     if (!PyArg_ParseTuple(args, "Oi", &obj1, &is_signed))
         return NULL;
 
-    gv = (LLVMGenericValueRef) PyCapsule_GetPointer(obj1, NULL);
+    LLVMGenericValueRef gv = pycap_get<LLVMGenericValueRef>(obj1);
 
     val = LLVMGenericValueToInt(gv, is_signed);
     return is_signed ?
@@ -1360,17 +1321,14 @@ static PyObject *
 _wLLVMGenericValueToFloat(PyObject *self, PyObject *args)
 {
     PyObject *obj1, *obj2;
-    LLVMTypeRef ty;
-    LLVMGenericValueRef gv;
-    double val;
 
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))
         return NULL;
 
-    ty = (LLVMTypeRef) PyCapsule_GetPointer(obj1, NULL);
-    gv = (LLVMGenericValueRef) PyCapsule_GetPointer(obj2, NULL);
+    const LLVMTypeRef ty = pycap_get<LLVMTypeRef>( obj1 ) ;
+    const LLVMGenericValueRef gv = pycap_get<LLVMGenericValueRef>( obj2 ) ;
 
-    val = LLVMGenericValueToFloat(ty, gv);
+    double val = LLVMGenericValueToFloat(ty, gv);
     return PyFloat_FromDouble(val);
 }
 
@@ -1378,15 +1336,13 @@ static PyObject *
 _wLLVMGenericValueToPointer(PyObject *self, PyObject *args)
 {
     PyObject *obj1;
-    LLVMGenericValueRef gv;
-    void * val;
 
     if (!PyArg_ParseTuple(args, "O", &obj1))
         return NULL;
 
-    gv = (LLVMGenericValueRef) PyCapsule_GetPointer(obj1, NULL);
+    const LLVMGenericValueRef gv = pycap_get<LLVMGenericValueRef>( obj1 ) ;
 
-    val = LLVMGenericValueToPointer(gv);
+    void * val = LLVMGenericValueToPointer(gv);
     return PyLong_FromVoidPtr(val);
 }
 
@@ -1404,14 +1360,13 @@ static PyObject *
 _wLLVMLoadLibraryPermanently(PyObject *self, PyObject *args)
 {
     const char *filename;
-    char *outmsg;
     PyObject *ret;
 
     if (!PyArg_ParseTuple(args, "s:LLVMLoadLibraryPermanently", &filename)) {
         return NULL;
     }
 
-    outmsg = 0;
+    char *outmsg = 0;
     if (!LLVMLoadLibraryPermanently(filename, &outmsg)) {
         if (outmsg) {
             ret = PyUnicode_FromString(outmsg);
