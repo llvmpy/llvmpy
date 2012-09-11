@@ -254,7 +254,7 @@ void LLVMDisposeTargetMachine(LLVMTargetMachineRef tm){
 
 unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
                                          LLVMModuleRef modref,
-                                         int assembly, unsigned * lenp,
+                                         int assembly, size_t * lenp,
                                          std::string &error)
 {
     using namespace llvm;
@@ -352,7 +352,7 @@ LLVMTargetDataRef LLVMTargetMachineGetTargetData(LLVMTargetMachineRef tm)
 }
 
 unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
-                                           unsigned * lenp, std::string &error)
+                                           size_t * lenp, std::string &error)
 {
     using namespace llvm;
     assert(lenp);
@@ -988,7 +988,7 @@ unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, unsigned int mod
 }
 #endif
 
-unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, unsigned *lenp)
+unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, size_t *lenp)
 {
     assert(lenp);
 

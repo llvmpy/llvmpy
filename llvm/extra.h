@@ -109,7 +109,7 @@ void LLVMDisposeTargetMachine(LLVMTargetMachineRef tm);
  */
 unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
                                          LLVMModuleRef modref,
-                                         int assembly, unsigned * lenp,
+                                         int assembly, size_t * lenp,
                                          std::string &error);
 
 /*
@@ -151,7 +151,7 @@ void LLVMPrintRegisteredTargetsForVersion();
  * Wraps TargetMachine::addPassesToEmitFile
  */
 unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
-                                           unsigned * lenp, std::string &error);
+                                           size_t * lenp, std::string &error);
 
 /*
  * Wraps IRBuilder::CreateFence
@@ -446,7 +446,7 @@ unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src,
 #endif
 /* Returns pointer to a heap-allocated block of `*len' bytes containing bit code
  * for the given module. NULL on error. */
-unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, unsigned *len);
+unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, size_t *len);
 
 /* Wraps llvm::sys::DynamicLibrary::LoadLibraryPermanently(). Returns 0 on
  * failure (with errmsg filled in) and 1 on success. Dispose error message after

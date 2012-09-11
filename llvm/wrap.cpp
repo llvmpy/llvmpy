@@ -108,7 +108,7 @@ void **make_array_from_list(PyObject *list, int n)
 }
 
 #define LIST_FROM_ARRAY_IMPL(TYPE)                                  \
-PyObject *make_list_from_ ## TYPE ## _array( TYPE *p, unsigned n)   \
+PyObject *make_list_from_ ## TYPE ## _array( TYPE *p, size_t n)   \
 {                                                                   \
     size_t i;                                                       \
     PyObject *list = PyList_New(n);                                 \
