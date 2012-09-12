@@ -1,5 +1,7 @@
+The files herein serve as examples.
 
-The files herein serve as examples or testers for various parts of llvm-py.
+All tests should be part of the llvm.test() function (i.e. part of
+llvm.test_llvmpy), such that they can be easily run when llvmpy is deployed.
+
 Everything here is checked to be working before release. All files are
 self-contained.
-
