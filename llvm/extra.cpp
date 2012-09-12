@@ -159,6 +159,13 @@ unsigned LLVMMetaDataGetNumOperands(LLVMValueRef mdref)
     return llvm::unwrap<llvm::MDNode>(mdref)->getNumOperands();
 }
 
+LLVMValueRef LLVMMetaDataStringGet(LLVMModuleRef modref, const char *s)
+{
+    LLVMContext & context = unwrap(modref)->getContext();
+    MDString * const mdstring = MDString::get(context, s);
+    return wrap(mdstring);
+}
+
 const char *LLVMGetConstExprOpcodeName(LLVMValueRef inst)
 {
     return llvm::unwrap<llvm::ConstantExpr>(inst)->getOpcodeName();

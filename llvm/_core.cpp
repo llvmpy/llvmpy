@@ -610,6 +610,7 @@ _wrap_objlist2obj(LLVMMetaDataGet, LLVMModuleRef, LLVMValueRef, LLVMValueRef)
 _wrap_objstrobj2none(LLVMAddNamedMetadataOperand, LLVMModuleRef, LLVMValueRef)
 _wrap_objint2obj(LLVMMetaDataGetOperand, LLVMValueRef, LLVMValueRef)
 _wrap_obj2obj(LLVMMetaDataGetNumOperands, LLVMValueRef, int)
+_wrap_objstr2obj(LLVMMetaDataStringGet, LLVMModuleRef, LLVMValueRef)
 
 static PyObject *
 _wLLVMGetNamedMetadataOperands(PyObject *self, PyObject *args)
@@ -1687,6 +1688,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMAddNamedMetadataOperand )
     _method( LLVMMetaDataGetOperand )
     _method( LLVMMetaDataGetNumOperands )
+    _method( LLVMMetaDataStringGet )
 
     /* Instructions */
     _method( LLVMGetInstructionParent )
