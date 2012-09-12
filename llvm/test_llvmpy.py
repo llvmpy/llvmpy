@@ -395,7 +395,8 @@ class TestMetaData(unittest.TestCase):
     def test_metadata(self):
         m = Module.new('a')
         t = Type.int()
-        metadata = MetaData.get(m, [Constant.int(t, 100), MetaDataString.get(m, 'abcdef')])
+        metadata = MetaData.get(m, [Constant.int(t, 100),
+                                    MetaDataString.get(m, 'abcdef')])
         MetaData.add_named_operand(m, 'foo', metadata)
         self.assertEqual(MetaData.get_named_operands(m, 'foo'), [metadata])
         self.assertEqual(MetaData.get_named_operands(m, 'bar'), [])
@@ -433,6 +434,27 @@ class TestInlining(unittest.TestCase):
         self.assertIn('2468', post_inlining)
 
 tests.append(TestInlining)
+
+# ---------------------------------------------------------------------------
+
+class TestIssue10(unittest.TestCase):
+    def test_issue10(self):
+        m = Module.new('a')
+        ti = Type.int()
+        tf = Type.function(ti, [ti, ti])
+
+        f = m.add_function(tf, "func1")
+
+        bb = f.append_basic_block('entry')
+
+        b = Builder.new(bb)
+
+        # There are no instructions in bb. Positioning of the
+        # builder at beginning (or end) should succeed (trivially).
+        b.position_at_end(bb)
+        b.position_at_beginning(bb)
+
+tests.append(TestIssue10)
 
 # ---------------------------------------------------------------------------
 
