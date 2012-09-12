@@ -394,10 +394,13 @@ class TestMetaData(unittest.TestCase):
     # test module metadata
     def test_metadata(self):
         m = Module.new('a')
-        metadata = MetaData.get(m, []) # empty metadata node
+        t = Type.int()
+        metadata = MetaData.get(m, [Constant.int(t, 100)])
         MetaData.add_named_operand(m, 'foo', metadata)
         self.assertEqual(MetaData.get_named_operands(m, 'foo'), [metadata])
         self.assertEqual(MetaData.get_named_operands(m, 'bar'), [])
+        self.assertEqual(len(metadata.operands), 1)
+        self.assertEqual(metadata.operands[0].z_ext_value, 100)
 
 tests.append(TestMetaData)
 

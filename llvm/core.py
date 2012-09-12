@@ -1466,6 +1466,18 @@ class MetaData(Value):
     def add_named_operand(module, name, operand):
         _core.LLVMAddNamedMetadataOperand(module.ptr, name, operand.ptr)
 
+    @property
+    def operand_count(self):
+        return _core.LLVMMetaDataGetNumOperands(self.ptr)
+
+    @property
+    def operands(self):
+        """Yields operands of this metadata."""
+        return [self._get_operand(i) for i in range(self.operand_count)]
+
+    def _get_operand(self, i):
+        return _make_value(_core.LLVMMetaDataGetOperand(self.ptr, i))
+
 #===----------------------------------------------------------------------===
 # Instruction
 #===----------------------------------------------------------------------===
