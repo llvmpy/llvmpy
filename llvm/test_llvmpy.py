@@ -71,6 +71,28 @@ tests.append(TestAsm)
 
 # ---------------------------------------------------------------------------
 
+class TestAttr(unittest.TestCase):
+    def make_module(self):
+        test_module = """
+            define i32 @sum(i32, i32) {
+            entry:
+                %2 = add i32 %0, %1
+                ret i32 %2
+            }
+        """
+        return Module.from_assembly(StringIO(test_module))
+
+    def test_align(self):
+        m = self.make_module()
+        f = m.get_function_named('sum')
+        f.args[0].alignment = 16
+        self.assert_("align 16" in str(f))
+        self.assertEqual(f.args[0].alignment, 16)
+
+tests.append(TestAttr)
+
+# ---------------------------------------------------------------------------
+
 class TestOperands(unittest.TestCase):
     # implement a test function
     test_module = """
@@ -575,9 +597,9 @@ class TestIntrinsic(unittest.TestCase):
 #   define float @mysin(float %x) {
 #   entry:
 #       %cosx = call float @llvm.cos.f32( float %x )            ; <float
-#       %cos2 = call float @llvm.powi.f32( float %cosx, i32 2 )         
+#       %cos2 = call float @llvm.powi.f32( float %cosx, i32 2 )
 #       %onemc2 = sub float 1.000000e+00, %cos2         ; <float> [#uses
-#       %sin = call float @llvm.sqrt.f32( float %onemc2 )               
+#       %sin = call float @llvm.sqrt.f32( float %onemc2 )
 #       ret float %sin
 #   }
 #
