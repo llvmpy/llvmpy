@@ -1457,6 +1457,15 @@ class MetaData(Value):
         ptr = _core.LLVMMetaDataGet(module.ptr, vs)
         return MetaData(ptr)
 
+    @staticmethod
+    def get_named_operands(module, name):
+        lst = _core.LLVMGetNamedMetadataOperands(module.ptr, name)
+        return [MetaData(ptr) for ptr in lst]
+
+    @staticmethod
+    def add_named_operand(module, name, operand):
+        _core.LLVMAddNamedMetadataOperand(module.ptr, name, operand.ptr)
+
 #===----------------------------------------------------------------------===
 # Instruction
 #===----------------------------------------------------------------------===
