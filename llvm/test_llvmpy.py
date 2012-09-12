@@ -16,7 +16,7 @@ else:
 
 from llvm import __version__
 from llvm.core import (Module, Type, GlobalVariable, Function, Builder,
-                       Constant)
+                       Constant, MetaData, MetaDataString)
 import llvm.passes as lp
 import llvm.ee as le
 
@@ -387,6 +387,23 @@ class TestUses(unittest.TestCase):
         self.assertEqual(len(tmp3.uses), 1)
 
 tests.append(TestUses)
+
+# ---------------------------------------------------------------------------
+
+class TestMetaData(unittest.TestCase):
+    # test module metadata
+    def test_metadata(self):
+        m = Module.new('a')
+        t = Type.int()
+        metadata = MetaData.get(m, [Constant.int(t, 100), MetaDataString.get(m, 'abcdef')])
+        MetaData.add_named_operand(m, 'foo', metadata)
+        self.assertEqual(MetaData.get_named_operands(m, 'foo'), [metadata])
+        self.assertEqual(MetaData.get_named_operands(m, 'bar'), [])
+        self.assertEqual(len(metadata.operands), 2)
+        self.assertEqual(metadata.operands[0].z_ext_value, 100)
+        self.assertEqual(metadata.operands[1].string, 'abcdef')
+
+tests.append(TestMetaData)
 
 # ---------------------------------------------------------------------------
 

@@ -607,6 +607,30 @@ _wrap_obj2none(LLVMDeleteBasicBlock, LLVMBasicBlockRef)
 /*===-- MetaData -----------------------------------------------------===*/
 
 _wrap_objlist2obj(LLVMMetaDataGet, LLVMModuleRef, LLVMValueRef, LLVMValueRef)
+_wrap_objstrobj2none(LLVMAddNamedMetadataOperand, LLVMModuleRef, LLVMValueRef)
+_wrap_objint2obj(LLVMMetaDataGetOperand, LLVMValueRef, LLVMValueRef)
+_wrap_obj2obj(LLVMMetaDataGetNumOperands, LLVMValueRef, int)
+_wrap_objstr2obj(LLVMMetaDataStringGet, LLVMModuleRef, LLVMValueRef)
+
+static PyObject *
+_wLLVMGetNamedMetadataOperands(PyObject *self, PyObject *args)
+{
+    PyObject *obj_module;
+    const char *name;
+
+    if (!PyArg_ParseTuple(args, "Os", &obj_module, &name))
+        return NULL;
+
+    LLVMModuleRef module = (LLVMModuleRef)PyCapsule_GetPointer(obj_module, NULL);
+    unsigned num_operands = LLVMGetNamedMetadataNumOperands(module, name);
+    LLVMValueRef *operands = (LLVMValueRef*)malloc(sizeof(LLVMValueRef)*num_operands);
+    LLVMGetNamedMetadataOperands(module, name, operands);
+
+    PyObject *list = make_list_from_LLVMValueRef_array(operands, num_operands);
+    free(operands);
+
+    return list;
+}
 
 /*===-- Instructions -----------------------------------------------------===*/
 
@@ -1660,6 +1684,11 @@ static PyMethodDef core_methods[] = {
 
     /* MetaData */
     _method( LLVMMetaDataGet )
+    _method( LLVMGetNamedMetadataOperands )
+    _method( LLVMAddNamedMetadataOperand )
+    _method( LLVMMetaDataGetOperand )
+    _method( LLVMMetaDataGetNumOperands )
+    _method( LLVMMetaDataStringGet )
 
     /* Instructions */
     _method( LLVMGetInstructionParent )

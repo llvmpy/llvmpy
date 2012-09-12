@@ -66,6 +66,21 @@ LLVMValueRef LLVMMetaDataGet(LLVMModuleRef modref, LLVMValueRef * valrefs,
                              unsigned valct);
 
 /*
+ * Wraps MDNode::getOperand()
+ */
+LLVMValueRef LLVMMetaDataGetOperand(LLVMValueRef mdref, unsigned index);
+
+/*
+ * Wraps MDNode::getNumOperands()
+ */
+unsigned LLVMMetaDataGetNumOperands(LLVMValueRef mdref);
+
+/*
+ * Wraps MDString::get()
+ */
+LLVMValueRef LLVMMetaDataStringGet(LLVMModuleRef modref, const char *s);
+
+/*
  * Wraps ConstantExpr::getOpcodeName()
  */
 const char *LLVMGetConstExprOpcodeName(LLVMValueRef inst);

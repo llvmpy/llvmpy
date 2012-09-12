@@ -1457,6 +1457,38 @@ class MetaData(Value):
         ptr = _core.LLVMMetaDataGet(module.ptr, vs)
         return MetaData(ptr)
 
+    @staticmethod
+    def get_named_operands(module, name):
+        lst = _core.LLVMGetNamedMetadataOperands(module.ptr, name)
+        return [MetaData(ptr) for ptr in lst]
+
+    @staticmethod
+    def add_named_operand(module, name, operand):
+        _core.LLVMAddNamedMetadataOperand(module.ptr, name, operand.ptr)
+
+    @property
+    def operand_count(self):
+        return _core.LLVMMetaDataGetNumOperands(self.ptr)
+
+    @property
+    def operands(self):
+        """Yields operands of this metadata."""
+        return [self._get_operand(i) for i in range(self.operand_count)]
+
+    def _get_operand(self, i):
+        return _make_value(_core.LLVMMetaDataGetOperand(self.ptr, i))
+
+class MetaDataString(Value):
+    @staticmethod
+    def get(module, s):
+        ptr = _core.LLVMMetaDataStringGet(module.ptr, s)
+        return MetaDataString(ptr)
+
+    @property
+    def string(self):
+        '''Same as MDString::getString'''
+        return self.name
+
 #===----------------------------------------------------------------------===
 # Instruction
 #===----------------------------------------------------------------------===
@@ -1627,6 +1659,8 @@ __class_for_valueid = {
     VALUE_CONSTANT_STRUCT                 : ConstantStruct,
     VALUE_CONSTANT_VECTOR                 : ConstantVector,
     VALUE_CONSTANT_POINTER_NULL           : ConstantPointerNull,
+    VALUE_MD_NODE                         : MetaData,
+    VALUE_MD_STRING                       : MetaDataString,
     VALUE_INSTRUCTION + OPCODE_PHI        : PHINode,
     VALUE_INSTRUCTION + OPCODE_CALL       : CallOrInvokeInstruction,
     VALUE_INSTRUCTION + OPCODE_INVOKE     : CallOrInvokeInstruction,
