@@ -19,9 +19,8 @@ def run_llvm_config(args):
     return os.popen(cmd).read().rstrip()
 
 if run_llvm_config(['--version']) == '':
-    print("Cannot invoke llvm-config.")
-    print("Try setting LLVM_CONFIG_PATH=/path/to/llvm-config")
-    sys.exit(1)
+    sys.exit("Cannot invoke llvm-config.\n"
+             "Try setting LLVM_CONFIG_PATH=/path/to/llvm-config")
 
 
 def get_libs_and_objs(components):
@@ -118,14 +117,27 @@ kwds = dict(ext_modules = [Extension(
 pat = re.compile(r'__version__\s*=\s*(\S+)', re.M)
 data = open('llvm/__init__.py').read()
 kwds['version'] = eval(pat.search(data).group(1))
+kwds['long_description'] = open('README.rst').read()
 
 setup(
-    name = 'llvm-py',
+    name = 'llvmpy',
     description = 'Python bindings for LLVM',
     author = 'Mahadevan R',
     author_email = 'mdevan@mdevan.org',
     url = 'http://www.llvmpy.org/',
     packages = ['llvm'],
     py_modules = ['llvm.core'],
+    license = "BSD",
+    classifiers = [
+        "Intended Audience :: Developers",
+        "Operating System :: OS Independent",
+        "Programming Language :: C++",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.2",
+        "Programming Language :: Python :: 3.3",
+    ],
     **kwds
 )
