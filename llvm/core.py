@@ -296,6 +296,9 @@ def unpack_types(objlst):     return _util.unpack_gen(objlst, check_is_type)
 def unpack_values(objlst):    return _util.unpack_gen(objlst, check_is_value)
 def unpack_constants(objlst): return _util.unpack_gen(objlst, check_is_constant)
 
+def unpack_values_or_none(objlst):
+    return _util.unpack_gen_allow_none(objlst, check_is_value)
+
 def check_is_callable(obj):
     if isinstance(obj, Function):
         return
@@ -1453,7 +1456,7 @@ class Function(GlobalValue):
 class MetaData(Value):
     @staticmethod
     def get(module, values):
-        vs = unpack_values(values)
+        vs = unpack_values_or_none(values)
         ptr = _core.LLVMMetaDataGet(module.ptr, vs)
         return MetaData(ptr)
 
@@ -1476,7 +1479,9 @@ class MetaData(Value):
         return [self._get_operand(i) for i in range(self.operand_count)]
 
     def _get_operand(self, i):
-        return _make_value(_core.LLVMMetaDataGetOperand(self.ptr, i))
+        val = _core.LLVMMetaDataGetOperand(self.ptr, i)
+        if val: # metadata operands can be None
+            return _make_value(val)
 
 class MetaDataString(Value):
     @staticmethod
