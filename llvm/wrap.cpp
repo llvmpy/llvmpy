@@ -88,23 +88,26 @@ void *get_object_arg(PyObject *args)
     if (!PyArg_ParseTuple(args, "O", &o))
         return NULL;
 
-    return PyCapsule_GetPointer(o, NULL);
+    void *ptr = PyCapsule_GetPointer(o, NULL);
+    if ( !ptr ) return NULL;
+    else return ptr;
 }
 
 // must delete [] returned array
 void **make_array_from_list(PyObject *list, int n)
 {
     void **arr = new void*[n] ;
-    if (!arr)
+    if (!arr){
+        PyErr_NoMemory();
         return NULL;
+    }
 
     int i;
     for (i=0; i<n; i++) {
         PyObject *e = PyList_GetItem(list, i);
         if ( e == Py_None ) { // is None object?
             arr[i] = NULL;
-        }
-        else { // otherwise, it must be a PyCapsule
+        } else { // otherwise, it must be a PyCapsule
             void * ptr = PyCapsule_GetPointer(e, NULL);
             if ( !ptr ) return NULL; // exception is raised
             else arr[i] = ptr;
