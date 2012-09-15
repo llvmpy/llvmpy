@@ -62,6 +62,11 @@ def unpack_gen(objlist, check_fn):
     for obj in objlist: check_fn(obj)
     return [ obj.ptr for obj in objlist ]
 
+def unpack_gen_allow_none(objlist, check_fn):
+    for obj in objlist:
+        if obj is not None:
+            check_fn(obj)
+    return [ (obj.ptr if obj is not None else None) for obj in objlist ]
 
 #===----------------------------------------------------------------------===
 # Helper to wrap over iterables (LLVMFirstXXX, LLVMNextXXX). This used
