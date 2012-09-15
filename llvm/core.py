@@ -1456,6 +1456,9 @@ class Function(GlobalValue):
 class MetaData(Value):
     @staticmethod
     def get(module, values):
+        '''
+        values -- must be an iterable of Constant or None. None is treated as "null".
+        '''
         vs = unpack_values_or_none(values)
         ptr = _core.LLVMMetaDataGet(module.ptr, vs)
         return MetaData(ptr)

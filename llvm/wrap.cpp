@@ -101,7 +101,14 @@ void **make_array_from_list(PyObject *list, int n)
     int i;
     for (i=0; i<n; i++) {
         PyObject *e = PyList_GetItem(list, i);
-        arr[i] = PyCapsule_GetPointer(e, NULL);
+        if ( e == Py_None ) { // is None object?
+            arr[i] = NULL;
+        }
+        else { // otherwise, it must be a PyCapsule
+            void * ptr = PyCapsule_GetPointer(e, NULL);
+            if ( !ptr ) return NULL; // exception is raised
+            else arr[i] = ptr;
+        }
     }
 
     return arr;
