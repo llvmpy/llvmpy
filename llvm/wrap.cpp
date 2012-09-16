@@ -86,11 +86,9 @@ void *get_object_arg(PyObject *args)
     PyObject *o;
 
     if (!PyArg_ParseTuple(args, "O", &o))
-        return NULL;
+        throw py_exception();
 
-    void *ptr = PyCapsule_GetPointer(o, NULL);
-    if ( !ptr ) return NULL;
-    else return ptr;
+    return pycap_get<void*>(o);
 }
 
 // must delete [] returned array
@@ -104,9 +102,7 @@ void **make_array_from_list(PyObject *list, int n)
         if ( e == Py_None ) { // is None object?
             arr[i] = NULL;
         } else { // otherwise, it must be a PyCapsule
-            void * ptr = PyCapsule_GetPointer(e, NULL);
-            if ( !ptr ) return NULL; // exception is raised
-            else arr[i] = ptr;
+            arr[i] = pycap_get<void*>(e);
         }
     }
 
@@ -120,7 +116,7 @@ PyObject *make_list_from_ ## TYPE ## _array( TYPE *p, size_t n)   \
     PyObject *list = PyList_New(n);                                 \
                                                                     \
     if (!list)                                                      \
-        return NULL;                                                \
+        throw py_exception();                                         \
                                                                     \
     for (i=0; i<n; i++) {                                           \
         PyObject *elem = ctor_ ## TYPE (p[i]);                      \

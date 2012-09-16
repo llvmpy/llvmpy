@@ -320,10 +320,6 @@ unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
     // and then into a new buffer
     size_t bclen = bc.size();
     unsigned char *bytes = new unsigned char[bclen];
-    if (!bytes){
-        error = "Out of memory";
-        return NULL;
-    }
     memcpy(bytes, bc.data(), bclen);
 
     /* return */

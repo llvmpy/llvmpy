@@ -298,7 +298,6 @@ obj2arr(PyObject *self, PyObject *args, arrcnt_fn_t cntfunc, obj2arr_fn_t arrfun
 
     /* get the function object ptr */
     const LLVMTypeRef type = get_object_arg<LLVMTypeRef>(args) ;
-    if (!type) return NULL;
 
     /* get param count */
     param_count = cntfunc(type);
@@ -400,7 +399,6 @@ _wLLVMValueGetUses(PyObject *self, PyObject *args)
 {
     _TRY
     const LLVMValueRef value = get_object_arg<LLVMValueRef>(args) ;
-    if (!value) return NULL;
 
     LLVMValueRef *uses = 0;
     size_t n = LLVMValueGetUses(value, &uses);
@@ -648,7 +646,7 @@ _wLLVMGetNamedMetadataOperands(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "Os", &obj_module, &name))
         return NULL;
 
-    LLVMModuleRef module = (LLVMModuleRef)PyCapsule_GetPointer(obj_module, NULL);
+    LLVMModuleRef module = pycap_get<LLVMModuleRef>(obj_module);
     unsigned num_operands = LLVMGetNamedMetadataNumOperands(module, name);
     LLVMValueRef *operands = new LLVMValueRef[num_operands];
     LLVMGetNamedMetadataOperands(module, name, operands);
@@ -1145,7 +1143,6 @@ _wLLVMTargetDataAsString(PyObject *self, PyObject *args)
 {
     _TRY
     const LLVMTargetDataRef td = get_object_arg<LLVMTargetDataRef>(args);
-    if (!td) return NULL;
 
     char *tdrep = LLVMCopyStringRepOfTargetData(td);
     PyObject *ret = PyUnicode_FromString(tdrep);
@@ -1195,8 +1192,6 @@ _wLLVMEngineBuilderCreate(PyObject *self, PyObject *args)
     _TRY
     const LLVMEngineBuilderRef obj
         = get_object_arg<LLVMEngineBuilderRef>(args) ;
-    if (!obj)
-        return NULL;
 
     std::string outmsg;
     const LLVMExecutionEngineRef ee = LLVMEngineBuilderCreate(obj, outmsg);
@@ -1488,11 +1483,7 @@ static PyObject *
 _wPyCObjectVoidPtrToPyLong(PyObject *self, PyObject *args)
 {
     _TRY
-    void *p;
-
-    if (!(p = get_object_arg(args)))
-        return NULL;
-
+    void *p = get_object_arg(args);
     return PyLong_FromVoidPtr(p);
     _CATCH_ALL
 }
