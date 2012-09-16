@@ -875,7 +875,7 @@ unsigned LLVMValueGetUses(LLVMValueRef value, LLVMValueRef **refs)
         return 0;
 
     assert(refs);
-    LLVMValueRef *out = (LLVMValueRef *)malloc(sizeof(LLVMValueRef) * n);
+    LLVMValueRef *out = new LLVMValueRef[n];
     if (!out)
         return 0;
     *refs = out;
@@ -893,7 +893,7 @@ unsigned LLVMValueGetUses(LLVMValueRef value, LLVMValueRef **refs)
 void LLVMDisposeValueRefArray(LLVMValueRef *refs)
 {
     assert(refs);
-    free(refs);
+    delete [] refs;
 }
 
 unsigned LLVMUserGetNumOperands(LLVMValueRef user)
@@ -1018,11 +1018,9 @@ unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, size_t *lenp)
     llvm::WriteBitcodeToFile(modulep, buf);
     const std::string& bc = buf.str();
 
-    /* and then into a malloc()-ed block */
+    /* and then into a new()-ed block */
     size_t bclen = bc.size();
-    unsigned char *bytes = (unsigned char *)malloc(bclen);
-    if (!bytes)
-        return NULL;
+    unsigned char *bytes = new unsigned char[bclen];
     memcpy(bytes, bc.data(), bclen);
 
     /* return */

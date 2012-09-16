@@ -97,10 +97,6 @@ void *get_object_arg(PyObject *args)
 void **make_array_from_list(PyObject *list, int n)
 {
     void **arr = new void*[n] ;
-    if (!arr){
-        PyErr_NoMemory();
-        return NULL;
-    }
 
     int i;
     for (i=0; i<n; i++) {

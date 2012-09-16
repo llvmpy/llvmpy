@@ -650,11 +650,11 @@ _wLLVMGetNamedMetadataOperands(PyObject *self, PyObject *args)
 
     LLVMModuleRef module = (LLVMModuleRef)PyCapsule_GetPointer(obj_module, NULL);
     unsigned num_operands = LLVMGetNamedMetadataNumOperands(module, name);
-    LLVMValueRef *operands = (LLVMValueRef*)malloc(sizeof(LLVMValueRef)*num_operands);
+    LLVMValueRef *operands = new LLVMValueRef[num_operands];
     LLVMGetNamedMetadataOperands(module, name, operands);
 
     PyObject *list = make_list_from_LLVMValueRef_array(operands, num_operands);
-    free(operands);
+    delete [] operands;
 
     return list;
     _CATCH_ALL
@@ -741,8 +741,6 @@ _wLLVMBuildInvoke(PyObject *self, PyObject *args)
     size_t fnarg_count = PyList_Size(obj3);
     LLVMValueRef *fnargs
         = make_array_from_list<LLVMValueRef *>(obj3, fnarg_count);
-    if (!fnargs)
-        return PyErr_NoMemory();
 
     const LLVMBasicBlockRef then_blk = pycap_get<LLVMBasicBlockRef> ( obj4 ) ;
     const LLVMBasicBlockRef catch_blk = pycap_get<LLVMBasicBlockRef> ( obj5 ) ;

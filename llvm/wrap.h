@@ -132,7 +132,7 @@ void *get_object_arg(PyObject *args);
 
 /**
  * Given a PyList object (list) having n (= PyList_Size(list)) elements,
- * each list object being a PyCObject, return a malloc()-ed array of
+ * each list object being a PyCObject, return a new()-ed array of
  * opaque pointers from the PyCObjects. The 'n' is passed explicitly
  * since the caller will have to query it once anyway, and we can avoid
  * a second call internally.
@@ -1149,9 +1149,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
                                                                  \
     const intype1 arg1 = pycap_get< intype1 > (obj1);            \
     const size_t arg2n = PyList_Size(obj2);                      \
-    intype2 *arg2v;                                              \
-    if (!(arg2v = make_array_from_list< intype2 *>(obj2, arg2n))) \
-        return PyErr_NoMemory();                                 \
+    intype2 *arg2v = make_array_from_list< intype2 *>(obj2, arg2n); \
                                                                  \
     outtype ret = func (arg1, arg2v, arg2n);                     \
     delete [] arg2v ;                                            \
@@ -1176,9 +1174,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
         return NULL;                                             \
                                                                  \
     const size_t arg1n = PyList_Size(obj1);                      \
-    intype1 *arg1v;                                              \
-    if (!(arg1v = make_array_from_list< intype1 *>(obj1, arg1n)))\
-        return PyErr_NoMemory();                                 \
+    intype1 *arg1v = make_array_from_list< intype1 *>(obj1, arg1n); \
                                                                  \
     outtype ret = func (arg1v, arg1n, arg2);                     \
     delete [] arg1v;                                             \
@@ -1202,9 +1198,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
         return NULL;                                             \
                                                                  \
     const size_t arg1n = PyList_Size(obj1);                      \
-    intype1 *arg1v;                                              \
-    if (!(arg1v = make_array_from_list< intype1 *>(obj1, arg1n)))\
-        return PyErr_NoMemory();                                 \
+    intype1 *arg1v = make_array_from_list< intype1 *>(obj1, arg1n); \
                                                                  \
     outtype ret = func (arg1v, arg1n);                           \
     delete [] arg1v;                                             \
@@ -1231,9 +1225,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
     intype1 arg1 = pycap_get< intype1 > (obj1);                  \
     _CHECK_PYCAP(arg1);                                          \
     const size_t arg2n = PyList_Size(obj2);                      \
-    intype2 *arg2v = NULL;                                       \
-    if (arg2n && !(arg2v = make_array_from_list< intype2 *>(obj2, arg2n)))\
-        return PyErr_NoMemory();                                 \
+    intype2 *arg2v = make_array_from_list< intype2 *>(obj2, arg2n);       \
                                                                  \
     outtype ret = func (arg1, arg2v, arg2n, arg3);               \
     delete [] arg2v ;                                            \
@@ -1261,9 +1253,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
     const intype1 arg1 = pycap_get< intype1 > (obj1);            \
     _CHECK_PYCAP(arg1);                                          \
     const size_t arg2n = PyList_Size(obj2);                      \
-    intype2 *arg2v;                                              \
-    if (!(arg2v = make_array_from_list< intype2 *>(obj2, arg2n)))\
-        return PyErr_NoMemory();                                 \
+    intype2 *arg2v = make_array_from_list< intype2 *>(obj2, arg2n); \
                                                                  \
     func (arg1, arg2v, arg2n, arg3);                             \
     delete [] arg2v ;                                            \
@@ -1290,9 +1280,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
     const intype1 arg1 = pycap_get< intype1 > (obj1);            \
     _CHECK_PYCAP(arg1);                                          \
     const size_t arg3n = PyList_Size(obj3);                      \
-    intype3 *arg3v;                                              \
-    if (!(arg3v = make_array_from_list< intype3 *>(obj3, arg3n))) \
-        return PyErr_NoMemory();                                 \
+    intype3 *arg3v = make_array_from_list< intype3 *>(obj3, arg3n); \
                                                                  \
     outtype ret = func (arg1, arg2, arg3v, arg3n);               \
     delete [] arg3v ;                                            \
@@ -1320,9 +1308,7 @@ _w ## func (PyObject *self, PyObject *args)                                 \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                       \
     _CHECK_PYCAP(arg2);                                                     \
     const size_t arg3n = PyList_Size(obj3);                                 \
-    intype3 *arg3v;                                                         \
-    if (!(arg3v = make_array_from_list< intype3 *>(obj3, arg3n)))           \
-        return PyErr_NoMemory();                                            \
+    intype3 *arg3v = make_array_from_list< intype3 *>(obj3, arg3n);         \
                                                                             \
     outtype ret = func (arg1, arg2, arg3v, arg3n);                          \
     delete [] arg3v ;                                                       \
@@ -1351,9 +1337,7 @@ _w ## func (PyObject *self, PyObject *args)                                 \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                       \
     _CHECK_PYCAP(arg2);                                                     \
     const size_t arg3n = PyList_Size(obj3);                                 \
-    intype3 *arg3v;                                                         \
-    if (!(arg3v = make_array_from_list< intype3 *>(obj3, arg3n)))           \
-        return PyErr_NoMemory();                                            \
+    intype3 *arg3v = make_array_from_list< intype3 *>(obj3, arg3n);         \
                                                                             \
     outtype ret = func (arg1, arg2, arg3v, arg3n, arg4);                    \
     delete [] arg3v ;                                                       \
