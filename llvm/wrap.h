@@ -91,37 +91,22 @@ typedef long long llvmwrap_ll;
 /* Type ctor/dtor                                                             */
 /*===----------------------------------------------------------------------===*/
 
-/* These are functions that can construct a PyCObject (a Python object that
- * holds an opaque pointer) from any time. The naming convention is significant,
- * this is assumed by the wrapper macros below. These are the equivalent of
- * what would in C++ have been specializations of a template function ctor<T>
- * for various types.
- */
+// Cast python object to aTYPE
+template <typename aTYPE>
+aTYPE pycap_get( PyObject* obj )
+{
+    return static_cast<aTYPE> ( PyCapsule_GetPointer(obj, NULL) );
+}
 
-#define _declare_std_ctor(typ)  \
-PyObject * ctor_ ## typ ( typ p);
-
-_declare_std_ctor(LLVMModuleRef)
-_declare_std_ctor(LLVMTypeRef)
-_declare_std_ctor(LLVMValueRef)
-_declare_std_ctor(LLVMBasicBlockRef)
-_declare_std_ctor(LLVMBuilderRef)
-_declare_std_ctor(LLVMMemoryBufferRef)
-_declare_std_ctor(LLVMPassManagerRef)
-_declare_std_ctor(LLVMExecutionEngineRef)
-_declare_std_ctor(LLVMTargetDataRef)
-_declare_std_ctor(LLVMGenericValueRef)
-
-// extra LLVM classes
-_declare_std_ctor(LLVMPassManagerBuilderRef)
-_declare_std_ctor(LLVMEngineBuilderRef)
-_declare_std_ctor(LLVMTargetMachineRef)
-
-/* standard types */
-_declare_std_ctor(int)
-_declare_std_ctor(llvmwrap_ull)
-_declare_std_ctor(llvmwrap_ll)
-
+// Contruct python object to hold aTYPE pointer
+template <typename aTYPE>
+PyObject* pycap_new( aTYPE p )
+{
+    if (p){
+        return PyCapsule_New(p, NULL, NULL);
+    }
+    Py_RETURN_NONE;
+}
 
 /*===----------------------------------------------------------------------===*/
 /* Helper methods                                                             */
@@ -133,6 +118,12 @@ _declare_std_ctor(llvmwrap_ll)
  */
 void *get_object_arg(PyObject *args);
 
+template <typename aTYPE>
+aTYPE get_object_arg( PyObject* obj )
+{
+    return static_cast<aTYPE> ( get_object_arg(obj) );
+}
+
 /**
  * Given a PyList object (list) having n (= PyList_Size(list)) elements,
  * each list object being a PyCObject, return a new()-ed array of
@@ -142,38 +133,29 @@ void *get_object_arg(PyObject *args);
  */
 void **make_array_from_list(PyObject *list, int n);
 
-/**
- * Given an array of LLVMTypeRef's, create a PyList object.
- */
-PyObject *make_list_from_LLVMTypeRef_array(LLVMTypeRef *p, size_t n);
-
-/**
- * Given an array of LLVMValueRef's, create a PyList object.
- */
-PyObject *make_list_from_LLVMValueRef_array(LLVMValueRef *p, size_t n);
-
-/*===----------------------------------------------------------------------===*/
-/* Template functions                                                         */
-
-// wrap the cast
 template <typename LLTYPE>
-LLTYPE pycap_get( PyObject* obj )
+LLTYPE make_array_from_list(PyObject *list, int n)
 {
-    LLTYPE p = static_cast<LLTYPE> ( PyCapsule_GetPointer(obj, NULL) );
+    LLTYPE p = reinterpret_cast<LLTYPE>(make_array_from_list(list, n)) ;
     if ( !p ) throw py_exception();
     return p;
 }
 
-template <typename LLTYPE>
-LLTYPE get_object_arg( PyObject* obj )
+template <typename aTYPE>
+PyObject* make_list( aTYPE p[], size_t n )
 {
-    return static_cast<LLTYPE> ( get_object_arg(obj) );
-}
+    PyObject *list = PyList_New(n);
 
-template <typename LLTYPE>
-LLTYPE make_array_from_list(PyObject *list, int n)
-{
-    return reinterpret_cast<LLTYPE>(make_array_from_list(list, n)) ;
+    if (!list)
+        return NULL;
+
+    size_t i;
+    for (i=0; i<n; i++) {
+        PyObject *elem = pycap_new<aTYPE>( p[i] );
+        PyList_SetItem(list, i, elem);
+    }
+
+    return list;
 }
 
 /*===----------------------------------------------------------------------===*/
@@ -195,14 +177,14 @@ LLTYPE make_array_from_list(PyObject *list, int n)
 
 #define _wrap_none2none(func)                               \
 static PyObject *                                           \
-_w ## func(PyObject * self, PyObject * args)    \
+_w ## func(PyObject * self, PyObject * args)                \
 {                                                           \
     _TRY                                                    \
     if (!PyArg_ParseTuple(args, ""))                        \
         return NULL;                                        \
     func();                                                 \
     Py_RETURN_NONE;                                         \
-    _CATCH_ALL                                                    \
+    _CATCH_ALL                                              \
 }
 
 /**
@@ -216,8 +198,8 @@ _w ## func (PyObject *self, PyObject *args)             \
     _TRY                                                \
     intype1 arg1 = get_object_arg<intype1>(args);       \
                                                         \
-    return ctor_ ## outtype ( func (arg1));             \
-    _CATCH_ALL                                                \
+    return pycap_new<outtype>( func( arg1 ) );          \
+    _CATCH_ALL                                          \
 }
 
 /**
@@ -234,7 +216,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "i", &arg1))            \
         return NULL;                                    \
                                                         \
-    return ctor_ ## outtype ( func (arg1));             \
+    return pycap_new<outtype>( func( arg1 ) );          \
     _CATCH_ALL                                                \
 }
 
@@ -255,7 +237,7 @@ _w ## func (PyObject *self, PyObject *args)              \
     const intype1 arg1 = pycap_get< intype1 > (obj1);    \
     const intype2 arg2 = pycap_get< intype2 > (obj2);    \
                                                          \
-    return ctor_ ## outtype ( func (arg1, arg2));        \
+    return pycap_new<outtype>( func( arg1, arg2 ) );     \
     _CATCH_ALL                                           \
 }
 
@@ -298,7 +280,7 @@ _w ## func (PyObject *self, PyObject *args)             \
                                                         \
     const intype1 arg1 = pycap_get< intype1 > (obj1);   \
                                                         \
-    return ctor_ ## outtype ( func (arg1, arg2));       \
+    return pycap_new<outtype>( func( arg1, arg2 ) );    \
     _CATCH_ALL                                          \
 }
 
@@ -320,7 +302,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
                                                                         \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3));                 \
+    return pycap_new<outtype>( func( arg1, arg2, arg3 ) );              \
     _CATCH_ALL                                                          \
 }
 
@@ -365,7 +347,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype2 arg2 = pycap_get< intype2 > (obj2);           \
     const intype3 arg3 = pycap_get< intype3 > (obj3);           \
                                                                 \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3));         \
+    return pycap_new<outtype>( func( arg1, arg2, arg3 ) );      \
     _CATCH_ALL                                                  \
 }
 
@@ -387,7 +369,7 @@ _w ## func (PyObject *self, PyObject *args)                               \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                     \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                     \
                                                                           \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3));                   \
+    return pycap_new<outtype>( func( arg1, arg2, arg3 ) );                \
     _CATCH_ALL                                                            \
 }
 
@@ -405,7 +387,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "s", &arg1))            \
         return NULL;                                    \
                                                         \
-    return ctor_ ## outtype ( func (arg1));             \
+    return pycap_new<outtype>( func( arg1 ) );          \
     _CATCH_ALL                                          \
 }
 
@@ -421,7 +403,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, ""))                    \
         return NULL;                                    \
                                                         \
-    return ctor_ ## outtype ( func ());                 \
+    return pycap_new<outtype>( func() );                \
     _CATCH_ALL                                          \
 }
 
@@ -451,8 +433,7 @@ static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
     _TRY                                                \
-    intype1 arg1 = get_object_arg<intype1>(args);       \
-                                                        \
+    const intype1 arg1 = get_object_arg<intype1>(args) ; \
     return PyUnicode_FromString( func (arg1));          \
     _CATCH_ALL                                          \
 }
@@ -466,8 +447,7 @@ static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
     _TRY                                                \
-    intype1 arg1 = get_object_arg<intype1>(args);       \
-                                                        \
+    const intype1 arg1 = get_object_arg<intype1>(args) ; \
     func (arg1);                                        \
     Py_RETURN_NONE;                                     \
     _CATCH_ALL                                          \
@@ -488,7 +468,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "Os", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
-    const intype1 arg1 = pycap_get< intype1 > (obj1);   \
+    const intype1 arg1 = pycap_get< intype1 >( obj1 );  \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
@@ -512,7 +492,7 @@ _w ## func (PyObject *self, PyObject *args)             \
                                                         \
     const intype1 arg1 = pycap_get< intype1 > (obj1);   \
                                                         \
-    return ctor_ ## outtype ( func (arg1, arg2));       \
+    return pycap_new<outtype>( func( arg1, arg2 ) );    \
     _CATCH_ALL                                          \
 }
 
@@ -553,7 +533,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     if (!PyArg_ParseTuple(args, "Oi", &obj1, &arg2))    \
         return NULL;                                    \
                                                         \
-    const intype1 arg1 = pycap_get< intype1 > (obj1);   \
+    const intype1 arg1 = pycap_get< intype1 >( obj1 );  \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
@@ -578,7 +558,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype1 arg1 = pycap_get< intype1 > (obj1);           \
     const intype2 arg2 = pycap_get< intype2 > (obj2);           \
                                                                 \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3));         \
+    return pycap_new<outtype> ( func (arg1, arg2, arg3));       \
     _CATCH_ALL                                                  \
 }
 
@@ -600,7 +580,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype1 arg1 = pycap_get< intype1 > (obj1);           \
     const intype2 arg2 = pycap_get< intype2 > (obj2);           \
                                                                 \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3)) ;        \
+    return pycap_new<outtype>( func( arg1, arg2, arg3 ) ) ;     \
     _CATCH_ALL                                                  \
 }
 
@@ -622,7 +602,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype1 arg1 = pycap_get< intype1 > (obj1);           \
     const intype2 arg2 = pycap_get< intype2 > (obj2);           \
                                                                 \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3)) ;        \
+    return pycap_new<outtype>( func( arg1, arg2, arg3 ) ) ;     \
     _CATCH_ALL                                                  \
 }
 
@@ -664,7 +644,7 @@ _w ## func (PyObject *self, PyObject *args)                   \
     if (!PyArg_ParseTuple(args, "Oii", &obj1, &arg2, &arg3))  \
         return NULL;                                          \
                                                               \
-    const intype1 arg1 = pycap_get< intype1 > (obj1);         \
+    const intype1 arg1 = pycap_get< intype1 >( obj1 );        \
                                                               \
     func (arg1, arg2, arg3);                                  \
     Py_RETURN_NONE;                                           \
@@ -689,7 +669,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype1 arg1 = pycap_get< intype1 > (obj1);           \
     const intype3 arg3 = pycap_get< intype3 > (obj3);           \
                                                                 \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3));         \
+    return pycap_new<outtype>( func( arg1, arg2, arg3 ) );      \
     _CATCH_ALL                                                  \
 }
 
@@ -697,7 +677,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
  * Wrap LLVM functions of the type
  * void func(intype1 arg1, const char *arg2, intype3 arg3)
  */
-#define _wrap_objstrobj2none(func, intype1, intype3)    \
+#define _wrap_objstrobj2none(func, intype1, intype3)            \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
@@ -737,7 +717,7 @@ _w ## func (PyObject *self, PyObject *args)                           \
     const intype1 arg1 = pycap_get< intype1 > (obj1);                 \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                 \
                                                                       \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4)) ;        \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4 ) ) ;     \
     _CATCH_ALL                                                        \
 }
 
@@ -762,7 +742,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
   const intype2 arg2 = pycap_get< intype2 > (obj2);                     \
   const intype3 arg3 = pycap_get< intype3 > (obj3);                     \
                                                                         \
-  return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5)) ;      \
+  return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) ) ;   \
   _CATCH_ALL                                                            \
 }
 
@@ -785,7 +765,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
                                                                         \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));           \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4 ) );        \
     _CATCH_ALL                                                          \
 }
 
@@ -808,7 +788,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
                                                                         \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));           \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4 ) );        \
     _CATCH_ALL                                                          \
 }
 
@@ -834,7 +814,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
                                                                         \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5));     \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) );  \
     _CATCH_ALL                                                          \
 }
 
@@ -856,7 +836,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
                                                                         \
     const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
                                                                         \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3));                 \
+    return pycap_new<outtype>( func( arg1, arg2, arg3 ) );              \
     _CATCH_ALL                                                          \
 }
 
@@ -881,7 +861,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
                                                                         \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5));     \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) );  \
     _CATCH_ALL                                                          \
 }
 
@@ -909,7 +889,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
                                                                         \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5, arg6));     \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5, arg6 ) );\
     _CATCH_ALL                                                          \
 }
 
@@ -934,7 +914,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
     const intype4 arg4 = pycap_get< intype4 > (obj4);                   \
                                                                         \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5, arg6));     \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5, arg6 ) );     \
     _CATCH_ALL                                                          \
 }
 
@@ -960,7 +940,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
     const intype4 arg4 = pycap_get< intype4 > (obj4);                   \
                                                                         \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5, arg6));     \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5, arg6 ) ); \
     _CATCH_ALL                                                          \
 }
 
@@ -983,7 +963,7 @@ _w ## func (PyObject *self, PyObject *args)                                 \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                       \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                       \
                                                                             \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));               \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4 ) );            \
     _CATCH_ALL                                                              \
 }
 
@@ -1005,7 +985,7 @@ _w ## func (PyObject *self, PyObject *args)                                     
     const intype2 arg2 = pycap_get< intype2 > (obj2);                               \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                               \
     const intype4 arg4 = pycap_get< intype4 > (obj4);                               \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4));                       \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4 ) );                    \
     _CATCH_ALL                                                                      \
 }
 
@@ -1029,7 +1009,7 @@ _w ## func (PyObject *self, PyObject *args)                                     
     const intype3 arg3 = pycap_get< intype3 > (obj3);                               \
     const intype4 arg4 = pycap_get< intype4 > (obj4);                               \
                                                                                     \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5));                 \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) );              \
     _CATCH_ALL                                                                      \
 }
 
@@ -1053,7 +1033,7 @@ _w ## func (PyObject *self, PyObject *args)                                     
     const intype3 arg3 = pycap_get< intype3 > (obj3);                                 \
     const intype4 arg4 = pycap_get< intype4 > (obj4);                                 \
                                                                                       \
-    return ctor_ ## outtype ( func (arg1, arg2, arg3, arg4, arg5));                   \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) );                \
     _CATCH_ALL                                                                        \
 }
 
@@ -1072,13 +1052,13 @@ _w ## func (PyObject *self, PyObject *args)                      \
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))             \
         return NULL;                                             \
                                                                  \
-    const intype1 arg1 = pycap_get< intype1 > (obj1);            \
+    const intype1 arg1 = pycap_get< intype1 >( obj1 );           \
     const size_t arg2n = PyList_Size(obj2);                      \
     intype2 *arg2v = make_array_from_list< intype2 *>(obj2, arg2n); \
                                                                  \
     outtype ret = func (arg1, arg2v, arg2n);                     \
     delete [] arg2v ;                                            \
-    return ctor_ ## outtype (ret);                               \
+    return pycap_new<outtype>( ret );                            \
     _CATCH_ALL                                                   \
 }
 
@@ -1103,7 +1083,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
                                                                  \
     outtype ret = func (arg1v, arg1n, arg2);                     \
     delete [] arg1v;                                             \
-    return ctor_ ## outtype (ret);                               \
+    return pycap_new<outtype>( ret );                            \
     _CATCH_ALL                                                   \
 }
 
@@ -1127,7 +1107,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
                                                                  \
     outtype ret = func (arg1v, arg1n);                           \
     delete [] arg1v;                                             \
-    return ctor_ ## outtype (ret);                               \
+    return pycap_new<outtype>( ret );                            \
     _CATCH_ALL                                                   \
 }
 
@@ -1147,13 +1127,13 @@ _w ## func (PyObject *self, PyObject *args)                      \
     if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3))     \
         return NULL;                                             \
                                                                  \
-    intype1 arg1 = pycap_get< intype1 > (obj1);                  \
+    intype1 arg1 = pycap_get< intype1 >( obj1 );                 \
     const size_t arg2n = PyList_Size(obj2);                      \
     intype2 *arg2v = make_array_from_list< intype2 *>(obj2, arg2n);       \
                                                                  \
     outtype ret = func (arg1, arg2v, arg2n, arg3);               \
     delete [] arg2v ;                                            \
-    return ctor_ ## outtype (ret);                               \
+    return pycap_new<outtype>( ret );                            \
     _CATCH_ALL                                                   \
 }
 
@@ -1163,7 +1143,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
  * void func(intype1 arg1, intype2 *arg2v, unsigned arg2n, int arg3)
  * where arg2v is an array of intype2 elements, arg2n in length.
  */
-#define _wrap_objlistint2none(func, intype1, intype2)    \
+#define _wrap_objlistint2none(func, intype1, intype2)            \
 static PyObject *                                                \
 _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
@@ -1174,7 +1154,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
     if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3))     \
         return NULL;                                             \
                                                                  \
-    const intype1 arg1 = pycap_get< intype1 > (obj1);            \
+    const intype1 arg1 = pycap_get< intype1 >( obj1 );           \
     const size_t arg2n = PyList_Size(obj2);                      \
     intype2 *arg2v = make_array_from_list< intype2 *>(obj2, arg2n); \
                                                                  \
@@ -1200,13 +1180,13 @@ _w ## func (PyObject *self, PyObject *args)                      \
     if (!PyArg_ParseTuple(args, "OiO", &obj1, &arg2, &obj3))     \
         return NULL;                                             \
                                                                  \
-    const intype1 arg1 = pycap_get< intype1 > (obj1);            \
+    const intype1 arg1 = pycap_get< intype1 >( obj1 );           \
     const size_t arg3n = PyList_Size(obj3);                      \
     intype3 *arg3v = make_array_from_list< intype3 *>(obj3, arg3n); \
                                                                  \
     outtype ret = func (arg1, arg2, arg3v, arg3n);               \
     delete [] arg3v ;                                            \
-    return ctor_ ## outtype (ret);                               \
+    return pycap_new<outtype>( ret );                            \
     _CATCH_ALL                                                   \
 }
 
@@ -1232,7 +1212,7 @@ _w ## func (PyObject *self, PyObject *args)                                 \
                                                                             \
     outtype ret = func (arg1, arg2, arg3v, arg3n);                          \
     delete [] arg3v ;                                                       \
-    return ctor_ ## outtype (ret);                                          \
+    return pycap_new<outtype>( ret );                                       \
     _CATCH_ALL                                                              \
 }
 
@@ -1259,7 +1239,7 @@ _w ## func (PyObject *self, PyObject *args)                                 \
                                                                             \
     outtype ret = func (arg1, arg2, arg3v, arg3n, arg4);                    \
     delete [] arg3v ;                                                       \
-    return ctor_ ## outtype (ret);                                          \
+    return pycap_new<outtype>( ret );                                       \
     _CATCH_ALL                                                              \
 }
 
