@@ -86,6 +86,13 @@
 namespace llvm{
 DEFINE_SIMPLE_CONVERSION_FUNCTIONS(EngineBuilder, LLVMEngineBuilderRef)
 DEFINE_SIMPLE_CONVERSION_FUNCTIONS(TargetMachine, LLVMTargetMachineRef)
+
+template<typename T>
+inline T **unwrap(LLVMTypeRef *Tys, unsigned Length) {
+    (void)Length;
+    return reinterpret_cast<T**>(Tys);
+}
+
 }
 
 /*
@@ -139,13 +146,9 @@ LLVMValueRef LLVMMetaDataGet(LLVMModuleRef modref, LLVMValueRef * valrefs,
 {
     using namespace llvm;
     LLVMContext & context = unwrap(modref)->getContext();
-    std::vector<Value*> vals;
-    vals.reserve(valct);
-    for(unsigned i = 0; i < valct; ++i ){
-        vals.push_back(unwrap(valrefs[i]));
-    }
-
-    MDNode * const node = MDNode::get(context, vals);
+    MDNode * const node = MDNode::get(
+                            context,
+                            makeArrayRef(unwrap<Value>(valrefs, valct), valct));
     return wrap(node);
 }
 
@@ -789,47 +792,46 @@ LLVMValueRef LLVMInstGetCalledFunction(LLVMValueRef inst)
     return llvm::wrap(CallSite(instp).getCalledFunction());
 }
 
-/* llvm::unwrap a set of `n' wrapped objects starting at `values',
- * into a vector of pointers to llvm::unwrapped objects `out'. */
-template <typename W, typename UW>
-void unwrap_vec(W *values, unsigned n, std::vector<UW *>& out)
-{
-    out.clear();
-    out.reserve(n);
-    while (n--) {
-        UW *p = llvm::unwrap(*values);
-        assert(p);
-        out.push_back(p);
-        ++values;
-    }
-}
+///* llvm::unwrap a set of `n' wrapped objects starting at `values',
+// * into a vector of pointers to llvm::unwrapped objects `out'. */
+//template <typename W, typename UW>
+//void unwrap_vec(W *values, unsigned n, std::vector<UW *>& out)
+//{
+//    out.clear();
+//    out.reserve(n);
+//    while (n--) {
+//        UW *p = llvm::unwrap(*values);
+//        assert(p);
+//        out.push_back(p);
+//        ++values;
+//    }
+//}
 
-/* Same as llvm::unwrap_vec, but use a vector of const pointers. */
-template <typename W, typename UW>
-void unwrap_cvec(W *values, unsigned n, std::vector<const UW *>& out)
-{
-    out.clear();
+///* Same as llvm::unwrap_vec, but use a vector of const pointers. */
+//template <typename W, typename UW>
+//void unwrap_cvec(W *values, unsigned n, std::vector<const UW *>& out)
+//{
+//    out.clear();
 
-    while (n--) {
-        UW *p = llvm::unwrap(*values);
-        assert(p);
-        out.push_back(p);
-        ++values;
-    }
-}
+//    while (n--) {
+//        UW *p = llvm::unwrap(*values);
+//        assert(p);
+//        out.push_back(p);
+//        ++values;
+//    }
+//}
+
 
 LLVMValueRef LLVMBuildRetMultiple(LLVMBuilderRef builder,
     LLVMValueRef *values, unsigned n_values)
 {
+    using namespace llvm;
     assert(values);
 
-    std::vector<llvm::Value *> values_vec;
-    unwrap_vec(values, n_values, values_vec);
-
-    llvm::IRBuilder<> *builderp = llvm::unwrap(builder);
+    IRBuilder<> *builderp = unwrap(builder);
     assert(builderp);
 
-    return llvm::wrap(builderp->CreateAggregateRet(&values_vec[0], values_vec.size()));
+    return wrap(builderp->CreateAggregateRet(unwrap<Value>(values, n_values), n_values));
 }
 
 LLVMValueRef LLVMBuildGetResult(LLVMBuilderRef builder,
@@ -927,16 +929,15 @@ void LLVMSetDoesNotThrow(LLVMValueRef fn, int DoesNotThrow)
 LLVMValueRef LLVMGetIntrinsic(LLVMModuleRef module, int id,
     LLVMTypeRef *types, unsigned n_types)
 {
+    using namespace llvm;
     assert(types);
 
-    std::vector< llvm::Type* > types_vec;
-    unwrap_vec(types, n_types, types_vec);
-
-    llvm::Module *modulep = llvm::unwrap(module);
+    Module *modulep = unwrap(module);
     assert(modulep);
 
-    llvm::Function *intfunc = llvm::Intrinsic::getDeclaration(modulep,
-				     llvm::Intrinsic::ID(id), types_vec);
+    Function *intfunc = Intrinsic::getDeclaration(modulep, Intrinsic::ID(id),
+                                    makeArrayRef(unwrap<Type>(types, n_types),
+                                                 n_types));
 
     return wrap(intfunc);
 }
