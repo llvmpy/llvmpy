@@ -37,6 +37,29 @@ class TestMetaData(unittest.TestCase):
 
         self.assertIn('!invariant.load', str(loadinst))
 
+    def test_tbaa_metadata(self):
+        '''just a simple excerise of the code
+        '''
+        mod = Module.new('test_tbaa_metadata')
+        root = MetaData.get(mod, [MetaDataString.get(mod, "root")])
+        MetaData.add_named_operand(mod, 'tbaa', root)
+
+        ops = [MetaDataString.get(mod, "int"), root]
+        md1 = MetaData.get(mod, ops)
+        MetaData.add_named_operand(mod, 'tbaa', md1)
+        print md1
+
+        ops = [MetaDataString.get(mod, "const float"),
+               root,
+               Constant.int(Type.int(64), 1)]
+
+        md2 = MetaData.get(mod, ops)
+        MetaData.add_named_operand(mod, 'tbaa', md2)
+        print md2
+
+        print mod
+
+
 if __name__ == '__main__':
     unittest.main()
 
