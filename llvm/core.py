@@ -2067,6 +2067,11 @@ class Builder(object):
 
     def call(self, fn, args, name=""):
         check_is_callable(fn)
+
+        err_template = 'Argument type mismatch: expected %s but got %s'
+        for i, (t, v) in enumerate(zip(fn.type.pointee.args, args)):
+            if  t != v.type:
+                raise TypeError(err_template % (t, v.type))
         arg_ptrs = unpack_values(args)
         return _make_value(
             _core.LLVMBuildCall(self.ptr, fn.ptr, arg_ptrs, name))
