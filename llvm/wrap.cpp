@@ -31,51 +31,9 @@
 #include "wrap.h"
 
 /*===----------------------------------------------------------------------===*/
-/* Helper functions/macros                                                    */
-/*===----------------------------------------------------------------------===*/
-
-#define _define_std_ctor(typ)                   \
-PyObject * ctor_ ## typ ( typ p)                \
-{                                               \
-    if (p){                                     \
-        return PyCapsule_New(p, NULL, NULL);    \
-    }                                           \
-    Py_RETURN_NONE;                             \
-}
-
-/*===----------------------------------------------------------------------===*/
 /* Type ctor/dtor                                                             */
 /*===----------------------------------------------------------------------===*/
 
-_define_std_ctor(LLVMModuleRef)
-_define_std_ctor(LLVMTypeRef)
-_define_std_ctor(LLVMValueRef)
-_define_std_ctor(LLVMBasicBlockRef)
-_define_std_ctor(LLVMBuilderRef)
-_define_std_ctor(LLVMMemoryBufferRef)
-_define_std_ctor(LLVMPassManagerRef)
-_define_std_ctor(LLVMExecutionEngineRef)
-_define_std_ctor(LLVMTargetDataRef)
-_define_std_ctor(LLVMGenericValueRef)
-
-_define_std_ctor(LLVMPassManagerBuilderRef)
-_define_std_ctor(LLVMEngineBuilderRef)
-_define_std_ctor(LLVMTargetMachineRef)
-
-PyObject *ctor_int(int i)
-{
-    return PyLong_FromLong((long)i);
-}
-
-PyObject *ctor_llvmwrap_ull(llvmwrap_ull ull)
-{
-    return PyLong_FromUnsignedLongLong(ull);
-}
-
-PyObject *ctor_llvmwrap_ll(llvmwrap_ll ll)
-{
-    return PyLong_FromLongLong(ll);
-}
 
 /*===----------------------------------------------------------------------===*/
 /* Helper functions                                                           */
@@ -108,24 +66,3 @@ void **make_array_from_list(PyObject *list, int n)
 
     return arr;
 }
-
-#define LIST_FROM_ARRAY_IMPL(TYPE)                                  \
-PyObject *make_list_from_ ## TYPE ## _array( TYPE *p, size_t n)   \
-{                                                                   \
-    size_t i;                                                       \
-    PyObject *list = PyList_New(n);                                 \
-                                                                    \
-    if (!list)                                                      \
-        throw py_exception();                                         \
-                                                                    \
-    for (i=0; i<n; i++) {                                           \
-        PyObject *elem = ctor_ ## TYPE (p[i]);                      \
-        PyList_SetItem(list, i, elem);                              \
-    }                                                               \
-                                                                    \
-    return list;                                                    \
-}
-
-LIST_FROM_ARRAY_IMPL(LLVMTypeRef)
-LIST_FROM_ARRAY_IMPL(LLVMValueRef)
-
