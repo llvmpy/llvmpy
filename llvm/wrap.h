@@ -91,11 +91,17 @@ typedef long long llvmwrap_ll;
 /* Type ctor/dtor                                                             */
 /*===----------------------------------------------------------------------===*/
 
+static const char PYCAP_OBJECT_NAME[] = "llvm.wrap.h";
+
 // Cast python object to aTYPE
 template <typename aTYPE>
 aTYPE pycap_get( PyObject* obj )
 {
-    return static_cast<aTYPE> ( PyCapsule_GetPointer(obj, NULL) );
+    void *p = PyCapsule_GetPointer(obj, PYCAP_OBJECT_NAME);
+    if (!p){
+        throw py_exception();
+    }
+    return static_cast<aTYPE> (p);
 }
 
 // Contruct python object to hold aTYPE pointer
@@ -103,7 +109,7 @@ template <typename aTYPE>
 PyObject* pycap_new( aTYPE p )
 {
     if (p){
-        return PyCapsule_New(p, NULL, NULL);
+        return PyCapsule_New(p, PYCAP_OBJECT_NAME, NULL);
     }
     Py_RETURN_NONE;
 }
