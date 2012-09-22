@@ -91,7 +91,7 @@ typedef long long llvmwrap_ll;
 /* Type ctor/dtor                                                             */
 /*===----------------------------------------------------------------------===*/
 
-static const char PYCAP_OBJECT_NAME[] = "llvm.wrap.h";
+extern const char PYCAP_OBJECT_NAME[] ;
 
 // Cast python object to aTYPE
 template <typename aTYPE>
@@ -180,7 +180,6 @@ PyObject* make_list( aTYPE p[], size_t n )
  ******************************************************************************
  *****************************************************************************/
 
-
 #define _wrap_none2none(func)                               \
 static PyObject *                                           \
 _w ## func(PyObject * self, PyObject * args)                \
@@ -223,7 +222,7 @@ _w ## func (PyObject *self, PyObject *args)             \
         return NULL;                                    \
                                                         \
     return pycap_new<outtype>( func( arg1 ) );          \
-    _CATCH_ALL                                                \
+    _CATCH_ALL                                          \
 }
 
 /**
@@ -576,7 +575,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    _TRY                                            \
+    _TRY                                                        \
     PyObject *obj1, *obj2;                                      \
     int arg3;                                                   \
                                                                 \
@@ -977,70 +976,73 @@ _w ## func (PyObject *self, PyObject *args)                                 \
  * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, intype arg4)
  */
-#define _wrap_objobjobjobj2obj(func, intype1, intype2, intype3, intype4, outtype)   \
-static PyObject *                                                                   \
-_w ## func (PyObject *self, PyObject *args)                                         \
-{                                                                                   \
-    _TRY                                                                            \
-    PyObject *obj1, *obj2, *obj3, *obj4;                                            \
-                                                                                    \
-    if (!PyArg_ParseTuple(args, "OOOO", &obj1, &obj2, &obj3, &obj4))                \
-        return NULL;                                                                \
-                                                                                    \
-    const intype1 arg1 = pycap_get< intype1 > (obj1);                               \
-    const intype2 arg2 = pycap_get< intype2 > (obj2);                               \
-    const intype3 arg3 = pycap_get< intype3 > (obj3);                               \
-    const intype4 arg4 = pycap_get< intype4 > (obj4);                               \
-    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4 ) );                    \
-    _CATCH_ALL                                                                      \
+#define _wrap_objobjobjobj2obj(func, intype1, intype2, intype3, \
+        intype4, outtype)                                       \
+static PyObject *                                               \
+_w ## func (PyObject *self, PyObject *args)                     \
+{                                                               \
+    _TRY                                                        \
+    PyObject *obj1, *obj2, *obj3, *obj4;                        \
+                                                                \
+    if (!PyArg_ParseTuple(args, "OOOO", &obj1, &obj2, &obj3, &obj4)) \
+        return NULL;                                            \
+                                                                \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);           \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);           \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);           \
+    const intype4 arg4 = pycap_get< intype4 > (obj4);           \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4 ) );\
+    _CATCH_ALL                                                  \
 }
 
 /**
  * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, intype2 arg2, intype3 arg3, intype arg4, const char *arg5)
  */
-#define _wrap_objobjobjobjstr2obj(func, intype1, intype2, intype3, intype4, outtype)\
-static PyObject *                                                                   \
-_w ## func (PyObject *self, PyObject *args)                                         \
-{                                                                                   \
-    _TRY                                                                            \
-    PyObject *obj1, *obj2, *obj3, *obj4;                                            \
-    const char *arg5;                                                               \
-                                                                                    \
+#define _wrap_objobjobjobjstr2obj(func, intype1, intype2, intype3, \
+        intype4, outtype)\
+static PyObject *                                               \
+_w ## func (PyObject *self, PyObject *args)                     \
+{                                                               \
+    _TRY                                                        \
+    PyObject *obj1, *obj2, *obj3, *obj4;                        \
+    const char *arg5;                                           \
+                                                                \
     if (!PyArg_ParseTuple(args, "OOOOs", &obj1, &obj2, &obj3, &obj4, &arg5))        \
-        return NULL;                                                                \
-                                                                                    \
-    const intype1 arg1 = pycap_get< intype1 > (obj1);                               \
-    const intype2 arg2 = pycap_get< intype2 > (obj2);                               \
-    const intype3 arg3 = pycap_get< intype3 > (obj3);                               \
-    const intype4 arg4 = pycap_get< intype4 > (obj4);                               \
-                                                                                    \
-    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) );              \
-    _CATCH_ALL                                                                      \
+        return NULL;                                            \
+                                                                \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);           \
+    const intype2 arg2 = pycap_get< intype2 > (obj2);           \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);           \
+    const intype4 arg4 = pycap_get< intype4 > (obj4);           \
+                                                                \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) );\
+    _CATCH_ALL                                                  \
 }
 
 /**
  * Wrap LLVM functions of the type
  * outtype func(intype1 arg1, enum_intype2 arg2, intype3 arg3, intype4 arg4, const char *arg5)
  */
-#define _wrap_objenumobjobjstr2obj(func, intype1, intype2, intype3, intype4, outtype) \
-static PyObject *                                                                     \
-_w ## func (PyObject *self, PyObject *args)                                           \
-{                                                                                     \
-    _TRY                                                                              \
-    PyObject *obj1, *obj3, *obj4;                                                     \
-    intype2 arg2 ;                                                                    \
-    const char *arg5;                                                                 \
-                                                                                      \
-    if (!PyArg_ParseTuple(args, "OiOOs", &obj1, &arg2, &obj3, &obj4, &arg5))          \
-        return NULL;                                                                  \
-                                                                                      \
-    const intype1 arg1 = pycap_get< intype1 > (obj1);                                 \
-    const intype3 arg3 = pycap_get< intype3 > (obj3);                                 \
-    const intype4 arg4 = pycap_get< intype4 > (obj4);                                 \
-                                                                                      \
-    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) );                \
-    _CATCH_ALL                                                                        \
+#define _wrap_objenumobjobjstr2obj(func, intype1, intype2, intype3, \
+        intype4, outtype) \
+static PyObject *                                               \
+_w ## func (PyObject *self, PyObject *args)                     \
+{                                                               \
+    _TRY                                                        \
+    PyObject *obj1, *obj3, *obj4;                               \
+    intype2 arg2 ;                                              \
+    const char *arg5;                                           \
+                                                                \
+    if (!PyArg_ParseTuple(args, "OiOOs", &obj1, &arg2, &obj3, &obj4, &arg5)) \
+        return NULL;                                            \
+                                                                \
+    const intype1 arg1 = pycap_get< intype1 > (obj1);           \
+    const intype3 arg3 = pycap_get< intype3 > (obj3);           \
+    const intype4 arg4 = pycap_get< intype4 > (obj4);           \
+                                                                \
+    return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) ); \
+    _CATCH_ALL                                                  \
 }
 
 /**
