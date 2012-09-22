@@ -180,33 +180,6 @@ PyObject* make_list( aTYPE p[], size_t n )
  ******************************************************************************
  *****************************************************************************/
 
-#define _wrap_none2none(func)                               \
-static PyObject *                                           \
-_w ## func(PyObject * self, PyObject * args)                \
-{                                                           \
-    LLVMPY_TRY                                              \
-    if (!PyArg_ParseTuple(args, ""))                        \
-        return NULL;                                        \
-    func();                                                 \
-    Py_RETURN_NONE;                                         \
-    LLVMPY_CATCH_ALL                                        \
-}
-
-/**
- * Wrap LLVM functions of the type
- * outtype func(intype1 arg1)
- */
-#define _wrap_obj2obj(func, intype1, outtype)           \
-static PyObject *                                       \
-_w ## func (PyObject *self, PyObject *args)             \
-{                                                       \
-    LLVMPY_TRY                                          \
-    intype1 arg1 = get_object_arg<intype1>(args);       \
-                                                        \
-    return pycap_new<outtype>( func( arg1 ) );          \
-    LLVMPY_CATCH_ALL                                    \
-}
-
 /**
  * Wrap LLVM functions of the type
  * outtype func(int arg1)
@@ -412,51 +385,6 @@ _w ## func (PyObject *self, PyObject *args)             \
     LLVMPY_CATCH_ALL                                    \
 }
 
-
-/**
- * Wrap LLVM functions of the type
- * const char * func()
- */
- #define _wrap_none2str(func)                           \
-static PyObject *                                       \
-_w ## func (PyObject *self, PyObject *args)             \
-{                                                       \
-    LLVMPY_TRY                                          \
-    if (!PyArg_ParseTuple(args, ""))                    \
-        return NULL;                                    \
-    return PyUnicode_FromString(func());                \
-    LLVMPY_CATCH_ALL                                    \
-}
-
-
-/**
- * Wrap LLVM functions of the type
- * const char *func(intype1 arg1)
- */
-#define _wrap_obj2str(func, intype1)                    \
-static PyObject *                                       \
-_w ## func (PyObject *self, PyObject *args)             \
-{                                                       \
-    LLVMPY_TRY                                          \
-    const intype1 arg1 = get_object_arg<intype1>(args) ; \
-    return PyUnicode_FromString( func (arg1));          \
-    LLVMPY_CATCH_ALL                                    \
-}
-
-/**
- * Wrap LLVM functions of the type
- * void func(intype1 arg1)
- */
-#define _wrap_obj2none(func, intype1)                   \
-static PyObject *                                       \
-_w ## func (PyObject *self, PyObject *args)             \
-{                                                       \
-    LLVMPY_TRY                                          \
-    const intype1 arg1 = get_object_arg<intype1>(args) ; \
-    func (arg1);                                        \
-    Py_RETURN_NONE;                                     \
-    LLVMPY_CATCH_ALL                                    \
-}
 
 /**
  * Wrap LLVM functions of the type
@@ -1250,26 +1178,5 @@ _w ## func (PyObject *self, PyObject *args)                                 \
     return pycap_new<outtype>( ret );                                       \
     LLVMPY_CATCH_ALL                                                        \
 }
-
-/**
- * Wrap LLVM dump-to-string functions of the type
- * char *func(intype1)
- * where the return value has to be disposed after use by calling
- * LLVMDisposeMessage.
- */
-#define _wrap_dumper(func, intype1)                                 \
-static PyObject *                                                   \
-_w ## func (PyObject *self, PyObject *args)                         \
-{                                                                   \
-    LLVMPY_TRY                                                      \
-    intype1 arg1 = get_object_arg<intype1>(args);                   \
-                                                                    \
-    const char *val = func (arg1);                                  \
-    PyObject *ret = PyUnicode_FromString(val);                      \
-    LLVMDisposeMessage(const_cast<char*>(val));                     \
-    return ret;                                                     \
-    LLVMPY_CATCH_ALL                                                \
-}
-
 
 #endif /* LLVM_PY_WRAP_H */
