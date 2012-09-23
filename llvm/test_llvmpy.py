@@ -17,7 +17,7 @@ else:
     from cStringIO import StringIO
 
 
-from llvm import __version__
+import llvm
 from llvm.core import (Module, Type, GlobalVariable, Function, Builder,
                        Constant, MetaData, MetaDataString, inline_function)
 import llvm.core as lc
@@ -638,6 +638,38 @@ tests.append(TestIssue10)
 
 # ---------------------------------------------------------------------------
 
+class TestOpaque(unittest.TestCase):
+
+    def test_opaque(self):
+        # Create an opaque type
+        ts = Type.opaque('mystruct')
+        self.assertTrue('type opaque' in str(ts))
+        self.assertTrue(ts.is_opaque)
+        self.assertTrue(ts.is_identified)
+        self.assertFalse(ts.is_literal)
+        #print(ts)
+
+        # Create a recursive type
+        ts.set_body([Type.int(), Type.pointer(ts)])
+
+        self.assertEqual(ts.elements[0], Type.int())
+        self.assertEqual(ts.elements[1], Type.pointer(ts))
+        self.assertEqual(ts.elements[1].pointee, ts)
+        self.assertFalse(ts.is_opaque) # is not longer a opaque type
+        #print(ts)
+
+        with self.assertRaises(llvm.LLVMException):
+            # Cannot redefine
+            ts.set_body([])
+
+    def test_opaque_with_no_name(self):
+        with self.assertRaises(llvm.LLVMException):
+            Type.opaque('')
+
+tests.append(TestOpaque)
+
+# ---------------------------------------------------------------------------
+
 class TestIntrinsic(unittest.TestCase):
     def test_bswap(self):
         # setup a function and a builder
@@ -788,7 +820,7 @@ tests.append(TestVolatile)
 
 def run(verbosity=1):
     print('llvmpy is installed in: ' + os.path.dirname(__file__))
-    print('llvmpy version: ' + __version__)
+    print('llvmpy version: ' + llvm.__version__)
     print(sys.version)
 
     suite = unittest.TestSuite()
