@@ -353,7 +353,7 @@ class TargetMachine(object):
         return _core.LLVMTargetMachineEmitFile(self.ptr, module.ptr, True)
 
     def emit_object(self, module):
-        '''returns byte string of the module as assembly code of the target machine
+        '''returns byte string of the module as native code of the target machine
         '''
         return _core.LLVMTargetMachineEmitFile(self.ptr, module.ptr, False)
 
