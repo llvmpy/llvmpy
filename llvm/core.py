@@ -343,11 +343,18 @@ class Module(llvm.Ownable, llvm.Cacheable):
         return Module(_core.LLVMModuleCreateWithName(id))
 
     @staticmethod
-    def from_bitcode(fileobj):
+    def from_bitcode(fileobj_or_str):
         """Create a Module instance from the contents of a bitcode
-        file."""
+        file.
 
-        data = fileobj.read()
+        fileobj_or_str -- takes a file-like object or string that contains
+                          a module represented in bitcode.
+        """
+
+        if isinstance(fileobj_or_str, basestring):
+            data = fileobj_or_str
+        else:
+            data = fileobj_or_str.read()
         ret = _core.LLVMGetModuleFromBitcode(data)
         if not ret:
             raise llvm.LLVMException("Unable to create module from bitcode")
@@ -357,11 +364,19 @@ class Module(llvm.Ownable, llvm.Cacheable):
             return Module(ret)
 
     @staticmethod
-    def from_assembly(fileobj):
+    def from_assembly(fileobj_or_str):
         """Create a Module instance from the contents of an LLVM
-        assembly (.ll) file."""
+        assembly (.ll) file.
 
-        data = fileobj.read()
+
+        fileobj_or_str -- takes a file-like object or string that contains
+                          a module represented in llvm-ir assembly.
+        """
+
+        if isinstance(fileobj_or_str, basestring):
+            data = fileobj_or_str
+        else:
+            data = fileobj_or_str.read()
         ret = _core.LLVMGetModuleFromAssembly(data)
         if not ret:
             raise llvm.LLVMException("Unable to create module from assembly")
@@ -499,14 +514,24 @@ class Module(llvm.Ownable, llvm.Cacheable):
         if ret != "":
             raise llvm.LLVMException(ret)
 
-    def to_bitcode(self, fileobj):
+    def to_bitcode(self, fileobj=None):
         """Write bitcode representation of module to given file-like
-        object."""
+        object.
+
+        fileobj -- A file-like object to where the bitcode is written.
+                   If it is None, the bitcode is returned.
+
+        Return value -- Returns None if fileobj is not None.
+                        Otherwise, return the bitcode as a bytestring.
+        """
 
         data = _core.LLVMGetBitcodeFromModule(self.ptr)
         if not data:
             raise llvm.LLVMException("Unable to create bitcode")
-        fileobj.write(data)
+        if fileobj is not None:
+            fileobj.write(data)
+        else:
+            return data
 
     def add_library(self, name):
         return _core.LLVMModuleAddLibrary(self.ptr, name)
