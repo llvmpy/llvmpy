@@ -63,10 +63,10 @@
 
 class py_exception: public std::exception{};
 
-#define _TRY                                \
+#define LLVMPY_TRY                                \
     try {
 
-#define _CATCH_ALL                                       \
+#define LLVMPY_CATCH_ALL                                 \
     } catch (const std::bad_alloc&) {                    \
         return PyErr_NoMemory();                         \
     } catch (const py_exception &) {                     \
@@ -184,12 +184,12 @@ PyObject* make_list( aTYPE p[], size_t n )
 static PyObject *                                           \
 _w ## func(PyObject * self, PyObject * args)                \
 {                                                           \
-    _TRY                                                    \
+    LLVMPY_TRY                                              \
     if (!PyArg_ParseTuple(args, ""))                        \
         return NULL;                                        \
     func();                                                 \
     Py_RETURN_NONE;                                         \
-    _CATCH_ALL                                              \
+    LLVMPY_CATCH_ALL                                        \
 }
 
 /**
@@ -200,11 +200,11 @@ _w ## func(PyObject * self, PyObject * args)                \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     intype1 arg1 = get_object_arg<intype1>(args);       \
                                                         \
     return pycap_new<outtype>( func( arg1 ) );          \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 /**
@@ -215,14 +215,14 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     int arg1;                                           \
                                                         \
     if (!PyArg_ParseTuple(args, "i", &arg1))            \
         return NULL;                                    \
                                                         \
     return pycap_new<outtype>( func( arg1 ) );          \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 /**
@@ -233,7 +233,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                        \
 _w ## func (PyObject *self, PyObject *args)              \
 {                                                        \
-    _TRY                                                 \
+    LLVMPY_TRY                                           \
     PyObject *obj1, *obj2;                               \
                                                          \
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))     \
@@ -243,7 +243,7 @@ _w ## func (PyObject *self, PyObject *args)              \
     const intype2 arg2 = pycap_get< intype2 > (obj2);    \
                                                          \
     return pycap_new<outtype>( func( arg1, arg2 ) );     \
-    _CATCH_ALL                                           \
+    LLVMPY_CATCH_ALL                                     \
 }
 
 /**
@@ -254,7 +254,7 @@ _w ## func (PyObject *self, PyObject *args)              \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     PyObject *obj1, *obj2;                              \
                                                         \
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))    \
@@ -265,7 +265,7 @@ _w ## func (PyObject *self, PyObject *args)             \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 /**
@@ -276,7 +276,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     PyObject *obj1;                                     \
     size_t arg2;                                        \
                                                         \
@@ -286,7 +286,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     const intype1 arg1 = pycap_get< intype1 > (obj1);   \
                                                         \
     return pycap_new<outtype>( func( arg1, arg2 ) );    \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 /**
@@ -297,7 +297,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
-    _TRY                                                                \
+    LLVMPY_TRY                                                          \
     PyObject *obj1, *obj2, *obj3;                                       \
                                                                         \
     if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))            \
@@ -308,7 +308,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
                                                                         \
     return pycap_new<outtype>( func( arg1, arg2, arg3 ) );              \
-    _CATCH_ALL                                                          \
+    LLVMPY_CATCH_ALL                                                    \
 }
 
 /**
@@ -319,7 +319,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    _TRY                                                        \
+    LLVMPY_TRY                                                  \
     PyObject *obj1, *obj2, *obj3;                               \
                                                                 \
     if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))    \
@@ -331,7 +331,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
                                                                 \
     func (arg1, arg2, arg3);                                    \
     Py_RETURN_NONE;                                             \
-    _CATCH_ALL                                                  \
+    LLVMPY_CATCH_ALL                                            \
 }
 
 /**
@@ -342,7 +342,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    _TRY                                                        \
+    LLVMPY_TRY                                                  \
     size_t arg1;                                                \
     PyObject *obj2, *obj3;                                      \
                                                                 \
@@ -353,7 +353,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype3 arg3 = pycap_get< intype3 > (obj3);           \
                                                                 \
     return pycap_new<outtype>( func( arg1, arg2, arg3 ) );      \
-    _CATCH_ALL                                                  \
+    LLVMPY_CATCH_ALL                                            \
 }
 
 /**
@@ -364,7 +364,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                                         \
 _w ## func (PyObject *self, PyObject *args)                               \
 {                                                                         \
-    _TRY                                                                  \
+    LLVMPY_TRY                                                            \
     intype1 arg1;                                                         \
     PyObject *obj2, *obj3;                                                \
                                                                           \
@@ -375,7 +375,7 @@ _w ## func (PyObject *self, PyObject *args)                               \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                     \
                                                                           \
     return pycap_new<outtype>( func( arg1, arg2, arg3 ) );                \
-    _CATCH_ALL                                                            \
+    LLVMPY_CATCH_ALL                                                      \
 }
 
 /**
@@ -386,14 +386,14 @@ _w ## func (PyObject *self, PyObject *args)                               \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     const char *arg1;                                   \
                                                         \
     if (!PyArg_ParseTuple(args, "s", &arg1))            \
         return NULL;                                    \
                                                         \
     return pycap_new<outtype>( func( arg1 ) );          \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 /**
@@ -404,12 +404,12 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     if (!PyArg_ParseTuple(args, ""))                    \
         return NULL;                                    \
                                                         \
     return pycap_new<outtype>( func() );                \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 
@@ -421,11 +421,11 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     if (!PyArg_ParseTuple(args, ""))                    \
         return NULL;                                    \
     return PyUnicode_FromString(func());                \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 
@@ -437,10 +437,10 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     const intype1 arg1 = get_object_arg<intype1>(args) ; \
     return PyUnicode_FromString( func (arg1));          \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 /**
@@ -451,11 +451,11 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     const intype1 arg1 = get_object_arg<intype1>(args) ; \
     func (arg1);                                        \
     Py_RETURN_NONE;                                     \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 /**
@@ -466,7 +466,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     PyObject *obj1;                                     \
     const char *arg2;                                   \
                                                         \
@@ -477,7 +477,7 @@ _w ## func (PyObject *self, PyObject *args)             \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 /**
@@ -488,7 +488,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     PyObject *obj1;                                     \
     const char *arg2;                                   \
                                                         \
@@ -498,7 +498,7 @@ _w ## func (PyObject *self, PyObject *args)             \
     const intype1 arg1 = pycap_get< intype1 > (obj1);   \
                                                         \
     return pycap_new<outtype>( func( arg1, arg2 ) );    \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 /**
@@ -509,7 +509,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     PyObject *obj1;                                     \
     int arg2;                                           \
                                                         \
@@ -520,7 +520,7 @@ _w ## func (PyObject *self, PyObject *args)             \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 /**
@@ -531,7 +531,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                       \
 _w ## func (PyObject *self, PyObject *args)             \
 {                                                       \
-    _TRY                                                \
+    LLVMPY_TRY                                          \
     intype2 arg2;                                       \
     PyObject *obj1;                                     \
                                                         \
@@ -542,7 +542,7 @@ _w ## func (PyObject *self, PyObject *args)             \
                                                         \
     func (arg1, arg2);                                  \
     Py_RETURN_NONE;                                     \
-    _CATCH_ALL                                          \
+    LLVMPY_CATCH_ALL                                    \
 }
 
 /**
@@ -553,7 +553,7 @@ _w ## func (PyObject *self, PyObject *args)             \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    _TRY                                                        \
+    LLVMPY_TRY                                                  \
     PyObject *obj1, *obj2;                                      \
     const char *arg3;                                           \
                                                                 \
@@ -564,7 +564,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype2 arg2 = pycap_get< intype2 > (obj2);           \
                                                                 \
     return pycap_new<outtype> ( func (arg1, arg2, arg3));       \
-    _CATCH_ALL                                                  \
+    LLVMPY_CATCH_ALL                                            \
 }
 
 /**
@@ -575,7 +575,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    _TRY                                                        \
+    LLVMPY_TRY                                                  \
     PyObject *obj1, *obj2;                                      \
     int arg3;                                                   \
                                                                 \
@@ -586,7 +586,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype2 arg2 = pycap_get< intype2 > (obj2);           \
                                                                 \
     return pycap_new<outtype>( func( arg1, arg2, arg3 ) ) ;     \
-    _CATCH_ALL                                                  \
+    LLVMPY_CATCH_ALL                                            \
 }
 
 /**
@@ -597,7 +597,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    _TRY                                                        \
+    LLVMPY_TRY                                                  \
     PyObject *obj1, *obj2;                                      \
     unsigned long long arg3;                                    \
                                                                 \
@@ -608,7 +608,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype2 arg2 = pycap_get< intype2 > (obj2);           \
                                                                 \
     return pycap_new<outtype>( func( arg1, arg2, arg3 ) ) ;     \
-    _CATCH_ALL                                                  \
+    LLVMPY_CATCH_ALL                                            \
 }
 
 /**
@@ -619,7 +619,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    _TRY                                                        \
+    LLVMPY_TRY                                                  \
     PyObject *obj1;                                             \
     int arg2, arg3;                                             \
                                                                 \
@@ -630,7 +630,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
                                                                 \
     func (arg1, arg2, arg3);                                    \
     Py_RETURN_NONE;                                             \
-    _CATCH_ALL                                                  \
+    LLVMPY_CATCH_ALL                                            \
 }
 
 /**
@@ -641,7 +641,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                             \
 _w ## func (PyObject *self, PyObject *args)                   \
 {                                                             \
-    _TRY                                                      \
+    LLVMPY_TRY                                                \
     PyObject *obj1;                                           \
     int arg2;                                                 \
     intype3 arg3;                                             \
@@ -653,7 +653,7 @@ _w ## func (PyObject *self, PyObject *args)                   \
                                                               \
     func (arg1, arg2, arg3);                                  \
     Py_RETURN_NONE;                                           \
-    _CATCH_ALL                                                \
+    LLVMPY_CATCH_ALL                                          \
 }
 
 /**
@@ -664,7 +664,7 @@ _w ## func (PyObject *self, PyObject *args)                   \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    _TRY                                                        \
+    LLVMPY_TRY                                                  \
     PyObject *obj1, *obj3;                                      \
     const char *arg2;                                           \
                                                                 \
@@ -675,7 +675,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype3 arg3 = pycap_get< intype3 > (obj3);           \
                                                                 \
     return pycap_new<outtype>( func( arg1, arg2, arg3 ) );      \
-    _CATCH_ALL                                                  \
+    LLVMPY_CATCH_ALL                                            \
 }
 
 /**
@@ -686,7 +686,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    _TRY                                                        \
+    LLVMPY_TRY                                                  \
     PyObject *obj1, *obj3;                                      \
     const char *arg2;                                           \
                                                                 \
@@ -699,7 +699,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     func(arg1, arg2, arg3);                                     \
                                                                 \
     Py_RETURN_NONE;                                             \
-    _CATCH_ALL                                                  \
+    LLVMPY_CATCH_ALL                                            \
 }
 
 
@@ -711,7 +711,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                                     \
 _w ## func (PyObject *self, PyObject *args)                           \
 {                                                                     \
-    _TRY                                                              \
+    LLVMPY_TRY                                                        \
     PyObject *obj1, *obj2;                                            \
     int arg3;                                                         \
     const char *arg4;                                                 \
@@ -723,7 +723,7 @@ _w ## func (PyObject *self, PyObject *args)                           \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                 \
                                                                       \
     return pycap_new<outtype>( func( arg1, arg2, arg3, arg4 ) ) ;     \
-    _CATCH_ALL                                                        \
+    LLVMPY_CATCH_ALL                                                  \
 }
 
 /**
@@ -734,7 +734,7 @@ _w ## func (PyObject *self, PyObject *args)                           \
 static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
-  _TRY                                                                  \
+  LLVMPY_TRY                                                            \
   PyObject *obj1, *obj2, *obj3;                                         \
   int arg4;                                                             \
   const char *arg5;                                                     \
@@ -748,7 +748,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
   const intype3 arg3 = pycap_get< intype3 > (obj3);                     \
                                                                         \
   return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) ) ;   \
-  _CATCH_ALL                                                            \
+  LLVMPY_CATCH_ALL                                                      \
 }
 
 /**
@@ -759,7 +759,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
 static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
-    _TRY                                                                \
+    LLVMPY_TRY                                                          \
     PyObject *obj1, *obj2, *obj3;                                       \
     const char *arg4;                                                   \
                                                                         \
@@ -771,7 +771,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
                                                                         \
     return pycap_new<outtype>( func( arg1, arg2, arg3, arg4 ) );        \
-    _CATCH_ALL                                                          \
+    LLVMPY_CATCH_ALL                                                    \
 }
 
 /**
@@ -782,7 +782,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
 static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
-    _TRY                                                                \
+    LLVMPY_TRY                                                          \
     PyObject *obj1, *obj2;                                              \
     const char *arg3;                                                   \
     int arg4;                                                           \
@@ -794,7 +794,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
                                                                         \
     return pycap_new<outtype>( func( arg1, arg2, arg3, arg4 ) );        \
-    _CATCH_ALL                                                          \
+    LLVMPY_CATCH_ALL                                                    \
 }
 
 
@@ -807,7 +807,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
 static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
-    _TRY                                                                \
+    LLVMPY_TRY                                                          \
     PyObject *obj1, *obj2;                                              \
     int arg3;                                                           \
     const char *arg4;                                                   \
@@ -820,7 +820,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype2 arg2 = pycap_get< intype2 > (obj2);                   \
                                                                         \
     return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) );  \
-    _CATCH_ALL                                                          \
+    LLVMPY_CATCH_ALL                                                    \
 }
 
 /**
@@ -831,7 +831,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
 static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
-    _TRY                                                                \
+    LLVMPY_TRY                                                          \
     PyObject *obj1;                                                     \
     const char *arg2;                                                   \
     int arg3;                                                           \
@@ -842,7 +842,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype1 arg1 = pycap_get< intype1 > (obj1);                   \
                                                                         \
     return pycap_new<outtype>( func( arg1, arg2, arg3 ) );              \
-    _CATCH_ALL                                                          \
+    LLVMPY_CATCH_ALL                                                    \
 }
 
 
@@ -854,7 +854,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
 static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
-    _TRY                                                                \
+    LLVMPY_TRY                                                          \
     PyObject *obj1, *obj2, *obj3;                                       \
     const char *arg4;                                                   \
     int arg5;                                                           \
@@ -867,7 +867,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
                                                                         \
     return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) );  \
-    _CATCH_ALL                                                          \
+    LLVMPY_CATCH_ALL                                                    \
 }
 
 
@@ -881,7 +881,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
 static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
-    _TRY                                                                \
+    LLVMPY_TRY                                                          \
     PyObject *obj1, *obj2, *obj3;                                       \
     int arg4;                                                           \
     const char *arg5;                                                   \
@@ -895,7 +895,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                   \
                                                                         \
     return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5, arg6 ) );\
-    _CATCH_ALL                                                          \
+    LLVMPY_CATCH_ALL                                                    \
 }
 
 /**
@@ -906,7 +906,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
 static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
-    _TRY                                                                \
+    LLVMPY_TRY                                                          \
     PyObject *obj1, *obj2, *obj3, *obj4;                                \
     const char *arg5;                                                   \
     int arg6;                                                           \
@@ -920,7 +920,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype4 arg4 = pycap_get< intype4 > (obj4);                   \
                                                                         \
     return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5, arg6 ) );     \
-    _CATCH_ALL                                                          \
+    LLVMPY_CATCH_ALL                                                    \
 }
 
 
@@ -932,7 +932,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
 static PyObject *                                                       \
 _w ## func (PyObject *self, PyObject *args)                             \
 {                                                                       \
-    _TRY                                                                \
+    LLVMPY_TRY                                                          \
     PyObject *obj1, *obj3, *obj4;                                       \
     const char *arg2;                                                   \
     const char *arg5;                                                   \
@@ -946,7 +946,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
     const intype4 arg4 = pycap_get< intype4 > (obj4);                   \
                                                                         \
     return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5, arg6 ) ); \
-    _CATCH_ALL                                                          \
+    LLVMPY_CATCH_ALL                                                    \
 }
 
 /**
@@ -957,7 +957,7 @@ _w ## func (PyObject *self, PyObject *args)                             \
 static PyObject *                                                           \
 _w ## func (PyObject *self, PyObject *args)                                 \
 {                                                                           \
-    _TRY                                                                    \
+    LLVMPY_TRY                                                              \
     PyObject *obj1, *obj2, *obj3;                                           \
     int arg4;                                                               \
                                                                             \
@@ -969,7 +969,7 @@ _w ## func (PyObject *self, PyObject *args)                                 \
     const intype3 arg3 = pycap_get< intype3 > (obj3);                       \
                                                                             \
     return pycap_new<outtype>( func( arg1, arg2, arg3, arg4 ) );            \
-    _CATCH_ALL                                                              \
+    LLVMPY_CATCH_ALL                                                        \
 }
 
 /**
@@ -981,7 +981,7 @@ _w ## func (PyObject *self, PyObject *args)                                 \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    _TRY                                                        \
+    LLVMPY_TRY                                                  \
     PyObject *obj1, *obj2, *obj3, *obj4;                        \
                                                                 \
     if (!PyArg_ParseTuple(args, "OOOO", &obj1, &obj2, &obj3, &obj4)) \
@@ -992,7 +992,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype3 arg3 = pycap_get< intype3 > (obj3);           \
     const intype4 arg4 = pycap_get< intype4 > (obj4);           \
     return pycap_new<outtype>( func( arg1, arg2, arg3, arg4 ) );\
-    _CATCH_ALL                                                  \
+    LLVMPY_CATCH_ALL                                            \
 }
 
 /**
@@ -1004,7 +1004,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    _TRY                                                        \
+    LLVMPY_TRY                                                  \
     PyObject *obj1, *obj2, *obj3, *obj4;                        \
     const char *arg5;                                           \
                                                                 \
@@ -1017,7 +1017,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype4 arg4 = pycap_get< intype4 > (obj4);           \
                                                                 \
     return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) );\
-    _CATCH_ALL                                                  \
+    LLVMPY_CATCH_ALL                                            \
 }
 
 /**
@@ -1029,7 +1029,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                               \
 _w ## func (PyObject *self, PyObject *args)                     \
 {                                                               \
-    _TRY                                                        \
+    LLVMPY_TRY                                                  \
     PyObject *obj1, *obj3, *obj4;                               \
     intype2 arg2 ;                                              \
     const char *arg5;                                           \
@@ -1042,7 +1042,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
     const intype4 arg4 = pycap_get< intype4 > (obj4);           \
                                                                 \
     return pycap_new<outtype>( func( arg1, arg2, arg3, arg4, arg5 ) ); \
-    _CATCH_ALL                                                  \
+    LLVMPY_CATCH_ALL                                            \
 }
 
 /**
@@ -1054,7 +1054,7 @@ _w ## func (PyObject *self, PyObject *args)                     \
 static PyObject *                                                \
 _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
-    _TRY                                                         \
+    LLVMPY_TRY                                                   \
     PyObject *obj1, *obj2;                                       \
                                                                  \
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))             \
@@ -1067,7 +1067,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
     outtype ret = func (arg1, arg2v, arg2n);                     \
     delete [] arg2v ;                                            \
     return pycap_new<outtype>( ret );                            \
-    _CATCH_ALL                                                   \
+    LLVMPY_CATCH_ALL                                             \
 }
 
 /**
@@ -1079,7 +1079,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
 static PyObject *                                                \
 _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
-    _TRY                                                         \
+    LLVMPY_TRY                                                   \
     PyObject *obj1;                                              \
     int arg2;                                                    \
                                                                  \
@@ -1092,7 +1092,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
     outtype ret = func (arg1v, arg1n, arg2);                     \
     delete [] arg1v;                                             \
     return pycap_new<outtype>( ret );                            \
-    _CATCH_ALL                                                   \
+    LLVMPY_CATCH_ALL                                             \
 }
 
 /**
@@ -1104,7 +1104,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
 static PyObject *                                                \
 _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
-    _TRY                                                         \
+    LLVMPY_TRY                                                   \
     PyObject *obj1;                                              \
                                                                  \
     if (!PyArg_ParseTuple(args, "O", &obj1))                     \
@@ -1116,7 +1116,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
     outtype ret = func (arg1v, arg1n);                           \
     delete [] arg1v;                                             \
     return pycap_new<outtype>( ret );                            \
-    _CATCH_ALL                                                   \
+    LLVMPY_CATCH_ALL                                             \
 }
 
 /**
@@ -1128,7 +1128,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
 static PyObject *                                                \
 _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
-    _TRY                                                         \
+    LLVMPY_TRY                                                   \
     PyObject *obj1, *obj2;                                       \
     int arg3;                                                    \
                                                                  \
@@ -1142,7 +1142,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
     outtype ret = func (arg1, arg2v, arg2n, arg3);               \
     delete [] arg2v ;                                            \
     return pycap_new<outtype>( ret );                            \
-    _CATCH_ALL                                                   \
+    LLVMPY_CATCH_ALL                                             \
 }
 
 
@@ -1155,7 +1155,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
 static PyObject *                                                \
 _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
-    _TRY                                                         \
+    LLVMPY_TRY                                                   \
     PyObject *obj1, *obj2;                                       \
     int arg3;                                                    \
                                                                  \
@@ -1169,7 +1169,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
     func (arg1, arg2v, arg2n, arg3);                             \
     delete [] arg2v ;                                            \
     Py_RETURN_NONE;                                              \
-    _CATCH_ALL                                                   \
+    LLVMPY_CATCH_ALL                                             \
 }
 
 /**
@@ -1181,7 +1181,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
 static PyObject *                                                \
 _w ## func (PyObject *self, PyObject *args)                      \
 {                                                                \
-    _TRY                                                         \
+    LLVMPY_TRY                                                   \
     PyObject *obj1, *obj3;                                       \
     int arg2;                                                    \
                                                                  \
@@ -1195,7 +1195,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
     outtype ret = func (arg1, arg2, arg3v, arg3n);               \
     delete [] arg3v ;                                            \
     return pycap_new<outtype>( ret );                            \
-    _CATCH_ALL                                                   \
+    LLVMPY_CATCH_ALL                                             \
 }
 
 /**
@@ -1207,7 +1207,7 @@ _w ## func (PyObject *self, PyObject *args)                      \
 static PyObject *                                                           \
 _w ## func (PyObject *self, PyObject *args)                                 \
 {                                                                           \
-    _TRY                                                                    \
+    LLVMPY_TRY                                                              \
     PyObject *obj1, *obj2, *obj3;                                           \
                                                                             \
     if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))                \
@@ -1221,7 +1221,7 @@ _w ## func (PyObject *self, PyObject *args)                                 \
     outtype ret = func (arg1, arg2, arg3v, arg3n);                          \
     delete [] arg3v ;                                                       \
     return pycap_new<outtype>( ret );                                       \
-    _CATCH_ALL                                                              \
+    LLVMPY_CATCH_ALL                                                        \
 }
 
 /**
@@ -1233,7 +1233,7 @@ _w ## func (PyObject *self, PyObject *args)                                 \
 static PyObject *                                                           \
 _w ## func (PyObject *self, PyObject *args)                                 \
 {                                                                           \
-    _TRY                                                                    \
+    LLVMPY_TRY                                                              \
     PyObject *obj1, *obj2, *obj3;                                           \
     const char *arg4;                                                       \
                                                                             \
@@ -1248,7 +1248,7 @@ _w ## func (PyObject *self, PyObject *args)                                 \
     outtype ret = func (arg1, arg2, arg3v, arg3n, arg4);                    \
     delete [] arg3v ;                                                       \
     return pycap_new<outtype>( ret );                                       \
-    _CATCH_ALL                                                              \
+    LLVMPY_CATCH_ALL                                                        \
 }
 
 /**
@@ -1261,14 +1261,14 @@ _w ## func (PyObject *self, PyObject *args)                                 \
 static PyObject *                                                   \
 _w ## func (PyObject *self, PyObject *args)                         \
 {                                                                   \
-    _TRY                                                            \
+    LLVMPY_TRY                                                      \
     intype1 arg1 = get_object_arg<intype1>(args);                   \
                                                                     \
     const char *val = func (arg1);                                  \
     PyObject *ret = PyUnicode_FromString(val);                      \
     LLVMDisposeMessage(const_cast<char*>(val));                     \
     return ret;                                                     \
-    _CATCH_ALL                                                      \
+    LLVMPY_CATCH_ALL                                                \
 }
 
 

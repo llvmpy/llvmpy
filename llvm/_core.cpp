@@ -105,7 +105,7 @@ template <> PyObject* pycap_new<long long>(long long ll)
 static PyObject *
 _wLLVMModuleCreateWithName(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     const char *s;
 
     if (!PyArg_ParseTuple(args, "s:LLVMModuleCreateWithName", &s)) {
@@ -114,7 +114,7 @@ _wLLVMModuleCreateWithName(PyObject *self, PyObject *args)
 
     const LLVMModuleRef module = LLVMModuleCreateWithName(s);
     return pycap_new<LLVMModuleRef>(module);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 _wrap_obj2str(LLVMGetDataLayout, LLVMModuleRef)
@@ -135,7 +135,7 @@ _wrap_objstrobj2obj(LLVMModuleGetOrInsertFunction, LLVMModuleRef,
 static PyObject *
 _wLLVMVerifyModule(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     const LLVMModuleRef m = get_object_arg<LLVMModuleRef>(args) ;
     if (!m) return NULL;
 
@@ -151,7 +151,7 @@ _wLLVMVerifyModule(PyObject *self, PyObject *args)
     }
 
     return ret;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 ///// unused
@@ -161,7 +161,7 @@ _wLLVMVerifyModule(PyObject *self, PyObject *args)
 static PyObject*
 _wLLVMGetModuleFromAssembly(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     const char * str;
     if ( !PyArg_ParseTuple(args, "s", &str) ){
         return NULL;
@@ -181,13 +181,13 @@ _wLLVMGetModuleFromAssembly(PyObject *self, PyObject *args)
     }
 
     return pycap_new<LLVMModuleRef>(mod);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMGetModuleFromBitcode(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj ;
 
     if (!PyArg_ParseTuple(args, "S", &obj))
@@ -211,13 +211,13 @@ _wLLVMGetModuleFromBitcode(PyObject *self, PyObject *args)
     }
 
     return pycap_new<LLVMModuleRef>(m);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMGetBitcodeFromModule(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     const LLVMModuleRef m = get_object_arg<LLVMModuleRef>(args) ;
     if (!m ) return NULL;
 
@@ -229,13 +229,13 @@ _wLLVMGetBitcodeFromModule(PyObject *self, PyObject *args)
     PyObject *ret = PyBytes_FromStringAndSize(chars, len);
     LLVMDisposeMessage(const_cast<char*>(chars));
     return ret;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMGetNativeCodeFromModule(PyObject * self, PyObject * args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject * arg_m;
     int arg_use_asm;
 
@@ -258,13 +258,13 @@ _wLLVMGetNativeCodeFromModule(PyObject * self, PyObject * args)
     LLVMDisposeMessage(const_cast<char*>(chars));
 
     return ret;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMLinkModules(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     size_t mode = 0;
 
     PyObject *dest_obj, *src_obj ;
@@ -288,7 +288,7 @@ _wLLVMLinkModules(PyObject *self, PyObject *args)
 
     /* note: success => None, failure => string with error message */
     Py_RETURN_NONE;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 /*===----------------------------------------------------------------------===*/
@@ -362,9 +362,9 @@ obj2arr(PyObject *self, PyObject *args, arrcnt_fn_t cntfunc, obj2arr_fn_t arrfun
 static PyObject *
 _wLLVMGetFunctionTypeParams(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     return obj2arr(self, args, LLVMCountParamTypes, LLVMGetParamTypes);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 /*===-- Struct types -----------------------------------------------------===*/
@@ -380,10 +380,10 @@ _wrap_objstr2none(LLVMSetStructName, LLVMTypeRef)
 static PyObject *
 _wLLVMGetStructElementTypes(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     return obj2arr(self, args, LLVMCountStructElementTypes,
             LLVMGetStructElementTypes);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 
@@ -438,7 +438,7 @@ _wrap_obj2obj(LLVMValueGetNumUses, LLVMValueRef, int)
 static PyObject *
 _wLLVMValueGetUses(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     const LLVMValueRef value = get_object_arg<LLVMValueRef>(args) ;
 
     LLVMValueRef *uses = 0;
@@ -449,7 +449,7 @@ _wLLVMValueGetUses(PyObject *self, PyObject *args)
         LLVMDisposeValueRefArray(uses);
 
     return list;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 /*===-- Users ------------------------------------------------------------===*/
@@ -473,7 +473,7 @@ _wrap_obj2obj(LLVMIsUndef, LLVMValueRef, int)
 static PyObject *
 _wLLVMConstInt(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj;
     unsigned long long n;
     int sign_extend;
@@ -486,13 +486,13 @@ _wLLVMConstInt(PyObject *self, PyObject *args)
     const LLVMValueRef val = LLVMConstInt(ty, n, sign_extend);
 
     return pycap_new<LLVMValueRef>(val);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMConstReal(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj;
     double d;
 
@@ -503,7 +503,7 @@ _wLLVMConstReal(PyObject *self, PyObject *args)
 
     const LLVMValueRef val = LLVMConstReal(ty, d);
     return pycap_new<LLVMValueRef>(val);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 _wrap_objstr2obj(LLVMConstRealOfString, LLVMTypeRef, LLVMValueRef)
@@ -515,7 +515,7 @@ _wrap_obj2obj(LLVMConstIntGetSExtValue, LLVMValueRef, llvmwrap_ll)
 static PyObject *
 _wLLVMConstString(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     const char *s;
     int dont_null_terminate;
 
@@ -525,7 +525,7 @@ _wLLVMConstString(PyObject *self, PyObject *args)
 
     LLVMValueRef val = LLVMConstString(s, strlen(s), dont_null_terminate);
     return pycap_new<LLVMValueRef>(val);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 _wrap_objlist2obj(LLVMConstArray, LLVMTypeRef, LLVMValueRef, LLVMValueRef)
@@ -637,12 +637,12 @@ _wrap_objenum2none(LLVMRemoveFunctionAttr, LLVMValueRef, LLVMAttribute)
 static PyObject *
 _wLLVMVerifyFunction(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     const LLVMValueRef fn = get_object_arg<LLVMValueRef>(args);
     if (!fn) return NULL;
 
     return pycap_new<int>(LLVMVerifyFunction(fn, LLVMReturnStatusAction));
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 
@@ -680,7 +680,7 @@ _wrap_objstr2obj(LLVMMetaDataStringGet, LLVMModuleRef, LLVMValueRef)
 static PyObject *
 _wLLVMGetNamedMetadataOperands(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj_module;
     const char *name;
 
@@ -696,7 +696,7 @@ _wLLVMGetNamedMetadataOperands(PyObject *self, PyObject *args)
     delete [] operands;
 
     return list;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 /*===-- Instructions -----------------------------------------------------===*/
@@ -766,7 +766,7 @@ _wrap_objobjobjint2obj(LLVMBuildSwitch, LLVMBuilderRef, LLVMValueRef, LLVMBasicB
 static PyObject *
 _wLLVMBuildInvoke(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj1, *obj2, *obj3, *obj4, *obj5;
     const char *name;
 
@@ -791,7 +791,7 @@ _wLLVMBuildInvoke(PyObject *self, PyObject *args)
     delete [] fnargs;
 
     return pycap_new<LLVMValueRef>(inst);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 _wrap_obj2obj(LLVMBuildUnreachable, LLVMBuilderRef, LLVMValueRef)
@@ -885,7 +885,7 @@ _wrap_objobjobjobjstr2obj(LLVMBuildShuffleVector, LLVMBuilderRef, LLVMValueRef, 
 static PyObject *
 _wLLVMCreateMemoryBufferWithContentsOfFile(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     const char *path;
     LLVMMemoryBufferRef ref;
     PyObject *ret;
@@ -903,13 +903,13 @@ _wLLVMCreateMemoryBufferWithContentsOfFile(PyObject *self, PyObject *args)
     }
 
     return ret;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMCreateMemoryBufferWithSTDIN(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *ret;
     LLVMMemoryBufferRef ref;
     char *outmsg;
@@ -921,7 +921,7 @@ _wLLVMCreateMemoryBufferWithSTDIN(PyObject *self, PyObject *args)
     }
 
     return ret;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 _wrap_obj2none(LLVMDisposeMemoryBuffer, LLVMMemoryBufferRef)
@@ -1112,7 +1112,7 @@ _wrap_obj2none(LLVMDisposeTargetMachine, LLVMTargetMachineRef)
 static PyObject *
 _wLLVMTargetMachineLookup(PyObject * self, PyObject * args)
 {
-    _TRY
+    LLVMPY_TRY
     const char *arch;
     const char *cpu;
     const char *features;
@@ -1129,13 +1129,13 @@ _wLLVMTargetMachineLookup(PyObject * self, PyObject * args)
         return NULL;
     }
     return pycap_new<LLVMTargetMachineRef>(tm);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMTargetMachineEmitFile(PyObject * self, PyObject * args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *arg_tm, *arg_m;
     int arg_use_asm;
 
@@ -1159,7 +1159,7 @@ _wLLVMTargetMachineEmitFile(PyObject * self, PyObject * args)
     PyObject * ret = PyBytes_FromStringAndSize(chars, len);
     delete [] ubytes;
     return ret;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 _wrap_obj2obj(LLVMTargetMachineGetTargetData, LLVMTargetMachineRef,
@@ -1182,14 +1182,14 @@ _wrap_obj2none(LLVMDisposeTargetData, LLVMTargetDataRef)
 static PyObject *
 _wLLVMTargetDataAsString(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     const LLVMTargetDataRef td = get_object_arg<LLVMTargetDataRef>(args);
 
     char *tdrep = LLVMCopyStringRepOfTargetData(td);
     PyObject *ret = PyUnicode_FromString(tdrep);
     LLVMDisposeMessage(tdrep);
     return ret;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 _wrap_objobj2none(LLVMAddTargetData, LLVMTargetDataRef, LLVMPassManagerRef)
@@ -1230,7 +1230,7 @@ _wrap_objstr2none(LLVMEngineBuilderSetMAttrs, LLVMEngineBuilderRef)
 static PyObject *
 _wLLVMEngineBuilderCreate(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     const LLVMEngineBuilderRef obj
         = get_object_arg<LLVMEngineBuilderRef>(args) ;
 
@@ -1245,7 +1245,7 @@ _wLLVMEngineBuilderCreate(PyObject *self, PyObject *args)
     }
 
     return ret;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 /*===----------------------------------------------------------------------===*/
@@ -1255,7 +1255,7 @@ _wLLVMEngineBuilderCreate(PyObject *self, PyObject *args)
 static PyObject *
 _wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj;
     int force_interpreter;
     char *outmsg = 0;
@@ -1281,13 +1281,13 @@ _wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
     }
 
     return ret;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMGetPointerToFunction(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj_ee;
     PyObject *obj_fn;
 
@@ -1298,7 +1298,7 @@ _wLLVMGetPointerToFunction(PyObject *self, PyObject *args)
     const LLVMValueRef fn = pycap_get<LLVMValueRef>( obj_fn ) ;
 
     return PyLong_FromVoidPtr(LLVMGetPointerToFunction(ee,fn));
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 /* the args should have been ptr, num */
@@ -1311,7 +1311,7 @@ LLVMGenericValueRef LLVMRunFunction2(LLVMExecutionEngineRef EE,
 static PyObject *
 _wLLVMRemoveModule2(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj_ee;
     PyObject *obj_mod;
     if (!PyArg_ParseTuple(args, "OO", &obj_ee, &obj_mod))
@@ -1336,7 +1336,7 @@ _wLLVMRemoveModule2(PyObject *self, PyObject *args)
     }
 
     return ret;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 _wrap_obj2none(LLVMDisposeExecutionEngine, LLVMExecutionEngineRef)
@@ -1359,7 +1359,7 @@ _wrap_objobj2none(LLVMAddModule, LLVMExecutionEngineRef,
 static PyObject *
 _wLLVMCreateGenericValueOfInt(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj1;
     unsigned long long n;
     int is_signed;
@@ -1372,13 +1372,13 @@ _wLLVMCreateGenericValueOfInt(PyObject *self, PyObject *args)
 
     gv = LLVMCreateGenericValueOfInt(ty, n, is_signed);
     return pycap_new<LLVMGenericValueRef>(gv);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMCreateGenericValueOfFloat(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj1;
     double d;
     LLVMGenericValueRef gv;
@@ -1390,13 +1390,13 @@ _wLLVMCreateGenericValueOfFloat(PyObject *self, PyObject *args)
 
     gv = LLVMCreateGenericValueOfFloat(ty, d);
     return pycap_new<LLVMGenericValueRef>(gv);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMCreateGenericValueOfPointer(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
 //    PyObject *obj1;
 //    LLVMTypeRef ty; //unused?
     unsigned long long n_;
@@ -1409,13 +1409,13 @@ _wLLVMCreateGenericValueOfPointer(PyObject *self, PyObject *args)
 
     const LLVMGenericValueRef gv = LLVMCreateGenericValueOfPointer((void*)n);
     return pycap_new<LLVMGenericValueRef>(gv);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMGenericValueToInt(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj1;
     int is_signed;
     unsigned long long val;
@@ -1429,13 +1429,13 @@ _wLLVMGenericValueToInt(PyObject *self, PyObject *args)
     return is_signed ?
         PyLong_FromLongLong((long long)val) :
         PyLong_FromUnsignedLongLong(val);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMGenericValueToFloat(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj1, *obj2;
 
     if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))
@@ -1446,13 +1446,13 @@ _wLLVMGenericValueToFloat(PyObject *self, PyObject *args)
 
     double val = LLVMGenericValueToFloat(ty, gv);
     return PyFloat_FromDouble(val);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMGenericValueToPointer(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     PyObject *obj1;
 
     if (!PyArg_ParseTuple(args, "O", &obj1))
@@ -1462,7 +1462,7 @@ _wLLVMGenericValueToPointer(PyObject *self, PyObject *args)
 
     void * val = LLVMGenericValueToPointer(gv);
     return PyLong_FromVoidPtr(val);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 _wrap_obj2none(LLVMDisposeGenericValue, LLVMGenericValueRef)
@@ -1478,7 +1478,7 @@ _wrap_objintlist2obj(LLVMGetIntrinsic, LLVMModuleRef, LLVMTypeRef,
 static PyObject *
 _wLLVMLoadLibraryPermanently(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     const char *filename;
     PyObject *ret;
 
@@ -1497,13 +1497,13 @@ _wLLVMLoadLibraryPermanently(PyObject *self, PyObject *args)
 
     /* note: success => None, failure => string with error message */
     Py_RETURN_NONE;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 static PyObject *
 _wLLVMParseEnvOpts(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     const char * progname;
     const char * envname;
     if(!PyArg_ParseTuple(args, "ss", &progname, &envname)) {
@@ -1513,7 +1513,7 @@ _wLLVMParseEnvOpts(PyObject *self, PyObject *args)
     llvm::cl::ParseEnvironmentOptions(progname, envname);
 
     Py_RETURN_NONE;
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 _wrap_obj2obj(LLVMInlineFunction, LLVMValueRef, int)
@@ -1523,10 +1523,10 @@ _wrap_obj2obj(LLVMInlineFunction, LLVMValueRef, int)
 static PyObject *
 _wPyCObjectVoidPtrToPyLong(PyObject *self, PyObject *args)
 {
-    _TRY
+    LLVMPY_TRY
     void *p = get_object_arg(args);
     return PyLong_FromVoidPtr(p);
-    _CATCH_ALL
+    LLVMPY_CATCH_ALL
 }
 
 
