@@ -63,6 +63,11 @@ template <> PyObject* pycap_new<int>(int i)
     return PyLong_FromLong(static_cast<long>(i));
 }
 
+template <> PyObject* pycap_new<unsigned int>(unsigned int i)
+{
+    return PyLong_FromLong(static_cast<long>(i));
+}
+
 template <> PyObject* pycap_new<unsigned long>(unsigned long i)
 {
     return PyLong_FromLong(static_cast<unsigned long>(i));
