@@ -589,6 +589,12 @@ tests.append(TestTargetMachines)
 # ---------------------------------------------------------------------------
 
 class TestNative(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.tmpdir)
+
 
     def _make_module(self):
         m = Module.new('module1')
@@ -603,7 +609,7 @@ class TestNative(unittest.TestCase):
         return m
 
     def _compile(self, src):
-        dst = '/tmp/llvmobj.out'
+        dst = os.path.join(self.tmpdir, 'llvmobj.out')
         s = subprocess.call(['cc', '-o', dst, src])
         if s != 0:
             raise Exception("Cannot compile")
@@ -615,7 +621,7 @@ class TestNative(unittest.TestCase):
         m = self._make_module()
         output = m.to_native_assembly()
 
-        src = '/tmp/llvmasm.s'
+        src = os.path.join(self.tmpdir, 'llvmasm.s')
         with open(src, 'wb') as fout:
             fout.write(output)
 
@@ -625,13 +631,14 @@ class TestNative(unittest.TestCase):
         m = self._make_module()
         output = m.to_native_object()
 
-        src = '/tmp/llvmobj.o'
+        src = os.path.join(self.tmpdir, 'llvmobj.o')
         with open(src, 'wb') as fout:
             fout.write(output)
 
         self._compile(src)
 
-tests.append(TestNative)
+if sys.platform != 'win32':
+    tests.append(TestNative)
 
 # ---------------------------------------------------------------------------
 
@@ -954,7 +961,9 @@ def run(verbosity=1):
     for cls in tests:
         suite.addTest(unittest.makeSuite(cls))
 
-    runner = unittest.TextTestRunner(verbosity=verbosity)
+    # The default stream fails in IPython qtconsole on Windows,
+    # so just using sys.stdout
+    runner = unittest.TextTestRunner(verbosity=verbosity, stream=sys.stdout)
     return runner.run(suite)
 
 
