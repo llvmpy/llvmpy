@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import unittest
 
 from llvm.core import *
@@ -47,7 +49,7 @@ class TestMetaData(unittest.TestCase):
         ops = [MetaDataString.get(mod, "int"), root]
         md1 = MetaData.get(mod, ops)
         MetaData.add_named_operand(mod, 'tbaa', md1)
-        print md1
+        print(md1)
 
         ops = [MetaDataString.get(mod, "const float"),
                root,
@@ -55,9 +57,9 @@ class TestMetaData(unittest.TestCase):
 
         md2 = MetaData.get(mod, ops)
         MetaData.add_named_operand(mod, 'tbaa', md2)
-        print md2
+        print(md2)
 
-        print mod
+        print(mod)
 
 
 if __name__ == '__main__':
