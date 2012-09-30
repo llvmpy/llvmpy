@@ -101,3 +101,8 @@ def _isstring_choose():
 
 isstring = _isstring_choose()
 
+try:
+    unicode_type = unicode
+except NameError:  # Py3
+    unicode_type = str
+

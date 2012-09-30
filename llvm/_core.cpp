@@ -163,7 +163,11 @@ _wLLVMGetModuleFromAssembly(PyObject *self, PyObject *args)
 {
     LLVMPY_TRY
     const char * str;
+#if (PY_MAJOR_VERSION >= 3)
+    if ( !PyArg_ParseTuple(args, "y", &str) ){
+#else
     if ( !PyArg_ParseTuple(args, "s", &str) ){
+#endif
         return NULL;
     }
 

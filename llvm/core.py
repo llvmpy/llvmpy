@@ -351,7 +351,9 @@ class Module(llvm.Ownable, llvm.Cacheable):
                           a module represented in bitcode.
         """
 
-        if isinstance(fileobj_or_str, basestring):
+        if isinstance(fileobj_or_str, _util.unicode_type):
+            data = fileobj_or_str.encode('utf-8')
+        elif isinstance(fileobj_or_str, bytes):
             data = fileobj_or_str
         else:
             data = fileobj_or_str.read()
@@ -373,10 +375,14 @@ class Module(llvm.Ownable, llvm.Cacheable):
                           a module represented in llvm-ir assembly.
         """
 
-        if isinstance(fileobj_or_str, basestring):
+        if isinstance(fileobj_or_str, _util.unicode_type):
+            data = fileobj_or_str.encode('utf-8')
+        elif isinstance(fileobj_or_str, bytes):
             data = fileobj_or_str
         else:
             data = fileobj_or_str.read()
+            if isinstance(data, _util.unicode_type):
+                data = data.encode()
         ret = _core.LLVMGetModuleFromAssembly(data)
         if not ret:
             raise llvm.LLVMException("Unable to create module from assembly")

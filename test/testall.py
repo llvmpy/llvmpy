@@ -79,9 +79,11 @@ def do_module():
 
     class strstream(object):
         def __init__(self):
-            self.s = ''
+            self.s = b''
 
         def write(self, data):
+            if not isinstance(data, bytes):
+                data = data.encode('utf-8')
             self.s += data
 
         def read(self):
