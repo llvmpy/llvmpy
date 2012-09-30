@@ -351,7 +351,7 @@ class Module(llvm.Ownable, llvm.Cacheable):
                           a module represented in bitcode.
         """
 
-        if isinstance(fileobj_or_str, basestring):
+        if _util.isstring(fileobj_or_str):
             data = fileobj_or_str
         else:
             data = fileobj_or_str.read()
@@ -373,7 +373,7 @@ class Module(llvm.Ownable, llvm.Cacheable):
                           a module represented in llvm-ir assembly.
         """
 
-        if isinstance(fileobj_or_str, basestring):
+        if _util.isstring(fileobj_or_str):
             data = fileobj_or_str
         else:
             data = fileobj_or_str.read()
