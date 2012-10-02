@@ -122,7 +122,6 @@ _w ## llvm_func_name( PyObject *self, PyObject *args )      \
     return special_func_str( llvm_func_name, self, args ) ; \
 }                                                           \
 
-
 // Python wrappers for various LLVM functions and return values
 
 // they all have the same name, WF, allowing a single macro to write a wrapper
@@ -131,7 +130,7 @@ _w ## llvm_func_name( PyObject *self, PyObject *args )      \
 // matching the llvm function signature
 // and the wrapper return type
 
-static PyObject* WF( void (&llvm_func)( void ),
+static PyObject* WF( void (&llvm_func)( ),
                      PyObject * self, PyObject * args)
 {
     LLVMPY_TRY
@@ -141,7 +140,7 @@ static PyObject* WF( void (&llvm_func)( void ),
     LLVMPY_CATCH_ALL
 }
 
-static PyObject* WF( const char* (&llvm_func)( void ),
+static PyObject* WF( const char* (&llvm_func)( ),
                      PyObject *self, PyObject *args )
 {
     LLVMPY_TRY
@@ -150,27 +149,7 @@ static PyObject* WF( const char* (&llvm_func)( void ),
     LLVMPY_CATCH_ALL
 }
 
-template <typename intype1 >
-PyObject* WF( char* (&llvm_func)( intype1 ),
-                     PyObject *self, PyObject *args )
-{
-    LLVMPY_TRY
-    const intype1 arg1 = get_object_arg<intype1>(args) ;
-    return PyUnicode_FromString( llvm_func(arg1));
-    LLVMPY_CATCH_ALL
-}
-
-template <typename intype1 >
-PyObject* WF( const char* (&llvm_func)( intype1 ),
-                     PyObject *self, PyObject *args )
-{
-    // call the version returning "char*"
-    typedef char* (&tifunc)( intype1 ) ;
-    tifunc ifunc = reinterpret_cast<tifunc>( llvm_func ) ;
-    return WF( ifunc, self, args ) ;
-}
-
-template <typename intype1 >
+template <class intype1 >
 PyObject* WF( void (&llvm_func)( intype1 ),
                      PyObject *self, PyObject *args )
 {
@@ -181,8 +160,28 @@ PyObject* WF( void (&llvm_func)( intype1 ),
     LLVMPY_CATCH_ALL
 }
 
+template <class intype1 >
+PyObject* WF( char* (&llvm_func)( intype1 ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    const intype1 arg1 = get_object_arg<intype1>(args) ;
+    return PyUnicode_FromString( llvm_func(arg1));
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1 >
+PyObject* WF( const char* (&llvm_func)( intype1 ),
+                     PyObject *self, PyObject *args )
+{
+    // call the version returning "char*"
+    typedef char* (&tifunc)( intype1 ) ;
+    tifunc ifunc = reinterpret_cast<tifunc>( llvm_func ) ;
+    return WF( ifunc, self, args ) ;
+}
+
 // Wrap and Dispose - unique from WF( char* ()( intype )..
-template <typename intype1 >
+template <class intype1 >
 PyObject* WD( char* (&llvm_func)( intype1 ),
                      PyObject *self, PyObject *args )
 {
@@ -195,7 +194,7 @@ PyObject* WD( char* (&llvm_func)( intype1 ),
     LLVMPY_CATCH_ALL
 }
 
-template <typename intype1, typename outtype >
+template <class intype1, class outtype >
 PyObject* WF( outtype (&llvm_func)( intype1 ),
                      PyObject *self, PyObject *args )
 {
@@ -203,6 +202,756 @@ PyObject* WF( outtype (&llvm_func)( intype1 ),
     const intype1 arg1 = get_object_arg<intype1>(args) ;
     llvm_func(arg1);
     return pycap_new<outtype>( llvm_func( arg1 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class outtype >
+PyObject* WF( outtype (&llvm_func)( unsigned int ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    unsigned int arg1;
+
+    if (!PyArg_ParseTuple(args, "i", &arg1)) return NULL;
+
+    return pycap_new<outtype>( llvm_func( arg1 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class outtype >
+PyObject* WF( outtype (&llvm_func)( intype1, intype2 ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2;
+
+    if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2)) return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2>
+PyObject* WF( void (&llvm_func)( intype1, intype2 ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2;
+
+    if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2)) return NULL;
+
+    intype1 arg1 = pycap_get< intype1 > (obj1);
+    intype2 arg2 = pycap_get< intype2 > (obj2);
+
+    llvm_func(arg1, arg2);
+    Py_RETURN_NONE;
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, unsigned int ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1;
+    unsigned int arg2;
+
+    if (!PyArg_ParseTuple(args, "OI", &obj1, &arg2)) return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class intype3, class outtype >
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, intype3 ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2, *obj3;
+
+    if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class intype3>
+PyObject* WF( void (&llvm_func)( intype1, intype2, intype3 ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2, *obj3;
+
+    if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3)) return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+
+    llvm_func(arg1, arg2, arg3);
+    Py_RETURN_NONE;
+    LLVMPY_CATCH_ALL
+}
+
+// collides with other specialized version..
+template <class intype1, class intype2, class intype3, class outtype>
+PyObject* WF_enum1( outtype (&llvm_func)( intype1, intype2, intype3 ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    intype1 arg1;
+    PyObject *obj2, *obj3;
+
+    if (!PyArg_ParseTuple(args, "IOO", &arg1, &obj2, &obj3)) return NULL;
+
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class outtype >
+PyObject* WF( outtype (&llvm_func)( const char* ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    const char *arg1;
+
+    if (!PyArg_ParseTuple(args, "s", &arg1)) return NULL;
+
+    return pycap_new<outtype>( llvm_func( arg1 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class outtype >
+PyObject* WF( outtype (&llvm_func)( void ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    if (!PyArg_ParseTuple(args, "")) return NULL;
+
+    return pycap_new<outtype>( llvm_func() );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1 >
+PyObject* WF( void (&llvm_func)( intype1, const char * ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1;
+    const char *arg2;
+
+    if (!PyArg_ParseTuple(args, "Os", &obj1, &arg2)) return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 >( obj1 );
+
+    llvm_func(arg1, arg2);
+    Py_RETURN_NONE;
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class outtype >
+PyObject* WF( outtype (&llvm_func)( intype1, const char* ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1;
+    const char *arg2;
+
+    if (!PyArg_ParseTuple(args, "Os", &obj1, &arg2)) return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2 ) );
+    LLVMPY_CATCH_ALL
+}
+
+// collides with other specialized version..
+template <class intype1 >
+PyObject* WF_int2( void (&llvm_func)( intype1, int ),
+                   PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1;
+    int arg2;
+
+    if (!PyArg_ParseTuple(args, "Oi", &obj1, &arg2)) return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+
+    llvm_func(arg1, arg2);
+    Py_RETURN_NONE;
+    LLVMPY_CATCH_ALL
+}
+
+// call the int version from unsigned int
+template <typename intype1 >
+PyObject* WF_int2( void (&llvm_func)( intype1, unsigned int ),
+                     PyObject *self, PyObject *args )
+{
+    typedef void(&tifunc)( intype1, int ) ;
+    tifunc ifunc = reinterpret_cast<tifunc>( llvm_func ) ;
+    return WF_int2( ifunc, self, args ) ;
+}
+
+// call the int version from enum
+template <class intype1, class intype2>
+PyObject* WF_enum2( void (&llvm_func)( intype1, intype2 ),
+                     PyObject *self, PyObject *args )
+{
+    typedef void(&tifunc)( intype1, int ) ;
+    tifunc ifunc = reinterpret_cast<tifunc>( llvm_func ) ;
+    return WF_int2( ifunc, self, args ) ;
+}
+
+template <class intype1, class intype2, class outtype >
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, const char* ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2;
+    const char *arg3;
+
+    if (!PyArg_ParseTuple(args, "OOs", &obj1, &obj2, &arg3))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+
+    return pycap_new<outtype> ( llvm_func(arg1, arg2, arg3));
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class outtype >
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, unsigned int ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2;
+    unsigned int arg3;
+
+    if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3)) return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3 ) ) ;
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class outtype >
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, unsigned long long ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2;
+    unsigned long long arg3;
+
+    if (!PyArg_ParseTuple(args, "OOK", &obj1, &obj2, &arg3)) return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3 ) ) ;
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1>
+PyObject* WF( void (&llvm_func)( intype1, unsigned int, unsigned int ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1;
+    int arg2, arg3;
+
+    if (!PyArg_ParseTuple(args, "Oii", &obj1, &arg2, &arg3)) return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+
+    llvm_func (arg1, arg2, arg3);
+    Py_RETURN_NONE;
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype3>
+PyObject* WF( void (&llvm_func)( intype1, unsigned int, intype3 ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1;
+    unsigned int arg2;
+    intype3 arg3;
+
+    if (!PyArg_ParseTuple(args, "Oii", &obj1, &arg2, &arg3)) return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 >( obj1 );
+
+    llvm_func( arg1, arg2, arg3);
+    Py_RETURN_NONE;
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype3, class outtype >
+PyObject* WF( outtype (&llvm_func)( intype1, const char*, intype3 ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj3;
+    const char *arg2;
+
+    if (!PyArg_ParseTuple(args, "OsO", &obj1, &arg2, &obj3)) return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3 ) );
+    LLVMPY_CATCH_ALL
+}
+
+
+template <class intype1, class intype3>
+PyObject* WF( void (&llvm_func)( intype1, const char*, intype3 ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj3;
+    const char *arg2;
+
+    if (!PyArg_ParseTuple(args, "OsO", &obj1, &arg2, &obj3)) return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+
+    llvm_func(arg1, arg2, arg3);
+
+    Py_RETURN_NONE;
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, unsigned int, const char*),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2;
+    unsigned int arg3;
+    const char *arg4;
+
+    if (!PyArg_ParseTuple(args, "OOis", &obj1, &obj2, &arg3, &arg4))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3, arg4 ) ) ;
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class intype3, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, intype3, unsigned int, const char*),
+                     PyObject *self, PyObject *args )
+{
+  LLVMPY_TRY
+  PyObject *obj1, *obj2, *obj3;
+  unsigned int arg4;
+  const char *arg5;
+
+  if (!PyArg_ParseTuple(args, "OOOis", &obj1, &obj2, &obj3, &arg4,
+                        &arg5))
+    return NULL;
+
+  const intype1 arg1 = pycap_get< intype1 > (obj1);
+  const intype2 arg2 = pycap_get< intype2 > (obj2);
+  const intype3 arg3 = pycap_get< intype3 > (obj3);
+
+  return pycap_new<outtype>( llvm_func( arg1, arg2, arg3, arg4, arg5 ) ) ;
+  LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class intype3, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, intype3, const char*),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2, *obj3;
+    const char *arg4;
+
+    if (!PyArg_ParseTuple(args, "OOOs", &obj1, &obj2, &obj3, &arg4))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3, arg4 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, unsigned int, const char*, int),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2;
+    unsigned int arg3;
+    const char *arg4;
+    int arg5;
+
+    if (!PyArg_ParseTuple(args, "OOisi", &obj1, &obj2, &arg3, &arg4, &arg5))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3, arg4, arg5 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, const char*, int),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1;
+    const char *arg2;
+    int arg3;
+
+    if (!PyArg_ParseTuple(args, "Osi", &obj1, &arg2, &arg3))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class intype3, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, intype3, unsigned int,
+                                    const char*, int),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2, *obj3;
+    unsigned int arg4;
+    const char *arg5;
+    int arg6;
+
+    if (!PyArg_ParseTuple(args, "OOOisi", &obj1, &obj2, &obj3, &arg4, &arg5, &arg6))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3, arg4, arg5, arg6 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class intype3, class intype4,
+    class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, intype3, intype4,
+                                    const char*, int),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2, *obj3, *obj4;
+    const char *arg5;
+    int arg6;
+
+    if (!PyArg_ParseTuple(args, "OOOOsi", &obj1, &obj2, &obj3, &obj4, &arg5, &arg6))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+    const intype4 arg4 = pycap_get< intype4 > (obj4);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3, arg4, arg5, arg6 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype3, class intype4, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, const char*, intype3, intype4,
+                                    const char*, int),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj3, *obj4;
+    const char *arg2;
+    const char *arg5;
+    int arg6;
+
+    if (!PyArg_ParseTuple(args, "OsOOsi", &obj1, &arg2, &obj3, &obj4, &arg5, &arg6))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+    const intype4 arg4 = pycap_get< intype4 > (obj4);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3, arg4, arg5, arg6 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class intype3, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, intype3, unsigned int ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2, *obj3;
+    unsigned int arg4;
+
+    if (!PyArg_ParseTuple(args, "OOOi", &obj1, &obj2, &obj3, &arg4))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3, arg4 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class intype3, class intype4, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, intype3, intype4),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2, *obj3, *obj4;
+
+    if (!PyArg_ParseTuple(args, "OOOO", &obj1, &obj2, &obj3, &obj4))
+        return NULL ;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+    const intype4 arg4 = pycap_get< intype4 > (obj4);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3, arg4 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class intype3, class intype4, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, intype3, intype4, const char *),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2, *obj3, *obj4;
+    const char *arg5;
+
+    if (!PyArg_ParseTuple(args, "OOOOs", &obj1, &obj2, &obj3, &obj4, &arg5))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+    const intype4 arg4 = pycap_get< intype4 > (obj4);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3, arg4, arg5 ) );
+    LLVMPY_CATCH_ALL
+}
+
+// collides with other specialized version..
+template <class intype1, class intype2, class intype3, class intype4, class outtype>
+PyObject* WF_enum2_char4( outtype (&llvm_func)( intype1, intype2, intype3, intype4, const char *),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj3, *obj4;
+    intype2 arg2 ;
+    const char *arg5;
+
+    if (!PyArg_ParseTuple(args, "OiOOs", &obj1, &arg2, &obj3, &obj4, &arg5))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype3 arg3 = pycap_get< intype3 > (obj3);
+    const intype4 arg4 = pycap_get< intype4 > (obj4);
+
+    return pycap_new<outtype>( llvm_func( arg1, arg2, arg3, arg4, arg5 ) );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class outtype >
+PyObject* WF( outtype (&llvm_func)( intype1, intype2*, unsigned int ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2;
+
+    if (!PyArg_ParseTuple(args, "OO", &obj1, &obj2))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 >( obj1 );
+    const unsigned int arg2n = PyList_Size(obj2);
+    intype2 *arg2v = make_array_from_list< intype2 *>(obj2, arg2n);
+
+    outtype ret = llvm_func(arg1, arg2v, arg2n);
+    delete [] arg2v ;
+
+    return pycap_new<outtype>( ret );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class outtype >
+PyObject* WF( outtype (&llvm_func)( intype1*, unsigned int, int ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1;
+    int arg2;
+
+    if (!PyArg_ParseTuple(args, "Oi", &obj1, &arg2))
+        return NULL;
+
+    const size_t arg1n = PyList_Size(obj1);
+    intype1 *arg1v = make_array_from_list< intype1 *>(obj1, arg1n);
+
+    outtype ret = llvm_func(arg1v, arg1n, arg2);
+    delete [] arg1v;
+
+    return pycap_new<outtype>( ret );
+
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class outtype >
+PyObject* WF( outtype (&llvm_func)( intype1*, unsigned int ),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1;
+
+    if (!PyArg_ParseTuple(args, "O", &obj1)) return NULL;
+
+    const size_t arg1n = PyList_Size(obj1);
+    intype1 *arg1v = make_array_from_list< intype1 *>(obj1, arg1n);
+
+    outtype ret = llvm_func(arg1v, arg1n);
+    delete [] arg1v;
+
+    return pycap_new<outtype>( ret );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class intype4, class outtype >
+PyObject* WF( outtype (&llvm_func)( intype1, intype2*, unsigned int, intype4),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2;
+    int arg3;
+
+    if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3)) return NULL;
+
+    intype1 arg1 = pycap_get< intype1 >( obj1 );
+    const size_t arg2n = PyList_Size(obj2);
+    intype2 *arg2v = make_array_from_list< intype2 *>(obj2, arg2n);
+
+    outtype ret = llvm_func(arg1, arg2v, arg2n, arg3);
+    delete [] arg2v ;
+
+    return pycap_new<outtype>( ret );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2>
+PyObject* WF( void (&llvm_func)( intype1, intype2*, unsigned int, int),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2;
+    int arg3;
+
+    if (!PyArg_ParseTuple(args, "OOi", &obj1, &obj2, &arg3))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 >( obj1 );
+    const size_t arg2n = PyList_Size(obj2);
+    intype2 *arg2v = make_array_from_list< intype2 *>(obj2, arg2n);
+
+    llvm_func(arg1, arg2v, arg2n, arg3);
+    delete [] arg2v ;
+
+    Py_RETURN_NONE;
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype3, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, int, intype3*, unsigned int),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj3;
+    int arg2;
+
+    if (!PyArg_ParseTuple(args, "OiO", &obj1, &arg2, &obj3))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 >( obj1 );
+    const size_t arg3n = PyList_Size(obj3);
+    intype3 *arg3v = make_array_from_list< intype3 *>(obj3, arg3n);
+
+    outtype ret = llvm_func(arg1, arg2, arg3v, arg3n);
+    delete [] arg3v ;
+
+    return pycap_new<outtype>( ret );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class intype3, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, intype3*, unsigned int),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2, *obj3;
+
+    if (!PyArg_ParseTuple(args, "OOO", &obj1, &obj2, &obj3))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+    const size_t arg3n = PyList_Size(obj3);
+    intype3 *arg3v = make_array_from_list< intype3 *>(obj3, arg3n);
+
+    outtype ret = llvm_func(arg1, arg2, arg3v, arg3n);
+    delete [] arg3v ;
+
+    return pycap_new<outtype>( ret );
+    LLVMPY_CATCH_ALL
+}
+
+template <class intype1, class intype2, class intype3, class outtype>
+PyObject* WF( outtype (&llvm_func)( intype1, intype2, intype3*, unsigned int, const char*),
+                     PyObject *self, PyObject *args )
+{
+    LLVMPY_TRY
+    PyObject *obj1, *obj2, *obj3;
+    const char *arg4;
+
+    if (!PyArg_ParseTuple(args, "OOOs", &obj1, &obj2, &obj3, &arg4))
+        return NULL;
+
+    const intype1 arg1 = pycap_get< intype1 > (obj1);
+    const intype2 arg2 = pycap_get< intype2 > (obj2);
+    const size_t arg3n = PyList_Size(obj3);
+    intype3 *arg3v = make_array_from_list< intype3 *>(obj3, arg3n);
+
+    outtype ret = llvm_func(arg1, arg2, arg3v, arg3n, arg4);
+    delete [] arg3v ;
+
+    return pycap_new<outtype>( ret );
     LLVMPY_CATCH_ALL
 }
 
@@ -226,19 +975,19 @@ _wLLVMModuleCreateWithName(PyObject *self, PyObject *args)
 }
 
 MSW(LLVMGetDataLayout, WF<LLVMModuleRef>)
-_wrap_objstr2none(LLVMSetDataLayout, LLVMModuleRef)
+MSW(LLVMSetDataLayout, WF<LLVMModuleRef>)
 MSW(LLVMGetModuleIdentifier, WF<LLVMModuleRef>)
-_wrap_objstr2none(LLVMSetModuleIdentifier, LLVMModuleRef)
+MSW(LLVMSetModuleIdentifier, WF<LLVMModuleRef>)
 MSW(LLVMGetTarget, WF<LLVMModuleRef>)
-_wrap_objstr2none(LLVMSetTarget, LLVMModuleRef)
-_wrap_objstr2none(LLVMModuleAddLibrary, LLVMModuleRef)
-_wrap_objstr2obj(LLVMGetTypeByName, LLVMModuleRef, LLVMTypeRef)
+MSW(LLVMSetTarget, WF<LLVMModuleRef>)
+MSW(LLVMModuleAddLibrary, WF<LLVMModuleRef>)
+MSW(LLVMGetTypeByName, (WF<LLVMModuleRef, LLVMTypeRef>))
 MSW(LLVMDumpModule, WF<LLVMModuleRef>)
 MSW(LLVMDisposeModule, WF<LLVMModuleRef>)
 MSW(LLVMDumpModuleToString, WD<LLVMModuleRef>)
-MSW( LLVMModuleGetPointerSize, (WF<LLVMModuleRef, size_t>))
-_wrap_objstrobj2obj(LLVMModuleGetOrInsertFunction, LLVMModuleRef,
-                    LLVMTypeRef, LLVMValueRef)
+MSW( LLVMModuleGetPointerSize, (WF<LLVMModuleRef, unsigned int>))
+MSW(LLVMModuleGetOrInsertFunction, (WF<LLVMModuleRef,
+                    LLVMTypeRef, LLVMValueRef>))
 
 static PyObject *
 _wLLVMVerifyModule(PyObject *self, PyObject *args)
@@ -410,28 +1159,28 @@ MSW(LLVMDumpTypeToString, WD<LLVMTypeRef>)
 
 /*===-- Integer types ----------------------------------------------------===*/
 
-_wrap_none2obj(LLVMInt1Type, LLVMTypeRef)
-_wrap_none2obj(LLVMInt8Type, LLVMTypeRef)
-_wrap_none2obj(LLVMInt16Type, LLVMTypeRef)
-_wrap_none2obj(LLVMInt32Type, LLVMTypeRef)
-_wrap_none2obj(LLVMInt64Type, LLVMTypeRef)
-_wrap_int2obj(LLVMIntType, LLVMTypeRef)
-MSW(LLVMGetIntTypeWidth, (WF<LLVMTypeRef, size_t>))
+MSW(LLVMInt1Type, WF<LLVMTypeRef>)
+MSW(LLVMInt8Type, WF<LLVMTypeRef>)
+MSW(LLVMInt16Type, WF<LLVMTypeRef>)
+MSW(LLVMInt32Type, WF<LLVMTypeRef>)
+MSW(LLVMInt64Type, WF<LLVMTypeRef>)
+MSW(LLVMIntType, WF<LLVMTypeRef>)
+MSW(LLVMGetIntTypeWidth, (WF<LLVMTypeRef, unsigned int>))
 
 /*===-- Floating-point types ---------------------------------------------===*/
 
-_wrap_none2obj(LLVMFloatType, LLVMTypeRef)
-_wrap_none2obj(LLVMDoubleType, LLVMTypeRef)
-_wrap_none2obj(LLVMX86FP80Type, LLVMTypeRef)
-_wrap_none2obj(LLVMFP128Type, LLVMTypeRef)
-_wrap_none2obj(LLVMPPCFP128Type, LLVMTypeRef)
+MSW(LLVMFloatType, WF<LLVMTypeRef>)
+MSW(LLVMDoubleType, WF<LLVMTypeRef>)
+MSW(LLVMX86FP80Type, WF<LLVMTypeRef>)
+MSW(LLVMFP128Type, WF<LLVMTypeRef>)
+MSW(LLVMPPCFP128Type, WF<LLVMTypeRef>)
 
 /*===-- Function types ---------------------------------------------------===*/
 
-_wrap_objlistint2obj(LLVMFunctionType, LLVMTypeRef, LLVMTypeRef, LLVMTypeRef)
+MSW(LLVMFunctionType, (WF<LLVMTypeRef, LLVMTypeRef, LLVMBool, LLVMTypeRef>))
 MSW(LLVMIsFunctionVarArg, (WF<LLVMTypeRef, LLVMBool>))
 MSW(LLVMGetReturnType, (WF<LLVMTypeRef, LLVMTypeRef>))
-MSW(LLVMCountParamTypes, (WF<LLVMTypeRef, size_t>))
+MSW(LLVMCountParamTypes, (WF<LLVMTypeRef, unsigned int>))
 
 /* The LLVMGetParamTypes and LLVMGetStructElementTypes functions both
  * have the same signatures. The following implementation takes advantage
@@ -477,12 +1226,12 @@ _wLLVMGetFunctionTypeParams(PyObject *self, PyObject *args)
 
 /*===-- Struct types -----------------------------------------------------===*/
 
-_wrap_listint2obj(LLVMStructType, LLVMTypeRef, LLVMTypeRef)
-_wrap_str2obj(LLVMStructTypeIdentified, LLVMTypeRef)
-_wrap_objlistint2none(LLVMSetStructBody, LLVMTypeRef, LLVMTypeRef)
-MSW(LLVMCountStructElementTypes, (WF<LLVMTypeRef, size_t>))
+MSW(LLVMStructType, (WF<LLVMTypeRef, LLVMTypeRef>))
+MSW(LLVMStructTypeIdentified, WF<LLVMTypeRef>)
+MSW(LLVMSetStructBody, (WF<LLVMTypeRef, LLVMTypeRef>))
+MSW(LLVMCountStructElementTypes, (WF<LLVMTypeRef, unsigned int>))
 MSW(LLVMGetStructName, WF<LLVMTypeRef>)
-_wrap_objstr2none(LLVMSetStructName, LLVMTypeRef)
+MSW(LLVMSetStructName, WF<LLVMTypeRef>)
 
 
 static PyObject *
@@ -501,31 +1250,31 @@ MSW(LLVMIsLiteralStruct, (WF<LLVMTypeRef, int>))
 
 /*===-- Array types ------------------------------------------------------===*/
 
-_wrap_objint2obj(LLVMArrayType, LLVMTypeRef, LLVMTypeRef)
+MSW(LLVMArrayType, (WF<LLVMTypeRef, LLVMTypeRef>))
 MSW(LLVMGetElementType, (WF<LLVMTypeRef, LLVMTypeRef>))
-MSW(LLVMGetArrayLength, (WF<LLVMTypeRef, size_t>))
+MSW(LLVMGetArrayLength, (WF<LLVMTypeRef, unsigned int>))
 
 /*===-- Pointer types ----------------------------------------------------===*/
 
-_wrap_objint2obj(LLVMPointerType, LLVMTypeRef, LLVMTypeRef)
-MSW(LLVMGetPointerAddressSpace, (WF<LLVMTypeRef, size_t>))
+MSW(LLVMPointerType, (WF<LLVMTypeRef, LLVMTypeRef>))
+MSW(LLVMGetPointerAddressSpace, (WF<LLVMTypeRef, unsigned int>))
 
 /*===-- Vector type ------------------------------------------------------===*/
 
-_wrap_objint2obj(LLVMVectorType, LLVMTypeRef, LLVMTypeRef)
-MSW(LLVMGetVectorSize, (WF<LLVMTypeRef, size_t>))
+MSW(LLVMVectorType, (WF<LLVMTypeRef, LLVMTypeRef>))
+MSW(LLVMGetVectorSize, (WF<LLVMTypeRef, unsigned int>))
 
 /*===-- Other types ------------------------------------------------------===*/
 
-_wrap_none2obj(LLVMVoidType, LLVMTypeRef)
-_wrap_none2obj(LLVMLabelType, LLVMTypeRef)
+MSW(LLVMVoidType, WF<LLVMTypeRef>)
+MSW(LLVMLabelType, WF<LLVMTypeRef>)
 
 /*===-- Type handles -----------------------------------------------------===*/
 
 /*
 MSW(LLVMCreateTypeHandle, (WF<LLVMTypeRef, LLVMTypeHandleRef>))
 MSW(LLVMResolveTypeHandle, (WF<LLVMTypeHandleRef, LLVMTypeRef>))
-MSW(LLVMDisposeTypeHandle, MW<LLVMTypeHandleRef>)
+MSW(LLVMDisposeTypeHandle, WF<LLVMTypeHandleRef>)
 */
 
 
@@ -537,11 +1286,11 @@ MSW(LLVMDisposeTypeHandle, MW<LLVMTypeHandleRef>)
 
 MSW(LLVMTypeOf, (WF<LLVMValueRef, LLVMTypeRef>))
 MSW(LLVMGetValueName, WF<LLVMValueRef>)
-_wrap_objstr2none(LLVMSetValueName, LLVMValueRef)
+MSW(LLVMSetValueName, WF<LLVMValueRef>)
 MSW(LLVMDumpValue, WF<LLVMValueRef>)
 MSW(LLVMDumpValueToString, WD<LLVMValueRef>)
-MSW(LLVMValueGetID, (WF<LLVMValueRef, size_t>))
-MSW(LLVMValueGetNumUses, (WF<LLVMValueRef, size_t>))
+MSW(LLVMValueGetID, (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMValueGetNumUses, (WF<LLVMValueRef, unsigned int>))
 
 static PyObject *
 _wLLVMValueGetUses(PyObject *self, PyObject *args)
@@ -562,8 +1311,8 @@ _wLLVMValueGetUses(PyObject *self, PyObject *args)
 
 /*===-- Users ------------------------------------------------------------===*/
 
-MSW(LLVMUserGetNumOperands, (WF<LLVMValueRef, size_t>))
-_wrap_objint2obj(LLVMUserGetOperand,  LLVMValueRef, LLVMValueRef)
+MSW(LLVMUserGetNumOperands, (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMUserGetOperand,  (WF<LLVMValueRef, LLVMValueRef>))
 
 /*===-- Constant Values --------------------------------------------------===*/
 
@@ -614,7 +1363,7 @@ _wLLVMConstReal(PyObject *self, PyObject *args)
     LLVMPY_CATCH_ALL
 }
 
-_wrap_objstr2obj(LLVMConstRealOfString, LLVMTypeRef, LLVMValueRef)
+MSW(LLVMConstRealOfString, (WF<LLVMTypeRef, LLVMValueRef>))
 MSW(LLVMConstIntGetZExtValue, (WF<LLVMValueRef, llvmwrap_ull>))
 MSW(LLVMConstIntGetSExtValue, (WF<LLVMValueRef, llvmwrap_ll>))
 
@@ -636,57 +1385,57 @@ _wLLVMConstString(PyObject *self, PyObject *args)
     LLVMPY_CATCH_ALL
 }
 
-_wrap_objlist2obj(LLVMConstArray, LLVMTypeRef, LLVMValueRef, LLVMValueRef)
-_wrap_listint2obj(LLVMConstStruct, LLVMValueRef, LLVMValueRef)
-_wrap_list2obj(LLVMConstVector, LLVMValueRef, LLVMValueRef)
+MSW(LLVMConstArray, (WF<LLVMTypeRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstStruct, (WF<LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstVector, (WF<LLVMValueRef, LLVMValueRef>))
 
 /* Constant expressions */
 
-MSW(LLVMGetConstExprOpcode, (WF<LLVMValueRef, size_t>))
+MSW(LLVMGetConstExprOpcode, (WF<LLVMValueRef, unsigned int>))
 MSW(LLVMGetConstExprOpcodeName, WF<LLVMValueRef>)
 MSW(LLVMSizeOf, (WF<LLVMTypeRef, LLVMValueRef>))
 MSW(LLVMConstNeg, (WF<LLVMValueRef, LLVMValueRef>))
 MSW(LLVMConstNot, (WF<LLVMValueRef, LLVMValueRef>))
 
-_wrap_objobj2obj(LLVMConstAdd, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstFAdd, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstSub, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstFSub, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstMul, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstFMul, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstUDiv, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstSDiv, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstFDiv, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstURem, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstSRem, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstFRem, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstAnd, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstOr, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstXor, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+MSW(LLVMConstAdd, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstFAdd, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstSub, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstFSub, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstMul, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstFMul, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstUDiv, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstSDiv, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstFDiv, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstURem, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstSRem, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstFRem, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstAnd, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstOr, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstXor, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
 
-_wrap_enumobjobj2obj(LLVMConstICmp, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_enumobjobj2obj(LLVMConstFCmp, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+MSW(LLVMConstICmp, (WF_enum1<LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstFCmp, (WF_enum1<LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
 
-_wrap_objobj2obj(LLVMConstShl, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstLShr, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstAShr, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objlist2obj(LLVMConstGEP, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstTrunc, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstSExt, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstZExt, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstFPTrunc, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstFPExt, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstUIToFP, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstSIToFP, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstFPToUI, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstFPToSI, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstPtrToInt, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstIntToPtr, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstBitCast, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobj2obj(LLVMConstSelect, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMConstExtractElement, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobj2obj(LLVMConstInsertElement, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobj2obj(LLVMConstShuffleVector, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+MSW(LLVMConstShl, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstLShr, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstAShr, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstGEP, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstTrunc, (WF<LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMConstSExt, (WF<LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMConstZExt, (WF<LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMConstFPTrunc, (WF<LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMConstFPExt, (WF<LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMConstUIToFP, (WF<LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMConstSIToFP, (WF<LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMConstFPToUI, (WF<LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMConstFPToSI, (WF<LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMConstPtrToInt, (WF<LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMConstIntToPtr, (WF<LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMConstBitCast, (WF<LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMConstSelect, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstExtractElement, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstInsertElement, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMConstShuffleVector, (WF<LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
 
 
 /*===----------------------------------------------------------------------===*/
@@ -698,48 +1447,48 @@ _wrap_objobjobj2obj(LLVMConstShuffleVector, LLVMValueRef, LLVMValueRef, LLVMValu
 MSW(LLVMGetGlobalParent, (WF<LLVMValueRef, LLVMModuleRef>))
 MSW(LLVMIsDeclaration, (WF<LLVMValueRef, LLVMBool>))
 MSW(LLVMGetLinkage, (WF<LLVMValueRef, LLVMLinkage>))
-_wrap_objenum2none(LLVMSetLinkage, LLVMValueRef, LLVMLinkage)
+MSW(LLVMSetLinkage, (WF_enum2<LLVMValueRef, LLVMLinkage>))
 MSW(LLVMGetSection, WF<LLVMValueRef>)
-_wrap_objstr2none(LLVMSetSection, LLVMValueRef)
+MSW(LLVMSetSection, WF<LLVMValueRef>)
 MSW(LLVMGetVisibility, (WF<LLVMValueRef, LLVMVisibility>))
-_wrap_objenum2none(LLVMSetVisibility, LLVMValueRef, LLVMVisibility)
-MSW(LLVMGetAlignment, (WF<LLVMValueRef, size_t>))
-_wrap_objint2none(LLVMSetAlignment, LLVMValueRef)
+MSW(LLVMSetVisibility, (WF_enum2<LLVMValueRef, LLVMVisibility>))
+MSW(LLVMGetAlignment, (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMSetAlignment, WF_int2<LLVMValueRef>)
 
 /*===-- Global Variables -------------------------------------------------===*/
 
-_wrap_objobjstr2obj(LLVMAddGlobal, LLVMModuleRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objstr2obj(LLVMGetNamedGlobal, LLVMModuleRef, LLVMValueRef)
+MSW(LLVMAddGlobal, (WF<LLVMModuleRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMGetNamedGlobal, (WF<LLVMModuleRef, LLVMValueRef>))
 MSW(LLVMGetFirstGlobal, (WF<LLVMModuleRef, LLVMValueRef>))
 MSW(LLVMGetNextGlobal, (WF<LLVMValueRef, LLVMValueRef>))
 MSW(LLVMDeleteGlobal, WF<LLVMValueRef>)
 MSW(LLVMHasInitializer, (WF<LLVMValueRef, int >))
 MSW(LLVMGetInitializer, (WF<LLVMValueRef, LLVMValueRef>))
-_wrap_objobj2none(LLVMSetInitializer, LLVMValueRef, LLVMValueRef)
-_wrap_objint2none(LLVMSetGlobalConstant, LLVMValueRef)
+MSW(LLVMSetInitializer, (WF<LLVMValueRef, LLVMValueRef>))
+MSW(LLVMSetGlobalConstant, WF_int2<LLVMValueRef>)
 MSW(LLVMIsGlobalConstant, (WF<LLVMValueRef, LLVMBool>))
-_wrap_objint2none(LLVMSetThreadLocal, LLVMValueRef)
+MSW(LLVMSetThreadLocal, WF_int2<LLVMValueRef>)
 MSW(LLVMIsThreadLocal, (WF<LLVMValueRef, LLVMBool>))
 
 
 /*===-- Functions --------------------------------------------------------===*/
 
-_wrap_objstrobj2obj(LLVMAddFunction, LLVMModuleRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objstr2obj(LLVMGetNamedFunction, LLVMModuleRef, LLVMValueRef)
+MSW(LLVMAddFunction, (WF<LLVMModuleRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMGetNamedFunction, (WF<LLVMModuleRef, LLVMValueRef>))
 MSW(LLVMGetFirstFunction, (WF<LLVMModuleRef, LLVMValueRef>))
 MSW(LLVMGetNextFunction, (WF<LLVMValueRef, LLVMValueRef>))
 MSW(LLVMDeleteFunction, WF<LLVMValueRef>)
-MSW(LLVMGetIntrinsicID, (WF<LLVMValueRef, size_t>))
-MSW(LLVMGetFunctionCallConv, (WF<LLVMValueRef, size_t>))
-_wrap_objint2none(LLVMSetFunctionCallConv, LLVMValueRef)
+MSW(LLVMGetIntrinsicID, (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMGetFunctionCallConv, (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMSetFunctionCallConv, WF_int2<LLVMValueRef>)
 MSW(LLVMGetGC, WF<LLVMValueRef>)
-_wrap_objstr2none(LLVMSetGC, LLVMValueRef)
-MSW(LLVMGetDoesNotThrow, (WF<LLVMValueRef, size_t>))
-_wrap_objint2none(LLVMSetDoesNotThrow, LLVMValueRef)
+MSW(LLVMSetGC, WF<LLVMValueRef>)
+MSW(LLVMGetDoesNotThrow, (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMSetDoesNotThrow, WF_int2<LLVMValueRef>)
 MSW(LLVMViewFunctionCFG, WF<LLVMValueRef>)
 MSW(LLVMViewFunctionCFGOnly, WF<LLVMValueRef>)
-_wrap_objenum2none(LLVMAddFunctionAttr, LLVMValueRef, LLVMAttribute)
-_wrap_objenum2none(LLVMRemoveFunctionAttr, LLVMValueRef, LLVMAttribute)
+MSW(LLVMAddFunctionAttr, (WF_enum2<LLVMValueRef, LLVMAttribute>))
+MSW(LLVMRemoveFunctionAttr, (WF_enum2<LLVMValueRef, LLVMAttribute>))
 
 
 static PyObject *
@@ -756,33 +1505,33 @@ _wLLVMVerifyFunction(PyObject *self, PyObject *args)
 
 /*===-- Arguments --------------------------------------------------------===*/
 
-MSW(LLVMCountParams, (WF<LLVMValueRef, size_t>))
+MSW(LLVMCountParams, (WF<LLVMValueRef, unsigned int>))
 MSW(LLVMGetFirstParam, (WF<LLVMValueRef, LLVMValueRef>))
 MSW(LLVMGetNextParam, (WF<LLVMValueRef, LLVMValueRef>))
 MSW(LLVMGetParamParent, (WF<LLVMValueRef, LLVMValueRef>))
-_wrap_objenum2none(LLVMAddAttribute, LLVMValueRef, LLVMAttribute)
-_wrap_objenum2none(LLVMRemoveAttribute, LLVMValueRef, LLVMAttribute)
-_wrap_objenum2none(LLVMSetParamAlignment, LLVMValueRef, LLVMAttribute)
-MSW(LLVMGetParamAlignment, (WF<LLVMValueRef, size_t>))
+MSW(LLVMAddAttribute, (WF_enum2<LLVMValueRef, LLVMAttribute>))
+MSW(LLVMRemoveAttribute, (WF_enum2<LLVMValueRef, LLVMAttribute>))
+MSW(LLVMSetParamAlignment, (WF_enum2<LLVMValueRef, unsigned int>))
+MSW(LLVMGetParamAlignment, (WF<LLVMValueRef, unsigned int>))
 
 /*===-- Basic Blocks -----------------------------------------------------===*/
 
 MSW(LLVMGetBasicBlockParent, (WF<LLVMBasicBlockRef, LLVMValueRef>))
-MSW(LLVMCountBasicBlocks, (WF<LLVMValueRef, size_t>))
+MSW(LLVMCountBasicBlocks, (WF<LLVMValueRef, unsigned int>))
 MSW(LLVMGetFirstBasicBlock, (WF<LLVMValueRef, LLVMBasicBlockRef>))
 MSW(LLVMGetNextBasicBlock, (WF<LLVMBasicBlockRef, LLVMBasicBlockRef>))
 MSW(LLVMGetEntryBasicBlock, (WF<LLVMValueRef, LLVMBasicBlockRef>))
-_wrap_objstr2obj(LLVMAppendBasicBlock, LLVMValueRef, LLVMBasicBlockRef)
-_wrap_objstr2obj(LLVMInsertBasicBlock, LLVMBasicBlockRef, LLVMBasicBlockRef)
+MSW(LLVMAppendBasicBlock, (WF<LLVMValueRef, LLVMBasicBlockRef>))
+MSW(LLVMInsertBasicBlock, (WF<LLVMBasicBlockRef, LLVMBasicBlockRef>))
 MSW(LLVMDeleteBasicBlock, WF<LLVMBasicBlockRef>)
 
 /*===-- MetaData -----------------------------------------------------===*/
 
-_wrap_objlist2obj(LLVMMetaDataGet, LLVMModuleRef, LLVMValueRef, LLVMValueRef)
-_wrap_objstrobj2none(LLVMAddNamedMetadataOperand, LLVMModuleRef, LLVMValueRef)
-_wrap_objint2obj(LLVMMetaDataGetOperand, LLVMValueRef, LLVMValueRef)
-MSW(LLVMMetaDataGetNumOperands, (WF<LLVMValueRef, size_t>))
-_wrap_objstr2obj(LLVMMetaDataStringGet, LLVMModuleRef, LLVMValueRef)
+MSW(LLVMMetaDataGet, (WF<LLVMModuleRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMAddNamedMetadataOperand, (WF<LLVMModuleRef, LLVMValueRef>))
+MSW(LLVMMetaDataGetOperand, (WF<LLVMValueRef, LLVMValueRef>))
+MSW(LLVMMetaDataGetNumOperands, (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMMetaDataStringGet, (WF<LLVMModuleRef, LLVMValueRef>))
 
 static PyObject *
 _wLLVMGetNamedMetadataOperands(PyObject *self, PyObject *args)
@@ -811,30 +1560,30 @@ _wLLVMGetNamedMetadataOperands(PyObject *self, PyObject *args)
 MSW(LLVMGetInstructionParent, (WF<LLVMValueRef, LLVMBasicBlockRef>))
 MSW(LLVMGetFirstInstruction, (WF<LLVMBasicBlockRef, LLVMValueRef>))
 MSW(LLVMGetNextInstruction, (WF<LLVMValueRef, LLVMValueRef>))
-MSW(LLVMInstIsTerminator,   (WF<LLVMValueRef, size_t>))
-MSW(LLVMInstIsBinaryOp,     (WF<LLVMValueRef, size_t>))
-MSW(LLVMInstIsShift,        (WF<LLVMValueRef, size_t>))
-MSW(LLVMInstIsCast,         (WF<LLVMValueRef, size_t>))
-MSW(LLVMInstIsLogicalShift, (WF<LLVMValueRef, size_t>))
-MSW(LLVMInstIsArithmeticShift, (WF<LLVMValueRef, size_t>))
-MSW(LLVMInstIsAssociative,  (WF<LLVMValueRef, size_t>))
-MSW(LLVMInstIsCommutative,  (WF<LLVMValueRef, size_t>))
-MSW(LLVMInstIsVolatile,     (WF<LLVMValueRef, size_t>))
-_wrap_objint2none(LLVMSetVolatile,    LLVMValueRef)
-MSW(LLVMInstGetOpcode,      (WF<LLVMValueRef, size_t>))
+MSW(LLVMInstIsTerminator,   (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMInstIsBinaryOp,     (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMInstIsShift,        (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMInstIsCast,         (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMInstIsLogicalShift, (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMInstIsArithmeticShift, (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMInstIsAssociative,  (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMInstIsCommutative,  (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMInstIsVolatile,     (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMSetVolatile,    WF_int2<LLVMValueRef>)
+MSW(LLVMInstGetOpcode,      (WF<LLVMValueRef, unsigned int>))
 MSW(LLVMInstGetOpcodeName,  WF<LLVMValueRef>)
 
-_wrap_objstrobj2none(LLVMInstSetMetaData, LLVMValueRef, LLVMValueRef)
+MSW(LLVMInstSetMetaData, (WF<LLVMValueRef, LLVMValueRef>))
 
 /*===-- Call Sites (Call or Invoke) --------------------------------------===*/
 
-_wrap_objint2none(LLVMSetInstructionCallConv, LLVMValueRef)
-MSW(LLVMGetInstructionCallConv, (WF<LLVMValueRef, size_t>))
-_wrap_objintenum2none(LLVMAddInstrAttribute, LLVMValueRef, LLVMAttribute)
-_wrap_objintenum2none(LLVMRemoveInstrAttribute, LLVMValueRef, LLVMAttribute)
-_wrap_objintint2none(LLVMSetInstrParamAlignment, LLVMValueRef)
+MSW(LLVMSetInstructionCallConv, WF_int2<LLVMValueRef>)
+MSW(LLVMGetInstructionCallConv, (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMAddInstrAttribute, (WF<LLVMValueRef, LLVMAttribute>))
+MSW(LLVMRemoveInstrAttribute, (WF<LLVMValueRef, LLVMAttribute>))
+MSW(LLVMSetInstrParamAlignment, WF<LLVMValueRef>)
 MSW(LLVMIsTailCall, (WF<LLVMValueRef, LLVMBool>))
-_wrap_objint2none(LLVMSetTailCall, LLVMValueRef)
+MSW(LLVMSetTailCall, WF_int2<LLVMValueRef>)
 MSW(LLVMInstGetCalledFunction, (WF<LLVMValueRef, LLVMValueRef>))
 
 /*===-- PHI Nodes --------------------------------------------------------===*/
@@ -844,31 +1593,31 @@ static void LLVMAddIncoming1(LLVMValueRef PhiNode, LLVMValueRef IncomingValue, L
     LLVMAddIncoming(PhiNode, &IncomingValue, &IncomingBlock, 1);
 }
 
-_wrap_objobjobj2none(LLVMAddIncoming1, LLVMValueRef, LLVMValueRef, LLVMBasicBlockRef)
-MSW(LLVMCountIncoming,       (WF<LLVMValueRef, size_t>))
-_wrap_objint2obj(LLVMGetIncomingValue, LLVMValueRef, LLVMValueRef)
-_wrap_objint2obj(LLVMGetIncomingBlock, LLVMValueRef, LLVMBasicBlockRef)
+MSW(LLVMAddIncoming1, (WF<LLVMValueRef, LLVMValueRef, LLVMBasicBlockRef>))
+MSW(LLVMCountIncoming,       (WF<LLVMValueRef, unsigned int>))
+MSW(LLVMGetIncomingValue, (WF<LLVMValueRef, LLVMValueRef>))
+MSW(LLVMGetIncomingBlock, (WF<LLVMValueRef, LLVMBasicBlockRef>))
 
 /*===-- Compare Instructions ---------------------------------------------===*/
 
-MSW(LLVMCmpInstGetPredicate, (WF<LLVMValueRef, size_t>))
+MSW(LLVMCmpInstGetPredicate, (WF<LLVMValueRef, unsigned int>))
 
 /*===-- Instruction builders ----------------------------------------------===*/
 
-_wrap_none2obj(LLVMCreateBuilder, LLVMBuilderRef)
-_wrap_objobj2none(LLVMPositionBuilderBefore, LLVMBuilderRef, LLVMValueRef)
-_wrap_objobj2none(LLVMPositionBuilderAtEnd, LLVMBuilderRef, LLVMBasicBlockRef)
+MSW(LLVMCreateBuilder, WF<LLVMBuilderRef>)
+MSW(LLVMPositionBuilderBefore, (WF<LLVMBuilderRef, LLVMValueRef>))
+MSW(LLVMPositionBuilderAtEnd, (WF<LLVMBuilderRef, LLVMBasicBlockRef>))
 MSW(LLVMGetInsertBlock, (WF<LLVMBuilderRef, LLVMBasicBlockRef>))
 MSW(LLVMDisposeBuilder, WF<LLVMBuilderRef>)
 
 /* Terminators */
 
 MSW(LLVMBuildRetVoid, (WF<LLVMBuilderRef, LLVMValueRef>))
-_wrap_objobj2obj(LLVMBuildRet, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
-_wrap_objlist2obj(LLVMBuildRetMultiple, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMBuildBr, LLVMBuilderRef, LLVMBasicBlockRef, LLVMValueRef)
-_wrap_objobjobjobj2obj(LLVMBuildCondBr, LLVMBuilderRef, LLVMValueRef, LLVMBasicBlockRef, LLVMBasicBlockRef, LLVMValueRef)
-_wrap_objobjobjint2obj(LLVMBuildSwitch, LLVMBuilderRef, LLVMValueRef, LLVMBasicBlockRef, LLVMValueRef)
+MSW(LLVMBuildRet, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildRetMultiple, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildBr, (WF<LLVMBuilderRef, LLVMBasicBlockRef, LLVMValueRef>))
+MSW(LLVMBuildCondBr, (WF<LLVMBuilderRef, LLVMValueRef, LLVMBasicBlockRef, LLVMBasicBlockRef, LLVMValueRef>))
+MSW(LLVMBuildSwitch, (WF<LLVMBuilderRef, LLVMValueRef, LLVMBasicBlockRef, LLVMValueRef>))
 
 static PyObject *
 _wLLVMBuildInvoke(PyObject *self, PyObject *args)
@@ -905,84 +1654,84 @@ MSW(LLVMBuildUnreachable, (WF<LLVMBuilderRef, LLVMValueRef>))
 
 /* Add a case to the switch instruction */
 
-_wrap_objobjobj2none(LLVMAddCase, LLVMValueRef, LLVMValueRef, LLVMBasicBlockRef)
+MSW(LLVMAddCase, (WF<LLVMValueRef, LLVMValueRef, LLVMBasicBlockRef>))
 
 /* Arithmetic */
 
-_wrap_objobjobjstr2obj(LLVMBuildAdd, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildFAdd, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildSub, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildFSub, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildMul, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildFMul, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildUDiv, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildSDiv, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildFDiv, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildURem, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildSRem, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildFRem, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildShl, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildLShr, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildAShr, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildAnd, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildOr, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildXor, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjstr2obj(LLVMBuildNeg, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjstr2obj(LLVMBuildNot, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
+MSW(LLVMBuildAdd, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildFAdd, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildSub, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildFSub, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildMul, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildFMul, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildUDiv, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildSDiv, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildFDiv, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildURem, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildSRem, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildFRem, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildShl, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildLShr, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildAShr, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildAnd, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildOr, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildXor, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildNeg, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildNot, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef>))
 
 /* Memory */
 
-_wrap_objobjstr2obj(LLVMBuildMalloc, LLVMBuilderRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildArrayMalloc, LLVMBuilderRef, LLVMTypeRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjstr2obj(LLVMBuildAlloca, LLVMBuilderRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildArrayAlloca, LLVMBuilderRef, LLVMTypeRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobj2obj(LLVMBuildFree, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjstr2obj(LLVMBuildLoad, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobj2obj(LLVMBuildStore, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjliststr2obj(LLVMBuildGEP, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+MSW(LLVMBuildMalloc, (WF<LLVMBuilderRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildArrayMalloc, (WF<LLVMBuilderRef, LLVMTypeRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildAlloca, (WF<LLVMBuilderRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildArrayAlloca, (WF<LLVMBuilderRef, LLVMTypeRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildFree, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildLoad, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildStore, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildGEP, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
 
-_wrap_objint2none(LLVMLdSetAlignment, LLVMValueRef)
-_wrap_objint2none(LLVMStSetAlignment, LLVMValueRef)
+MSW(LLVMLdSetAlignment, WF_int2<LLVMValueRef>)
+MSW(LLVMStSetAlignment, WF_int2<LLVMValueRef>)
 
 /* Casts */
 
-_wrap_objobjobjstr2obj(LLVMBuildTrunc, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildZExt, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildSExt, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildFPToUI, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildFPToSI, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildUIToFP, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildSIToFP, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildFPTrunc, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildFPExt, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildPtrToInt, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildIntToPtr, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildBitCast, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
+MSW(LLVMBuildTrunc, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildZExt, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildSExt, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildFPToUI, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildFPToSI, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildUIToFP, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildSIToFP, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildFPTrunc, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildFPExt, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildPtrToInt, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildIntToPtr, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildBitCast, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
 
 /* Comparisons */
 
-_wrap_objenumobjobjstr2obj(LLVMBuildICmp, LLVMBuilderRef, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objenumobjobjstr2obj(LLVMBuildFCmp, LLVMBuilderRef, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+MSW(LLVMBuildICmp, (WF_enum2_char4<LLVMBuilderRef, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildFCmp, (WF_enum2_char4<LLVMBuilderRef, LLVMRealPredicate, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
 
 
 /* Atomics */
-_wrap_objobjobjobjstrint2obj(LLVMBuildAtomicCmpXchg, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objstrobjobjstrint2obj(LLVMBuildAtomicRMW, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjintstrint2obj(LLVMBuildAtomicLoad, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjintstrint2obj(LLVMBuildAtomicStore, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objstrint2obj(LLVMBuildFence, LLVMBuilderRef, LLVMValueRef)
+MSW(LLVMBuildAtomicCmpXchg, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildAtomicRMW, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildAtomicLoad, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildAtomicStore, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildFence, (WF<LLVMBuilderRef, LLVMValueRef>))
 
 /* Miscellaneous instructions */
 
-_wrap_objobjintstr2obj(LLVMBuildGetResult, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjintstr2obj(LLVMBuildInsertValue, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjstr2obj(LLVMBuildPhi, LLVMBuilderRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjliststr2obj(LLVMBuildCall, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjobjstr2obj(LLVMBuildSelect, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildVAArg, LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef)
-_wrap_objobjobjstr2obj(LLVMBuildExtractElement, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjobjstr2obj(LLVMBuildInsertElement, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
-_wrap_objobjobjobjstr2obj(LLVMBuildShuffleVector, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+MSW(LLVMBuildGetResult, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildInsertValue, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildPhi, (WF<LLVMBuilderRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildCall, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildSelect, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildVAArg, (WF<LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMValueRef>))
+MSW(LLVMBuildExtractElement, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildInsertElement, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
+MSW(LLVMBuildShuffleVector, (WF<LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef, LLVMValueRef>))
 
 
 /*===----------------------------------------------------------------------===*/
@@ -1038,65 +1787,65 @@ MSW(LLVMDisposeMemoryBuffer, WF<LLVMMemoryBufferRef>)
 /* Pass Manager Builder                                                       */
 /*===----------------------------------------------------------------------===*/
 
-_wrap_none2obj(LLVMPassManagerBuilderCreate, LLVMPassManagerBuilderRef)
+MSW(LLVMPassManagerBuilderCreate, WF<LLVMPassManagerBuilderRef>)
 MSW(LLVMPassManagerBuilderDispose, WF<LLVMPassManagerBuilderRef>)
 
-_wrap_objint2none(LLVMPassManagerBuilderSetOptLevel, LLVMPassManagerBuilderRef)
+MSW(LLVMPassManagerBuilderSetOptLevel, WF_int2<LLVMPassManagerBuilderRef>)
 MSW(LLVMPassManagerBuilderGetOptLevel, (WF<LLVMPassManagerBuilderRef, int>))
 
-_wrap_objint2none(LLVMPassManagerBuilderSetSizeLevel, LLVMPassManagerBuilderRef)
+MSW(LLVMPassManagerBuilderSetSizeLevel, WF_int2<LLVMPassManagerBuilderRef>)
 MSW(LLVMPassManagerBuilderGetSizeLevel, (WF<LLVMPassManagerBuilderRef, int>))
 
-_wrap_objint2none(LLVMPassManagerBuilderSetVectorize, LLVMPassManagerBuilderRef)
+MSW(LLVMPassManagerBuilderSetVectorize, WF_int2<LLVMPassManagerBuilderRef>)
 MSW(LLVMPassManagerBuilderGetVectorize, (WF<LLVMPassManagerBuilderRef, int>))
 
-_wrap_objint2none(LLVMPassManagerBuilderSetDisableUnitAtATime,
-                  LLVMPassManagerBuilderRef)
+MSW(LLVMPassManagerBuilderSetDisableUnitAtATime,
+                  WF_int2<LLVMPassManagerBuilderRef>)
 MSW(LLVMPassManagerBuilderGetDisableUnitAtATime,
               (WF<LLVMPassManagerBuilderRef, int>))
 
-_wrap_objint2none(LLVMPassManagerBuilderSetDisableUnrollLoops,
-                  LLVMPassManagerBuilderRef)
+MSW(LLVMPassManagerBuilderSetDisableUnrollLoops,
+                  WF_int2<LLVMPassManagerBuilderRef>)
 MSW(LLVMPassManagerBuilderGetDisableUnrollLoops,
               (WF<LLVMPassManagerBuilderRef, int>))
 
-_wrap_objint2none(LLVMPassManagerBuilderSetDisableSimplifyLibCalls,
-                  LLVMPassManagerBuilderRef)
+MSW(LLVMPassManagerBuilderSetDisableSimplifyLibCalls,
+                  WF_int2<LLVMPassManagerBuilderRef>)
 MSW(LLVMPassManagerBuilderGetDisableSimplifyLibCalls,
               (WF<LLVMPassManagerBuilderRef, int>))
 
-_wrap_objint2none(LLVMPassManagerBuilderUseInlinerWithThreshold,
-                  LLVMPassManagerBuilderRef)
+MSW(LLVMPassManagerBuilderUseInlinerWithThreshold,
+                  WF_int2<LLVMPassManagerBuilderRef>)
 
 
-_wrap_objobj2none(LLVMPassManagerBuilderPopulateFunctionPassManager,
-                  LLVMPassManagerBuilderRef,
-                  LLVMPassManagerRef)
+MSW(LLVMPassManagerBuilderPopulateFunctionPassManager,
+                  (WF<LLVMPassManagerBuilderRef,
+                  LLVMPassManagerRef>))
 
-_wrap_objobj2none(LLVMPassManagerBuilderPopulateModulePassManager,
-                  LLVMPassManagerBuilderRef,
-                  LLVMPassManagerRef)
+MSW(LLVMPassManagerBuilderPopulateModulePassManager,
+                  (WF<LLVMPassManagerBuilderRef,
+                  LLVMPassManagerRef>))
 
 
 /*===----------------------------------------------------------------------===*/
 /* Pass Manager                                                               */
 /*===----------------------------------------------------------------------===*/
 
-_wrap_none2obj(LLVMCreatePassManager, LLVMPassManagerRef)
+MSW(LLVMCreatePassManager, WF<LLVMPassManagerRef>)
 MSW(LLVMCreateFunctionPassManagerForModule, (WF<LLVMModuleRef, LLVMPassManagerRef>))
-_wrap_objobj2obj(LLVMRunPassManager, LLVMPassManagerRef, LLVMModuleRef, int)
+MSW(LLVMRunPassManager, (WF<LLVMPassManagerRef, LLVMModuleRef, int>))
 MSW(LLVMInitializeFunctionPassManager, (WF<LLVMPassManagerRef, int>))
-_wrap_objobj2obj(LLVMRunFunctionPassManager, LLVMPassManagerRef, LLVMValueRef, int)
+MSW(LLVMRunFunctionPassManager, (WF<LLVMPassManagerRef, LLVMValueRef, int>))
 MSW(LLVMFinalizeFunctionPassManager, (WF<LLVMPassManagerRef, int>))
 MSW(LLVMDisposePassManager, WF<LLVMPassManagerRef>)
 MW(LLVMDumpPasses)
-_wrap_objstr2obj(LLVMAddPassByName, LLVMPassManagerRef, int)
+MSW(LLVMAddPassByName, (WF<LLVMPassManagerRef, int>))
 
 
 MW(LLVMInitializePasses)
 
-_wrap_none2obj(LLVMInitializeNativeTarget, int)
-_wrap_none2obj(LLVMInitializeNativeTargetAsmPrinter, int)
+MSW(LLVMInitializeNativeTarget, WF<int>)
+MSW(LLVMInitializeNativeTargetAsmPrinter, WF<int>)
 #if !defined(LLVM_DISABLE_PTX)
 # if LLVM_HAS_NVPTX
 MW(LLVMInitializeNVPTXTarget)
@@ -1283,7 +2032,7 @@ MW(LLVMPrintRegisteredTargetsForVersion)
 /* Target Data                                                                */
 /*===----------------------------------------------------------------------===*/
 
-_wrap_str2obj(LLVMCreateTargetData, LLVMTargetDataRef)
+MSW(LLVMCreateTargetData, WF<LLVMTargetDataRef>)
 MSW(LLVMDisposeTargetData, WF<LLVMTargetDataRef>)
 
 static PyObject *
@@ -1299,27 +2048,20 @@ _wLLVMTargetDataAsString(PyObject *self, PyObject *args)
     LLVMPY_CATCH_ALL
 }
 
-_wrap_objobj2none(LLVMAddTargetData, LLVMTargetDataRef, LLVMPassManagerRef)
+MSW(LLVMAddTargetData, (WF<LLVMTargetDataRef, LLVMPassManagerRef>))
 MSW(LLVMByteOrder, (WF<LLVMTargetDataRef, LLVMByteOrdering>))
-MSW(LLVMPointerSize, (WF<LLVMTargetDataRef, size_t>))
+MSW(LLVMPointerSize, (WF<LLVMTargetDataRef, unsigned int>))
 MSW(LLVMIntPtrType, (WF<LLVMTargetDataRef, LLVMTypeRef>))
-_wrap_objobj2obj(LLVMSizeOfTypeInBits, LLVMTargetDataRef, LLVMTypeRef,
-        llvmwrap_ull)
-_wrap_objobj2obj(LLVMStoreSizeOfType, LLVMTargetDataRef, LLVMTypeRef,
-        llvmwrap_ull)
-_wrap_objobj2obj(LLVMABISizeOfType, LLVMTargetDataRef, LLVMTypeRef,
-        llvmwrap_ull)
-_wrap_objobj2obj(LLVMABIAlignmentOfType, LLVMTargetDataRef, LLVMTypeRef,
-        int)
-_wrap_objobj2obj(LLVMCallFrameAlignmentOfType, LLVMTargetDataRef, LLVMTypeRef,
-        int)
-_wrap_objobj2obj(LLVMPreferredAlignmentOfType, LLVMTargetDataRef, LLVMTypeRef,
-        int)
-_wrap_objobj2obj(LLVMPreferredAlignmentOfGlobal, LLVMTargetDataRef,
-        LLVMValueRef, int)
-_wrap_objobjull2obj(LLVMElementAtOffset, LLVMTargetDataRef, LLVMTypeRef, int)
-_wrap_objobjint2obj(LLVMOffsetOfElement, LLVMTargetDataRef, LLVMTypeRef,
-        llvmwrap_ull)
+MSW(LLVMSizeOfTypeInBits, (WF<LLVMTargetDataRef, LLVMTypeRef, llvmwrap_ull>))
+MSW(LLVMStoreSizeOfType, (WF<LLVMTargetDataRef, LLVMTypeRef, llvmwrap_ull>))
+MSW(LLVMABISizeOfType, (WF<LLVMTargetDataRef, LLVMTypeRef, llvmwrap_ull>))
+MSW(LLVMABIAlignmentOfType, (WF<LLVMTargetDataRef, LLVMTypeRef, unsigned int>))
+MSW(LLVMCallFrameAlignmentOfType, (WF<LLVMTargetDataRef, LLVMTypeRef, unsigned int>))
+MSW(LLVMPreferredAlignmentOfType, (WF<LLVMTargetDataRef, LLVMTypeRef, unsigned int>))
+MSW(LLVMPreferredAlignmentOfGlobal, (WF<LLVMTargetDataRef, LLVMValueRef, unsigned int>))
+MSW(LLVMElementAtOffset, (WF<LLVMTargetDataRef, LLVMTypeRef, unsigned int>))
+MSW(LLVMOffsetOfElement, (WF<LLVMTargetDataRef, LLVMTypeRef,
+        llvmwrap_ull>))
 
 
 /*===----------------------------------------------------------------------===*/
@@ -1330,9 +2072,9 @@ MSW(LLVMCreateEngineBuilder, (WF<LLVMModuleRef, LLVMEngineBuilderRef>))
 MSW(LLVMDisposeEngineBuilder, WF<LLVMEngineBuilderRef>)
 MSW(LLVMEngineBuilderForceJIT, WF<LLVMEngineBuilderRef>)
 MSW(LLVMEngineBuilderForceInterpreter, WF<LLVMEngineBuilderRef>)
-_wrap_objint2none(LLVMEngineBuilderSetOptLevel, LLVMEngineBuilderRef)
-_wrap_objstr2none(LLVMEngineBuilderSetMCPU, LLVMEngineBuilderRef)
-_wrap_objstr2none(LLVMEngineBuilderSetMAttrs, LLVMEngineBuilderRef)
+MSW(LLVMEngineBuilderSetOptLevel, WF_int2<LLVMEngineBuilderRef>)
+MSW(LLVMEngineBuilderSetMCPU, WF<LLVMEngineBuilderRef>)
+MSW(LLVMEngineBuilderSetMAttrs, WF<LLVMEngineBuilderRef>)
 
 static PyObject *
 _wLLVMEngineBuilderCreate(PyObject *self, PyObject *args)
@@ -1447,16 +2189,14 @@ _wLLVMRemoveModule2(PyObject *self, PyObject *args)
 }
 
 MSW(LLVMDisposeExecutionEngine, WF<LLVMExecutionEngineRef>)
-_wrap_objobjlist2obj(LLVMRunFunction2, LLVMExecutionEngineRef,
-    LLVMValueRef, LLVMGenericValueRef, LLVMGenericValueRef)
+MSW(LLVMRunFunction2, (WF<LLVMExecutionEngineRef,
+    LLVMValueRef, LLVMGenericValueRef, LLVMGenericValueRef>))
 MSW(LLVMGetExecutionEngineTargetData, (WF<LLVMExecutionEngineRef,
     LLVMTargetDataRef>))
 MSW(LLVMRunStaticConstructors, WF<LLVMExecutionEngineRef>)
 MSW(LLVMRunStaticDestructors, WF<LLVMExecutionEngineRef>)
-_wrap_objobj2none(LLVMFreeMachineCodeForFunction, LLVMExecutionEngineRef,
-    LLVMValueRef)
-_wrap_objobj2none(LLVMAddModule, LLVMExecutionEngineRef,
-    LLVMModuleRef)
+MSW(LLVMFreeMachineCodeForFunction, (WF<LLVMExecutionEngineRef, LLVMValueRef>))
+MSW(LLVMAddModule, (WF<LLVMExecutionEngineRef, LLVMModuleRef>))
 
 
 /*===----------------------------------------------------------------------===*/
@@ -1579,8 +2319,7 @@ MSW(LLVMDisposeGenericValue, WF<LLVMGenericValueRef>)
 /* Misc                                                                       */
 /*===----------------------------------------------------------------------===*/
 
-_wrap_objintlist2obj(LLVMGetIntrinsic, LLVMModuleRef, LLVMTypeRef,
-    LLVMValueRef)
+MSW(LLVMGetIntrinsic, (WF<LLVMModuleRef, LLVMTypeRef, LLVMValueRef>))
 
 static PyObject *
 _wLLVMLoadLibraryPermanently(PyObject *self, PyObject *args)
