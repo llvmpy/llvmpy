@@ -34,6 +34,8 @@ def get_libs_and_objs(components):
             objs.append(part)
     return libs, objs
 
+def get_enabled_components():
+    return run_llvm_config(['--components']).split()
 
 def get_llvm_version():
     # get version number; treat it as fixed point
@@ -66,32 +68,34 @@ if dynlink:
     libs_core = ['LLVM-%d.%d' % llvm_version]
     objs_core = []
 else:
-    if sys.platform == 'win32':
-        # XXX: If found, the PTX components are returned by llvm-config-win32.py,
-        #      regardless of whether we ask for them. There should be a better way
-        #      eventually.
-        print('PTX is included on Win32 at if found by llvm-config-win32.py')
-        ptx_components = []
-    elif llvm_version <= (3, 1): # select between PTX & NVPTX
-        print('Using PTX')
-        ptx_components = ['ptx',
+    enabled_components = set(get_enabled_components())
+    ptx_components = set(['ptx',
                           'ptxasmprinter',
                           'ptxcodegen',
                           'ptxdesc',
-                          'ptxinfo']
+                          'ptxinfo'])
+    nvptx_components = set(['nvptx',
+                            'nvptxasmprinter',
+                            'nvptxcodegen',
+                            'nvptxdesc',
+                            'nvptxinfo'])
+
+    extra_components = []
+    if (nvptx_components & enabled_components) == nvptx_components:
+        print("Using NVPTX")
+        extra_components.extend(nvptx_components)
+    elif (ptx_components & enabled_components) == ptx_components:
+        print("Using PTX")
+        extra_components.extend(ptx_components)
     else:
-        print('Using NVPTX')
-        ptx_components = ['nvptx',
-                          'nvptxasmprinter',
-                          'nvptxcodegen',
-                          'nvptxdesc',
-                          'nvptxinfo']
+        print("No CUDA support")
+
     libs_core, objs_core = get_libs_and_objs(
         ['core', 'analysis', 'scalaropts', 'executionengine',
          'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
          'instrumentation', 'ipa', 'ipo', 'transformutils',
          'asmparser', 'linker', 'support', 'vectorize']
-        + ptx_components)
+        + extra_components)
 
 macros = [('__STDC_CONSTANT_MACROS', None),
           ('__STDC_LIMIT_MACROS', None)]
