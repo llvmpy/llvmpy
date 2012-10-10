@@ -10,7 +10,7 @@ http://www.llvmpy.org
 Versions
 --------
 
-This package has only been tested with LLVM 3.1, and Python 2.7, but it should work with Python 3.x
+This package has only been tested with LLVM 3.1, and Python 2.7 and Python 3.2.
 
 Quickstart
 ----------
@@ -28,7 +28,7 @@ Quickstart
 
    $ python -c "import llvm; llvm.test()"
 
-3. See documentation at 'http://www.llvmpy.org/pages.html' and examples
+3. See documentation at 'http://www.llvmpy.org' and examples
    under 'test'.
 
 LICENSE

@@ -41,9 +41,8 @@ Versions
 llvmpy 0.8.2 requires version 3.1 of LLVM. It may not work with
 previous versions.
 
-llvmpy has been built and tested with Python 2.7. It should work with
-earlier versions. It has not been tried with Python 3.x (patches
-welcome).
+llvmpy has been built and tested with Python 2.7 and 3.2. It should work with
+earlier versions.
 
 
 Installation
