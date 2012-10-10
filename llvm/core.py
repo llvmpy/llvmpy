@@ -544,15 +544,29 @@ class Module(llvm.Ownable, llvm.Cacheable):
 
     id = property(_get_id, _set_id)
 
-    def to_native_object(self):
-        '''returns byte string of the module as native object code
-        '''
-        return _core.LLVMGetNativeCodeFromModule(self.ptr, 0)
+    def to_native_object(self, fileobj=None):
+        '''Outputs the byte string of the module as native object code
 
-    def to_native_assembly(self):
-        '''returns byte string of the module as native assembly code
+        If a fileobj is given, the output is written to it;
+        Otherwise, the output is returned
         '''
-        return _core.LLVMGetNativeCodeFromModule(self.ptr, 1)
+        data = _core.LLVMGetNativeCodeFromModule(self.ptr, 0)
+        if fileobj is not None:
+            fileobj.write(data)
+        else:
+            return data
+
+    def to_native_assembly(self, fileobj=None):
+        '''Outputs the byte string of the module as native assembly code
+
+        If a fileobj is given, the output is written to it;
+        Otherwise, the output is returned
+        '''
+        data = _core.LLVMGetNativeCodeFromModule(self.ptr, 1)
+        if fileobj is not None:
+            fileobj.write(data)
+        else:
+            return data
 
 #===----------------------------------------------------------------------===
 # Types
