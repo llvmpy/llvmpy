@@ -295,6 +295,9 @@ _wLLVMLinkModules(PyObject *self, PyObject *args)
     LLVMPY_CATCH_ALL
 }
 
+_wrap_objstr2obj(LLVMModuleGetOrInsertNamedMetaData, LLVMModuleRef, LLVMNamedMDRef)
+_wrap_objstr2obj(LLVMModuleGetNamedMetaData, LLVMModuleRef, LLVMNamedMDRef)
+
 /*===----------------------------------------------------------------------===*/
 /* Types                                                                      */
 /*===----------------------------------------------------------------------===*/
@@ -702,6 +705,14 @@ _wLLVMGetNamedMetadataOperands(PyObject *self, PyObject *args)
     return list;
     LLVMPY_CATCH_ALL
 }
+
+
+/*===-- NamedMetaData -----------------------------------------------------===*/
+
+_wrap_obj2str( LLVMNamedMetaDataGetName, LLVMNamedMDRef )
+_wrap_objobj2none( LLVMNamedMetaDataAddOperand, LLVMNamedMDRef, LLVMValueRef )
+_wrap_obj2none( LLVMEraseNamedMetaData, LLVMNamedMDRef )
+_wrap_dumper(LLVMDumpNamedMDToString, LLVMNamedMDRef)
 
 /*===-- Instructions -----------------------------------------------------===*/
 
@@ -1564,6 +1575,8 @@ static PyMethodDef core_methods[] = {
     _method( LLVMModuleGetPointerSize )
     _method( LLVMModuleGetOrInsertFunction )
     _method( LLVMLinkModules )
+    _method( LLVMModuleGetOrInsertNamedMetaData )
+    _method( LLVMModuleGetNamedMetaData )
 
     /* Types */
 
@@ -1787,6 +1800,12 @@ static PyMethodDef core_methods[] = {
     _method( LLVMMetaDataGetOperand )
     _method( LLVMMetaDataGetNumOperands )
     _method( LLVMMetaDataStringGet )
+
+    /* NamedMetaData */
+    _method( LLVMNamedMetaDataGetName )
+    _method( LLVMNamedMetaDataAddOperand )
+    _method( LLVMEraseNamedMetaData )
+    _method( LLVMDumpNamedMDToString )
 
     /* Instructions */
     _method( LLVMGetInstructionParent )

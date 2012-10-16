@@ -20,6 +20,7 @@ inline ref wrap(const ty *P) {                          \
 
 typedef struct LLVMOpaqueEngineBuilder *LLVMEngineBuilderRef;
 typedef struct LLVMOpaqueTargetMachine *LLVMTargetMachineRef;
+typedef struct LLVMOpaqueNamedMD *LLVMNamedMDRef;
 
 
 #ifdef __cplusplus

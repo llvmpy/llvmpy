@@ -574,6 +574,14 @@ class Module(llvm.Ownable, llvm.Cacheable):
         else:
             return data
 
+    def get_or_insert_named_metadata(self, name):
+        ptr = _core.LLVMModuleGetOrInsertNamedMetaData(self.ptr, name)
+        return NamedMetaData(ptr)
+
+    def get_named_metadata(self, name):
+        ptr = _core.LLVMModuleGetNamedMetaData(self.ptr, name)
+        return NamedMetaData(ptr)
+
 #===----------------------------------------------------------------------===
 # Types
 #===----------------------------------------------------------------------===
@@ -1541,6 +1549,31 @@ class MetaDataString(Value):
     def string(self):
         '''Same as MDString::getString'''
         return self.name
+
+class NamedMetaData(llvm.Cacheable):
+    @staticmethod
+    def get_or_insert(mod, name):
+        return mod.get_or_insert_named_metadata(name)
+
+    @staticmethod
+    def get(mod, name):
+        return mod.get_named_metadata(name)
+
+    def __init__(self, ptr):
+        self.ptr = ptr
+
+    def delete(self):
+        _core.LLVMEraseNamedMetaData(self.ptr)
+
+    @property
+    def name(self):
+        return _core.LLVMNamedMetaDataGetName(self.ptr)
+
+    def __str__(self):
+        return _core.LLVMDumpNamedMDToString(self.ptr)
+
+    def add(self, operand):
+        _core.LLVMNamedMetaDataAddOperand(self.ptr, operand.ptr)
 
 #===----------------------------------------------------------------------===
 # Instruction

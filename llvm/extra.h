@@ -47,11 +47,42 @@
 
 #include "llvm-c/Transforms/PassManagerBuilder.h"
 
+
 #include "llvm_c_extra.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/*
+ * Wraps NamedMDNode::print()
+ */
+const char * LLVMDumpNamedMDToString(LLVMNamedMDRef nmd);
+
+/*
+ * Wraps NamedMDNode::getName()
+ */
+const char * LLVMNamedMetaDataGetName(LLVMNamedMDRef nmd);
+
+/*
+ * Wraps NamedMDNode::addOperand()
+ */
+void LLVMNamedMetaDataAddOperand(LLVMNamedMDRef nmd, LLVMValueRef md);
+
+/*
+ * Wraps NamedMDNode::eraseFromParent()
+ */
+void LLVMEraseNamedMetaData(LLVMNamedMDRef nmd);
+
+/*
+ * Wraps Module::getOrInsertNamedMetadata
+ */
+LLVMNamedMDRef LLVMModuleGetOrInsertNamedMetaData(LLVMModuleRef mod, const char *name);
+
+/*
+ * Wraps Module::getNamedMetadata
+ */
+LLVMNamedMDRef LLVMModuleGetNamedMetaData(LLVMModuleRef mod, const char *name);
 
 /*
  * Wraps Instruction::setMetadata()

@@ -75,6 +75,7 @@
 #include "llvm/Linker.h"
 #include "llvm/Support/SourceMgr.h"
 
+
 // LLVM-C includes
 #include "llvm-c/Core.h"
 #include "llvm-c/ExecutionEngine.h"
@@ -86,6 +87,7 @@
 namespace llvm{
 DEFINE_SIMPLE_CONVERSION_FUNCTIONS(EngineBuilder, LLVMEngineBuilderRef)
 DEFINE_SIMPLE_CONVERSION_FUNCTIONS(TargetMachine, LLVMTargetMachineRef)
+DEFINE_SIMPLE_CONVERSION_FUNCTIONS(NamedMDNode, LLVMNamedMDRef)
 
 template<typename T>
 inline T **unwrap(LLVMTypeRef *Tys, unsigned Length) {
@@ -133,6 +135,44 @@ const CodeGenOpt::Level OptLevelMap[] = {
 };
 } // end anony namespace
 
+const char * LLVMDumpNamedMDToString(LLVMNamedMDRef nmd)
+{
+    using namespace llvm;
+    std::string s;
+    llvm::raw_string_ostream buf(s);
+    unwrap(nmd)->print(buf, NULL);
+    return strdup(buf.str().c_str());
+}
+
+const char * LLVMNamedMetaDataGetName(LLVMNamedMDRef nmd)
+{
+    using namespace llvm;
+    return unwrap(nmd)->getName().data();
+}
+
+void LLVMNamedMetaDataAddOperand(LLVMNamedMDRef nmd, LLVMValueRef md)
+{
+    using namespace llvm;
+    unwrap(nmd)->addOperand(unwrap<MDNode>(md));
+}
+
+void LLVMEraseNamedMetaData(LLVMNamedMDRef nmd)
+{
+    using namespace llvm;
+    unwrap(nmd)->eraseFromParent();
+}
+
+LLVMNamedMDRef LLVMModuleGetOrInsertNamedMetaData(LLVMModuleRef mod, const char *name)
+{
+    using namespace llvm;
+    return wrap(unwrap(mod)->getOrInsertNamedMetadata(name));
+}
+
+LLVMNamedMDRef LLVMModuleGetNamedMetaData(LLVMModuleRef mod, const char *name)
+{
+    using namespace llvm;
+    return wrap(unwrap(mod)->getNamedMetadata(name));
+}
 
 void LLVMInstSetMetaData(LLVMValueRef instref, const char* mdkind,
                          LLVMValueRef metaref)

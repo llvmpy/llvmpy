@@ -952,6 +952,20 @@ tests.append(TestVolatile)
 
 # ---------------------------------------------------------------------------
 
+class TestNamedMetaData(unittest.TestCase):
+    def test_named_md(self):
+        m = Module.new('test_named_md')
+        nmd = m.get_or_insert_named_metadata('something')
+        md = MetaData.get(m, [Constant.int(Type.int(), 0xbeef)])
+        nmd.add(md)
+        self.assertTrue(str(nmd).startswith('!something'))
+        ir = str(m)
+        self.assertTrue('!something' in ir)
+
+tests.append(TestNamedMetaData)
+
+# ---------------------------------------------------------------------------
+
 def run(verbosity=1):
     print('llvmpy is installed in: ' + os.path.dirname(__file__))
     print('llvmpy version: ' + llvm.__version__)
