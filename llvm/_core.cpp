@@ -297,6 +297,7 @@ _wLLVMLinkModules(PyObject *self, PyObject *args)
 
 _wrap_objstr2obj(LLVMModuleGetOrInsertNamedMetaData, LLVMModuleRef, LLVMNamedMDRef)
 _wrap_objstr2obj(LLVMModuleGetNamedMetaData, LLVMModuleRef, LLVMNamedMDRef)
+_wrap_obj2obj(LLVMCloneModule, LLVMModuleRef, LLVMModuleRef)
 
 /*===----------------------------------------------------------------------===*/
 /* Types                                                                      */
@@ -1577,6 +1578,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMLinkModules )
     _method( LLVMModuleGetOrInsertNamedMetaData )
     _method( LLVMModuleGetNamedMetaData )
+    _method( LLVMCloneModule )
 
     /* Types */
 

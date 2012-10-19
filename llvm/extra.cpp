@@ -135,6 +135,12 @@ const CodeGenOpt::Level OptLevelMap[] = {
 };
 } // end anony namespace
 
+LLVMModuleRef LLVMCloneModule(LLVMModuleRef mod)
+{
+    using namespace llvm;
+    return wrap(CloneModule(unwrap(mod)));
+}
+
 const char * LLVMDumpNamedMDToString(LLVMNamedMDRef nmd)
 {
     using namespace llvm;

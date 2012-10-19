@@ -582,6 +582,9 @@ class Module(llvm.Ownable, llvm.Cacheable):
         ptr = _core.LLVMModuleGetNamedMetaData(self.ptr, name)
         return NamedMetaData(ptr)
 
+    def clone(self):
+        return Module(_core.LLVMCloneModule(self.ptr))
+
 #===----------------------------------------------------------------------===
 # Types
 #===----------------------------------------------------------------------===

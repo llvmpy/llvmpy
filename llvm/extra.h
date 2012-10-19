@@ -54,6 +54,13 @@
 extern "C" {
 #endif
 
+
+/*
+ * Wraps llvm::CloneModule
+ */
+LLVMModuleRef LLVMCloneModule(LLVMModuleRef mod);
+
+
 /*
  * Wraps NamedMDNode::print()
  */
