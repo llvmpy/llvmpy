@@ -478,9 +478,9 @@ class Module(llvm.Ownable, llvm.Cacheable):
             return _make_type(ptr, kind)
         return None
 
-    def add_global_variable(self, ty, name):
+    def add_global_variable(self, ty, name, addrspace=0):
         """Add a global variable of given type with given name."""
-        return GlobalVariable.new(self, ty, name)
+        return GlobalVariable.new(self, ty, name, addrspace)
 
     def get_global_variable_named(self, name):
         """Return a GlobalVariable object for the given name."""
@@ -1337,10 +1337,10 @@ class GlobalValue(Constant):
 class GlobalVariable(GlobalValue):
 
     @staticmethod
-    def new(module, ty, name):
+    def new(module, ty, name, addrspace=0):
         check_is_module(module)
         check_is_type(ty)
-        return _make_value(_core.LLVMAddGlobal(module.ptr, ty.ptr, name))
+        return _make_value(_core.LLVMAddGlobalInAddressSpace(module.ptr, ty.ptr, name, addrspace))
 
     @staticmethod
     def get(module, name):

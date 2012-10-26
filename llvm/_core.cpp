@@ -607,8 +607,9 @@ _wrap_obj2obj(LLVMGetAlignment, LLVMValueRef, int)
 _wrap_objint2none(LLVMSetAlignment, LLVMValueRef)
 
 /*===-- Global Variables -------------------------------------------------===*/
-
+    
 _wrap_objobjstr2obj(LLVMAddGlobal, LLVMModuleRef, LLVMTypeRef, LLVMValueRef)
+_wrap_objobjstrint2obj(LLVMAddGlobalInAddressSpace, LLVMModuleRef, LLVMTypeRef, LLVMValueRef)
 _wrap_objstr2obj(LLVMGetNamedGlobal, LLVMModuleRef, LLVMValueRef)
 _wrap_obj2obj(LLVMGetFirstGlobal, LLVMModuleRef, LLVMValueRef)
 _wrap_obj2obj(LLVMGetNextGlobal, LLVMValueRef, LLVMValueRef)
@@ -1744,6 +1745,7 @@ static PyMethodDef core_methods[] = {
 
     /* Global Variables */
     _method( LLVMAddGlobal )
+    _method( LLVMAddGlobalInAddressSpace )
     _method( LLVMGetNamedGlobal )
     _method( LLVMGetFirstGlobal )
     _method( LLVMGetNextGlobal )
