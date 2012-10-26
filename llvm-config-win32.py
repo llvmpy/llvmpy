@@ -50,12 +50,12 @@ Advapi32
 Shell32
 """.split():
         print('-l%s' % lib)
-        # Look for the PTX .lib in %LIBPATH%
-        if find_path_of('LLVMPTXCodeGen.lib', 'LIBPATH') != None:
-            print('-lLLVMPTXAsmPrinter')
-            print('-lLLVMPTXCodeGen')
-            print('-lLLVMPTXDesc')
-            print('-lLLVMPTXInfo')
+    llvmbin = find_path_of('llvm-tblgen.exe')
+    if os.path.exists(os.path.join(llvmbin, '../lib/LLVMPTXCodeGen.lib')):
+        print('-lLLVMPTXAsmPrinter')
+        print('-lLLVMPTXCodeGen')
+        print('-lLLVMPTXDesc')
+        print('-lLLVMPTXInfo')
 elif sys.argv[1] == '--includedir': 
     llvmbin = find_path_of('llvm-tblgen.exe')
     if llvmbin is None:
