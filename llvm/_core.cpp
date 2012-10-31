@@ -642,7 +642,6 @@ _wrap_obj2none(LLVMViewFunctionCFGOnly, LLVMValueRef)
 _wrap_objenum2none(LLVMAddFunctionAttr, LLVMValueRef, LLVMAttribute)
 _wrap_objenum2none(LLVMRemoveFunctionAttr, LLVMValueRef, LLVMAttribute)
 
-
 static PyObject *
 _wLLVMVerifyFunction(PyObject *self, PyObject *args)
 {
@@ -651,6 +650,33 @@ _wLLVMVerifyFunction(PyObject *self, PyObject *args)
     if (!fn) return NULL;
 
     return pycap_new<int>(LLVMVerifyFunction(fn, LLVMReturnStatusAction));
+    LLVMPY_CATCH_ALL
+}
+
+static PyObject *
+_wLLVMGetFunctionFromInlineAsm(PyObject *self, PyObject *args)
+{
+    LLVMPY_TRY
+    PyObject *pycapFuncType;
+    const char *inlineAsm = NULL;
+    const char *constrains = NULL;
+    int hasSideEffect;
+    int isAlignStack;
+    int asmDialect;
+
+    if (!PyArg_ParseTuple(args, "Ossiii", &pycapFuncType, &inlineAsm,
+                          &constrains, &hasSideEffect,
+                          &isAlignStack, &asmDialect))
+        return NULL;
+
+
+    LLVMTypeRef funcType = pycap_get<LLVMTypeRef>(pycapFuncType);
+    LLVMValueRef inlineAsmRef;
+    inlineAsmRef = LLVMGetFunctionFromInlineAsm(funcType, inlineAsm, constrains,
+                                                hasSideEffect, isAlignStack,
+                                                asmDialect);
+
+    return pycap_new<LLVMValueRef>(inlineAsmRef);
     LLVMPY_CATCH_ALL
 }
 
@@ -746,6 +772,7 @@ _wrap_objintint2none(LLVMSetInstrParamAlignment, LLVMValueRef)
 _wrap_obj2obj(LLVMIsTailCall, LLVMValueRef, int)
 _wrap_objint2none(LLVMSetTailCall, LLVMValueRef)
 _wrap_obj2obj(LLVMInstGetCalledFunction, LLVMValueRef, LLVMValueRef)
+
 
 /*===-- PHI Nodes --------------------------------------------------------===*/
 
@@ -1776,6 +1803,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMViewFunctionCFGOnly )
     _method( LLVMAddFunctionAttr )
     _method( LLVMRemoveFunctionAttr )
+    _method( LLVMGetFunctionFromInlineAsm )
 
     /* Arguments */
     _method( LLVMCountParams )

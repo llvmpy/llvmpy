@@ -74,6 +74,7 @@
 #include "llvm/Transforms/Utils/Cloning.h"
 #include "llvm/Linker.h"
 #include "llvm/Support/SourceMgr.h"
+#include <llvm/InlineAsm.h>
 
 
 // LLVM-C includes
@@ -134,6 +135,22 @@ const CodeGenOpt::Level OptLevelMap[] = {
     CodeGenOpt::Aggressive,
 };
 } // end anony namespace
+
+
+LLVMValueRef LLVMGetFunctionFromInlineAsm(LLVMTypeRef funcType,
+                                          const char inlineAsm[],
+                                          const char constrains[],
+                                          bool hasSideEffect,
+                                          bool isAlignStack,
+                                          int asmDialect)
+{
+    using namespace llvm;
+    FunctionType *fnty = unwrap<FunctionType>(funcType);
+    // asmDialect does not exist for LLVM 3.1
+    InlineAsm *inlineasmobj = InlineAsm::get(fnty, inlineAsm, constrains,
+                                             hasSideEffect, isAlignStack);
+    return wrap(inlineasmobj);
+}
 
 LLVMModuleRef LLVMCloneModule(LLVMModuleRef mod)
 {

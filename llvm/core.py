@@ -1506,6 +1506,21 @@ class Function(GlobalValue):
         return _core.LLVMVerifyFunction(self.ptr) != 0
 
 #===----------------------------------------------------------------------===
+# InlineAsm
+#===----------------------------------------------------------------------===
+
+class InlineAsm(Value):
+    @staticmethod
+    def get(functype, asm, constrains, side_effect=False,
+                   align_stack=False, dialect=0):
+        assert dialect == 0, "LLVM 3.1 does not implement dialect selection"
+        check_is_type(functype)
+        pycap = _core.LLVMGetFunctionFromInlineAsm(functype.ptr, asm,
+                                                   constrains, int(side_effect),
+                                                   int(align_stack), dialect)
+        return _make_value(pycap)
+
+#===----------------------------------------------------------------------===
 # MetaData
 #===----------------------------------------------------------------------===
 
@@ -1750,6 +1765,7 @@ __class_for_valueid = {
     VALUE_CONSTANT_POINTER_NULL           : ConstantPointerNull,
     VALUE_MD_NODE                         : MetaData,
     VALUE_MD_STRING                       : MetaDataString,
+    VALUE_INLINE_ASM                      : InlineAsm,
     VALUE_INSTRUCTION + OPCODE_PHI        : PHINode,
     VALUE_INSTRUCTION + OPCODE_CALL       : CallOrInvokeInstruction,
     VALUE_INSTRUCTION + OPCODE_INVOKE     : CallOrInvokeInstruction,

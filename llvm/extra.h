@@ -54,6 +54,15 @@
 extern "C" {
 #endif
 
+/*
+ * Wraps llvm:InlineAsm::get
+ */
+LLVMValueRef LLVMGetFunctionFromInlineAsm(LLVMTypeRef funcType,
+                                          const char inlineAsm[],
+                                          const char constrains[],
+                                          bool hasSideEffect,
+                                          bool isAlignStack,
+                                          int asmDialect);
 
 /*
  * Wraps llvm::CloneModule
