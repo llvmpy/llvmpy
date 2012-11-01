@@ -855,6 +855,13 @@ LLVMValueRef LLVMInstGetCalledFunction(LLVMValueRef inst)
     return llvm::wrap(CallSite(instp).getCalledFunction());
 }
 
+void LLVMInstSetCalledFunction(LLVMValueRef inst, LLVMValueRef fn)
+{
+    using namespace llvm;
+    Instruction *instp = unwrap<Instruction>(inst);
+    CallSite(instp).setCalledFunction(unwrap(fn));
+}
+
 ///* llvm::unwrap a set of `n' wrapped objects starting at `values',
 // * into a vector of pointers to llvm::unwrapped objects `out'. */
 //template <typename W, typename UW>

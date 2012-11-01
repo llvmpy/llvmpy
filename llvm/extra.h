@@ -488,6 +488,10 @@ unsigned LLVMCmpInstGetPredicate(LLVMValueRef cmpinst);
  */
 LLVMValueRef LLVMInstGetCalledFunction(LLVMValueRef inst);
 
+/* Wraps llvm::CallSite::setCalledFunction.
+ */
+void LLVMInstSetCalledFunction(LLVMValueRef inst, LLVMValueRef fn);
+
 /* Wraps llvm::ParseAssemblyString(). Returns a module reference or NULL (with
  * `out' pointing to an error message). Dispose error message after use, via
  * LLVMDisposeMessage(). */
