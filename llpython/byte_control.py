@@ -19,7 +19,7 @@ class ControlFlowBuilder (BenignBytecodeVisitorMixin, BytecodeFlowVisitor):
     '''
     def visit (self, flow, nargs = 0, *args, **kws):
         '''Given a bytecode flow, and an optional number of arguments,
-        return a :py:class:`numba.llnumba.control_flow.ControlFlowGraph`
+        return a :py:class:`llpython.control_flow.ControlFlowGraph`
         instance describing the full control flow of the bytecode
         flow.'''
         self.nargs = nargs

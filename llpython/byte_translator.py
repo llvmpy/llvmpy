@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # ______________________________________________________________________
-'''Defines a bytecode based LLVM translator for llnumba code.
+'''Defines a bytecode based LLVM translator for llpython code.
 '''
 # ______________________________________________________________________
 # Module imports
@@ -126,11 +126,11 @@ class LLVMTranslator (BytecodeFlowVisitor):
     '''Transformer responsible for visiting a set of bytecode flow
     trees, emitting LLVM code.
 
-    Unlike other translators in :py:mod:`numba.llnumba`, this
+    Unlike other translators in :py:mod:`llpython`, this
     incorporates the full transformation chain, starting with
-    :py:class:`numba.llnumba.byte_flow.BytecodeFlowBuilder`, then
-    :py:class:`numba.llnumba.byte_control.ControlFlowBuilder`, and
-    then :py:class:`numba.llnumba.phi_injector.PhiInjector`.'''
+    :py:class:`llpython.byte_flow.BytecodeFlowBuilder`, then
+    :py:class:`llpython.byte_control.ControlFlowBuilder`, and
+    then :py:class:`llpython.phi_injector.PhiInjector`.'''
 
     def __init__ (self, llvm_module = None, *args, **kws):
         '''Constructor for LLVMTranslator.'''
@@ -563,18 +563,18 @@ def translate_into_function (py_function, llvm_function, **kws):
 
 # ______________________________________________________________________
 
-def llnumba (lltype, llvm_module = None, **kws):
+def llpython (lltype, llvm_module = None, **kws):
     '''Decorator version of translate_function().'''
-    def _llnumba (func):
+    def _llpython (func):
         return translate_function(func, lltype, llvm_module, **kws)
-    return _llnumba
+    return _llpython
 
 # ______________________________________________________________________
 
-def llnumba_into (llvm_function, **kws):
-    def _llnumba_into (func):
+def llpython_into (llvm_function, **kws):
+    def _llpython_into (func):
         return translate_into_function(llvm_function, func, **kws)
-    return _llnumba_into
+    return _llpython_into
 
 # ______________________________________________________________________
 # Main (self-test) routine

@@ -3,10 +3,7 @@
 
 import llvm.core as lc
 
-try:
-    from llnumba import bytetype
-except ImportError:
-    from numba.llnumba import bytetype
+from llpython import bytetype
 
 # ______________________________________________________________________
 

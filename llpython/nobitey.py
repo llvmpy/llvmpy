@@ -112,8 +112,8 @@ class NoBitey (object):
         handle_abi_casts = self.handle_abi_casts
         target_function_name = llvm_function.name + "_wrapper"
         # __________________________________________________
-        @byte_translator.llnumba(bytetype.l_pyfunc, self.target_module,
-                                 **locals())
+        @byte_translator.llpython(bytetype.l_pyfunc, self.target_module,
+                                   **locals())
         def _wrapper (self, args):
             ret_val = l_pyobj_p(0)
             parse_args = build_parse_args()
