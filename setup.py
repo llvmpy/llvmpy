@@ -129,7 +129,7 @@ setup(
     author = 'Mahadevan R',
     author_email = 'mdevan@mdevan.org',
     url = 'http://www.llvmpy.org/',
-    packages = ['llvm'],
+    packages = ['llvm', 'llvm_cbuilder'],
     py_modules = ['llvm.core'],
     license = "BSD",
     classifiers = [
