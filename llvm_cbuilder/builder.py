@@ -1328,10 +1328,6 @@ class CStruct(CValue):
     Can define new methods which gets inlined to the parent CBuilder.
     '''
 
-    @classmethod
-    def llvm_type(cls):
-        return lc.Type.struct([v for k, v in cls._fields_])
-
     def __init__(self, parent, ptr):
         super(CStruct, self).__init__(parent, ptr)
         makeind = lambda x: self.parent.constant(types.int, x).value
@@ -1347,6 +1343,17 @@ class CStruct(CValue):
 
     def reference(self):
         return self._temp(self.handle)
+
+    @classmethod
+    def llvm_type(cls):
+        return lc.Type.struct([v for k, v in cls._fields_])
+
+    @classmethod
+    def from_numba_struct(cls, context, struct_type):
+        class Struct(cls):
+            _fields_ = [(name, type.to_llvm(context))
+            for name, type in struct_type.fields]
+        return Struct
 
 
 class CExternal(object):
