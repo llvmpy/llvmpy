@@ -126,8 +126,9 @@ kwds['long_description'] = open('README.rst').read()
 setup(
     name = 'llvmpy',
     description = 'Python bindings for LLVM',
-    author = 'Continuum Analytics, Inc.',
-    author_email = 'llvmpy@continuum.io',
+    author = 'R Mahadevan'
+    maintainer = 'Continuum Analytics, Inc.',
+    maintainer_email = 'llvmpy@continuum.io',
     url = 'http://www.llvmpy.org/',
     packages = ['llvm', 'llvm_cbuilder', 'llpython'],
     py_modules = ['llvm.core'],

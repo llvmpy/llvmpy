@@ -38,7 +38,7 @@ supported, for a variety of reasons.
 Versions
 --------
 
-llvmpy 0.8.2 requires version 3.1 of LLVM. It may not work with
+llvmpy 0.9 requires version 3.1 of LLVM. It may not work with
 previous versions.
 
 llvmpy has been built and tested with Python 2.7 and 3.2. It should work with
