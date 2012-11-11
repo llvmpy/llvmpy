@@ -13,6 +13,8 @@ Contents:
    :maxdepth: 2
 
    doc/userguide.rst
+   doc/llvm_cbuilder.rst
+   doc/llpython/index.rst
    doc/examples.rst
 
 

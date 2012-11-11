@@ -10,7 +10,9 @@ http://www.llvmpy.org
 Versions
 --------
 
-This package has only been tested with LLVM 3.1, and Python 2.7 and Python 3.2.
+This package has been tested with LLVM 3.1, Python 2.7 and Python 3.2.
+Other Python versions should work, but some modifications may be
+needed for the upcoming LLVM 3.2
 
 Quickstart
 ----------
