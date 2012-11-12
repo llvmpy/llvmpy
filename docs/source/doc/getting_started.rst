@@ -26,7 +26,7 @@ Both LLVM and llvmpy are distributed under (different) permissive open
 source licenses. llvmpy uses the `new BSD
 license <http://opensource.org/licenses/bsd-license.php>`_. More
 information is available
-`here <https://github.com/numba/llvmpy/blob/master/LICENSE>`_.
+`here <https://github.com/llvmpy/llvmpy/blob/master/LICENSE>`_.
 
 Platforms
 ---------
