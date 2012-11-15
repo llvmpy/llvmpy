@@ -1,5 +1,3 @@
-from numba.minivect import minitypes
-import numba.decorators
 from llvm.core import Type
 
 void = Type.void()
@@ -13,8 +11,21 @@ int64 = Type.int(64)
 float = Type.float()
 double = Type.double()
 
-npy_intp = minitypes.npy_intp.to_llvm(numba.decorators.context)
-py_ssize_t = minitypes.Py_ssize_t.to_llvm(numba.decorators.context)
+# platform dependent
+
+def _determine_sizes():
+    import ctypes
+    # Makes following assumption:
+    # sizeof(py_ssize_t) == sizeof(ssize_t) == sizeof(size_t)
+    any_size_t = getattr(ctypes, 'c_ssize_t', ctypes.c_size_t)
+    return ctypes.sizeof(ctypes.c_void_p) * 8, ctypes.sizeof(any_ssize_t) * 8
+
+pointer_size, _py_ssize_t_bits = _determine_pointer_size()
+
+intp = {32: int32, 64: int64}[pointer_size]
+
+npy_intp = Type.int(pointer_size)
+py_ssize_t = Type.int(_py_ssize_t_bits)
 
 # pointers
 
@@ -23,17 +34,6 @@ pointer = Type.pointer
 void_p = pointer(char)
 char_p = pointer(char)
 npy_intp_p = pointer(npy_intp)
-
-# platform dependent
-
-def _determine_pointer_size():
-    from ctypes import sizeof, c_void_p
-    return sizeof(c_void_p) * 8
-
-pointer_size = _determine_pointer_size()
-
-intp = {32: int32, 64: int64}[pointer_size]
-
 
 # vector
 def vector(ty, ct):
