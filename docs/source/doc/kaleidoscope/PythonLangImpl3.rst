@@ -1058,7 +1058,7 @@ Main driver code.
       '+': 20, 
       '-': 20, 
       '*': 40 
-   }
+      }
    
       # Run the main "interpreter loop". 
       while True: 
