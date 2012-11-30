@@ -226,7 +226,7 @@ the line.
    
    # Regular expressions that tokens and comments of our language.
    REGEX_NUMBER = re.compile('[0-9]+(?:.[0-9]+)?')
-   REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9]\ *')
+   REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9]*')
    REGEX_COMMENT = re.compile('#.*')
    
 
