@@ -811,7 +811,7 @@ Lexer
             yield CharacterToken(string[0])
             string = string[1:]
    
-   yield EOFToken()
+      yield EOFToken()
    
 
 
