@@ -115,13 +115,13 @@ following simple example computes `Fibonacci
 numbers <http://en.wikipedia.org/wiki/Fibonacci_number>`_:
 
 
-.. code-block:: python
+.. code-block:: text
 
    # Compute the x'th fibonacci number. 
-   def fib(x):
-      if x < 3:
+   def fib(x)
+      if x < 3
          return 1
-      else:
+      else
          return fib(x-1)+fib(x-2)
    
    # This expression will compute the 40th number.
