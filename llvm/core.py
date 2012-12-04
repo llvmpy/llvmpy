@@ -450,7 +450,7 @@ class Module(llvm.Ownable, llvm.Cacheable):
         llvm::Module::AnyPointerSize."""
         return _core.LLVMModuleGetPointerSize(self.ptr)
 
-    def link_in(self, other):
+    def link_in(self, other, preserve=False):
         """Link the `other' module into this one.
 
         The `other' module is linked into this one such that types,
@@ -463,12 +463,12 @@ class Module(llvm.Ownable, llvm.Cacheable):
         Linker class.
         """
         check_is_module(other)
-        other.forget() # remove it from object cache
-        ret = _core.LLVMLinkModules(self.ptr, other.ptr)
-        if isinstance(ret, str):
-            raise llvm.LLVMException(ret)
-        # Do not try to destroy the other module's llvm::Module*.
-        other._own(llvm.DummyOwner())
+        if not preserve:
+            other.forget() # remove it from object cache
+        _core.LLVMLinkModules(self.ptr, other.ptr, int(bool(preserve)))
+        if not preserve:
+            # Do not try to destroy the other module's llvm::Module*.
+            other._own(llvm.DummyOwner())
 
     def get_type_named(self, name):
         """Return a Type object with the given name."""
