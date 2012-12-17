@@ -18,9 +18,9 @@ def _determine_sizes():
     # Makes following assumption:
     # sizeof(py_ssize_t) == sizeof(ssize_t) == sizeof(size_t)
     any_size_t = getattr(ctypes, 'c_ssize_t', ctypes.c_size_t)
-    return ctypes.sizeof(ctypes.c_void_p) * 8, ctypes.sizeof(any_ssize_t) * 8
+    return ctypes.sizeof(ctypes.c_void_p) * 8, ctypes.sizeof(any_size_t) * 8
 
-pointer_size, _py_ssize_t_bits = _determine_pointer_size()
+pointer_size, _py_ssize_t_bits = _determine_sizes()
 
 intp = {32: int32, 64: int64}[pointer_size]
 
