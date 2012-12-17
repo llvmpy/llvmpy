@@ -1654,6 +1654,8 @@ class Instruction(User):
     def opcode_name(self):
         return _core.LLVMInstGetOpcodeName(self.ptr)
 
+    def erase_from_parent(self):
+        return _core.LLVMInstructionEraseFromParent(self.ptr)
 
 class CallOrInvokeInstruction(Instruction):
 

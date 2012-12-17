@@ -761,6 +761,7 @@ _wrap_obj2obj(LLVMInstGetOpcode,      LLVMValueRef, int)
 _wrap_obj2str(LLVMInstGetOpcodeName,  LLVMValueRef)
 
 _wrap_objstrobj2none(LLVMInstSetMetaData, LLVMValueRef, LLVMValueRef)
+_wrap_obj2none(LLVMInstructionEraseFromParent,    LLVMValueRef)
 
 /*===-- Call Sites (Call or Invoke) --------------------------------------===*/
 
@@ -1857,6 +1858,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMInstGetOpcodeName )
 
     _method( LLVMInstSetMetaData )
+    _method( LLVMInstructionEraseFromParent )
 
     /* Call Sites (Call or Invoke) */
     _method( LLVMSetInstructionCallConv )
