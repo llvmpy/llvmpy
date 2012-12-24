@@ -53,7 +53,7 @@
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/Support/FormattedStream.h"
-#include "llvm/Target/TargetData.h"
+//#include "llvm/Target/TargetData.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/Host.h"
@@ -356,12 +356,12 @@ unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
 
     PassManager pm;
 
-    if (!tm->getTargetData()){
+    if (!tm->getDataLayout()){
         error = "No target data in target machine";
         return NULL;
     }
 
-    pm.add(new TargetData(*tm->getTargetData()));
+    pm.add(new DataLayout(*tm->getDataLayout()));
 
     bool failed;
     if( assembly ) {
@@ -427,7 +427,7 @@ void LLVMPrintRegisteredTargetsForVersion(){
 LLVMTargetDataRef LLVMTargetMachineGetTargetData(LLVMTargetMachineRef tm)
 {
     using namespace llvm;
-    return wrap(new TargetData(*unwrap(tm)->getTargetData()));
+    return wrap(new DataLayout(*unwrap(tm)->getDataLayout()));
 }
 
 unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
@@ -992,7 +992,8 @@ void LLVMSetDoesNotThrow(LLVMValueRef fn, int DoesNotThrow)
     llvm::Function *fnp = llvm::unwrap<llvm::Function>(fn);
     assert(fnp);
 
-    return fnp->setDoesNotThrow((bool)DoesNotThrow);
+    if ((bool)DoesNotThrow)
+    	fnp->setDoesNotThrow();
 }
 
 
