@@ -53,7 +53,6 @@
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/Support/FormattedStream.h"
-//#include "llvm/Target/TargetData.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/Host.h"
@@ -75,7 +74,14 @@
 #include "llvm/Linker.h"
 #include "llvm/Support/SourceMgr.h"
 #include <llvm/InlineAsm.h>
+#include <llvm/Support/PassNameParser.h>
 
+
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
+    #include "llvm/DataLayout.h"
+#else
+    #include "llvm/Target/TargetData.h"
+#endif
 
 // LLVM-C includes
 #include "llvm-c/Core.h"
@@ -105,7 +111,7 @@ class PassRegistryPrinter : public llvm::PassRegistrationListener{
 public:
     std::ostringstream stringstream;
 
-    void passEnumerate(const llvm::PassInfo * pass_info){
+    inline virtual void passEnumerate(const llvm::PassInfo * pass_info){
         stringstream << pass_info->getPassArgument()
                      << "\t"
                      << pass_info->getPassName()
@@ -355,13 +361,21 @@ unsigned char* LLVMTargetMachineEmitFile(LLVMTargetMachineRef tmref,
     TargetMachine * tm = unwrap(tmref);
 
     PassManager pm;
-
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
     if (!tm->getDataLayout()){
         error = "No target data in target machine";
         return NULL;
     }
-
     pm.add(new DataLayout(*tm->getDataLayout()));
+#else
+    if (!tm->getTargetData()){
+        error = "No target data in target machine";
+        return NULL;
+    }
+    pm.add(new TargetData(*tm->getTargetData()));
+#endif
+
+
 
     bool failed;
     if( assembly ) {
@@ -427,7 +441,11 @@ void LLVMPrintRegisteredTargetsForVersion(){
 LLVMTargetDataRef LLVMTargetMachineGetTargetData(LLVMTargetMachineRef tm)
 {
     using namespace llvm;
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
     return wrap(new DataLayout(*unwrap(tm)->getDataLayout()));
+#else
+    return wrap(new TargetData(*unwrap(tm)->getTargetData()));
+#endif
 }
 
 unsigned char* LLVMGetNativeCodeFromModule(LLVMModuleRef module, int assembly,
