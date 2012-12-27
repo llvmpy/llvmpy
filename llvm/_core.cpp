@@ -988,6 +988,11 @@ _wrap_obj2obj(LLVMPassManagerBuilderGetSizeLevel, LLVMPassManagerBuilderRef, int
 _wrap_objint2none(LLVMPassManagerBuilderSetVectorize, LLVMPassManagerBuilderRef)
 _wrap_obj2obj(LLVMPassManagerBuilderGetVectorize, LLVMPassManagerBuilderRef, int)
 
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
+_wrap_objint2none(LLVMPassManagerBuilderSetLoopVectorize, LLVMPassManagerBuilderRef)
+_wrap_obj2obj(LLVMPassManagerBuilderGetLoopVectorize, LLVMPassManagerBuilderRef, int)
+#endif //llvm-3.2
+
 _wrap_objint2none(LLVMPassManagerBuilderSetDisableUnitAtATime,
                   LLVMPassManagerBuilderRef)
 _wrap_obj2obj(LLVMPassManagerBuilderGetDisableUnitAtATime,
@@ -1989,7 +1994,10 @@ static PyMethodDef core_methods[] = {
 
     _method( LLVMPassManagerBuilderSetVectorize )
     _method( LLVMPassManagerBuilderGetVectorize )
-
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
+    _method( LLVMPassManagerBuilderSetLoopVectorize )
+    _method( LLVMPassManagerBuilderGetLoopVectorize )
+#endif // llvm-3.2
 
     _method( LLVMPassManagerBuilderSetDisableUnitAtATime )
     _method( LLVMPassManagerBuilderGetDisableUnitAtATime )

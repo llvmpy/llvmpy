@@ -41,6 +41,7 @@ import llvm.core as core    # module, function etc.
 import llvm._core as _core  # C wrappers
 import llvm._util as _util  # Utility functions
 
+import warnings
 #===----------------------------------------------------------------------===
 # Pass manager builder
 #===----------------------------------------------------------------------===
@@ -88,6 +89,21 @@ class PassManagerBuilder(object):
         return bool(_core.LLVMPassManagerBuilderGetVectorize(self.ptr))
 
     vectorize = property(_get_vectorize, _set_vectorize)
+
+    def _set_loop_vectorize(self, enable):
+        try:
+            _core.LLVMPassManagerBuilderSetLoopVectorize(self.ptr,
+                                                         int(bool(enable)))
+        except AttributeError:
+            warnings.warn("Ignored. LLVM-3.1 & prior do not support loop vectorizer.")
+
+    def _get_loop_vectorize(self):
+        try:
+            return bool(_core.LLVMPassManagerBuilderGetLoopVectorize(self.ptr))
+        except AttributeError:
+            return False
+
+    loop_vectorize = property(_get_loop_vectorize, _set_loop_vectorize)
 
     def _set_disable_unit_at_a_time(self, disable):
         return _core.LLVMPassManagerBuilderSetDisableUnitAtATime(

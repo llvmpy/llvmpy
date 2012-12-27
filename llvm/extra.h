@@ -312,6 +312,19 @@ void LLVMPassManagerBuilderSetVectorize(LLVMPassManagerBuilderRef pmb, int flag)
  */
 int LLVMPassManagerBuilderGetVectorize(LLVMPassManagerBuilderRef pmb);
 
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
+/*
+ * Wraps PassManagerBuilder::LoopVectorize
+ */
+void LLVMPassManagerBuilderSetLoopVectorize(LLVMPassManagerBuilderRef pmb,
+                                            int flag);
+
+/*
+ * Wraps PassManagerBuilder::LoopVectorize
+ */
+int LLVMPassManagerBuilderGetLoopVectorize(LLVMPassManagerBuilderRef pmb);
+#endif // llvm-3.2
+
 /*
  * Wraps PassManagerBuilder::DisableUnitAtATime
  */

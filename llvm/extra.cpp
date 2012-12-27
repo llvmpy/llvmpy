@@ -669,6 +669,19 @@ int LLVMPassManagerBuilderGetVectorize(LLVMPassManagerBuilderRef pmb){
     return llvm::unwrap(pmb)->Vectorize;
 }
 
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
+void LLVMPassManagerBuilderSetLoopVectorize(LLVMPassManagerBuilderRef pmb,
+                                            int flag)
+{
+    llvm::unwrap(pmb)->LoopVectorize = flag;
+}
+
+int LLVMPassManagerBuilderGetLoopVectorize(LLVMPassManagerBuilderRef pmb){
+    return llvm::unwrap(pmb)->LoopVectorize;
+}
+#endif // llvm-3.2
+
+
 int LLVMPassManagerBuilderGetDisableUnitAtATime(LLVMPassManagerBuilderRef pmb)
 {
     return llvm::unwrap(pmb)->DisableUnitAtATime;
