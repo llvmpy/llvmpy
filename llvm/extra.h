@@ -55,6 +55,26 @@ extern "C" {
 #endif
 
 /*
+ * Wraps Pass::lookupPassInfo and PassInfo::createPass
+ */
+LLVMPassRef LLVMCreatePassByName(const char *name);
+
+/*
+ * Wraps operator delete (Pass*)
+ */
+void LLVMDisposePass(LLVMPassRef passref);
+
+/*
+ * Wraps Pass::getPassName
+ */
+const char * LLVMGetPassName(LLVMPassRef passref);
+
+/*
+ * Wraps PassManager::add
+ */
+void LLVMAddPass(LLVMPassManagerRef pmref, LLVMPassRef passref);
+
+/*
  * Wraps llvm:InlineAsm::get
  */
 LLVMValueRef LLVMGetFunctionFromInlineAsm(LLVMTypeRef funcType,

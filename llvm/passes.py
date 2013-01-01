@@ -36,7 +36,6 @@ are available.
 """
 
 import llvm                 # top-level, for common stuff
-import llvm.ee as ee        # target data
 import llvm.core as core    # module, function etc.
 import llvm._core as _core  # C wrappers
 import llvm._util as _util  # Utility functions
@@ -155,16 +154,18 @@ class PassManager(object):
     def __del__(self):
         _core.LLVMDisposePassManager(self.ptr)
 
-    def add(self, tgt_data_or_pass_name):
-        if isinstance(tgt_data_or_pass_name, ee.TargetData):
-            self._add_target_data(tgt_data_or_pass_name)
-        elif _util.isstring(tgt_data_or_pass_name):
-            self._add_pass(tgt_data_or_pass_name)
+    def add(self, pass_obj):
+        '''Add a pass to the pass manager.
+        
+        pass_obj --- Either a Pass instance, a string name of a pass
+        '''
+        if isinstance(pass_obj, Pass):
+            _core.LLVMAddPass(self.ptr, pass_obj.ptr)
+            pass_obj._own(self) # PassManager owns the pass
+        elif _util.isstring(pass_obj):
+            self._add_pass(pass_obj)
         else:
-            raise llvm.LLVMException("invalid pass_id (%s)" % tgt_data_or_pass_name)
-
-    def _add_target_data(self, tgt):
-        _core.LLVMAddTargetData(tgt.ptr, self.ptr)
+            raise llvm.LLVMException("invalid pass_id (%s)" % pass_obj)
 
     def _add_pass(self, pass_name):
         status = _core.LLVMAddPassByName(self.ptr, pass_name)
@@ -196,6 +197,115 @@ class FunctionPassManager(PassManager):
 
     def finalize(self):
         _core.LLVMFinalizeFunctionPassManager(self.ptr)
+
+
+
+#===----------------------------------------------------------------------===
+# Passes
+#===----------------------------------------------------------------------===
+
+class Pass(llvm.Ownable):
+    '''Pass Inferface
+    '''
+    def __init__(self, ptr):
+        llvm.Ownable.__init__(self, ptr, _core.LLVMDisposePass)
+
+    @staticmethod
+    def new(name):
+        '''Create a new pass by name.
+
+        Note: Not all pass has a default constructor.  LLVM will kill
+        the process if an the pass requires arguments to construct.
+        The error cannot be caught.
+        '''
+        ptr = _core.LLVMCreatePassByName(name)
+        p = Pass(ptr)
+        p.__name = name
+        return p
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def description(self):
+        return _core.LLVMGetPassName(self.ptr)
+
+    def dump(self):
+        return _core.LLVMPassDump(self.ptr)
+
+
+#===----------------------------------------------------------------------===
+# Target data
+#===----------------------------------------------------------------------===
+
+class TargetData(Pass):
+
+    @staticmethod
+    def new(strrep):
+        return TargetData(_core.LLVMCreateTargetData(strrep))
+
+    def __str__(self):
+        return _core.LLVMTargetDataAsString(self.ptr)
+
+    @property
+    def byte_order(self):
+        return _core.LLVMByteOrder(self.ptr)
+
+    @property
+    def pointer_size(self):
+        return _core.LLVMPointerSize(self.ptr)
+
+    @property
+    def target_integer_type(self):
+        ptr = _core.LLVMIntPtrType(self.ptr);
+        return core.IntegerType(ptr, core.TYPE_INTEGER)
+
+    def size(self, ty):
+        core.check_is_type(ty)
+        return _core.LLVMSizeOfTypeInBits(self.ptr, ty.ptr)
+
+    def store_size(self, ty):
+        core.check_is_type(ty)
+        return _core.LLVMStoreSizeOfType(self.ptr, ty.ptr)
+
+    def abi_size(self, ty):
+        core.check_is_type(ty)
+        return _core.LLVMABISizeOfType(self.ptr, ty.ptr)
+
+    def abi_alignment(self, ty):
+        core.check_is_type(ty)
+        return _core.LLVMABIAlignmentOfType(self.ptr, ty.ptr)
+
+    def callframe_alignment(self, ty):
+        core.check_is_type(ty)
+        return _core.LLVMCallFrameAlignmentOfType(self.ptr, ty.ptr)
+
+    def preferred_alignment(self, ty_or_gv):
+        if isinstance(ty_or_gv, core.Type):
+            return _core.LLVMPreferredAlignmentOfType(self.ptr,
+                                                      ty_or_gv.ptr)
+        elif isinstance(ty_or_gv, core.GlobalVariable):
+            return _core.LLVMPreferredAlignmentOfGlobal(self.ptr,
+                                                        ty_or_gv.ptr)
+        else:
+            raise core.LLVMException("argument is neither a type nor a global variable")
+
+    def element_at_offset(self, ty, ofs):
+        core.check_is_type_struct(ty)
+        ofs = int(ofs) # ofs is unsigned long long
+        return _core.LLVMElementAtOffset(self.ptr, ty.ptr, ofs)
+
+    def offset_of_element(self, ty, el):
+        core.check_is_type_struct(ty)
+        el = int(el) # el should be an int
+        return _core.LLVMOffsetOfElement(self.ptr, ty.ptr, el)
+
+
+
+#===----------------------------------------------------------------------===
+# Misc.
+#===----------------------------------------------------------------------===
 
 # Intialize passes
 PASSES = None

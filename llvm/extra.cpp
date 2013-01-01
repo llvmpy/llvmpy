@@ -95,6 +95,7 @@ namespace llvm{
 DEFINE_SIMPLE_CONVERSION_FUNCTIONS(EngineBuilder, LLVMEngineBuilderRef)
 DEFINE_SIMPLE_CONVERSION_FUNCTIONS(TargetMachine, LLVMTargetMachineRef)
 DEFINE_SIMPLE_CONVERSION_FUNCTIONS(NamedMDNode, LLVMNamedMDRef)
+DEFINE_SIMPLE_CONVERSION_FUNCTIONS(Pass, LLVMPassRef)
 
 template<typename T>
 inline T **unwrap(LLVMTypeRef *Tys, unsigned Length) {
@@ -142,6 +143,31 @@ const CodeGenOpt::Level OptLevelMap[] = {
 };
 } // end anony namespace
 
+
+LLVMPassRef LLVMCreatePassByName(const char *name){
+    using namespace llvm;
+    const PassInfo * pi = Pass::lookupPassInfo(StringRef(name));
+    if (pi) {
+        return wrap(pi->createPass());
+    } else { // cannot find pass
+        return NULL;
+    }
+}
+
+void LLVMDisposePass(LLVMPassRef passref){
+    using namespace llvm;
+    delete unwrap(passref);
+}
+
+const char * LLVMGetPassName(LLVMPassRef passref){
+    using namespace llvm;
+    return unwrap(passref)->getPassName();
+}
+
+void LLVMAddPass(LLVMPassManagerRef pmref, LLVMPassRef passref){
+    using namespace llvm;
+    unwrap(pmref)->add(unwrap(passref));
+}
 
 LLVMValueRef LLVMGetFunctionFromInlineAsm(LLVMTypeRef funcType,
                                           const char inlineAsm[],
