@@ -209,6 +209,7 @@ class Pass(llvm.Ownable):
     '''
     def __init__(self, ptr):
         llvm.Ownable.__init__(self, ptr, _core.LLVMDisposePass)
+        self.__name = ''
 
     @staticmethod
     def new(name):
@@ -225,6 +226,8 @@ class Pass(llvm.Ownable):
 
     @property
     def name(self):
+        '''The name used in PassRegistry.
+        '''
         return self.__name
 
     @property
@@ -302,6 +305,26 @@ class TargetData(Pass):
         return _core.LLVMOffsetOfElement(self.ptr, ty.ptr, el)
 
 
+#===----------------------------------------------------------------------===
+# Target Library Info
+#===----------------------------------------------------------------------===
+
+class TargetLibraryInfo(Pass):
+    @staticmethod
+    def new(triple):
+        ptr = _core.LLVMCreateTargetLibraryInfo(triple)
+        return TargetLibraryInfo(ptr)
+
+
+#===----------------------------------------------------------------------===
+# Target Transform Info
+#===----------------------------------------------------------------------===
+
+class TargetTransformInfo(Pass):
+    @staticmethod
+    def new(targetmachine):
+        ptr = _core.LLVMCreateTargetTransformInfo(targetmachine.ptr)
+        return TargetTransformInfo(ptr)
 
 #===----------------------------------------------------------------------===
 # Misc.

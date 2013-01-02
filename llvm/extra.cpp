@@ -75,6 +75,7 @@
 #include "llvm/Support/SourceMgr.h"
 #include <llvm/InlineAsm.h>
 #include <llvm/Support/PassNameParser.h>
+#include <llvm/Target/TargetLibraryInfo.h>
 
 
 #if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
@@ -143,6 +144,23 @@ const CodeGenOpt::Level OptLevelMap[] = {
 };
 } // end anony namespace
 
+LLVMPassRef LLVMCreateTargetTransformInfo(LLVMTargetMachineRef tmref){
+    using namespace llvm;
+    TargetMachine * tm = unwrap(tmref);
+    Pass * tti = new TargetTransformInfo(tm->getScalarTargetTransformInfo(),
+                                         tm->getVectorTargetTransformInfo());
+    return wrap(tti);
+}
+
+LLVMPassRef LLVMCreateTargetLibraryInfo(const char * triple){
+    using namespace llvm;
+    Pass * tli = new TargetLibraryInfo(Triple(triple));
+    return wrap(tli);
+}
+
+const char * LLVMDefaultTargetTriple(){
+    return strdup(llvm::sys::getDefaultTargetTriple().c_str());
+}
 
 LLVMPassRef LLVMCreatePassByName(const char *name){
     using namespace llvm;
@@ -162,6 +180,11 @@ void LLVMDisposePass(LLVMPassRef passref){
 const char * LLVMGetPassName(LLVMPassRef passref){
     using namespace llvm;
     return unwrap(passref)->getPassName();
+}
+
+void LLVMPassDump(LLVMPassRef passref){
+    using namespace llvm;
+    return unwrap(passref)->dump();
 }
 
 void LLVMAddPass(LLVMPassManagerRef pmref, LLVMPassRef passref){
@@ -354,6 +377,30 @@ LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
     return wrap(tm);
 }
 
+LLVMTargetMachineRef LLVMCreateTargetMachine(const char *triple,
+                                             const char *cpu,
+                                             const char *features,
+                                             int opt,
+                                             std::string &error)
+{
+    using namespace llvm;
+
+    std::string TheTriple = triple;
+    const Target * TheTarget = TargetRegistry::lookupTarget(TheTriple, error);
+    if (!TheTarget) return NULL;
+
+    TargetOptions no_target_options;
+    TargetMachine * tm = TheTarget->createTargetMachine(TheTriple, cpu, features,
+                                                        no_target_options,
+                                                        Reloc::Default,
+                                                        CodeModel::Default,
+                                                        OptLevelMap[opt]);
+    if (!tm) {
+        error = "Cannot create target machine";
+        return NULL;
+    }
+    return wrap(tm);
+}
 
 LLVMTargetMachineRef LLVMTargetMachineFromEngineBuilder(LLVMEngineBuilderRef eb)
 {

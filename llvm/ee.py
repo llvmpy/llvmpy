@@ -257,7 +257,20 @@ def get_host_cpu_name():
     '''
     return _core.LLVMGetHostCPUName()
 
+def get_default_triple():
+    '''return the target triple of the host in str-rep
+    '''
+    return _core.LLVMDefaultTargetTriple()
+
 class TargetMachine(object):
+
+    @staticmethod
+    def new(triple='', cpu='', features='', opt=2):
+        if not triple and not cpu:
+            triple = get_default_triple()
+            cpu = get_host_cpu_name()
+        ptr = _core.LLVMCreateTargetMachine(triple, cpu, features, opt)
+        return TargetMachine(ptr)
 
     @staticmethod
     def lookup(arch, cpu='', features='', opt=2):

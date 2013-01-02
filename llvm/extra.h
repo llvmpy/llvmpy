@@ -55,6 +55,23 @@ extern "C" {
 #endif
 
 /*
+ * Wraps new TargetTransformInfo(
+ *          TargetMachine::getScalarTargetTransformInfo,
+ *          TargetMachine::getVectorTargetTransformInfo)
+ */
+LLVMPassRef LLVMCreateTargetTransformInfo(LLVMTargetMachineRef tmref);
+
+/*
+ * Wraps new TargetLibraryInfo
+ */
+LLVMPassRef LLVMCreateTargetLibraryInfo(const char * triple);
+
+/*
+ * Wraps llvm::getDefaultTargetTriple
+ */
+const char * LLVMDefaultTargetTriple();
+
+/*
  * Wraps Pass::lookupPassInfo and PassInfo::createPass
  */
 LLVMPassRef LLVMCreatePassByName(const char *name);
@@ -73,6 +90,11 @@ const char * LLVMGetPassName(LLVMPassRef passref);
  * Wraps PassManager::add
  */
 void LLVMAddPass(LLVMPassManagerRef pmref, LLVMPassRef passref);
+
+/*
+ * Wraps Pass::dump
+ */
+void LLVMPassDump(LLVMPassRef passref);
 
 /*
  * Wraps llvm:InlineAsm::get
@@ -173,6 +195,10 @@ int LLVMInitializeNativeTargetAsmPrinter();
 
 
 LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
+                                             const char *features, int opt,
+                                             std::string &error);
+
+LLVMTargetMachineRef LLVMCreateTargetMachine(const char *arch, const char *cpu,
                                              const char *features, int opt,
                                              std::string &error);
 

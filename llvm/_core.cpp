@@ -1036,6 +1036,7 @@ _wrap_none2str(LLVMDumpPasses)
 _wrap_objstr2obj(LLVMAddPassByName, LLVMPassManagerRef, int)
 
 
+_wrap_objobj2none(LLVMAddPass, LLVMPassManagerRef, LLVMPassRef)
 _wrap_none2none(LLVMInitializePasses)
 
 _wrap_none2obj(LLVMInitializeNativeTarget, int)
@@ -1061,7 +1062,11 @@ _wrap_none2none(LLVMInitializePTXAsmPrinter)
 _wrap_str2obj(LLVMCreatePassByName, LLVMPassRef)
 _wrap_obj2none(LLVMDisposePass, LLVMPassRef)
 _wrap_obj2str(LLVMGetPassName, LLVMPassRef)
-_wrap_objobj2none(LLVMAddPass, LLVMPassManagerRef, LLVMPassRef)
+_wrap_obj2none(LLVMPassDump, LLVMPassRef)
+
+_wrap_str2obj(LLVMCreateTargetLibraryInfo, LLVMPassRef)
+_wrap_obj2obj(LLVMCreateTargetTransformInfo, LLVMTargetMachineRef, LLVMPassRef)
+
 
 /*===----------------------------------------------------------------------===*/
 /* Target Machine                                                             */
@@ -1087,6 +1092,30 @@ _wLLVMTargetMachineLookup(PyObject * self, PyObject * args)
 
     std::string error;
     LLVMTargetMachineRef tm = LLVMTargetMachineLookup(arch, cpu, features, opt,
+                                                      error);
+    if(!error.empty()){
+        PyErr_SetString(PyExc_RuntimeError, error.c_str());
+        return NULL;
+    }
+    return pycap_new<LLVMTargetMachineRef>(tm);
+    LLVMPY_CATCH_ALL
+}
+
+
+static PyObject *
+_wLLVMCreateTargetMachine(PyObject * self, PyObject * args)
+{
+    LLVMPY_TRY
+    const char *triple;
+    const char *cpu;
+    const char *features;
+    int opt;
+
+    if (!PyArg_ParseTuple(args, "sssi", &triple, &cpu, &features, &opt))
+        return NULL;
+
+    std::string error;
+    LLVMTargetMachineRef tm = LLVMCreateTargetMachine(triple, cpu, features, opt,
                                                       error);
     if(!error.empty()){
         PyErr_SetString(PyExc_RuntimeError, error.c_str());
@@ -1481,6 +1510,9 @@ _wLLVMParseEnvOpts(PyObject *self, PyObject *args)
 }
 
 _wrap_obj2obj(LLVMInlineFunction, LLVMValueRef, int)
+
+_wrap_none2str(LLVMDefaultTargetTriple)
+
 
 /* Expose the void* inside a PyCObject as a PyLong. This allows us to
  * use it as a unique ID. */
@@ -1937,6 +1969,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMDisposePassManager )
     _method( LLVMDumpPasses )
     _method( LLVMAddPassByName )
+    _method( LLVMAddPass )
     _method( LLVMInitializePasses )
 
     _method( LLVMInitializeNativeTarget )
@@ -1958,6 +1991,7 @@ static PyMethodDef core_methods[] = {
     /* Target Machine */
     _method( LLVMTargetMachineFromEngineBuilder )
     _method( LLVMDisposeTargetMachine )
+    _method( LLVMCreateTargetMachine )
     _method( LLVMTargetMachineLookup )
     _method( LLVMTargetMachineEmitFile )
     _method( LLVMTargetMachineGetTargetData )
@@ -2024,13 +2058,16 @@ static PyMethodDef core_methods[] = {
     _method( LLVMCreatePassByName )
     _method( LLVMDisposePass )
     _method( LLVMGetPassName )
-    _method( LLVMAddPass )
+    _method( LLVMPassDump )
+
+    _method( LLVMCreateTargetLibraryInfo )
+    _method( LLVMCreateTargetTransformInfo )
 
     /* Misc */
     _method( LLVMGetIntrinsic )
     _method( LLVMLoadLibraryPermanently )
     _method( LLVMParseEnvOpts )
-
+    _method( LLVMDefaultTargetTriple )
     _method( LLVMInlineFunction )
     _method( PyCObjectVoidPtrToPyLong )
     { NULL }
