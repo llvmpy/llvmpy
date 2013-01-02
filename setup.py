@@ -64,6 +64,8 @@ print('LLVM version = %d.%d' % llvm_version)
 
 auto_intrinsic_gen(incdir)
 
+macros = [('__STDC_CONSTANT_MACROS', None),
+          ('__STDC_LIMIT_MACROS', None)]
 if dynlink:
     libs_core = ['LLVM-%d.%d' % llvm_version]
     objs_core = []
@@ -89,6 +91,7 @@ else:
         extra_components.extend(ptx_components)
     else:
         print("No CUDA support")
+        macros.append(('LLVM_DISABLE_PTX', None))
 
     libs_core, objs_core = get_libs_and_objs(
         ['core', 'analysis', 'scalaropts', 'executionengine',
@@ -97,12 +100,10 @@ else:
          'asmparser', 'linker', 'support', 'vectorize']
         + extra_components)
 
-macros = [('__STDC_CONSTANT_MACROS', None),
-          ('__STDC_LIMIT_MACROS', None)]
 if sys.platform == 'win32':
     # If no PTX lib got added, disable PTX in the build
     if 'LLVMPTXCodeGen' not in libs_core:
-        macros.append(('LLVM_DISABLE_PTX', None)),
+        macros.append(('LLVM_DISABLE_PTX', None))
 else:
     macros.append(('_GNU_SOURCE', None))
 
