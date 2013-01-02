@@ -784,7 +784,7 @@ class CDefinition(object):
         cls._name_ = "%s_%d" % (cls._name_, counter)
         cls.counter = counter + 1
 
-    def define(self, module):
+    def define(self, module, optimize=True):
         '''define the function in the module.
 
         Raises NameError if a function of the same name has already been
@@ -814,13 +814,14 @@ class CDefinition(object):
         self.cbuilder.close()
         self.cbuilder = None
 
-        # optimize
-        fpm = lp.FunctionPassManager.new(module)
-        pmb = lp.PassManagerBuilder.new()
-        pmb.opt_level = 3
-        pmb.vectorize = True
-        pmb.populate(fpm)
-        fpm.run(func)
+        if optimize:
+            fpm = lp.FunctionPassManager.new(module)
+            pmb = lp.PassManagerBuilder.new()
+            pmb.opt_level = 3
+            pmb.vectorize = True
+            pmb.populate(fpm)
+            fpm.run(func)
+
         return func
 
     def __call__(self, module):
