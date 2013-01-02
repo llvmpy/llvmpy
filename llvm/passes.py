@@ -327,6 +327,56 @@ class TargetTransformInfo(Pass):
         return TargetTransformInfo(ptr)
 
 #===----------------------------------------------------------------------===
+# Helpers
+#===----------------------------------------------------------------------===
+
+def build_pass_managers(tm, opt=2, loop_vectorize=False, vectorize=False,
+                        inline_threshold=2000, pm=True, fpm=True, mod=None):
+    '''
+    tm --- The TargetMachine for which the passes are optimizing for.
+           The TargetMachine must stay alive until the pass managers 
+           are removed.
+    opt --- [0-3] Optimization level. Default to 2.
+    loop_vectorize --- [boolean] Whether to use loop-vectorizer.
+    vectorize --- [boolean] Whether to use basic-block vectorizer.
+    inline_threshold --- [int] Threshold for the inliner.
+    features --- [str] CPU feature string.
+    pm --- [boolean] Whether to build a module-level pass-manager.
+    fpm --- [boolean] Whether to build a function-level pass-manager.
+    mod --- [Module] The module object for the FunctionPassManager.
+    '''
+    if pm:
+        pm = PassManager.new()
+    if fpm:
+        if not mod:
+            raise TypeError("Keyword 'mod' must be defined")
+        fpm = FunctionPassManager.new(mod)
+
+    # Populate PassManagers with target specific passes
+    pmb = PassManagerBuilder.new()
+    pmb.opt_level = opt
+    pmb.vectorize = vectorize
+    pmb.loop_vectorize = loop_vectorize
+    if inline_threshold:
+        pmb.use_inliner_with_threshold(inline_threshold)
+    if pm:
+        pm.add(tm.target_data)
+        pm.add(TargetLibraryInfo.new(tm.triple))
+        pm.add(TargetTransformInfo.new(tm))
+        pmb.populate(pm)
+
+    if fpm:
+        fpm.add(tm.target_data)
+        fpm.add(TargetLibraryInfo.new(tm.triple))
+        fpm.add(TargetTransformInfo.new(tm))
+        pmb.populate(fpm)
+        fpm.initialize()
+
+    from collections import namedtuple
+    return namedtuple('passmanagers', ['pm', 'fpm'])(pm=pm, fpm=fpm)
+
+
+#===----------------------------------------------------------------------===
 # Misc.
 #===----------------------------------------------------------------------===
 
