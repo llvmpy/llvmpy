@@ -23,7 +23,7 @@ def translate(func):
     try:
         compiled = compile(tree, '<string>', 'exec')
         return eval(compiled)
-    except Exception, e:
+    except Exception as e:
         logger.debug(ast.dump(tree))
         from ArminRonacher import codegen # uses Armin Ronacher's codegen to debug
         # http://dev.pocoo.org/hg/sandbox/file/852a1248c8eb/ast/codegen.py
