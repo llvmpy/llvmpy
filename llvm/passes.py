@@ -248,6 +248,9 @@ class TargetData(Pass):
     def new(strrep):
         return TargetData(_core.LLVMCreateTargetData(strrep))
 
+    def clone(self):
+        return TargetData.new(str(self))
+
     def __str__(self):
         return _core.LLVMTargetDataAsString(self.ptr)
 
