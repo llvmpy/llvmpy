@@ -396,7 +396,9 @@ class Module(llvm.Ownable, llvm.Cacheable):
 
         Use the static method `Module.new' instead.
         """
-        llvm.Ownable.__init__(self, ptr, _core.LLVMDisposeModule)
+        llvm.Ownable.__init__(self, ptr)
+
+    _finalizer = _core.LLVMDisposeModule
 
     def __str__(self):
         """Text representation of a module.
@@ -1798,7 +1800,7 @@ def _make_value(ptr):
 # Builder
 #===----------------------------------------------------------------------===
 
-class Builder(object):
+class Builder(llvm.Handle):
 
     @staticmethod
     def new(basic_block):
@@ -1808,10 +1810,9 @@ class Builder(object):
         return b
 
     def __init__(self, ptr):
-        self.ptr = ptr
+        llvm.Handle.__init__(self, ptr)
 
-    def __del__(self):
-        _core.LLVMDisposeBuilder(self.ptr)
+    _finalizer = _core.LLVMDisposeBuilder
 
     def position_at_beginning(self, bblk):
         """Position the builder at the beginning of the given block.
@@ -2300,7 +2301,7 @@ class Builder(object):
 # Memory buffer
 #===----------------------------------------------------------------------===
 
-class MemoryBuffer(object):
+class MemoryBuffer(llvm.Handle):
 
     @staticmethod
     def from_file(fname):
@@ -2321,10 +2322,9 @@ class MemoryBuffer(object):
             return (obj, "")
 
     def __init__(self, ptr):
-        self.ptr = ptr
+        llvm.Handle.__init__(self, ptr)
 
-    def __del__(self):
-        _core.LLVMDisposeMemoryBuffer(self.ptr)
+    _finalizer = _core.LLVMDisposeMemoryBuffer
 
 
 #===----------------------------------------------------------------------===

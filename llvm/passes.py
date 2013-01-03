@@ -45,16 +45,15 @@ import warnings
 # Pass manager builder
 #===----------------------------------------------------------------------===
 
-class PassManagerBuilder(object):
+class PassManagerBuilder(llvm.Handle):
     @staticmethod
     def new():
         return PassManagerBuilder(_core.LLVMPassManagerBuilderCreate())
 
     def __init__(self, ptr):
-        self.ptr = ptr
+        llvm.Handle.__init__(self, ptr)
 
-    def __del__(self):
-        _core.LLVMPassManagerBuilderDispose(self.ptr)
+    _finalizer = _core.LLVMPassManagerBuilderDispose
 
     def populate(self, pm):
         if isinstance(pm, FunctionPassManager):
@@ -142,7 +141,7 @@ class PassManagerBuilder(object):
 # Pass manager
 #===----------------------------------------------------------------------===
 
-class PassManager(object):
+class PassManager(llvm.Handle):
 
     @staticmethod
     def new():
@@ -151,8 +150,7 @@ class PassManager(object):
     def __init__(self, ptr):
         self.ptr = ptr
 
-    def __del__(self):
-        _core.LLVMDisposePassManager(self.ptr)
+    _finalizer = _core.LLVMDisposePassManager
 
     def add(self, pass_obj):
         '''Add a pass to the pass manager.
@@ -208,8 +206,10 @@ class Pass(llvm.Ownable):
     '''Pass Inferface
     '''
     def __init__(self, ptr):
-        llvm.Ownable.__init__(self, ptr, _core.LLVMDisposePass)
+        llvm.Ownable.__init__(self, ptr)
         self.__name = ''
+
+    _finalizer = _core.LLVMDisposePass
 
     @staticmethod
     def new(name):

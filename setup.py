@@ -131,7 +131,7 @@ setup(
     maintainer = 'Continuum Analytics, Inc.',
     maintainer_email = 'llvmpy@continuum.io',
     url = 'http://www.llvmpy.org/',
-    packages = ['llvm', 'llvm_cbuilder', 'llpython'],
+    packages = ['llvm', 'llvm_cbuilder', 'llpython', 'llvm._utils'],
     py_modules = ['llvm.core'],
     license = "BSD",
     classifiers = [
