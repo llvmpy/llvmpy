@@ -723,6 +723,22 @@ LLVMExecutionEngineRef LLVMEngineBuilderCreate(LLVMEngineBuilderRef eb, std::str
     }
 }
 
+LLVMExecutionEngineRef LLVMEngineBuilderCreateTM(LLVMEngineBuilderRef eb,
+                                                 LLVMTargetMachineRef tm,
+                                                 std::string & error)
+{
+    using namespace llvm;
+    LLVMExecutionEngineRef ret;
+
+    ret = wrap(unwrap(eb)->setErrorStr(&error).create(unwrap(tm)));
+
+    if ( !error.empty() ) { // error string is set
+        return NULL;
+    } else {
+        return ret;
+    }
+}
+
 int LLVMPassManagerBuilderGetOptLevel(LLVMPassManagerBuilderRef pmb)
 {
     return llvm::unwrap(pmb)->OptLevel;

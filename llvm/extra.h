@@ -339,6 +339,14 @@ LLVMExecutionEngineRef LLVMEngineBuilderCreate(LLVMEngineBuilderRef eb,
                                                std::string &error);
 
 /*
+ * Wraps EngineBuilder::create(TargetMachine*)
+ */
+LLVMExecutionEngineRef LLVMEngineBuilderCreateTM(LLVMEngineBuilderRef ebref,
+                                                 LLVMTargetMachineRef tmref,
+                                                 std::string & error);
+
+
+/*
  * Wraps PassManagerBuilder::OptLevel
  */
 int LLVMPassManagerBuilderGetOptLevel(LLVMPassManagerBuilderRef pmb);

@@ -167,11 +167,21 @@ class EngineBuilder(object):
         _core.LLVMEngineBuilderSetMAttrs(self.ptr, string.replace(',', ' '))
         return self
 
-    def create(self):
-        ret = _core.LLVMEngineBuilderCreate(self.ptr)
+    def create(self, tm=None):
+        '''
+        tm --- Optional. Provide a TargetMachine.
+        '''
+        if tm:
+            _util.check_is_unowned(tm)
+            ret = _core.LLVMEngineBuilderCreateTM(self.ptr, tm.ptr)
+        else:
+            ret = _core.LLVMEngineBuilderCreate(self.ptr)
         if isinstance(ret, str):
             raise llvm.LLVMException(ret)
-        return ExecutionEngine(ret, self._module)
+        engine = ExecutionEngine(ret, self._module)
+        if tm:
+            tm._own(owner=engine)
+        return engine
 
     def select_target(self):
         '''get the corresponding target machine
@@ -262,7 +272,7 @@ def get_default_triple():
     '''
     return _core.LLVMDefaultTargetTriple()
 
-class TargetMachine(object):
+class TargetMachine(llvm.Ownable):
 
     @staticmethod
     def new(triple='', cpu='', features='', opt=2):
@@ -289,10 +299,7 @@ class TargetMachine(object):
         return TargetMachine(ptr)
 
     def __init__(self, ptr):
-        self.ptr = ptr
-
-    def __del__(self):
-        _core.LLVMDisposeTargetMachine(self.ptr)
+        llvm.Ownable.__init__(self, ptr, _core.LLVMDisposeTargetMachine)
 
     def emit_assembly(self, module):
         '''returns byte string of the module as assembly code of the target machine

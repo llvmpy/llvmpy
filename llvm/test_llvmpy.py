@@ -412,6 +412,23 @@ class TestEngineBuilder(unittest.TestCase):
 
         self.run_foo(ee, module)
 
+
+    def test_enginebuilder_with_tm(self):
+        tm = le.TargetMachine.new()
+        module = self.make_test_module()
+        ee = EngineBuilder.new(module).create(tm)
+
+        with self.assertRaises(llvm.LLVMException):
+            # Ensure the targetmachine is owned.
+            llvm._util.check_is_unowned(tm)
+        
+
+        with self.assertRaises(llvm.LLVMException):
+            # Ensure the module is owned.
+            llvm._util.check_is_unowned(module)
+
+        self.run_foo(ee, module)
+
     def test_enginebuilder_force_jit(self):
         module = self.make_test_module()
         ee = EngineBuilder.new(module).force_jit().create()

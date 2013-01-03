@@ -1241,6 +1241,32 @@ _wLLVMEngineBuilderCreate(PyObject *self, PyObject *args)
     LLVMPY_CATCH_ALL
 }
 
+static PyObject *
+_wLLVMEngineBuilderCreateTM(PyObject *self, PyObject *args)
+{
+    LLVMPY_TRY
+    PyObject *obj, *tm;
+    if (!PyArg_ParseTuple(args, "OO", &obj, &tm))
+        return NULL;
+
+    const LLVMEngineBuilderRef objref = pycap_get<LLVMEngineBuilderRef>( obj );
+    const LLVMTargetMachineRef tmref = pycap_get<LLVMTargetMachineRef>( tm );
+    std::string outmsg;
+
+    const LLVMExecutionEngineRef ee = LLVMEngineBuilderCreateTM(objref, tmref,
+                                                                outmsg);
+
+    PyObject * ret;
+    if( !ee ){ // check if error message is set.
+        ret = PyUnicode_FromString(outmsg.c_str());
+    }else{
+        ret = pycap_new<LLVMExecutionEngineRef>(ee);
+    }
+    
+    return ret;
+    LLVMPY_CATCH_ALL
+}
+
 /*===----------------------------------------------------------------------===*/
 /* Execution Engine                                                           */
 /*===----------------------------------------------------------------------===*/
@@ -2032,6 +2058,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMEngineBuilderSetMCPU )
     _method( LLVMEngineBuilderSetMAttrs )
     _method( LLVMEngineBuilderCreate )
+    _method( LLVMEngineBuilderCreateTM )
 
     /* Execution Engine */
     _method( LLVMCreateExecutionEngine )
