@@ -51,6 +51,13 @@ from llvm.passes import TargetData
 BO_BIG_ENDIAN       = 0
 BO_LITTLE_ENDIAN    = 1
 
+# CodeModel
+CM_DEFAULT = 0
+CM_JITDEFAULT = 1
+CM_SMALL = 2
+CM_KERNEL = 3
+CM_MEDIUM = 4
+CM_LARGE = 5
 
 #===----------------------------------------------------------------------===
 # Generic value
@@ -167,7 +174,8 @@ class EngineBuilder(llvm.Handle):
 
     def create(self, tm=None):
         '''
-        tm --- Optional. Provide a TargetMachine.
+        tm --- Optional. Provide a TargetMachine.  Ownership is transfered
+               to the returned execution engine.
         '''
         if tm:
             _util.check_is_unowned(tm)
@@ -269,18 +277,19 @@ def get_default_triple():
     '''
     return _core.LLVMDefaultTargetTriple()
 
+
 class TargetMachine(llvm.Ownable):
 
     @staticmethod
-    def new(triple='', cpu='', features='', opt=2):
+    def new(triple='', cpu='', features='', opt=2, cm=CM_DEFAULT):
         if not triple and not cpu:
             triple = get_default_triple()
             cpu = get_host_cpu_name()
-        ptr = _core.LLVMCreateTargetMachine(triple, cpu, features, opt)
+        ptr = _core.LLVMCreateTargetMachine(triple, cpu, features, opt, cm)
         return TargetMachine(ptr)
 
     @staticmethod
-    def lookup(arch, cpu='', features='', opt=2):
+    def lookup(arch, cpu='', features='', opt=2, cm=CM_DEFAULT):
         '''create a targetmachine given an architecture name
 
         For a list of architectures,
@@ -292,7 +301,7 @@ class TargetMachine(llvm.Ownable):
         For a list of available attributes (features),
             use: `llvm-as < /dev/null | llc -march=xyz -mattr=help`
         '''
-        ptr = _core.LLVMTargetMachineLookup(arch, cpu, features, opt)
+        ptr = _core.LLVMTargetMachineLookup(arch, cpu, features, opt, cm)
         return TargetMachine(ptr)
 
     def __init__(self, ptr):

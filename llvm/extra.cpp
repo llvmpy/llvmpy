@@ -142,6 +142,17 @@ const CodeGenOpt::Level OptLevelMap[] = {
     CodeGenOpt::Default,
     CodeGenOpt::Aggressive,
 };
+
+const CodeModel::Model CodeModelMap[] = {
+    CodeModel::Default,
+    CodeModel::JITDefault,
+    CodeModel::Small,
+    CodeModel::Kernel,
+    CodeModel::Medium,
+    CodeModel::Large,
+};
+
+
 } // end anony namespace
 
 LLVMPassRef LLVMCreateTargetTransformInfo(LLVMTargetMachineRef tmref){
@@ -328,6 +339,7 @@ int LLVMInitializeNativeTargetAsmPrinter()
 
 LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
                                              const char *features, int opt,
+                                             int codemodel,
                                              std::string &error)
 {
     using namespace llvm;
@@ -364,11 +376,12 @@ LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
     }
 
     TargetOptions no_target_options;
-    TargetMachine * tm = TheTarget->createTargetMachine(
-                                     TheTriple.str(), cpu, features,
-                                     no_target_options,
-                                     Reloc::Default, CodeModel::Default,
-                                     OptLevelMap[opt]);
+    TargetMachine * tm = TheTarget->createTargetMachine(TheTriple.str(), cpu,
+                                                        features,
+                                                        no_target_options,
+                                                        Reloc::Default,
+                                                        CodeModelMap[codemodel],
+                                                        OptLevelMap[opt]);
 
     if (!tm){
         error = "Cannot create target machine";
@@ -381,6 +394,7 @@ LLVMTargetMachineRef LLVMCreateTargetMachine(const char *triple,
                                              const char *cpu,
                                              const char *features,
                                              int opt,
+                                             int codemodel,
                                              std::string &error)
 {
     using namespace llvm;
@@ -393,7 +407,7 @@ LLVMTargetMachineRef LLVMCreateTargetMachine(const char *triple,
     TargetMachine * tm = TheTarget->createTargetMachine(TheTriple, cpu, features,
                                                         no_target_options,
                                                         Reloc::Default,
-                                                        CodeModel::Default,
+                                                        CodeModelMap[codemodel],
                                                         OptLevelMap[opt]);
     if (!tm) {
         error = "Cannot create target machine";

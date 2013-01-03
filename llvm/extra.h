@@ -196,10 +196,11 @@ int LLVMInitializeNativeTargetAsmPrinter();
 
 LLVMTargetMachineRef LLVMTargetMachineLookup(const char *arch, const char *cpu,
                                              const char *features, int opt,
-                                             std::string &error);
+                                             int codemodel, std::string &error);
 
 LLVMTargetMachineRef LLVMCreateTargetMachine(const char *arch, const char *cpu,
                                              const char *features, int opt,
+                                             int codemodel,
                                              std::string &error);
 
 /*

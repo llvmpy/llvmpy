@@ -1082,17 +1082,18 @@ static PyObject *
 _wLLVMTargetMachineLookup(PyObject * self, PyObject * args)
 {
     LLVMPY_TRY
-    const char *arch;
+    const char *triple;
     const char *cpu;
     const char *features;
-    int opt;
+    int opt, codemodel;
 
-    if (!PyArg_ParseTuple(args, "sssi", &arch, &cpu, &features, &opt))
+    if (!PyArg_ParseTuple(args, "sssii", &triple, &cpu, &features,
+                          &opt, &codemodel))
         return NULL;
 
     std::string error;
-    LLVMTargetMachineRef tm = LLVMTargetMachineLookup(arch, cpu, features, opt,
-                                                      error);
+    LLVMTargetMachineRef tm = LLVMTargetMachineLookup(triple, cpu, features,
+                                                      opt, codemodel, error);
     if(!error.empty()){
         PyErr_SetString(PyExc_RuntimeError, error.c_str());
         return NULL;
@@ -1109,14 +1110,15 @@ _wLLVMCreateTargetMachine(PyObject * self, PyObject * args)
     const char *triple;
     const char *cpu;
     const char *features;
-    int opt;
+    int opt, codemodel;
 
-    if (!PyArg_ParseTuple(args, "sssi", &triple, &cpu, &features, &opt))
+    if (!PyArg_ParseTuple(args, "sssii", &triple, &cpu, &features,
+                                         &opt, &codemodel))
         return NULL;
 
     std::string error;
-    LLVMTargetMachineRef tm = LLVMCreateTargetMachine(triple, cpu, features, opt,
-                                                      error);
+    LLVMTargetMachineRef tm = LLVMCreateTargetMachine(triple, cpu, features,
+                                                      opt, codemodel, error);
     if(!error.empty()){
         PyErr_SetString(PyExc_RuntimeError, error.c_str());
         return NULL;
