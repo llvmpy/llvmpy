@@ -451,6 +451,22 @@ tests.append(TestEngineBuilder)
 
 # ---------------------------------------------------------------------------
 
+class TestExecutionEngine(unittest.TestCase):
+    def test_get_pointer_to_global(self):
+        module = lc.Module.new(str(self))
+        gvar = module.add_global_variable(Type.int(), 'hello')
+        X = 1234
+        gvar.initializer = lc.Constant.int(Type.int(), X)
+
+        ee = le.ExecutionEngine.new(module)
+        ptr = ee.get_pointer_to_global(gvar)
+        from ctypes import c_void_p, cast, c_int, POINTER
+        casted = cast(c_void_p(ptr), POINTER(c_int))
+        self.assertEqual(X, casted[0])
+
+tests.append(TestExecutionEngine)
+# ---------------------------------------------------------------------------
+
 class TestObjCache(unittest.TestCase):
 
     def test_objcache(self):
