@@ -230,6 +230,10 @@ class ExecutionEngine(llvm.Handle):
         core.check_is_global_value(val)
         return _core.LLVMGetPointerToGlobal(self.ptr, val.ptr)
 
+    def add_global_mapping(self, gvar, addr):
+        assert addr >= 0, "Address cannot not be negative"
+        _core.LLVMAddGlobalMapping(self.ptr, gvar.ptr, addr)
+
     def run_static_ctors(self):
         _core.LLVMRunStaticConstructors(self.ptr)
 

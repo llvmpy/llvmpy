@@ -1342,6 +1342,30 @@ _wLLVMGetPointerToGlobal(PyObject *self, PyObject *args)
     LLVMPY_CATCH_ALL
 }
 
+static PyObject *
+_wLLVMAddGlobalMapping(PyObject *self, PyObject *args)
+{
+    LLVMPY_TRY
+    PyObject *obj_ee;
+    PyObject *obj_val;
+    long int address;
+
+    if (!PyArg_ParseTuple(args, "OOl", &obj_ee, &obj_val, &address))
+        return NULL;
+
+    const LLVMExecutionEngineRef ee = pycap_get<LLVMExecutionEngineRef>( obj_ee );
+    const LLVMValueRef val = pycap_get<LLVMValueRef>( obj_val );
+    
+    if (address == (unsigned long long)-1)
+        return NULL;
+
+    LLVMAddGlobalMapping(ee, val, (void*) address);
+
+    Py_RETURN_NONE;
+
+    LLVMPY_CATCH_ALL
+}
+
 /* the args should have been ptr, num */
 LLVMGenericValueRef LLVMRunFunction2(LLVMExecutionEngineRef EE,
     LLVMValueRef F, LLVMGenericValueRef *Args, unsigned NumArgs)
@@ -2096,6 +2120,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMRunFunction2 )
     _method( LLVMGetPointerToFunction )
     _method( LLVMGetPointerToGlobal )
+    _method( LLVMAddGlobalMapping )
     _method( LLVMGetExecutionEngineTargetData )
     _method( LLVMRunStaticConstructors )
     _method( LLVMRunStaticDestructors )

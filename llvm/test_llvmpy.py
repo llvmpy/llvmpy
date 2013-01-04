@@ -464,6 +464,30 @@ class TestExecutionEngine(unittest.TestCase):
         casted = cast(c_void_p(ptr), POINTER(c_int))
         self.assertEqual(X, casted[0])
 
+    def test_add_global_mapping(self):
+        module = lc.Module.new(str(self))
+        gvar = module.add_global_variable(Type.int(), 'hello')
+
+        fnty = lc.Type.function(Type.int(), [])
+        foo = module.add_function(fnty, name='foo')
+        bldr = lc.Builder.new(foo.append_basic_block('entry'))
+        bldr.ret(bldr.load(gvar))
+
+        ee = le.ExecutionEngine.new(module)
+        from ctypes import c_int, addressof, CFUNCTYPE
+        value = 0xABCD
+        value_ctype = c_int(value)
+        value_pointer = addressof(value_ctype)
+
+        ee.add_global_mapping(gvar, value_pointer)
+
+        foo_addr = ee.get_pointer_to_function(foo)
+        prototype = CFUNCTYPE(c_int)
+        foo_callable = prototype(foo_addr)
+        self.assertEqual(foo_callable(), value)
+
+
+
 tests.append(TestExecutionEngine)
 # ---------------------------------------------------------------------------
 
