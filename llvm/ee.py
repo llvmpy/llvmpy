@@ -226,6 +226,10 @@ class ExecutionEngine(llvm.Handle):
         core.check_is_function(fn)
         return _core.LLVMGetPointerToFunction(self.ptr,fn.ptr)
 
+    def get_pointer_to_global(self, val):
+        core.check_is_global_value(val)
+        return _core.LLVMGetPointerToGlobal(self.ptr, val.ptr)
+
     def run_static_ctors(self):
         _core.LLVMRunStaticConstructors(self.ptr)
 
