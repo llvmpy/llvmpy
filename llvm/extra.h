@@ -54,12 +54,15 @@
 extern "C" {
 #endif
 
+
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
 /*
  * Wraps new TargetTransformInfo(
  *          TargetMachine::getScalarTargetTransformInfo,
  *          TargetMachine::getVectorTargetTransformInfo)
  */
 LLVMPassRef LLVMCreateTargetTransformInfo(LLVMTargetMachineRef tmref);
+#endif 
 
 /*
  * Wraps new TargetLibraryInfo

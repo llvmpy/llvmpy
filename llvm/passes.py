@@ -89,10 +89,10 @@ class PassManagerBuilder(llvm.Handle):
     vectorize = property(_get_vectorize, _set_vectorize)
 
     def _set_loop_vectorize(self, enable):
-        try:
+        if llvm.version >= (3, 2):
             _core.LLVMPassManagerBuilderSetLoopVectorize(self.ptr,
                                                          int(bool(enable)))
-        except AttributeError:
+        else:
             warnings.warn("Ignored. LLVM-3.1 & prior do not support loop vectorizer.")
 
     def _get_loop_vectorize(self):
@@ -326,8 +326,10 @@ class TargetLibraryInfo(Pass):
 class TargetTransformInfo(Pass):
     @staticmethod
     def new(targetmachine):
+        llvm.require_version_at_least(3, 2)
         ptr = _core.LLVMCreateTargetTransformInfo(targetmachine.ptr)
         return TargetTransformInfo(ptr)
+
 
 #===----------------------------------------------------------------------===
 # Helpers
@@ -365,13 +367,15 @@ def build_pass_managers(tm, opt=2, loop_vectorize=False, vectorize=False,
     if pm:
         pm.add(tm.target_data)
         pm.add(TargetLibraryInfo.new(tm.triple))
-        pm.add(TargetTransformInfo.new(tm))
+        if llvm.version >= (3, 2):
+            pm.add(TargetTransformInfo.new(tm))
         pmb.populate(pm)
 
     if fpm:
         fpm.add(tm.target_data)
         fpm.add(TargetLibraryInfo.new(tm.triple))
-        fpm.add(TargetTransformInfo.new(tm))
+        if llvm.version >= (3, 2):
+            fpm.add(TargetTransformInfo.new(tm))
         pmb.populate(fpm)
         fpm.initialize()
 

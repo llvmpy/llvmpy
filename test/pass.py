@@ -1,6 +1,7 @@
 from llvm.core import *
 from llvm.passes import *
 from llvm.ee import *
+import llvm
 import unittest
 
 class TestPass(unittest.TestCase):
@@ -26,11 +27,12 @@ class TestPass(unittest.TestCase):
         self.assertTrue(tli.description)
         pm.add(tli)
 
-        tti = TargetTransformInfo.new(tm)
-        self.assertFalse(tti.name)
-        self.assertTrue(tti.description)
+        if llvm.version >= (3, 2):
+            tti = TargetTransformInfo.new(tm)
+            self.assertFalse(tti.name)
+            self.assertTrue(tti.description)
 
-        pm.add(tti)
+            pm.add(tti)
 
         pmb = PassManagerBuilder.new()
         pmb.opt_level = 3

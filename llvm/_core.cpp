@@ -1065,7 +1065,10 @@ _wrap_obj2str(LLVMGetPassName, LLVMPassRef)
 _wrap_obj2none(LLVMPassDump, LLVMPassRef)
 
 _wrap_str2obj(LLVMCreateTargetLibraryInfo, LLVMPassRef)
+
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
 _wrap_obj2obj(LLVMCreateTargetTransformInfo, LLVMTargetMachineRef, LLVMPassRef)
+#endif
 
 
 /*===----------------------------------------------------------------------===*/
@@ -1509,6 +1512,14 @@ _wrap_obj2none(LLVMDisposeGenericValue, LLVMGenericValueRef)
 /*===----------------------------------------------------------------------===*/
 /* Misc                                                                       */
 /*===----------------------------------------------------------------------===*/
+
+static PyObject *
+_wLLVMGetVersion(PyObject *self, PyObject *args)
+{
+    int major = LLVM_VERSION_MAJOR;
+    int minor = LLVM_VERSION_MINOR;
+    return Py_BuildValue("(i,i)", major, minor);
+}
 
 _wrap_objintlist2obj(LLVMGetIntrinsic, LLVMModuleRef, LLVMTypeRef,
     LLVMValueRef)
@@ -2108,9 +2119,13 @@ static PyMethodDef core_methods[] = {
     _method( LLVMPassDump )
 
     _method( LLVMCreateTargetLibraryInfo )
+
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
     _method( LLVMCreateTargetTransformInfo )
+#endif
 
     /* Misc */
+    _method( LLVMGetVersion )
     _method( LLVMGetIntrinsic )
     _method( LLVMLoadLibraryPermanently )
     _method( LLVMParseEnvOpts )

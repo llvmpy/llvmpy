@@ -155,6 +155,7 @@ const CodeModel::Model CodeModelMap[] = {
 
 } // end anony namespace
 
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 2
 LLVMPassRef LLVMCreateTargetTransformInfo(LLVMTargetMachineRef tmref){
     using namespace llvm;
     TargetMachine * tm = unwrap(tmref);
@@ -162,6 +163,7 @@ LLVMPassRef LLVMCreateTargetTransformInfo(LLVMTargetMachineRef tmref){
                                          tm->getVectorTargetTransformInfo());
     return wrap(tti);
 }
+#endif
 
 LLVMPassRef LLVMCreateTargetLibraryInfo(const char * triple){
     using namespace llvm;

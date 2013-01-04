@@ -1,13 +1,17 @@
 from llvm.core import *
 from llvm.passes import *
 from llvm.ee import *
+import llvm
 from os.path import dirname, join as join_path
+
 
 import unittest
 import re
 
 class TestLoopVectorizer(unittest.TestCase):
     def test_loop_vectorizer(self):
+        if llvm.version <= (3, 1):
+            return # SKIP
 
         re_vector = re.compile("<\d+ x \w+>")
 

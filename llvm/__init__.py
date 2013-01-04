@@ -8,7 +8,19 @@ __version__ = '0.9.1'
 from weakref import WeakValueDictionary
 from llvm._utils.finalizer import track as track_resource
 from llvm._utils.finalizer import OwnerMixin as _OwnerMixin
+from llvm import _core
 
+#===----------------------------------------------------------------------===
+# LLVM Version
+#===----------------------------------------------------------------------===
+
+version = _core.LLVMGetVersion()
+
+def require_version_at_least(major, minor):
+    '''Sentry to guard version requirement
+    '''
+    if version < (major, minor):
+        raise Exception(major, minor)
 
 #===----------------------------------------------------------------------===
 # Exceptions
