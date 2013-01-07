@@ -6,9 +6,7 @@ __version__ = '0.9.1'
 
 
 from weakref import WeakValueDictionary
-from llvm._utils.finalizer import track as track_resource
-from llvm._utils.finalizer import OwnerMixin as _OwnerMixin
-from llvm import _core
+import _core
 
 #===----------------------------------------------------------------------===
 # LLVM Version
@@ -34,25 +32,10 @@ class LLVMException(Exception):
 
 
 #===----------------------------------------------------------------------===
-# Resource Handle
-#===----------------------------------------------------------------------===
-
-class Handle(_OwnerMixin):
-    _finalizer = NotImplemented
-
-    def __init__(self, ptr):
-        self.ptr = ptr
-        self._finalizer_track(self.ptr)
-
-    @classmethod
-    def _finalize(cls, ptr):
-        cls._finalizer(ptr)
-
-#===----------------------------------------------------------------------===
 # Ownables
 #===----------------------------------------------------------------------===
 
-class Ownable(Handle):
+class Ownable(object):
     """Objects that can be owned.
 
     Modules and Module Providers can be owned, i.e., the responsibility of
@@ -61,21 +44,25 @@ class Ownable(Handle):
     is NOT intended for public use.
     """
 
-    def __init__(self, ptr):
-        Handle.__init__(self, ptr)
+    def __init__(self, ptr, del_fn):
+        self.ptr = ptr
         self.owner = None
+        self.del_fn = del_fn
 
     def _own(self, owner):
         if self.owner:
             raise LLVMException("object already owned")
         self.owner = owner
-        self._finalizer_untrack(self.ptr)
 
     def _disown(self):
         if not self.owner:
             raise LLVMException("not owned")
         self.owner = None
-        self._finalizer_track(self.ptr)
+
+    def __del__(self):
+        if not self.owner:
+            self.del_fn(self.ptr)
+
 
 #===----------------------------------------------------------------------===
 # Dummy owner, will not delete ownee. Be careful.

@@ -63,7 +63,7 @@ CM_LARGE = 5
 # Generic value
 #===----------------------------------------------------------------------===
 
-class GenericValue(llvm.Handle):
+class GenericValue(object):
 
     @staticmethod
     def int(ty, intval):
@@ -106,9 +106,10 @@ class GenericValue(llvm.Handle):
         return GenericValue(ptr)
 
     def __init__(self, ptr):
-        llvm.Handle.__init__(self, ptr)
+        self.ptr = ptr
 
-    _finalizer = _core.LLVMDisposeGenericValue
+    def __del__(self):
+        _core.LLVMDisposeGenericValue(self.ptr)
 
     def as_int(self):
         return _core.LLVMGenericValueToInt(self.ptr, 0)
@@ -134,7 +135,7 @@ def _unpack_generic_values(objlist):
 # Engine builder
 #===----------------------------------------------------------------------===
 
-class EngineBuilder(llvm.Handle):
+class EngineBuilder(object):
     @staticmethod
     def new(module):
         core.check_is_module(module)
@@ -143,10 +144,11 @@ class EngineBuilder(llvm.Handle):
         return EngineBuilder(obj, module)
 
     def __init__(self, ptr, module):
-        llvm.Handle.__init__(self, ptr)
+        self.ptr = ptr
         self._module = module
 
-    _finalizer = _core.LLVMDisposeEngineBuilder
+    def __del__(self):
+        _core.LLVMDisposeEngineBuilder(self.ptr)
 
     def force_jit(self):
         _core.LLVMEngineBuilderForceJIT(self.ptr)
@@ -199,7 +201,7 @@ class EngineBuilder(llvm.Handle):
 # Execution engine
 #===----------------------------------------------------------------------===
 
-class ExecutionEngine(llvm.Handle):
+class ExecutionEngine(object):
 
     @staticmethod
     def new(module, force_interpreter=False):
@@ -211,10 +213,11 @@ class ExecutionEngine(llvm.Handle):
         return ExecutionEngine(ret, module)
 
     def __init__(self, ptr, module):
-        llvm.Handle.__init__(self, ptr)
+        self.ptr = ptr
         module._own(self)
 
-    _finalizer = _core.LLVMDisposeExecutionEngine
+    def __del__(self):
+        _core.LLVMDisposeExecutionEngine(self.ptr)
 
     def run_function(self, fn, args):
         core.check_is_function(fn)
@@ -313,9 +316,7 @@ class TargetMachine(llvm.Ownable):
         return TargetMachine(ptr)
 
     def __init__(self, ptr):
-        llvm.Ownable.__init__(self, ptr)
-
-    _finalizer = _core.LLVMDisposeTargetMachine
+        llvm.Ownable.__init__(self, ptr, _core.LLVMDisposeTargetMachine)
 
     def emit_assembly(self, module):
         '''returns byte string of the module as assembly code of the target machine
