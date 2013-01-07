@@ -259,7 +259,7 @@ _wLLVMGetNativeCodeFromModule(PyObject * self, PyObject * args)
     const char *chars = reinterpret_cast<const char*>(ubytes) ;
     PyObject * ret = PyBytes_FromStringAndSize(chars, len);
 
-    LLVMDisposeMessage(const_cast<char*>(chars));
+    delete [] ubytes;
 
     return ret;
     LLVMPY_CATCH_ALL
