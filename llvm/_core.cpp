@@ -226,12 +226,12 @@ _wLLVMGetBitcodeFromModule(PyObject *self, PyObject *args)
     if (!m ) return NULL;
 
     size_t len;
-    unsigned const char *ubytes = LLVMGetBitcodeFromModule(m, &len) ;
+    const unsigned char *ubytes = LLVMGetBitcodeFromModule(m, &len) ;
     if ( !ubytes ) Py_RETURN_NONE;
 
     const char *chars = reinterpret_cast<const char*>(ubytes) ;
     PyObject *ret = PyBytes_FromStringAndSize(chars, len);
-    LLVMDisposeMessage(const_cast<char*>(chars));
+    delete [] ubytes;
     return ret;
     LLVMPY_CATCH_ALL
 }
