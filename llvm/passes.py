@@ -92,7 +92,7 @@ class PassManagerBuilder(llvm.Handle):
         if llvm.version >= (3, 2):
             _core.LLVMPassManagerBuilderSetLoopVectorize(self.ptr,
                                                          int(bool(enable)))
-        else:
+        elif enable:
             warnings.warn("Ignored. LLVM-3.1 & prior do not support loop vectorizer.")
 
     def _get_loop_vectorize(self):
