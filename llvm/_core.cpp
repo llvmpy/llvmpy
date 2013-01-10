@@ -1350,7 +1350,7 @@ _wLLVMAddGlobalMapping(PyObject *self, PyObject *args)
     PyObject *obj_val;
     unsigned long long address;
 
-    if (!PyArg_ParseTuple(args, "OOK", &obj_ee, &obj_val, &address))
+    if (!PyArg_ParseTuple(args, "OOL", &obj_ee, &obj_val, &address))
         return NULL;
 
     const LLVMExecutionEngineRef ee = pycap_get<LLVMExecutionEngineRef>( obj_ee );
