@@ -280,7 +280,7 @@ _wLLVMLinkModules(PyObject *self, PyObject *args)
 
     PyObject *ret;
     char *errmsg;
-    if (!LLVMLinkModules(dest, src, (LLVMLinkerMode)mode, &errmsg)) {
+    if (LLVMLinkModules(dest, src, (LLVMLinkerMode)mode, &errmsg)) {
         if (errmsg) {
             ret = PyUnicode_FromString(errmsg);
             LLVMDisposeMessage(errmsg);

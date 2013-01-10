@@ -466,10 +466,12 @@ class Module(llvm.Ownable, llvm.Cacheable):
         check_is_module(other)
         if not preserve:
             other.forget() # remove it from object cache
-        _core.LLVMLinkModules(self.ptr, other.ptr, int(bool(preserve)))
+        result = _core.LLVMLinkModules(self.ptr, other.ptr, int(bool(preserve)))
+        if result is not None:
+            raise llvm.LLVMException(result)
         if not preserve:
-            # Do not try to destroy the other module's llvm::Module*.
-            other._own(llvm.DummyOwner())
+            # Prevent user from using the other module
+            del other.ptr
 
     def get_type_named(self, name):
         """Return a Type object with the given name."""
@@ -1865,8 +1867,9 @@ class Builder(object):
 
     def branch(self, bblk):
         check_is_basic_block(bblk)
-        for instr in self.basic_block.instructions:
-            assert not instr.is_terminator, "BasicBlock can only have one terminator"
+        if __debug__:
+            for instr in self.basic_block.instructions:
+                assert not instr.is_terminator, "BasicBlock can only have one terminator"
         return _make_value(_core.LLVMBuildBr(self.ptr, bblk.ptr))
 
     def cbranch(self, if_value, then_blk, else_blk):
