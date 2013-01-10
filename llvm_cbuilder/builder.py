@@ -494,6 +494,7 @@ class CBuilder(object):
                 # new constant string
                 globalstr = mod.add_global_variable(content.type, name=name)
                 globalstr.initializer = content
+                globalstr.linkage = lc.LINKAGE_LINKONCE_ODR
                 globalstr.global_constant = True
             else:
                 # compare existing content
