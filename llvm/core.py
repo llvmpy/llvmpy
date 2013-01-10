@@ -522,6 +522,8 @@ class Module(llvm.Ownable, llvm.Cacheable):
         Checks module for errors. Raises `llvm.LLVMException' on any
         error."""
         ret = _core.LLVMVerifyModule(self.ptr)
+        # Note: LLVM has a bug in preverifier that will always abort
+        #       the process upon failure.
         if ret != "":
             raise llvm.LLVMException(ret)
 
@@ -1508,6 +1510,9 @@ class Function(GlobalValue):
     def verify(self):
         # Although we're just asking LLVM to return the success or
         # failure, it appears to print result to stderr and abort.
+
+        # Note: LLVM has a bug in preverifier that will always abort
+        #       the process upon failure.
         return _core.LLVMVerifyFunction(self.ptr) != 0
 
 #===----------------------------------------------------------------------===
