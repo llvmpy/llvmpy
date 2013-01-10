@@ -471,7 +471,9 @@ class Module(llvm.Ownable, llvm.Cacheable):
             raise llvm.LLVMException(result)
         if not preserve:
             # Prevent user from using the other module
-            del other.ptr
+            other.ptr = None
+            # Use a dummy owner to prevent other.ptr to be deleted
+            other._own(llvm.DummyOwner())
 
     def get_type_named(self, name):
         """Return a Type object with the given name."""
