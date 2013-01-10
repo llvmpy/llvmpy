@@ -1865,6 +1865,8 @@ class Builder(object):
 
     def branch(self, bblk):
         check_is_basic_block(bblk)
+        for instr in self.basic_block.instructions:
+            assert not instr.is_terminator, "BasicBlock can only have one terminator"
         return _make_value(_core.LLVMBuildBr(self.ptr, bblk.ptr))
 
     def cbranch(self, if_value, then_blk, else_blk):
