@@ -34,6 +34,8 @@ LLVMJIT
 LLVMLinker
 LLVMMC
 LLVMMCParser
+LLVMObject
+LLVMRuntimeDyld
 LLVMScalarOpts
 LLVMSelectionDAG
 LLVMSupport
