@@ -118,6 +118,21 @@ kwds = dict(ext_modules = [Extension(
     extra_objects = objs_core,
     extra_link_args = extra_link_args)])
 
+def run_2to3():
+    import lib2to3.refactor
+    from distutils.command.build_py import build_py_2to3 as build_py
+    print("Installing 2to3 fixers")
+    # need to convert sources to Py3 on installation
+    fixes = lib2to3.refactor.get_fixers_from_package("lib2to3.fixes")
+    #fixes = [fix for fix in fixes
+    #          if fix.split('fix_')[-1] not in ('next',)
+    #]
+
+    kwds["cmdclass"] = {"build_py": build_py}
+
+if sys.version_info[0] >= 3:
+    run_2to3()
+
 # Read version from llvm/__init__.py
 pat = re.compile(r'__version__\s*=\s*(\S+)', re.M)
 data = open('llvm/__init__.py').read()
