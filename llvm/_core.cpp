@@ -878,6 +878,9 @@ _wrap_objobj2obj(LLVMBuildFree, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobjstr2obj(LLVMBuildLoad, LLVMBuilderRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobjobj2obj(LLVMBuildStore, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
 _wrap_objobjliststr2obj(LLVMBuildGEP, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+_wrap_objobjliststr2obj(LLVMBuildInBoundsGEP, LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMValueRef)
+
+
 
 _wrap_objint2none(LLVMLdSetAlignment, LLVMValueRef)
 _wrap_objint2none(LLVMStSetAlignment, LLVMValueRef)
@@ -1959,6 +1962,7 @@ static PyMethodDef core_methods[] = {
     _method( LLVMBuildLoad )
     _method( LLVMBuildStore )
     _method( LLVMBuildGEP )
+    _method( LLVMBuildInBoundsGEP )
 
     _method( LLVMLdSetAlignment )
     _method( LLVMStSetAlignment )

@@ -2066,11 +2066,14 @@ class Builder(object):
             inst.set_volatile(volatile)
         return inst
 
-    def gep(self, ptr, indices, name=""):
+    def gep(self, ptr, indices, name="", inbounds=False):
         check_is_value(ptr)
         index_ptrs = unpack_values(indices)
-        return _make_value(
-            _core.LLVMBuildGEP(self.ptr, ptr.ptr, index_ptrs, name))
+        if inbounds:
+            ret = _core.LLVMBuildInBoundsGEP(self.ptr, ptr.ptr, index_ptrs, name)
+        else:
+            ret = _core.LLVMBuildGEP(self.ptr, ptr.ptr, index_ptrs, name)
+        return _make_value(ret)
 
     # casts and extensions
 

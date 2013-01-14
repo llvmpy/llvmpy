@@ -818,8 +818,7 @@ class CDefinition(object):
         if optimize:
             fpm = lp.FunctionPassManager.new(module)
             pmb = lp.PassManagerBuilder.new()
-            pmb.opt_level = 3
-            pmb.vectorize = True
+            pmb.opt_level = 2
             pmb.populate(fpm)
             fpm.run(func)
 
@@ -1135,11 +1134,11 @@ class PointerIndexing(OperatorMixin):
             # Case #1: A[idx:] get pointer offset by idx
             if not idx.step and not idx.stop:
                 idx = _auto_coerce_index(self.parent, idx.start)
-                ptr = bldr.gep(self.value, [idx.value])
+                ptr = bldr.gep(self.value, [idx.value], inbounds=True)
                 return CArray(self.parent, ptr)
         else: # return an variable at idx
             idx = _auto_coerce_index(self.parent, idx)
-            ptr = bldr.gep(self.value, [idx.value])
+            ptr = bldr.gep(self.value, [idx.value], inbounds=True)
             return CVar(self.parent, ptr)
 
     def __setitem__(self, idx, val):
@@ -1184,7 +1183,7 @@ class PointerValue(PointerIndexing, PointerCasting):
         inst = self.parent.builder.store(val.value, self.value, **kws)
         if nontemporal:
             self.parent.set_memop_non_temporal(inst)
-
+        return inst
 
     def atomic_load(self, ordering, align=None, crossthread=True):
         '''atomic load memory for pointer types
