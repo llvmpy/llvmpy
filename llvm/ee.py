@@ -188,7 +188,7 @@ class EngineBuilder(object):
             raise llvm.LLVMException(ret)
         engine = ExecutionEngine(ret, self._module)
         if tm:
-            tm._own(owner=engine)
+            tm._own(owner=llvm.DummyOwner)
         return engine
 
     def select_target(self):
