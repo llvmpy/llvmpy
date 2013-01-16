@@ -1279,37 +1279,38 @@ _wLLVMEngineBuilderCreateTM(PyObject *self, PyObject *args)
 /* Execution Engine                                                           */
 /*===----------------------------------------------------------------------===*/
 
-static PyObject *
-_wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
-{
-    LLVMPY_TRY
-    PyObject *obj;
-    int force_interpreter;
-    char *outmsg = 0;
-    int error;
-
-    if (!PyArg_ParseTuple(args, "Oi", &obj, &force_interpreter))
-        return NULL;
-
-    const LLVMModuleRef mod = pycap_get<LLVMModuleRef>( obj ) ;
-
-    LLVMExecutionEngineRef ee;
-    if (force_interpreter)
-        error = LLVMCreateInterpreterForModule(&ee, mod, &outmsg);
-    else
-        error = LLVMCreateJITCompilerForModule(&ee, mod, 1 /*fast*/, &outmsg);
-
-    PyObject *ret;
-    if (error) {
-        ret = PyUnicode_FromString(outmsg);
-        LLVMDisposeMessage(outmsg);
-    } else {
-        ret = pycap_new<LLVMExecutionEngineRef>(ee);
-    }
-
-    return ret;
-    LLVMPY_CATCH_ALL
-}
+// Use EngineBuilder
+//static PyObject *
+//_wLLVMCreateExecutionEngine(PyObject *self, PyObject *args)
+//{
+//    LLVMPY_TRY
+//    PyObject *obj;
+//    int force_interpreter;
+//    char *outmsg = 0;
+//    int error;
+//
+//    if (!PyArg_ParseTuple(args, "Oi", &obj, &force_interpreter))
+//        return NULL;
+//
+//    const LLVMModuleRef mod = pycap_get<LLVMModuleRef>( obj ) ;
+//
+//    LLVMExecutionEngineRef ee;
+//    if (force_interpreter)
+//        error = LLVMCreateInterpreterForModule(&ee, mod, &outmsg);
+//    else
+//        error = LLVMCreateJITCompilerForModule(&ee, mod, 1 /*fast*/, &outmsg);
+//
+//    PyObject *ret;
+//    if (error) {
+//        ret = PyUnicode_FromString(outmsg);
+//        LLVMDisposeMessage(outmsg);
+//    } else {
+//        ret = pycap_new<LLVMExecutionEngineRef>(ee);
+//    }
+//
+//    return ret;
+//    LLVMPY_CATCH_ALL
+//}
 
 static PyObject *
 _wLLVMGetPointerToFunction(PyObject *self, PyObject *args)
@@ -1405,6 +1406,8 @@ _wLLVMRemoveModule2(PyObject *self, PyObject *args)
 }
 
 _wrap_obj2none(LLVMDisposeExecutionEngine, LLVMExecutionEngineRef)
+_wrap_objint2none(LLVMExecutionEngineDisableLazyCompilation,
+                  LLVMExecutionEngineRef)
 _wrap_objobjlist2obj(LLVMRunFunction2, LLVMExecutionEngineRef,
     LLVMValueRef, LLVMGenericValueRef, LLVMGenericValueRef)
 _wrap_obj2obj(LLVMGetExecutionEngineTargetData, LLVMExecutionEngineRef,
@@ -2116,8 +2119,10 @@ static PyMethodDef core_methods[] = {
     _method( LLVMEngineBuilderCreateTM )
 
     /* Execution Engine */
-    _method( LLVMCreateExecutionEngine )
+// Use EngineBuilder instead
+//    _method( LLVMCreateExecutionEngine )
     _method( LLVMDisposeExecutionEngine )
+    _method( LLVMExecutionEngineDisableLazyCompilation )
     _method( LLVMRunFunction2 )
     _method( LLVMGetPointerToFunction )
     _method( LLVMGetPointerToGlobal )

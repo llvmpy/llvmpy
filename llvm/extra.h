@@ -590,6 +590,11 @@ unsigned char *LLVMGetBitcodeFromModule(LLVMModuleRef module, size_t *len);
  * use, via LLVMDisposeMessage(). */
 unsigned LLVMLoadLibraryPermanently(const char* filename, char **errmsg);
 
+/* Wraps llvm::ExecutionEngine::DisableLazyCompilation(bool)
+ */
+void LLVMExecutionEngineDisableLazyCompilation(LLVMExecutionEngineRef ee,
+                                               int flag);
+
 /* Wraps llvm::ExecutionEngine::getPointerToFunction(). Returns a pointer
  * to the JITted function. */
 void *LLVMGetPointerToFunction(LLVMExecutionEngineRef ee, LLVMValueRef fn);

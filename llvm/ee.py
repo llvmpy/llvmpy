@@ -205,12 +205,10 @@ class ExecutionEngine(object):
 
     @staticmethod
     def new(module, force_interpreter=False):
-        core.check_is_module(module)
-        _util.check_is_unowned(module)
-        ret = _core.LLVMCreateExecutionEngine(module.ptr, int(force_interpreter))
-        if isinstance(ret, str):
-            raise llvm.LLVMException(ret)
-        return ExecutionEngine(ret, module)
+        eb = EngineBuilder.new(module)
+        if force_interpreter:
+            eb.force_interpreter()
+        return eb.create()
 
     def __init__(self, ptr, module):
         self.ptr = ptr
@@ -218,6 +216,10 @@ class ExecutionEngine(object):
 
     def __del__(self):
         _core.LLVMDisposeExecutionEngine(self.ptr)
+
+    def disable_lazy_compilation(self, disabled=True):
+        _core.LLVMExecutionEngineDisableLazyCompilation(self.ptr,
+                                                        int(bool(disabled)))
 
     def run_function(self, fn, args):
         core.check_is_function(fn)

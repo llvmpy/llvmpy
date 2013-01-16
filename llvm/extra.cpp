@@ -1254,6 +1254,11 @@ unsigned LLVMLoadLibraryPermanently(const char* filename, char **errmsg)
     return 1;
 }
 
+void LLVMExecutionEngineDisableLazyCompilation(LLVMExecutionEngineRef ee, int flag)
+{
+    llvm::unwrap(ee)->DisableLazyCompilation(flag);
+}
+
 void *LLVMGetPointerToFunction(LLVMExecutionEngineRef ee, LLVMValueRef fn)
 {
     llvm::ExecutionEngine *eep = llvm::unwrap(ee);
