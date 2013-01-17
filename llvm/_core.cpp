@@ -88,12 +88,12 @@ template <> PyObject* pycap_new<LLVMByteOrdering>(LLVMByteOrdering i)
     return PyLong_FromLong(static_cast<unsigned long>(i));
 }
 
-template <> PyObject* pycap_new<unsigned long long>(unsigned long long ull)
+template <> PyObject* pycap_new<unsigned PY_LONG_LONG>(unsigned PY_LONG_LONG ull)
 {
     return PyLong_FromUnsignedLongLong(ull);
 }
 
-template <> PyObject* pycap_new<long long>(long long ll)
+template <> PyObject* pycap_new<PY_LONG_LONG>(PY_LONG_LONG ll)
 {
     return PyLong_FromLongLong(ll);
 }
@@ -483,7 +483,7 @@ _wLLVMConstInt(PyObject *self, PyObject *args)
 {
     LLVMPY_TRY
     PyObject *obj;
-    unsigned long long n;
+    unsigned PY_LONG_LONG n;
     int sign_extend;
 
     if (!PyArg_ParseTuple(args, "OKi", &obj, &n, &sign_extend))
@@ -1352,16 +1352,19 @@ _wLLVMAddGlobalMapping(PyObject *self, PyObject *args)
     LLVMPY_TRY
     PyObject *obj_ee;
     PyObject *obj_val;
-    unsigned PY_LONG_LONG address;
-    assert(sizeof(address) >= sizeof(void*));
+    PyObject *obj_long;
+    void* address;
 
-    if (!PyArg_ParseTuple(args, "OOK", &obj_ee, &obj_val, &address))
+    if (!PyArg_ParseTuple(args, "OOO", &obj_ee, &obj_val, &obj_long))
         return NULL;
+
+    address = PyLong_AsVoidPtr(obj_long);
+    if (PyErr_Occurred()) return NULL;
 
     const LLVMExecutionEngineRef ee = pycap_get<LLVMExecutionEngineRef>( obj_ee );
     const LLVMValueRef val = pycap_get<LLVMValueRef>( obj_val );
 
-    LLVMAddGlobalMapping(ee, val, (void*) address);
+    LLVMAddGlobalMapping(ee, val, address);
 
     Py_RETURN_NONE;
 
@@ -1430,11 +1433,11 @@ _wLLVMCreateGenericValueOfInt(PyObject *self, PyObject *args)
 {
     LLVMPY_TRY
     PyObject *obj1;
-    unsigned long long n;
+    unsigned PY_LONG_LONG n;
     int is_signed;
     LLVMGenericValueRef gv;
 
-    if (!PyArg_ParseTuple(args, "OLi", &obj1, &n, &is_signed))
+    if (!PyArg_ParseTuple(args, "OKi", &obj1, &n, &is_signed))
         return NULL;
 
     const LLVMTypeRef ty = pycap_get<LLVMTypeRef>( obj1 ) ;
@@ -1468,10 +1471,10 @@ _wLLVMCreateGenericValueOfPointer(PyObject *self, PyObject *args)
     LLVMPY_TRY
 //    PyObject *obj1;
 //    LLVMTypeRef ty; //unused?
-    unsigned long long n_;
+    unsigned PY_LONG_LONG n_;
     size_t n;
 
-    if (!PyArg_ParseTuple(args, "L", &n_))
+    if (!PyArg_ParseTuple(args, "K", &n_))
         return NULL;
 
     n=n_;
@@ -1487,7 +1490,7 @@ _wLLVMGenericValueToInt(PyObject *self, PyObject *args)
     LLVMPY_TRY
     PyObject *obj1;
     int is_signed;
-    unsigned long long val;
+    unsigned PY_LONG_LONG val;
 
     if (!PyArg_ParseTuple(args, "Oi", &obj1, &is_signed))
         return NULL;
@@ -1496,7 +1499,7 @@ _wLLVMGenericValueToInt(PyObject *self, PyObject *args)
 
     val = LLVMGenericValueToInt(gv, is_signed);
     return is_signed ?
-        PyLong_FromLongLong((long long)val) :
+        PyLong_FromLongLong((PY_LONG_LONG)val) :
         PyLong_FromUnsignedLongLong(val);
     LLVMPY_CATCH_ALL
 }
