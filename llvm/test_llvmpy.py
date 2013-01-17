@@ -914,6 +914,58 @@ class TestCPUSupport(unittest.TestCase):
 tests.append(TestCPUSupport)
 
 # ---------------------------------------------------------------------------
+class TestIntrinsicBasic(unittest.TestCase):
+
+    def _build_module(self):
+        mod     = Module.new('test')
+
+        float   = Type.float()
+        functy = Type.function( float, [float] )
+        func   = mod.add_function(functy, "mysin")
+        block   = func.append_basic_block("entry")
+        b       = Builder.new(block)
+
+        return mod, func, b
+
+    def _template(self, mod, func, pyfunc):
+        ee = le.ExecutionEngine.new(mod)
+
+        arg = le.GenericValue.real(Type.float(), 1.234)
+        retval = ee.run_function(func, [arg])
+
+        golden = pyfunc(1.234)
+        answer = retval.as_real(Type.float())
+        self.assertTrue(abs(answer - golden) / golden < 1e-7)
+
+    def test_sqrt(self):
+        mod, func, b = self._build_module()
+        intr = Function.intrinsic(mod, lc.INTR_SQRT, [Type.float()])
+        b.ret(b.call(intr, func.args))
+        self._template(mod, func, math.sqrt)
+
+    def test_cos(self):
+        mod, func, b = self._build_module()
+        intr = Function.intrinsic(mod, lc.INTR_COS, [Type.float()])
+        b.ret(b.call(intr, func.args))
+        self._template(mod, func, math.cos)
+
+    def test_sin(self):
+        mod, func, b = self._build_module()
+        intr = Function.intrinsic(mod, lc.INTR_SIN, [Type.float()])
+        b.ret(b.call(intr, func.args))
+        self._template(mod, func, math.sin)
+
+    def test_powi(self):
+        mod, func, b = self._build_module()
+        intr = Function.intrinsic(mod, lc.INTR_POWI, [Type.float()])
+        b.ret(b.call(intr, [func.args[0], lc.Constant.int(Type.int(), 2)]))
+        self._template(mod, func, lambda x: x**2)
+
+
+
+tests.append(TestIntrinsicBasic)
+
+# ---------------------------------------------------------------------------
 
 class TestIntrinsic(unittest.TestCase):
     def test_bswap(self):
