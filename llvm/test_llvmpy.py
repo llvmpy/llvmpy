@@ -860,6 +860,60 @@ class TestOpaque(unittest.TestCase):
 tests.append(TestOpaque)
 
 # ---------------------------------------------------------------------------
+class TestCPUSupport(unittest.TestCase):
+
+    def _build_test_module(self):
+        mod     = Module.new('test')
+
+        float   = Type.float()
+        mysinty = Type.function( float, [float] )
+        mysin   = mod.add_function(mysinty, "mysin")
+        block   = mysin.append_basic_block("entry")
+        b       = Builder.new(block)
+
+        sqrt = Function.intrinsic(mod, lc.INTR_SQRT, [float])
+        pow  = Function.intrinsic(mod, lc.INTR_POWI, [float])
+        cos  = Function.intrinsic(mod, lc.INTR_COS,  [float])
+
+        mysin.args[0].name = "x"
+        x    = mysin.args[0]
+        one  = Constant.real(float, "1")
+        cosx = b.call(cos, [x], "cosx")
+        cos2 = b.call(pow, [cosx, Constant.int(Type.int(), 2)], "cos2")
+        onemc2 = b.fsub(one, cos2, "onemc2") # Should use fsub
+        sin  = b.call(sqrt, [onemc2], "sin")
+        b.ret(sin)
+        return mod, mysin
+
+    def _template(self, mattrs):
+        mod, func = self._build_test_module()
+        ee = self._build_engine(mod, mattrs=mattrs)
+
+        arg = le.GenericValue.real(Type.float(), 1.234)
+        retval = ee.run_function(func, [arg])
+        
+        golden = math.sin(1.234)
+        answer = retval.as_real(Type.float())
+        self.assertTrue(abs(answer-golden)/golden < 1e-5)
+
+
+    def _build_engine(self, mod, mattrs):
+        if mattrs:
+            return EngineBuilder.new(mod).mattrs(mattrs).create()
+        else:
+            return EngineBuilder.new(mod).create()
+
+    def test_cpu_support(self):
+        features = 'sse2', 'sse3', 'sse41', 'sse42', 'avx'
+        n = len(features)
+        for i in range(n):
+            mattrs = ','.join(map(lambda s: '-%s' % s, features[i:]))
+            print 'disable mattrs', mattrs
+            self._template(mattrs)
+
+tests.append(TestCPUSupport)
+
+# ---------------------------------------------------------------------------
 
 class TestIntrinsic(unittest.TestCase):
     def test_bswap(self):
