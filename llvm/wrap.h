@@ -60,6 +60,7 @@
 #include "llvm_c_extra.h"
 
 #include <new>
+#include <sstream>
 
 class py_exception: public std::exception{};
 
@@ -75,9 +76,10 @@ class py_exception: public std::exception{};
         PyErr_SetString(PyExc_RuntimeError, e.what());   \
         return NULL;                                     \
     } catch (...) {                                      \
-        PyErr_SetString(PyExc_RuntimeError,              \
-                        "Unknown exception");            \
-        return NULL;                                     \
+        std::ostringstream oss;                                         \
+        oss << "Unknown exception " << __FILE__ << ":" << __LINE__;     \
+        PyErr_SetString(PyExc_RuntimeError, oss.str().c_str());         \
+        return NULL;                                                    \
     }
 
 /*===----------------------------------------------------------------------===*/
