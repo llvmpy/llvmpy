@@ -916,48 +916,76 @@ tests.append(TestCPUSupport)
 # ---------------------------------------------------------------------------
 class TestIntrinsicBasic(unittest.TestCase):
 
-    def _build_module(self):
+    def _build_module(self, float):
         mod     = Module.new('test')
-
-        float   = Type.float()
-        functy = Type.function( float, [float] )
-        func   = mod.add_function(functy, "mysin")
+        functy  = Type.function(float, [float])
+        func    = mod.add_function(functy, "mytest%s" % float)
         block   = func.append_basic_block("entry")
         b       = Builder.new(block)
-
         return mod, func, b
 
     def _template(self, mod, func, pyfunc):
+        float = func.type.pointee.return_type
         ee = le.ExecutionEngine.new(mod)
-
-        arg = le.GenericValue.real(Type.float(), 1.234)
+        arg = le.GenericValue.real(float, 1.234)
         retval = ee.run_function(func, [arg])
-
         golden = pyfunc(1.234)
-        answer = retval.as_real(Type.float())
+        answer = retval.as_real(float)
         self.assertTrue(abs(answer - golden) / golden < 1e-7)
 
-    def test_sqrt(self):
-        mod, func, b = self._build_module()
-        intr = Function.intrinsic(mod, lc.INTR_SQRT, [Type.float()])
+    def test_sqrt_f32(self):
+        float = Type.float()
+        mod, func, b = self._build_module(float)
+        intr = Function.intrinsic(mod, lc.INTR_SQRT, [float])
         b.ret(b.call(intr, func.args))
         self._template(mod, func, math.sqrt)
 
-    def test_cos(self):
-        mod, func, b = self._build_module()
-        intr = Function.intrinsic(mod, lc.INTR_COS, [Type.float()])
+    def test_sqrt_f64(self):
+        float = Type.double()
+        mod, func, b = self._build_module(float)
+        intr = Function.intrinsic(mod, lc.INTR_SQRT, [float])
+        b.ret(b.call(intr, func.args))
+        self._template(mod, func, math.sqrt)
+
+    def test_cos_f32(self):
+        float = Type.float()
+        mod, func, b = self._build_module(float)
+        intr = Function.intrinsic(mod, lc.INTR_COS, [float])
         b.ret(b.call(intr, func.args))
         self._template(mod, func, math.cos)
 
-    def test_sin(self):
-        mod, func, b = self._build_module()
-        intr = Function.intrinsic(mod, lc.INTR_SIN, [Type.float()])
+    def test_cos_f64(self):
+        float = Type.double()
+        mod, func, b = self._build_module(float)
+        intr = Function.intrinsic(mod, lc.INTR_COS, [float])
+        b.ret(b.call(intr, func.args))
+        self._template(mod, func, math.cos)
+
+    def test_sin_f32(self):
+        float = Type.float()
+        mod, func, b = self._build_module(float)
+        intr = Function.intrinsic(mod, lc.INTR_SIN, [float])
         b.ret(b.call(intr, func.args))
         self._template(mod, func, math.sin)
 
-    def test_powi(self):
-        mod, func, b = self._build_module()
-        intr = Function.intrinsic(mod, lc.INTR_POWI, [Type.float()])
+    def test_sin_f64(self):
+        float = Type.double()
+        mod, func, b = self._build_module(float)
+        intr = Function.intrinsic(mod, lc.INTR_SIN, [float])
+        b.ret(b.call(intr, func.args))
+        self._template(mod, func, math.sin)
+
+    def test_powi_f32(self):
+        float = Type.float()
+        mod, func, b = self._build_module(float)
+        intr = Function.intrinsic(mod, lc.INTR_POWI, [float])
+        b.ret(b.call(intr, [func.args[0], lc.Constant.int(Type.int(), 2)]))
+        self._template(mod, func, lambda x: x**2)
+
+    def test_powi_f64(self):
+        float = Type.double()
+        mod, func, b = self._build_module(float)
+        intr = Function.intrinsic(mod, lc.INTR_POWI, [float])
         b.ret(b.call(intr, [func.args[0], lc.Constant.int(Type.int(), 2)]))
         self._template(mod, func, lambda x: x**2)
 
