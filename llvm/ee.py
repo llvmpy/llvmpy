@@ -56,14 +56,12 @@ def _detect_avx_support():
         return True # force disable AVX
     # auto-detect avx
     try:
-        lines = open('/proc/cpuinfo').read().splitlines()
+        for line in open('/proc/cpuinfo'):
+            if line.lstrip().startswith('flags') and 'avx' in line.split():
+                # enable AVX if flags contain AVX
+                return False
     except IOError:
-        return True # disable AVX if no /proc/cpuinfo is found
-    flags = [l for l in lines if l.lstrip().startswith('flags')]
-    if not flags:
-        return True  # disable AVX if flags are empty
-    if 'avx' in flags[0]:
-        return False # enable AVX if flags contain AVX
+        pass # disable AVX if no /proc/cpuinfo is found
     return True # disable AVX if flags does not have AVX
 
 FORCE_DISABLE_AVX = _detect_avx_support()
