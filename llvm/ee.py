@@ -37,12 +37,36 @@ import llvm.core as core    # module, function etc.
 import llvm._core as _core  # C wrappers
 import llvm._util as _util  # utility functions
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 
 # re-export TargetData for backward compatibility.
 from llvm.passes import TargetData
+
+def _detect_avx_support():
+    '''FIXME: This is a workaround for AVX support.
+    '''
+    disable_avx_detect = int(os.environ.get('LLVMPY_DISABLE_AVX_DETECT', 0))
+    if disable_avx_detect:
+        return False # enable AVX if user disable AVX detect
+    force_disable_avx = int(os.environ.get('LLVMPY_FORCE_DISABLE_AVX', 0))
+    if force_disable_avx:
+        return True # force disable AVX
+    # auto-detect avx
+    try:
+        lines = open('/proc/cpuinfo').read().splitlines()
+    except IOError:
+        return True # disable AVX if no /proc/cpuinfo is found
+    flags = [l for l in lines if l.lstrip().startswith('flags')]
+    if not flags:
+        return True  # disable AVX if flags are empty
+    if 'avx' in flags[0]:
+        return False # enable AVX if flags contain AVX
+    return True # disable AVX if flags does not have AVX
+
+FORCE_DISABLE_AVX = _detect_avx_support()
 
 #===----------------------------------------------------------------------===
 # Enumerations
@@ -146,6 +170,7 @@ class EngineBuilder(object):
     def __init__(self, ptr, module):
         self.ptr = ptr
         self._module = module
+        self.__has_mattrs = False
 
     def __del__(self):
         _core.LLVMDisposeEngineBuilder(self.ptr)
@@ -171,6 +196,11 @@ class EngineBuilder(object):
 
         e.g: +sse,-3dnow
         '''
+        self.__has_mattrs = True
+        if FORCE_DISABLE_AVX:
+            if 'avx' not in map(lambda x: x.strip(), string.split(',')):
+                # User did not override
+                string += ',-avx'
         _core.LLVMEngineBuilderSetMAttrs(self.ptr, string.replace(',', ' '))
         return self
 
@@ -179,6 +209,9 @@ class EngineBuilder(object):
         tm --- Optional. Provide a TargetMachine.  Ownership is transfered
                to the returned execution engine.
         '''
+        if not self.__has_mattrs and FORCE_DISABLE_AVX:
+            self.mattrs('-avx')
+
         if tm:
             _util.check_is_unowned(tm)
             ret = _core.LLVMEngineBuilderCreateTM(self.ptr, tm.ptr)
