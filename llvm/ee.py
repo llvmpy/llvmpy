@@ -214,7 +214,10 @@ class EngineBuilder(object):
             _util.check_is_unowned(tm)
             ret = _core.LLVMEngineBuilderCreateTM(self.ptr, tm.ptr)
         else:
-            ret = _core.LLVMEngineBuilderCreate(self.ptr)
+            # Fix wrong host-triple reported by LLVM 3.2 on darwin9.8
+            # ret = _core.LLVMEngineBuilderCreate(self.ptr)
+            tm = self.select_target()
+            ret = _core.LLVMEngineBuilderCreateTM(self.ptr, tm.ptr)
         if isinstance(ret, str):
             raise llvm.LLVMException(ret)
         engine = ExecutionEngine(ret, self._module)
@@ -224,9 +227,11 @@ class EngineBuilder(object):
 
     def select_target(self):
         '''get the corresponding target machine
-        '''
-        ptr = _core.LLVMTargetMachineFromEngineBuilder(self.ptr)
-        return TargetMachine(ptr)
+            '''
+        # Fix wrong host-triple reported by LLVM 3.2 on darwin9.8
+        # ptr = _core.LLVMTargetMachineFromEngineBuilder(self.ptr)
+        # return TargetMachine(ptr)
+        return TargetMachine.new(cm=CM_JITDEFAULT)
 
 #===----------------------------------------------------------------------===
 # Execution engine
