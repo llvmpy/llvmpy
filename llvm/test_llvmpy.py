@@ -676,6 +676,10 @@ class TestNative(unittest.TestCase):
         self.assertEqual(s, 0xab)
 
     def test_assembly(self):
+        if sys.platform == 'darwin':
+            # skip this test on MacOSX for now
+            return
+
         m = self._make_module()
         output = m.to_native_assembly()
 
@@ -686,6 +690,10 @@ class TestNative(unittest.TestCase):
         self._compile(src)
 
     def test_object(self):
+        if sys.platform == 'darwin':
+            # skip this test on MacOSX for now
+            return
+
         m = self._make_module()
         output = m.to_native_object()
 
