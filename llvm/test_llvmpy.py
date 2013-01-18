@@ -866,7 +866,7 @@ class TestCPUSupport(unittest.TestCase):
     def _build_test_module(self):
         mod     = Module.new('test')
 
-        float   = Type.float()
+        float   = Type.double()
         mysinty = Type.function( float, [float] )
         mysin   = mod.add_function(mysinty, "mysin")
         block   = mysin.append_basic_block("entry")
@@ -890,11 +890,11 @@ class TestCPUSupport(unittest.TestCase):
         mod, func = self._build_test_module()
         ee = self._build_engine(mod, mattrs=mattrs)
 
-        arg = le.GenericValue.real(Type.float(), 1.234)
+        arg = le.GenericValue.real(Type.double(), 1.234)
         retval = ee.run_function(func, [arg])
         
         golden = math.sin(1.234)
-        answer = retval.as_real(Type.float())
+        answer = retval.as_real(Type.double())
         self.assertTrue(abs(answer-golden)/golden < 1e-5)
 
 
@@ -904,13 +904,35 @@ class TestCPUSupport(unittest.TestCase):
         else:
             return EngineBuilder.new(mod).create()
 
-    def test_cpu_support(self):
-        features = 'sse2', 'sse3', 'sse41', 'sse42', 'avx'
-        n = len(features)
-        for i in range(n):
-            mattrs = ','.join(map(lambda s: '-%s' % s, features[i:]))
-            print 'disable mattrs', mattrs
-            self._template(mattrs)
+    def test_cpu_support2(self):
+        features = 'sse3', 'sse41', 'sse42', 'avx'
+        mattrs = ','.join(map(lambda s: '-%s' % s, features))
+        print 'disable mattrs', mattrs
+        self._template(mattrs)
+
+    def test_cpu_support3(self):
+        features = 'sse41', 'sse42', 'avx'
+        mattrs = ','.join(map(lambda s: '-%s' % s, features))
+        print 'disable mattrs', mattrs
+        self._template(mattrs)
+
+    def test_cpu_support4(self):
+        features = 'sse42', 'avx'
+        mattrs = ','.join(map(lambda s: '-%s' % s, features))
+        print 'disable mattrs', mattrs
+        self._template(mattrs)
+
+    def test_cpu_support5(self):
+        features = 'avx',
+        mattrs = ','.join(map(lambda s: '-%s' % s, features))
+        print 'disable mattrs', mattrs
+        self._template(mattrs)
+
+    def test_cpu_support6(self):
+        features = []
+        mattrs = ','.join(map(lambda s: '-%s' % s, features))
+        print 'disable mattrs', mattrs
+        self._template(mattrs)
 
 tests.append(TestCPUSupport)
 
