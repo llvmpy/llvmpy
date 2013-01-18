@@ -366,7 +366,9 @@ class TargetMachine(llvm.Ownable):
         '''get target data of this machine
         '''
         ptr = _core.LLVMTargetMachineGetTargetData(self.ptr)
-        return TargetData(ptr)
+        td = TargetData(ptr)
+        td._own(self)
+        return td
 
     @property
     def target_name(self):

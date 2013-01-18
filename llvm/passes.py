@@ -160,6 +160,7 @@ class PassManager(object):
         pass_obj --- Either a Pass instance, a string name of a pass
         '''
         if isinstance(pass_obj, Pass):
+            _util.check_is_unowned(pass_obj)
             _core.LLVMAddPass(self.ptr, pass_obj.ptr)
             pass_obj._own(self) # PassManager owns the pass
         elif _util.isstring(pass_obj):
@@ -365,7 +366,7 @@ def build_pass_managers(tm, opt=2, loop_vectorize=False, vectorize=False,
     if inline_threshold:
         pmb.use_inliner_with_threshold(inline_threshold)
     if pm:
-        pm.add(tm.target_data)
+        pm.add(tm.target_data.clone())
         pm.add(TargetLibraryInfo.new(tm.triple))
         if llvm.version >= (3, 2):
             pm.add(TargetTransformInfo.new(tm))
