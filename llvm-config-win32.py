@@ -58,6 +58,11 @@ Shell32
         print('-lLLVMPTXCodeGen')
         print('-lLLVMPTXDesc')
         print('-lLLVMPTXInfo')
+    elif os.path.exists(os.path.join(llvmbin, '../lib/LLVMNVPTXCodeGen.lib')):
+        print('-lLLVMNVPTXAsmPrinter')
+        print('-lLLVMNVPTXCodeGen')
+        print('-lLLVMNVPTXDesc')
+        print('-lLLVMNVPTXInfo')
 elif sys.argv[1] == '--includedir': 
     llvmbin = find_path_of('llvm-tblgen.exe')
     if llvmbin is None:
