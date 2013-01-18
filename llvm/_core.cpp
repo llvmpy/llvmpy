@@ -278,8 +278,8 @@ _wLLVMLinkModules(PyObject *self, PyObject *args)
     const LLVMModuleRef dest = pycap_get<LLVMModuleRef>(dest_obj ) ;
     const LLVMModuleRef src = pycap_get<LLVMModuleRef>(src_obj) ;
 
-    PyObject *ret;
-    char *errmsg;
+    PyObject *ret = NULL;
+    char *errmsg = NULL;
     if (LLVMLinkModules(dest, src, (LLVMLinkerMode)mode, &errmsg)) {
         if (errmsg) {
             ret = PyUnicode_FromString(errmsg);

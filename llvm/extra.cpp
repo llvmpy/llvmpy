@@ -1191,21 +1191,15 @@ LLVMModuleRef LLVMGetModuleFromBitcode(const char *bitcode, unsigned bclen,
 }
 
 #if LLVM_VERSION_MAJOR <= 3 && LLVM_VERSION_MINOR < 2
-unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, unsigned int mode,
-			 char **out)
-{
-    llvm::Module *sourcep = llvm::unwrap(src);
-    assert(sourcep);
-    llvm::Module *destinationp = llvm::unwrap(dest);
-    assert(destinationp);
-
-    std::string msg;
-    if (llvm::Linker::LinkModules(destinationp, sourcep, mode, &msg)) {
-        *out = strdup(msg.c_str());
-        return 0;
-    }
-
-    return 1;
+// Shamelessly copy from LLVM-3.2
+unsigned LLVMLinkModules(LLVMModuleRef Dest, LLVMModuleRef Src,
+                         int Mode, char **OutMessages) {
+    std::string Messages;
+    unsigned Result = Linker::LinkModules(unwrap(Dest), unwrap(Src), Mode,
+                                          OutMessages? &Messages : 0);
+    if (OutMessages)
+            *OutMessages = strdup(Messages.c_str());
+    return Result;
 }
 #endif
 
