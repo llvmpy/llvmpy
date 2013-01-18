@@ -1,6 +1,11 @@
 
 0.10, 18-Jan-2013:
-  * add LLVM 3.2 support
+  * Add LLVM 3.2 support.
+  * New TargetData class.
+  * Fixed windows issue (Issue #42).
+  * Add ExecutionEngine.add_global_mapping and .get_pointer_to_global.
+  * Improved TargetMachine class and added code-model constants (CM_*).
+  * Added llvm.passes.build_pass_managers as a simpler way to build PassManagers.
 
 
 0.7, in progress:
