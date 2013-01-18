@@ -6,7 +6,7 @@ __version__ = '0.10.0'
 
 
 from weakref import WeakValueDictionary
-import _core
+from . import _core
 
 #===----------------------------------------------------------------------===
 # LLVM Version
