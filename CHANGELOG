@@ -1,4 +1,8 @@
 
+0.10, 18-Jan-2013:
+  * add LLVM 3.2 support
+
+
 0.7, in progress:
 
   * Add llvm.core.Argument.alignment property.
