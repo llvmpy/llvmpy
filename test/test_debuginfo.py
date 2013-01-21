@@ -2,7 +2,7 @@ import os
 import unittest
 
 from llvm.core import *
-from llvm import _dwarf
+from llvm import _dwarf, debuginfo
 
 class TestDebugInfo(unittest.TestCase):
 
@@ -24,7 +24,33 @@ class TestDebugInfo(unittest.TestCase):
         # print sorted([constname for constname in dwarf_constants
         #                             if constname.startswith("DW_LANG_")])
 
+    def test_debug_info_compile_unit(self):
+        mod = Module.new('test_debug_info')
+        fty = Type.function(Type.float(), [Type.float()])
+        square = mod.add_function(fty, 'square')
+        bb = square.append_basic_block('entry')
+        bldr = Builder.new(bb)
+
+        info = debuginfo.CompileUnitDescriptor(
+            _dwarf.DW_LANG_Python,
+            "test_debug_info.py",
+            os.path.expanduser("~/"),
+            "my_cool_compiler",
+        )
+
+        info.build_metadata(mod)
+
+        value = square.args[0]
+        result = bldr.fmul(value, value)
+        bldr.ret(result)
+
+#        info.build_metadata(mod)
+        print mod
+#        modstr = str(mod)
+#        print modstr
+        # self.assertIn("my_cool_compiler", modstr)
 
 if __name__ == '__main__':
 #    TestDebugInfo("test_dwarf_constants").debug()
-    unittest.main()
+    TestDebugInfo("test_debug_info_compile_unit").debug()
+#    unittest.main()
