@@ -42,13 +42,15 @@ class TestDebugInfo(unittest.TestCase):
             "my_cool_compiler",
         )
 
-        info.build_metadata(mod)
+        filedesc = debuginfo.FileDescriptor.from_compileunit(info)
+        filedesc.define(mod)
 
         value = square.args[0]
         result = bldr.fmul(value, value)
         bldr.ret(result)
 
 #        print mod
+
         modstr = str(mod)
         self.assertIn("my_cool_compiler", modstr)
         self.assertIn("test_debug_info.py", modstr)
