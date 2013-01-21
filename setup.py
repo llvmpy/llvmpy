@@ -116,7 +116,12 @@ kwds = dict(ext_modules = [Extension(
     library_dirs = [libdir],
     libraries = libs_core,
     extra_objects = objs_core,
-    extra_link_args = extra_link_args)])
+    extra_link_args = extra_link_args),
+
+    Extension(name='llvm._dwarf',
+              sources=['llvm/_dwarf.cpp'],
+              include_dirs=[incdir])
+])
 
 def run_2to3():
     import lib2to3.refactor
