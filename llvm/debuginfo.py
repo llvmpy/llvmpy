@@ -71,11 +71,14 @@ class CompileUnitDescriptor(object):
             md(self.global_vars or []),
         ]
 
+#        for op in operands:
+#            print op
+
         node = llvm.core.MetaData.get(llvm_module, operands)
         llvm.core.MetaData.add_named_operand(llvm_module, "dbg", node)
 
-        print "printing metadata compile unit..."
-        print node
-        print "---- done ----"
+#        print "printing metadata compile unit..."
+#        print node
+#        print "---- done ----"
 
         return node

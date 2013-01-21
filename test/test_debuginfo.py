@@ -32,7 +32,11 @@ class TestDebugInfo(unittest.TestCase):
         bldr = Builder.new(bb)
 
         info = debuginfo.CompileUnitDescriptor(
-            _dwarf.DW_LANG_Python,
+            # DW_LANG_Python segfaults:
+            # llvm/ADT/StringRef.h:79: llvm::StringRef::StringRef(const char*):
+            # Assertion `Str && "StringRef cannot be built from a NULL argument"'
+            # _dwarf.DW_LANG_Python,
+            _dwarf.DW_LANG_C89,
             "test_debug_info.py",
             os.path.expanduser("~/"),
             "my_cool_compiler",
@@ -44,13 +48,15 @@ class TestDebugInfo(unittest.TestCase):
         result = bldr.fmul(value, value)
         bldr.ret(result)
 
-#        info.build_metadata(mod)
-        print mod
-#        modstr = str(mod)
-#        print modstr
-        # self.assertIn("my_cool_compiler", modstr)
+#        print mod
+        modstr = str(mod)
+        self.assertIn("my_cool_compiler", modstr)
+        self.assertIn("test_debug_info.py", modstr)
+        self.assertIn(os.path.expanduser("~/"), modstr)
+        self.assertIn("my_cool_compiler", modstr)
+
 
 if __name__ == '__main__':
 #    TestDebugInfo("test_dwarf_constants").debug()
-    TestDebugInfo("test_debug_info_compile_unit").debug()
-#    unittest.main()
+#    TestDebugInfo("test_debug_info_compile_unit").debug()
+    unittest.main()
