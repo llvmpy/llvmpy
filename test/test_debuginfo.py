@@ -31,25 +31,39 @@ class TestDebugInfo(unittest.TestCase):
         bb = square.append_basic_block('entry')
         bldr = Builder.new(bb)
 
-        info = debuginfo.CompileUnitDescriptor(
+        compile_unit = debuginfo.CompileUnitDescriptor(
             # DW_LANG_Python segfaults:
             # llvm/ADT/StringRef.h:79: llvm::StringRef::StringRef(const char*):
             # Assertion `Str && "StringRef cannot be built from a NULL argument"'
             # _dwarf.DW_LANG_Python,
             _dwarf.DW_LANG_C89,
             "test_debug_info.py",
-            os.path.expanduser("~/"),
+            os.path.expanduser("~"),
             "my_cool_compiler",
         )
 
-        filedesc = debuginfo.FileDescriptor.from_compileunit(info)
-        filedesc.define(mod)
+        filedesc = debuginfo.FileDescriptor.from_compileunit(compile_unit)
+
+        subprogram = debuginfo.SubprogramDescriptor(
+            compile_unit,
+            "some_function",
+            "some_function",
+            "some_function",
+            filedesc,
+            1,                          # line number
+            debuginfo.EmptyMetadata(),  # Type descriptor
+            llvm_func=square,
+        )
+        subprograms = debuginfo.MDList([subprogram])
+
+        # compile_unit.add_metadata("subprograms", subprograms)
+        compile_unit.define(mod)
 
         value = square.args[0]
         result = bldr.fmul(value, value)
         bldr.ret(result)
 
-#        print mod
+        print mod
 
         modstr = str(mod)
         self.assertIn("my_cool_compiler", modstr)

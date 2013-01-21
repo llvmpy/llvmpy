@@ -7,15 +7,107 @@ import functools
 import llvm.core
 from llvm import _dwarf
 
+#----------------------------------------------------------------------------
+# Callbacks for debug type descriptors
+#----------------------------------------------------------------------------
+
 int32_t = llvm.core.Type.int(32)
 bool_t  = llvm.core.Type.int(1)
 
 i32 = functools.partial(llvm.core.Constant.int, int32_t)
 i1  = functools.partial(llvm.core.Constant.int, bool_t)
 
-class DebugInfoBase(object):
-    def __init__(self):
+def get_i32(llvm_module, value):
+    return i32(value)
+
+def get_i1(llvm_module, value):
+    return i1(value)
+
+def get_md(llvm_module, value):
+    return value.get_metadata(llvm_module)
+
+def get_mdstr(llvm_module, value):
+    return llvm.core.MetaDataString.get(llvm_module, value)
+
+def get_lfunc(llvm_module, lfunc):
+    assert lfunc.module is llvm_module
+    return lfunc
+
+#----------------------------------------------------------------------------
+# Debug descriptors that generate LLVM Metadata
+#----------------------------------------------------------------------------
+
+def build_operand_list(type_descriptors, idx2name, operands, kwargs):
+    """
+    Build the list of operands from the positional and keyword arguments
+    to a DebugInfoDescriptor.
+
+    E.g. FileDescriptor("foo.c", "/path/to/file", compile_unit=compile_unit)
+
+        idx2name: {0 : 'source_filename',
+                   1 : 'source_filedir',
+                   2 : 'compile_unit' }
+        operands: ["foo.c", "/path/to/file"]
+        kwargs: { 'compile_unit' : compile_unit }
+    """
+    for i in range(len(operands), len(type_descriptors)):
+        name = idx2name[i]
+        if name in kwargs:
+            op = kwargs[name]
+        else:
+            typedesc = type_descriptors[i]
+            assert typedesc.default is not None, (
+                "No value found for field %s" % typedesc.field_name)
+            op = typedesc.default
+
+        operands.append(op)
+
+    return operands
+
+
+class DebugInfoDescriptor(object):
+    """
+    Base class to describe a debug info descriptor.
+
+    See http://llvm.org/docs/SourceLevelDebugging.html
+    """
+
+    type_descriptors = None     # [desc(...)]
+    idx2name = None             # { "field_idx" : field_name }
+    name2idx = None             # { "field_name" : field_idx }
+
+    def __init__(self, *args, **kwargs):
+        self.class_init()
         self.metadata_cache = {}
+
+        operands = list(args)
+        self.operands = build_operand_list(self.type_descriptors,
+                                           self.idx2name, operands, kwargs)
+
+        self.operands_dict = dict(
+            (typedesc.field_name, operand)
+                for typedesc, operand in zip(self.type_descriptors, operands))
+
+    @classmethod
+    def class_init(cls):
+        if cls.idx2name is None and cls.type_descriptors is not None:
+            cls.name2idx = {}
+            cls.idx2name = {}
+
+            for i, typedesc in enumerate(cls.type_descriptors):
+                cls.name2idx[typedesc.field_name] = i
+                cls.idx2name[i] = typedesc.field_name
+
+    def add_metadata(self, metadata_name, metadata):
+        """
+        Replace a metadata value in the operand list.
+        """
+        idx = self.name2idx[metadata_name]
+        self.operands[idx] = metadata
+
+    #------------------------------------------------------------------------
+    # Define metadata in a module
+    #------------------------------------------------------------------------
 
     def get_metadata(self, llvm_module):
         """
@@ -32,7 +124,20 @@ class DebugInfoBase(object):
 
     def build_metadata(self, llvm_module):
         "Build a metadata node for the given LLVM module"
-        raise NotImplementedError
+        mdops = []
+        for type_desc, operand in zip(self.type_descriptors, self.operands):
+            try:
+                field_value = type_desc.build_metadata(llvm_module, operand)
+            except Exception, e:
+                if type_desc.build_metadata is get_md:
+                    raise
+
+                raise ValueError("Invalid value for field %r: %s" % (
+                                                type_desc.field_name, e))
+
+            mdops.append(field_value)
+
+        return llvm.core.MetaData.get(llvm_module, mdops)
 
     def define(self, llvm_module):
         """
@@ -41,8 +146,42 @@ class DebugInfoBase(object):
         md = self.get_metadata(llvm_module)
         llvm.core.MetaData.add_named_operand(llvm_module, "dbg", md)
 
+class desc(object):
+    """
+    Descriptor of a debug field.
 
-class CompileUnitDescriptor(DebugInfoBase):
+        field_name:
+            name of the field (keyword argument name)
+        build_metadata:
+            metadata callback :: (llvm_module, Python value) -> LLVM Value
+        default:
+            default value for this field
+    """
+
+    def __init__(self, field_name, build_metadata, default=None):
+        self.field_name = field_name
+        self.build_metadata = build_metadata
+        self.default = default
+
+class EmptyMetadata(DebugInfoDescriptor):
+    """
+    Metadata without any fields. Same as MDList([])
+    """
+
+    type_descriptors = []
+
+
+class MDList(DebugInfoDescriptor):
+    """
+    [MetaData]
+    """
+
+    def __init__(self, operands):
+        self.type_descriptors = [desc("op", get_md)] * len(operands)
+        super(MDList, self).__init__(*operands)
+
+
+class CompileUnitDescriptor(DebugInfoDescriptor):
     """
     !0 = metadata !{
       i32,       ;; Tag = 17 + LLVMDebugVersion (DW_TAG_compile_unit)
@@ -62,49 +201,40 @@ class CompileUnitDescriptor(DebugInfoBase):
     }
     """
 
-    def __init__(self, langid, source_filename, source_filedir,
-                 producer, is_main=False, is_optimized=False,
-                 compile_flags=None, runtime_version=0, enum_types=None,
-                 retained_types=None, subprograms=None, global_vars=None):
-        super(CompileUnitDescriptor, self).__init__()
-        self.langid = langid
-        self.source_filename = source_filename
-        self.source_filedir = source_filedir
-        self.producer = producer
-        self.is_main = is_main
-        self.is_optimized = is_optimized
-        self.compile_flags = compile_flags
-        self.runtime_version = runtime_version
-        self.enum_types = enum_types
-        self.retained_types = retained_types
-        self.subprograms = subprograms
-        self.global_vars = global_vars
+    type_descriptors = [
+        desc("tag", get_i32),
+        desc("unused", get_i32),
 
-    def build_metadata(self, llvm_module):
-        md = functools.partial(llvm.core.MetaData.get, llvm_module)
-        mstr = functools.partial(llvm.core.MetaDataString.get, llvm_module)
+        # Positional argument list starts here:
+        desc("langid", get_i32),
+        desc("source_filename", get_mdstr),
+        desc("source_filedir", get_mdstr),
+        desc("producer", get_mdstr),
+        desc("is_main", get_i1, default=False),
+        desc("is_optimized", get_i1, default=False),
+        desc("compile_flags", get_mdstr, default=""),
+        desc("runtime_version", get_i32, default=0),
+        desc("enum_types", get_md, default=EmptyMetadata()),
+        desc("retained_types", get_md, default=EmptyMetadata()),
+        desc("subprograms", get_md, default=EmptyMetadata()),
+        desc("global_vars", get_md, default=EmptyMetadata()),
+    ]
 
-        operands = [
-            i32(_dwarf.DW_TAG_compile_unit +
-                _dwarf.LLVMDebugVersion),       # tag
-            i32(0),                             # unused
-            i32(self.langid),                   # Language identifier
-            mstr(self.source_filename),
-            mstr(self.source_filedir),
-            mstr(self.producer),
-            i1(self.is_main),
-            i1(self.is_optimized),
-            mstr(self.compile_flags or ""),
-            md(self.enum_types or []),
-            md(self.retained_types or []),
-            md(self.subprograms or []),
-            md(self.global_vars or []),
-        ]
+    def __init__(self, *args, **kwargs):
+        super(CompileUnitDescriptor, self).__init__(
+            _dwarf.DW_TAG_compile_unit + _dwarf.LLVMDebugVersion, # tag
+            0,                                                    # unused
+            *args, **kwargs)
 
-        return md(operands)
+    def define(self, llvm_module):
+        """
+        Define this debug descriptor as named debug metadata for the module.
+        """
+        md = self.get_metadata(llvm_module)
+        llvm.core.MetaData.add_named_operand(llvm_module, "llvm.dbg.cu", md)
 
 
-class FileDescriptor(DebugInfoBase):
+class FileDescriptor(DebugInfoDescriptor):
     """
     !0 = metadata !{
       i32,       ;; Tag = 41 + LLVMDebugVersion (DW_TAG_file_type)
@@ -114,29 +244,82 @@ class FileDescriptor(DebugInfoBase):
     }
     """
 
-    def __init__(self, source_filename, source_filedir, compile_unit_descriptor):
-        super(FileDescriptor, self).__init__()
-        self.source_filename = source_filename
-        self.source_filedir = source_filedir
-        self.compile_unit_descriptor = compile_unit_descriptor
+    type_descriptors = [
+        desc("tag", get_i32),
+
+        # Positional argument list starts here:
+        desc("source_filename", get_mdstr),
+        desc("source_filedir", get_mdstr),
+        desc("compile_unit", get_md),
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super(FileDescriptor, self).__init__(
+            _dwarf.DW_TAG_file_type + _dwarf.LLVMDebugVersion, # Tag
+            *args, **kwargs)
 
     @classmethod
     def from_compileunit(cls, compile_unit_descriptor):
-        return cls(compile_unit_descriptor.source_filename,
-                   compile_unit_descriptor.source_filedir,
+        return cls(compile_unit_descriptor.operands_dict["source_filename"],
+                   compile_unit_descriptor.operands_dict["source_filedir"],
                    compile_unit_descriptor)
 
-    def build_metadata(self, llvm_module):
-        md = functools.partial(llvm.core.MetaData.get, llvm_module)
-        mstr = functools.partial(llvm.core.MetaDataString.get, llvm_module)
 
-        operands = [
-            i32(_dwarf.DW_TAG_file_type + _dwarf.LLVMDebugVersion),
-            mstr(self.source_filename),
-            mstr(self.source_filedir),
-            self.compile_unit_descriptor.get_metadata(llvm_module),
-        ]
+class SubprogramDescriptor(DebugInfoDescriptor):
+    """
+    !2 = metadata !{
+      i32,      ;; Tag = 46 + LLVMDebugVersion (DW_TAG_subprogram)
+      i32,      ;; Unused field.
+      metadata, ;; Reference to context descriptor
+      metadata, ;; Name
+      metadata, ;; Display name (fully qualified C++ name)
+      metadata, ;; MIPS linkage name (for C++)
+      metadata, ;; Reference to file where defined
+      i32,      ;; Line number where defined
+      metadata, ;; Reference to type descriptor
+      i1,       ;; True if the global is local to compile unit (static)
+      i1,       ;; True if the global is defined in the compile unit (not extern)
+      i32,      ;; Line number where the scope of the subprogram begins
+      i32,      ;; Virtuality, e.g. dwarf::DW_VIRTUALITY__virtual
+      i32,      ;; Index into a virtual function
+      metadata, ;; indicates which base type contains the vtable pointer for the
+                ;; derived class
+      i32,      ;; Flags - Artifical, Private, Protected, Explicit, Prototyped.
+      i1,       ;; isOptimized
+      Function * , ;; Pointer to LLVM function
+      metadata, ;; Lists function template parameters
+      metadata, ;; Function declaration descriptor
+      metadata  ;; List of function variables
+    }
+    """
 
-        return md(operands)
+    type_descriptors = [
+        desc("tag", get_i32),
+        desc("unused", get_i32),
 
+        # Positional argument list starts here:
+        desc("compile_unit", get_md),
+        desc("name", get_mdstr),
+        desc("display_name", get_mdstr),
+        desc("mips_linkage_name", get_mdstr),
+        desc("source_file_ref", get_md),
+        desc("line_number", get_i32),
+        desc("signature", get_md),
+        desc("is_local", get_i1, default=False),
+        desc("is_definition", get_i1, default=True),
+        desc("virtual_attribute", get_i32, default=0),
+        desc("virtual_index", get_i32, default=0),
+        desc("virttab", get_i32, default=0),
+        desc("flags", get_i32, default=0),
+        desc("is_optimized", get_i1, default=False),
+        desc("llvm_func", get_lfunc),
+        # Template params
+        # Func decl
+        # Func vars
+    ]
 
+    def __init__(self, *args, **kwargs):
+        super(SubprogramDescriptor, self).__init__(
+            _dwarf.DW_TAG_subprogram + _dwarf.LLVMDebugVersion, # Tag
+            0,                                                  # Unused
+            *args, **kwargs)
