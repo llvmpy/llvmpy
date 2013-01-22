@@ -128,7 +128,8 @@ class Context(object):
             # generate class methods
             for method in cls.methods:
                 name = method.name
-                if isinstance(method, StaticMethod):
+                if(isinstance(method, StaticMethod) or
+                   isinstance(method, StaticMultiMethod)):
                     println('@staticmethod')
                     println('def %(name)s(*args):' % locals())
                     println2 = indent_println(println)

@@ -6,7 +6,11 @@ from Type import Type
 FunctionType = Type.Subclass()
 FunctionType.include.add('llvm/DerivedTypes.h')
 
-get = FunctionType.staticmethod(FunctionType.Pointer, Type.Pointer, Bool.From(bool))
+get = FunctionType.staticmultimethod([FunctionType.Pointer,
+                                      Type.Pointer, Bool.From(bool)],)
+#                                      (FunctionType.Pointer,
+#                                       Type.Pointer, )])
+
 isVarArg = FunctionType.method(Bool.To(bool))
 getReturnType = FunctionType.method(Type.Pointer)
 getParamType = FunctionType.method(Type.Pointer, Unsigned.From(int))

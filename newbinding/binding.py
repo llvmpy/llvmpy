@@ -314,6 +314,11 @@ class Class(Binding):
         mm = MultiMethod(self, signatures)
         self.methods.append(mm)
         return mm
+
+    def staticmultimethod(self, *signatures):
+        smm = StaticMultiMethod(self, signatures)
+        self.methods.append(smm)
+        return smm
     
     def compile(self, name, println):
         # set name
@@ -517,6 +522,53 @@ class StaticMethod(Method):
         else:
             println('%s;' % call)
             return_none(println)
+
+class StaticMultiMethod(Binding):
+    '''Can only differs by the number of arguments.
+        '''
+    def __init__(self, cls, signatures):
+        super(StaticMultiMethod, self).__init__()
+        nargs = set()
+        for sig in signatures:
+            n = len(sig)
+            if n in nargs:
+                raise TypeError("StaticMultiMethod only supports overloaded "
+                                "version with different number of arguments")
+            nargs.add(n)
+        self.cls = cls
+        self.signatures = signatures
+        self.name = None
+
+
+    def compile(self, name, println):
+        # set name
+        self.name = self.name or name
+        # generate wrapper
+        println('static')
+        println('PyObject*')
+        mangled = self.mangled_name
+        println('%(mangled)s(PyObject* self, PyObject* args)' % locals())
+        println('{')
+        println2 = indent_println(println)
+        nargs = declare(println2, 'Py_ssize_t', 'PyTuple_Size(args)')
+        for sig in self.signatures:
+            expect = len(sig) - 1
+            println2('if (%(nargs)s == %(expect)d) {' % locals())
+            method = StaticMethod(self.cls, sig[0], *sig[1:])
+            method.name = self.name
+            method.compile_body(indent_println(println2))
+            println2('}')
+        println2('PyErr_SetString(PyExc_TypeError, "Wrong # of args");')
+        println2('return NULL;')
+        println('}')
+
+    @property
+    def fullname(self):
+        return '::'.join([self.cls.fullname, self.name])
+
+    @property
+    def mangled_name(self):
+        return mangle(self.fullname)
 
 class Constructor(StaticMethod):
     def compile_body(self, println):
