@@ -115,6 +115,14 @@ class Context(object):
             println('pass')
         else:
             mod = cls.name
+            # generate class enums
+            for enum in cls.enums:
+                println('class %s:' % enum.name)
+                println2 = indent_println(println)
+                for v in enum.values:
+                    println2('%(v)s = "%(v)s"' % locals())
+                println('')
+            # generate class methods
             for method in cls.methods:
                 name = method.name
                 if isinstance(method, StaticMethod):

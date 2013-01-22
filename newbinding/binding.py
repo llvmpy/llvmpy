@@ -222,6 +222,50 @@ class Wrapper(object):
         println('if (!%(out)s) return NULL;' % locals())
         return out
 
+class Enum(Binding):
+    def __init__(self, ns, *values):
+        super(Enum, self).__init__()
+        self.values = values
+        self.ns = ns
+        self.name = None
+
+    def compile(self, name, println):
+        self.name = self.name or name
+
+    @property
+    def fullname(self):
+        return '::'.join([self.ns, self.name])
+
+class ClassEnum(Enum):
+    def __init__(self, cls, *values):
+        super(ClassEnum, self).__init__(None, *values)
+        self.cls = cls
+        self.cls.enums.append(self)
+
+    def compile(self, name, println):
+        self.ns = self.cls.fullname
+        super(ClassEnum, self).compile(name, println)
+
+    def wrap(self, println, var):
+        println2 = indent_println(println)
+        ret = declare(println, 'PyObject*', NULL)
+        println('switch(%s) { ' % var)
+        for v in self.values:
+            println('case %s::%s:' % (self.ns, v))
+            println2('%(ret)s = PyString_FromString("%(v)s");' % locals())
+            println2('break;')
+        else:
+            println('default:')
+            println2('PyErr_SetString(PyExc_TypeError, "Invalid enum: %s");' %
+                     v)
+            println2('return NULL;')
+        println('}')
+        return ret
+
+    def unwrap(self, println, var):
+        pass
+
+
 class Class(Binding):
     def __init__(self, ns):
         super(Class, self).__init__()
@@ -229,6 +273,8 @@ class Class(Binding):
         self.Ref = Ref(self)
         self.Pointer = Pointer(self)
         self.Subclass = lambda: Subclass(self)
+        self.Enum = lambda *v: ClassEnum(self, *v)
+        self.enums = []
         self.ns = ns
         self.methods = []
         self.name = None
