@@ -1,4 +1,7 @@
+import logging
 from utils import *
+
+logger = logging.getLogger(__name__)
 
 _py2capi_fmtmap = {
     str: 's#',

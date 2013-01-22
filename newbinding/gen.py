@@ -1,7 +1,10 @@
-import sys
+import sys, logging
 from binding import *
 from utils import *
 from cStringIO import StringIO
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 extension_entry = '''
     
@@ -143,7 +146,6 @@ class Context(object):
                     println2('return capsule.wrap(ret)')
                 println('')
 
-
     def add_module(self, module):
         allsyms = [(k, v) for k, v in vars(module).items()
                    if isinstance(v, Binding)]
@@ -159,6 +161,7 @@ class Context(object):
             def println_to_def(s):
                 buf.write(s)
                 buf.write('\n')
+            logger.info('compiling %s', k)
             v.compile(k, println_to_def)
             self.definitions.append(buf.getvalue())
             buf.close()
@@ -200,11 +203,11 @@ if __name__ == '__main__':
     outputfilename = sys.argv[1]
     srcdir = sys.argv[2]
     modnames = sys.argv[3:]
-    
+
     modules = []
     for m in modnames:
         path = '%s.%s' % (srcdir, m)
-        print path
+        logger.info("import module %s", path)
         module = __import__(path)
         for token in path.split('.')[1:]:
             module = getattr(module, token)
