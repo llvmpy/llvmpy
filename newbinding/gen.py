@@ -136,8 +136,7 @@ class Context(object):
                 println('')
 
 
-    def add_module(self, modname):
-        module = __import__(modname)
+    def add_module(self, module):
         allsyms = [(k, v) for k, v in vars(module).items()
                    if isinstance(v, Binding)]
         symtab = sorted(allsyms, key=lambda x: x[1].rank)
@@ -190,17 +189,29 @@ def wrap_println(f):
     return println
 
 if __name__ == '__main__':
+    outputfilename = sys.argv[1]
+    srcdir = sys.argv[2]
+    modnames = sys.argv[3:]
+    
+    modules = []
+    for m in modnames:
+        path = '%s.%s' % (srcdir, m)
+        print path
+        module = __import__(path)
+        for token in path.split('.')[1:]:
+            module = getattr(module, token)
+        modules.append(module)
 
     context = Context()
-    for mod in sys.argv[2:]:
+
+    for mod in modules:
         context.add_module(mod)
 
-    filename = sys.argv[1]
-    with open('%s.cpp' % filename, 'w') as outfile:
+    with open('%s.cpp' % outputfilename, 'w') as outfile:
         println = wrap_println(outfile)
         populate_headers(println)
         context.generate_cpp(println)
-    with open('%s.py' % filename, 'w') as outfile:
+    with open('%s.py' % outputfilename, 'w') as outfile:
         println = wrap_println(outfile)
         context.generate_py(println)
 

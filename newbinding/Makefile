@@ -5,14 +5,14 @@ all: _api.so _capsule.so
 _api.so _capsule.so: api.cpp capsule.cpp
 	python setup.py build_ext --inplace
 
-
-api.cpp api.py: binding/*.py include/llvm_binding/*.h
-	cd binding; python gen.py api $(PYMODS)
-	mv binding/api.cpp api.cpp
-	mv binding/api.py api.py
+api.cpp api.py: src/*.py include/llvm_binding/*.h
+	python gen.py api src $(PYMODS)
 	
 clean:
 	rm -f _api.so _capsule.so
 	rm -f api.cpp api.py
 
+check: _api.so api.py
+	python test2.py
 	
+@PHONY: all clean check
