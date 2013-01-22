@@ -4,10 +4,10 @@ PYMODS = raw_ostream Type DerivedTypes LLVMContext StringRef AssemblyAnnotationW
 all: _api.so _capsule.so
 
 _api.so _capsule.so: api.cpp capsule.cpp
-	python setup.py build_ext --inplace
+	$(PYTHON) setup.py build_ext --inplace
 
 api.cpp api.py: src/*.py include/llvm_binding/*.h
-	python gen.py api src $(PYMODS)
+	$(PYTHON) gen.py api src $(PYMODS)
 	
 clean: cleantemp
 	rm -f _api.so _capsule.so
@@ -18,6 +18,6 @@ cleantemp:
 
 
 check: _api.so api.py
-	python test2.py
+	$(PYTHON) test2.py
 	
 @PHONY: all clean check
