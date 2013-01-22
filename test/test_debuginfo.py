@@ -45,7 +45,7 @@ class TestDebugInfo(unittest.TestCase):
             "some_function",
             filedesc,
             1,                          # line number
-            debuginfo.EmptyMetadata(),  # Type descriptor
+            debuginfo.empty,            # Type descriptor
             llvm_func=square,
         )
         subprograms = debuginfo.MDList([subprogram])

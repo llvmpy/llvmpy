@@ -8,15 +8,27 @@ import llvm.core
 from llvm import _dwarf
 
 #----------------------------------------------------------------------------
-# Callbacks for debug type descriptors
+# Some types and type checking functions
 #----------------------------------------------------------------------------
 
 int32_t = llvm.core.Type.int(32)
 bool_t  = llvm.core.Type.int(1)
 p_int32_t = llvm.core.Type.pointer(int32_t)
+null = llvm.core.Constant.null(p_int32_t)
 
 i32 = functools.partial(llvm.core.Constant.int, int32_t)
 i1  = functools.partial(llvm.core.Constant.int, bool_t)
+
+def is_md(value):
+    return isinstance(value, (llvm.core.MetaData, llvm.core.NamedMetaData,
+                              llvm.core.Value))
+
+def is_mdstr(value):
+    return isinstance(value, (llvm.core.MetaDataString, llvm.core.Value))
+
+#----------------------------------------------------------------------------
+# Callbacks for debug type descriptors
+#----------------------------------------------------------------------------
 
 def get_i32(llvm_module, value):
     return i32(value)
@@ -25,10 +37,19 @@ def get_i1(llvm_module, value):
     return i1(value)
 
 def get_md(llvm_module, value):
+    if is_md(value):
+        return value
     return value.get_metadata(llvm_module)
 
 def get_mdstr(llvm_module, value):
+    if is_mdstr(value):
+        return value
     return llvm.core.MetaDataString.get(llvm_module, value)
+
+def get_mdlist(llvm_module, value):
+    if isinstance(value, list):
+        value = MDList([value])
+    return get_md(llvm_module, value)
 
 def get_lfunc(llvm_module, lfunc):
     assert lfunc.module is llvm_module
@@ -171,14 +192,9 @@ class DebugInfoDescriptor(object):
         md = self.get_metadata(llvm_module)
         llvm.core.MetaData.add_named_operand(llvm_module, "dbg", md)
 
-
-class EmptyMetadata(DebugInfoDescriptor):
-    """
-    Metadata without any fields.
-    """
-
-    type_descriptors = []
-
+#----------------------------------------------------------------------------
+# Convenience descriptors
+#----------------------------------------------------------------------------
 
 class MDList(DebugInfoDescriptor):
     """
@@ -189,12 +205,11 @@ class MDList(DebugInfoDescriptor):
         self.type_descriptors = [desc("op", get_md)] * len(operands)
         super(MDList, self).__init__(*operands)
 
-class NULLDescriptor(DebugInfoDescriptor):
+empty = MDList([])
 
-    type_descriptors = []
-
-    def build_metadata(self, llvm_module):
-        return llvm.core.Constant.null(p_int32_t)
+#----------------------------------------------------------------------------
+# Dwarf Debug descriptors
+#----------------------------------------------------------------------------
 
 class CompileUnitDescriptor(DebugInfoDescriptor):
     """
@@ -231,10 +246,10 @@ class CompileUnitDescriptor(DebugInfoDescriptor):
         desc("is_optimized", get_i1, default=False),
         desc("compile_flags", get_mdstr, default=""),
         desc("runtime_version", get_i32, default=0),
-        desc("enum_types", get_md, default=EmptyMetadata()),
-        desc("retained_types", get_md, default=EmptyMetadata()),
-        desc("subprograms", get_md, default=EmptyMetadata()),
-        desc("global_vars", get_md, default=EmptyMetadata()),
+        desc("enum_types", get_mdlist, default=empty),
+        desc("retained_types", get_mdlist, default=empty),
+        desc("subprograms", get_mdlist, default=empty),
+        desc("global_vars", get_mdlist, default=empty),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -267,7 +282,7 @@ class FileDescriptor(DebugInfoDescriptor):
         # Positional argument list starts here:
         desc("source_filename", get_mdstr),
         desc("source_filedir", get_mdstr),
-        desc("compile_unit", get_md, default=NULLDescriptor()),
+        desc("compile_unit", get_md, default=null),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -379,5 +394,5 @@ class PositionInfoDescriptor(DebugInfoDescriptor):
         desc("context_descr", get_md),          # Scope of instruction
                                                 # (FileDescr etc)
         desc("original_context_descr", get_md,  # The original scope if inlined
-             default=NULLDescriptor()),
+             default=null),
     ]
