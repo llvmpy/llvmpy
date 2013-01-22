@@ -66,34 +66,6 @@ PyObject* getClassName(PyObject* self, PyObject* args) {
     }
 }
 
-static
-PyObject* setDestructor(PyObject* self, PyObject* args) {
-    PyObject* cap;
-    PyObject* callable;
-    if (!PyArg_ParseTuple(args, "OO", &cap, &callable)) {
-        return NULL;
-    }
-    PyObject* arglist = Py_BuildValue("(O)", cap);
-    CapsuleContext* context = getContext(self, arglist);
-    Py_DECREF(arglist);
-    if (!context) {
-        return NULL;
-    } else {
-        void* ptr;
-        if (callable != Py_None) {
-            if (PyCallable_Check(callable)) {
-                ptr = callable;
-            } else {
-                PyErr_SetString(PyExc_TypeError, "Argument is not callable.");
-                return NULL;
-            }
-        } else {
-            ptr = NULL;
-        }
-        context->destructor = (Destructor_Fn)ptr;
-    }
-    Py_RETURN_NONE;
-}
 
 static PyMethodDef core_methods[] = {
 #define declmethod(func) { #func , ( PyCFunction )func , METH_VARARGS , NULL }
@@ -101,7 +73,6 @@ static PyMethodDef core_methods[] = {
     declmethod(getPointer),
     declmethod(check),
     declmethod(getClassName),
-    declmethod(setDestructor),
     { NULL },
 #undef declmethod
 };

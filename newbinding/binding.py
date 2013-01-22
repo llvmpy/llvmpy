@@ -45,12 +45,14 @@ def mangle(name):
     name = name.replace('_', '__').replace(' ', '_')
     return name.replace('::', '_').rstrip('*&')
 
-def pycapsule_new(println, ptr, name, clsname, dtor='capsule_destructor'):
+def pycapsule_new(println, ptr, name, clsname, dtor=NULL):
     # build capsule
     name_soften = mangle(name)
     var = new_symbol('pycap_%s' % name_soften)
     fmt = 'PyObject* %(var)s = PyCapsule_New(%(ptr)s, "%(name)s", %(dtor)s);'
     println(fmt % locals())
+
+    println('if (!%(var)s) return NULL;' % locals())
 
     # build context
     fmt = 'new CapsuleContext("%(clsname)s")'

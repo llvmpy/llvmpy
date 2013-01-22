@@ -1,4 +1,5 @@
-PYMODS = _Debug raw_ostream Type DerivedTypes LLVMContext StringRef AssemblyAnnotationWriter Module
+PYTHON = python
+PYMODS = raw_ostream Type DerivedTypes LLVMContext StringRef AssemblyAnnotationWriter Module
 
 all: _api.so _capsule.so
 
