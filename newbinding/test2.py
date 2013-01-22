@@ -2,17 +2,6 @@ import api
 #api.capsule.set_debug(True)
 context = api.getGlobalContext()
 
-def test():
-    print '*' * 80
-    m = api.Module.new("modname", context)
-    print m.getModuleIdentifier()
-    m.setModuleIdentifier('modname2')
-    print m.getModuleIdentifier()
-    print 'endianness', m.getEndianness()
-    assert m.getEndianness() == api.Module.Endianness.AnyEndianness
-    print 'pointer-size', m.getPointerSize()
-    assert m.getPointerSize() == api.Module.PointerSize.AnyPointerSize
-    m.dump()
 
 m = api.Module.new("modname", context)
 print m.getModuleIdentifier()
