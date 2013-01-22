@@ -58,6 +58,7 @@ class TestDebugInfo(unittest.TestCase):
 
         # compile_unit.add_metadata("subprograms", subprograms)
         compile_unit.define(mod)
+        subprogram.define(mod)
 
         value = square.args[0]
         result = bldr.fmul(value, value)
@@ -66,11 +67,15 @@ class TestDebugInfo(unittest.TestCase):
         print mod
 
         modstr = str(mod)
+
+        # Test compile unit
         self.assertIn("my_cool_compiler", modstr)
         self.assertIn("test_debug_info.py", modstr)
-        self.assertIn(os.path.expanduser("~/"), modstr)
+        self.assertIn(os.path.expanduser("~"), modstr)
         self.assertIn("my_cool_compiler", modstr)
 
+        # Test subprogram
+        self.assertIn("some_function", modstr)
 
 if __name__ == '__main__':
 #    TestDebugInfo("test_dwarf_constants").debug()

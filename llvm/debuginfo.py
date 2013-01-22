@@ -37,6 +37,24 @@ def get_lfunc(llvm_module, lfunc):
 # Debug descriptors that generate LLVM Metadata
 #----------------------------------------------------------------------------
 
+class desc(object):
+    """
+    Descriptor of a debug field.
+
+        field_name:
+            name of the field (keyword argument name)
+        build_metadata:
+            metadata callback :: (llvm_module, Python value) -> LLVM Value
+        default:
+            default value for this field
+    """
+
+    def __init__(self, field_name, build_metadata, default=None):
+        self.field_name = field_name
+        self.build_metadata = build_metadata
+        self.default = default
+
+
 def build_operand_list(type_descriptors, idx2name, operands, kwargs):
     """
     Build the list of operands from the positional and keyword arguments
@@ -57,7 +75,7 @@ def build_operand_list(type_descriptors, idx2name, operands, kwargs):
         else:
             typedesc = type_descriptors[i]
             assert typedesc.default is not None, (
-                "No value found for field %s" % typedesc.field_name)
+                        "No value found for field %s" % typedesc.field_name)
             op = typedesc.default
 
         operands.append(op)
@@ -81,9 +99,11 @@ class DebugInfoDescriptor(object):
         self.metadata_cache = {}
 
         operands = list(args)
-        self.operands = build_operand_list(self.type_descriptors,
-                                           self.idx2name, operands, kwargs)
+        if kwargs:
+            operands = build_operand_list(self.type_descriptors,
+                                          self.idx2name, operands, kwargs)
 
+        self.operands = operands
         self.operands_dict = dict(
             (typedesc.field_name, operand)
                 for typedesc, operand in zip(self.type_descriptors, operands))
@@ -146,26 +166,10 @@ class DebugInfoDescriptor(object):
         md = self.get_metadata(llvm_module)
         llvm.core.MetaData.add_named_operand(llvm_module, "dbg", md)
 
-class desc(object):
-    """
-    Descriptor of a debug field.
-
-        field_name:
-            name of the field (keyword argument name)
-        build_metadata:
-            metadata callback :: (llvm_module, Python value) -> LLVM Value
-        default:
-            default value for this field
-    """
-
-    def __init__(self, field_name, build_metadata, default=None):
-        self.field_name = field_name
-        self.build_metadata = build_metadata
-        self.default = default
 
 class EmptyMetadata(DebugInfoDescriptor):
     """
-    Metadata without any fields. Same as MDList([])
+    Metadata without any fields.
     """
 
     type_descriptors = []
