@@ -13,6 +13,7 @@ from llvm import _dwarf
 
 int32_t = llvm.core.Type.int(32)
 bool_t  = llvm.core.Type.int(1)
+p_int32_t = llvm.core.Type.pointer(int32_t)
 
 i32 = functools.partial(llvm.core.Constant.int, int32_t)
 i1  = functools.partial(llvm.core.Constant.int, bool_t)
@@ -94,12 +95,16 @@ class DebugInfoDescriptor(object):
     idx2name = None             # { "field_idx" : field_name }
     name2idx = None             # { "field_name" : field_idx }
 
+    # Whether the debug descriptor is allowed to be incomplete
+    # The policy seems unclear ?
+    accept_optional_data = False
+
     def __init__(self, *args, **kwargs):
         self.class_init()
         self.metadata_cache = {}
 
         operands = list(args)
-        if kwargs:
+        if kwargs or not self.accept_optional_data:
             operands = build_operand_list(self.type_descriptors,
                                           self.idx2name, operands, kwargs)
 
@@ -184,6 +189,12 @@ class MDList(DebugInfoDescriptor):
         self.type_descriptors = [desc("op", get_md)] * len(operands)
         super(MDList, self).__init__(*operands)
 
+class NULLDescriptor(DebugInfoDescriptor):
+
+    type_descriptors = []
+
+    def build_metadata(self, llvm_module):
+        return llvm.core.Constant.null(p_int32_t)
 
 class CompileUnitDescriptor(DebugInfoDescriptor):
     """
@@ -204,6 +215,8 @@ class CompileUnitDescriptor(DebugInfoDescriptor):
       metadata   ;; List of global variables
     }
     """
+
+    accept_optional_data = True
 
     type_descriptors = [
         desc("tag", get_i32),
@@ -254,7 +267,7 @@ class FileDescriptor(DebugInfoDescriptor):
         # Positional argument list starts here:
         desc("source_filename", get_mdstr),
         desc("source_filedir", get_mdstr),
-        desc("compile_unit", get_md),
+        desc("compile_unit", get_md, default=NULLDescriptor()),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -297,12 +310,14 @@ class SubprogramDescriptor(DebugInfoDescriptor):
     }
     """
 
+    accept_optional_data = True
+
     type_descriptors = [
         desc("tag", get_i32),
         desc("unused", get_i32),
 
         # Positional argument list starts here:
-        desc("compile_unit", get_md),
+        desc("file_desc", get_md),
         desc("name", get_mdstr),
         desc("display_name", get_mdstr),
         desc("mips_linkage_name", get_mdstr),
@@ -327,3 +342,42 @@ class SubprogramDescriptor(DebugInfoDescriptor):
             _dwarf.DW_TAG_subprogram + _dwarf.LLVMDebugVersion, # Tag
             0,                                                  # Unused
             *args, **kwargs)
+
+class BlockDescriptor(DebugInfoDescriptor):
+    """
+    !3 = metadata !{
+      i32,     ;; Tag = 11 + LLVMDebugVersion (DW_TAG_lexical_block)
+      metadata,;; Reference to context descriptor
+      i32,     ;; Line number
+      i32      ;; Column number
+    }
+    """
+
+    type_descriptors = [
+        desc("tag", get_i32),
+
+        # Positional argument list starts here:
+        desc("context_descr", get_md), # FileDescr | BlockDescr |
+                                       # SubprogDescr | ComputeUnit
+        desc("line_number", get_i32),
+        desc("col_number", get_i32),
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super(BlockDescriptor, self).__init__(
+            _dwarf.DW_TAG_lexical_block + _dwarf.LLVMDebugVersion,
+            *args, **kwargs)
+
+class PositionInfoDescriptor(DebugInfoDescriptor):
+    """
+    line number, column number, scope, and original scope
+    """
+
+    type_descriptors = [
+        desc("line_number", get_i32),
+        desc("col_number", get_i32),
+        desc("context_descr", get_md),          # Scope of instruction
+                                                # (FileDescr etc)
+        desc("original_context_descr", get_md,  # The original scope if inlined
+             default=NULLDescriptor()),
+    ]
