@@ -8,9 +8,13 @@ _api.so _capsule.so: api.cpp capsule.cpp
 api.cpp api.py: src/*.py include/llvm_binding/*.h
 	python gen.py api src $(PYMODS)
 	
-clean:
+clean: cleantemp
 	rm -f _api.so _capsule.so
+	
+cleantemp:
 	rm -f api.cpp api.py
+	rm -f src/*.pyc
+
 
 check: _api.so api.py
 	python test2.py
