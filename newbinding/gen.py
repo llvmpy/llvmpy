@@ -56,6 +56,7 @@ class Context(object):
         self.functions = {}
         self.classes = {}
         self.definitions = []
+        self._pending_symbols = []
 
     def generate_cpp(self, println):
         for i in self.includes:
@@ -168,11 +169,14 @@ _init_extra_wrapper()
     def add_module(self, module):
         allsyms = [(k, v) for k, v in vars(module).items()
                    if isinstance(v, Binding)]
-        symtab = sorted(allsyms, key=lambda x: x[1].rank)
-
         # generate includes
-        for k, v in symtab:
+        for k, v in allsyms:
             self.includes |= v.include
+
+        self._pending_symbols.extend(allsyms)
+
+    def materialize(self):
+        symtab = sorted(self._pending_symbols, key=lambda x: x[1].rank)
 
         # compile everything
         for k, v in symtab:
@@ -237,6 +241,7 @@ if __name__ == '__main__':
 
     for mod in modules:
         context.add_module(mod)
+    context.materialize()
 
     with open('%s.cpp' % outputfilename, 'w') as outfile:
         println = wrap_println(outfile)
