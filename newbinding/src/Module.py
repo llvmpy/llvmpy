@@ -2,7 +2,9 @@ from binding import *
 from namespace import llvm
 from LLVMContext import LLVMContext
 from StringRef import StringRef
-from raw_ostream import raw_svector_ostream_helper
+from Constant import Constant
+from DerivedTypes import FunctionType
+from raw_ostream import raw_ostream
 from AssemblyAnnotationWriter import AssemblyAnnotationWriter
 
 # class Module
@@ -34,13 +36,10 @@ setModuleInlineAsm = Module.method(Void, StringRef.From(str))
 appendModuleInlineAsm = Module.method(Void, StringRef.From(str))
 
 # Function Accessors
-#getOrInsertFunction = Module.method(Constant, StringRef.From(str), FunctionType.Pointer)
-
-
+getOrInsertFunction = Module.method(Constant.Pointer, StringRef.From(str), FunctionType.Pointer)
 
 # Utilities
 dump = Module.method(Void)
-print_ = Module.method(Void, raw_svector_ostream_helper.Ref,
-                       AssemblyAnnotationWriter.Pointer)
+print_ = Module.method(Void, raw_ostream.Ref, AssemblyAnnotationWriter.Pointer)
 print_.realname = 'print'
 dropAllReferences = Module.method(Void)

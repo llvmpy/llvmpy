@@ -1,7 +1,7 @@
 from binding import *
 from namespace import llvm
 from LLVMContext import LLVMContext
-from raw_ostream import raw_svector_ostream_helper
+from raw_ostream import raw_ostream
 
 Type = llvm.Class()
 Type.include.add('llvm/Type.h')
@@ -13,7 +13,7 @@ PointerType = SequentialType.Subclass()
 
 getContext = Type.method(LLVMContext.Ref)
 dump = Type.method(Void)
-print_ = Type.method(Void, raw_svector_ostream_helper.Ref)
+print_ = Type.method(Void, raw_ostream.Ref)
 print_.realname = 'print'
 
 def type_checker():
