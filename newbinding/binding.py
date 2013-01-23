@@ -1,4 +1,5 @@
 import logging
+import re
 from utils import *
 
 logger = logging.getLogger(__name__)
@@ -41,9 +42,21 @@ def parse_arguments(println, var, *args):
 
     return unwrapped
 
+_re_mangle_pattern = re.compile(r'[ _<>\*&]')
+
 def mangle(name):
-    name = name.replace('_', '__').replace(' ', '_')
-    return name.replace('::', '_').rstrip('*&')
+    def repl(m):
+        s = m.group(0)
+        if s in '<>*&':
+            return ''
+        elif s in ' ':
+            return '_'
+        elif s in '_':
+            return '__'
+        else:
+            assert False
+    name = _re_mangle_pattern.sub(repl, name)
+    return name.replace('::', '_')
 
 def pycapsule_new(println, ptr, name, clsname, dtor=NULL):
     # build capsule

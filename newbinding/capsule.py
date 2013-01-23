@@ -36,7 +36,7 @@ def _capsule_destructor(weak):
     cap = weak.capsule
     addr = _capsule.getPointer(cap)
     cls = _capsule.getClassName(cap)
-    logger.debug("destroy pointer %s to %s", addr, cls)
+    logger.debug("destroy pointer 0x%08X to %s", addr, cls)
     weak.dtor(cap)
     del _owners[addr]
 
