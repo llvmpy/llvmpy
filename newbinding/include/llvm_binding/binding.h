@@ -51,10 +51,12 @@ create_python_submodule(PyObject* parent, const char* name,
     strcpy(fullname + len_parent + 1, name);
     PyObject* submod = create_python_module(fullname, methtable);
     delete [] fullname;
-    if (!submod)
+    if (!submod){
         return NULL;
-    if( -1 == PyModule_AddObject(parent, name, submod) )
+    }
+    if (-1 == PyModule_AddObject(parent, name, submod)) {
         return NULL;
+    }
     return submod;
 }
 
@@ -71,3 +73,4 @@ int populate_submodules(PyObject* parent, SubModuleEntry* entries){
     }
     return 1;
 }
+

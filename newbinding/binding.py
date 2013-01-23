@@ -58,23 +58,13 @@ def mangle(name):
     name = _re_mangle_pattern.sub(repl, name)
     return name.replace('::', '_')
 
-def pycapsule_new(println, ptr, name, clsname, dtor=NULL):
+def pycapsule_new(println, ptr, name, clsname):
     # build capsule
     name_soften = mangle(name)
     var = new_symbol('pycap_%s' % name_soften)
-    fmt = 'PyObject* %(var)s = PyCapsule_New(%(ptr)s, "%(name)s", %(dtor)s);'
+    fmt = 'PyObject* %(var)s = pycapsule_new(%(ptr)s, "%(name)s", "%(clsname)s");'
     println(fmt % locals())
-
     println('if (!%(var)s) return NULL;' % locals())
-
-    # build context
-    fmt = 'new CapsuleContext("%(clsname)s")'
-    context = declare(println, 'CapsuleContext*', fmt % locals())
-
-    fmt = 'PyCapsule_SetContext(%(var)s, (void*)%(context)s)'
-    err = declare(println, 'int', fmt % locals())
-
-    println('if (%(err)s) return NULL;' % locals())
     return var
 
 

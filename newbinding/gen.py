@@ -81,7 +81,8 @@ class Context(object):
         for name, cls in self.classes.items():
             table = cls.mangled_name
             println('{ "%(name)s", %(table)s },' % locals())
-        println('{ NULL },')
+        println('{ "extra", extra_methodtable },')
+        println('{ NULL }')
         println('};')
         println('')
 
@@ -91,6 +92,23 @@ class Context(object):
 
     def generate_py(self, println):
         println('import _api, capsule')
+        println('')
+        # wraps all extras
+        extra_wrapper = '''
+def _init_extra_wrapper():
+    def wrap(callee):
+        def _wrapped(*args):
+            args = map(capsule.unwrap, args)
+            ret = callee(*args)
+            return capsule.wrap(ret)
+        return _wrapped
+    for k in dir(_api.extra):
+        v = getattr(_api.extra, k)
+        if not k.startswith('__') and callable(v):
+            globals()[k] = wrap(v)
+_init_extra_wrapper()
+        '''
+        println(extra_wrapper)
         println('')
         # global function
         for name in self.functions:
@@ -190,6 +208,7 @@ def populate_headers(println):
                 'llvm_binding/binding.h',
                 'llvm_binding/llvm_extra.h',
                 'llvm_binding/capsule_context.h',
+                'llvm_binding/extra.h',             # extra submodule to add
                 ]
     for inc in includes:
         println('#include "%s"' % inc)

@@ -1,4 +1,5 @@
 import api
+import _capsule
 api.capsule.set_debug(True)
 context = api.getGlobalContext()
 
@@ -26,12 +27,10 @@ print int1ty.isIntegerTy(1)
 
 fnty = api.FunctionType.get(int1ty, False)
 fnty.dump()
-print
 
 types = [int1ty, api.Type.getIntNTy(context, 21)]
-sv = api.SmallVector_Type.fromPySequence(types)
-
-fnty = api.FunctionType.get(int1ty, sv, False)
+svt = api.small_vector_from_types(*types)
+fnty = api.FunctionType.get(int1ty, svt, False)
 
 os2 = api.raw_svector_ostream_helper.create()
 fnty.print_(os2)
