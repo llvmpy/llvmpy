@@ -2,10 +2,10 @@
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/Support/raw_ostream.h>
 
-namespace llvm{ 
+namespace llvm{
 
 class Type; //forward declaration
-    
+
 class raw_svector_ostream_helper: public raw_svector_ostream {
     SmallVectorImpl<char> *SV;
 public:
@@ -51,6 +51,6 @@ public:
     }
 };
 
-
+    
 } // end namespace llvm
 

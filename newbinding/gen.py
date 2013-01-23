@@ -186,11 +186,11 @@ class Context(object):
 
 def populate_headers(println):
     includes = [
-        'llvm_binding/conversion.h',
-        'llvm_binding/binding.h',
-        'llvm_binding/extra.h',
-        'llvm_binding/capsule_context.h',
-    ]
+                'llvm_binding/conversion.h',
+                'llvm_binding/binding.h',
+                'llvm_binding/llvm_extra.h',
+                'llvm_binding/capsule_context.h',
+                ]
     for inc in includes:
         println('#include "%s"' % inc)
 
