@@ -1,5 +1,5 @@
 import api
-#api.capsule.set_debug(True)
+api.capsule.set_debug(True)
 context = api.getGlobalContext()
 
 
@@ -14,7 +14,6 @@ assert m.getPointerSize() == api.Module.PointerSize.AnyPointerSize
 m.dump()
 
 
-
 os = api.raw_svector_ostream_helper.create()
 m.print_(os, None)
 print os.str()
@@ -26,6 +25,13 @@ int1ty.dump()
 print int1ty.isIntegerTy(1)
 
 fnty = api.FunctionType.get(int1ty, False)
+fnty.dump()
+print
+
+types = [int1ty, api.Type.getIntNTy(context, 21)]
+sv = api.SmallVector_Type.fromPySequence(types)
+
+fnty = api.FunctionType.get(int1ty, sv, False)
 
 os2 = api.raw_svector_ostream_helper.create()
 fnty.print_(os2)

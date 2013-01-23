@@ -1,5 +1,7 @@
 PYTHON = python
-PYMODS = raw_ostream Type DerivedTypes LLVMContext StringRef AssemblyAnnotationWriter Module
+
+PYMODS = raw_ostream SmallVector Type DerivedTypes StringRef 
+PYMODS += LLVMContext AssemblyAnnotationWriter Module
 
 all: _api.so _capsule.so
 

@@ -190,6 +190,16 @@ Bool = BuiltinType('bool')
 Unsigned = BuiltinType('unsigned')
 ConstStdString = BuiltinType('const std::string')
 
+class PyObjectImpl(object):
+    name = 'PyObject*'
+    fullname = name
+    format = 'O'
+
+    def unwrap(self, println, var):
+        return var
+
+PyObject = PyObjectImpl()
+
 class Unwrapper(object):
     def __init__(self, cls, pytype):
         self.cls = cls
