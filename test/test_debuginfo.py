@@ -1,6 +1,7 @@
 import os
 import unittest
 
+import llvm.ee
 from llvm.core import *
 from llvm import _dwarf, debuginfo
 
@@ -76,11 +77,17 @@ class TestDebugInfo(unittest.TestCase):
 
         # Build some instructions
         value = square.args[0]
-        result = bldr.fmul(value, value)
+        # result = bldr.fmul(value, value)
+
+        # Generate an instruction that will result in a signal
+        result = bldr.fdiv(value, llvm.core.Constant.real(value.type, 0))
+        ltrap = llvm.core.Function.intrinsic(mod, INTR_TRAP, [])
+        lcall = bldr.call(ltrap, [])
         ret = bldr.ret(result)
 
         # Annotate instructions with source position
         result.set_metadata("dbg", posinfo1.get_metadata(mod))
+        lcall.set_metadata("dbg", posinfo1.get_metadata(mod))
         ret.set_metadata("dbg", posinfo2.get_metadata(mod))
 
         # ... Aaaand, test...
@@ -98,7 +105,28 @@ class TestDebugInfo(unittest.TestCase):
         self.assertIn("some_function", modstr)
         self.assertIn("float (float)* @square", modstr)
 
+        return square
+
+
+def debug_in_gdb(lfunc):
+    # Create an execution engine object. This will create a JIT compiler
+    # on platforms that support it, or an interpreter otherwise.
+    module = lfunc.module
+    ee = llvm.ee.ExecutionEngine.new(module)
+    float_type = lfunc.args[0].type
+
+    # The arguments needs to be passed as "GenericValue" objects.
+    arg1_value = 5.0
+    arg1 = llvm.ee.GenericValue.real(float_type, arg1_value)
+
+    # Now let's compile and run!
+    retval = ee.run_function(lfunc, [arg1])
+    print retval.as_real(float_type)
+
+
 if __name__ == '__main__':
 #    TestDebugInfo("test_dwarf_constants").debug()
 #    TestDebugInfo("test_debug_info_compile_unit").debug()
+#    tester = TestDebugInfo("test_debug_info_compile_unit")
+#    debug_in_gdb(tester.test_debug_info_compile_unit())
     unittest.main()
