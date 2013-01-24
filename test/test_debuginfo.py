@@ -4,8 +4,9 @@ import unittest
 import llvm.ee
 from llvm.core import *
 from llvm import _dwarf, debuginfo
+from llvm.test_llvmpy import TestCase
 
-class TestDebugInfo(unittest.TestCase):
+class TestDebugInfo(TestCase):
 
     def test_dwarf_constants(self):
         dwarf_constants = vars(_dwarf)

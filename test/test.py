@@ -7,9 +7,9 @@ import unittest, sys, logging
 
 from llvm import *
 from llvm.core import *
+from llvm.test_llvmpy import TestCase
 
-
-class TestModule(unittest.TestCase):
+class TestModule(TestCase):
 
     def setUp(self):
         pass
@@ -100,8 +100,10 @@ def main():
     gc.set_debug(gc.DEBUG_LEAK)
 
     # run tests
-    unittest.main(exit=False)  # set exit to False so that it will return.
-
+    if sys.version_info[:2] > (2, 6):
+        unittest.main(exit=False)  # set exit to False so that it will return.
+    else:
+        unittest.main()
     # done
     for it in gc.garbage:
         logging.debug('garbage = %s', it)

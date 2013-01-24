@@ -8,6 +8,7 @@ import shutil
 import unittest
 import subprocess
 import tempfile
+import contextlib
 
 is_py3k = bool(sys.version_info[0] == 3)
 BITS = tuple.__itemsize__ * 8
@@ -29,9 +30,40 @@ import llvm.ee as le
 
 tests = []
 
+
 # ---------------------------------------------------------------------------
 
-class TestAsm(unittest.TestCase):
+if sys.version_info[:2] <= (2, 6):
+    # create custom TestCase
+    class TestCase(unittest.TestCase):
+        def assertIn(self, item, container):
+            self.assertTrue(item in container)
+
+        def assertNotIn(self, item, container):
+            self.assertFalse(item in container)
+
+        def assertLess(self, a, b):
+            self.assertTrue(a < b)
+
+        def assertIs(self, a, b):
+            self.assertTrue(a is b)
+
+        @contextlib.contextmanager
+        def assertRaises(self, exc):
+            try:
+                yield
+            except exc:
+                pass
+            else:
+                raise self.failureException("Did not raise %s" % exc)
+
+else:
+    TestCase = unittest.TestCase
+
+
+# ---------------------------------------------------------------------------
+
+class TestAsm(TestCase):
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
 
@@ -82,7 +114,7 @@ tests.append(TestAsm)
 
 # ---------------------------------------------------------------------------
 
-class TestAttr(unittest.TestCase):
+class TestAttr(TestCase):
     def make_module(self):
         test_module = """
             define i32 @sum(i32, i32) {
@@ -104,7 +136,7 @@ tests.append(TestAttr)
 
 # ---------------------------------------------------------------------------
 
-class TestAtomic(unittest.TestCase):
+class TestAtomic(TestCase):
     orderings = ['unordered', 'monotonic', 'acquire',
                  'release', 'acq_rel', 'seq_cst']
 
@@ -187,7 +219,7 @@ tests.append(TestAtomic)
 
 # ---------------------------------------------------------------------------
 
-class TestConstExpr(unittest.TestCase):
+class TestConstExpr(TestCase):
 
     def test_constexpr_opcode(self):
         mod = Module.new('test_constexpr_opcode')
@@ -203,7 +235,7 @@ tests.append(TestConstExpr)
 
 # ---------------------------------------------------------------------------
 
-class TestOperands(unittest.TestCase):
+class TestOperands(TestCase):
     # implement a test function
     test_module = """
 define i32 @prod(i32, i32) {
@@ -259,7 +291,7 @@ tests.append(TestOperands)
 
 # ---------------------------------------------------------------------------
 
-class TestPasses(unittest.TestCase):
+class TestPasses(TestCase):
     # Create a module.
     asm = """
 
@@ -385,7 +417,7 @@ tests.append(TestPasses)
 
 # ---------------------------------------------------------------------------
 
-class TestEngineBuilder(unittest.TestCase):
+class TestEngineBuilder(TestCase):
 
     def make_test_module(self):
         module = Module.new("testmodule")
@@ -452,7 +484,7 @@ tests.append(TestEngineBuilder)
 
 # ---------------------------------------------------------------------------
 
-class TestExecutionEngine(unittest.TestCase):
+class TestExecutionEngine(TestCase):
     def test_get_pointer_to_global(self):
         module = lc.Module.new(str(self))
         gvar = module.add_global_variable(Type.int(), 'hello')
@@ -492,7 +524,7 @@ class TestExecutionEngine(unittest.TestCase):
 tests.append(TestExecutionEngine)
 # ---------------------------------------------------------------------------
 
-class TestObjCache(unittest.TestCase):
+class TestObjCache(TestCase):
 
     def test_objcache(self):
         # Testing module aliasing
@@ -593,7 +625,7 @@ tests.append(TestObjCache)
 
 # ---------------------------------------------------------------------------
 
-class TestTargetMachines(unittest.TestCase):
+class TestTargetMachines(TestCase):
     '''Exercise target machines
 
     Require PTX backend
@@ -646,7 +678,7 @@ tests.append(TestTargetMachines)
 
 # ---------------------------------------------------------------------------
 
-class TestNative(unittest.TestCase):
+class TestNative(TestCase):
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
 
@@ -708,7 +740,7 @@ if sys.platform != 'win32':
 
 # ---------------------------------------------------------------------------
 
-class TestNativeAsm(unittest.TestCase):
+class TestNativeAsm(TestCase):
 
     def test_asm(self):
         m = Module.new('module1')
@@ -731,7 +763,7 @@ tests.append(TestNativeAsm)
 
 # ---------------------------------------------------------------------------
 
-class TestUses(unittest.TestCase):
+class TestUses(TestCase):
 
     def test_uses(self):
         m = Module.new('a')
@@ -768,7 +800,7 @@ tests.append(TestUses)
 
 # ---------------------------------------------------------------------------
 
-class TestMetaData(unittest.TestCase):
+class TestMetaData(TestCase):
     # test module metadata
     def test_metadata(self):
         m = Module.new('a')
@@ -788,7 +820,7 @@ tests.append(TestMetaData)
 
 # ---------------------------------------------------------------------------
 
-class TestInlining(unittest.TestCase):
+class TestInlining(TestCase):
     def test_inline_call(self):
         mod = Module.new(__name__)
         callee = mod.add_function(Type.function(Type.int(), [Type.int()]),
@@ -817,7 +849,7 @@ tests.append(TestInlining)
 
 # ---------------------------------------------------------------------------
 
-class TestIssue10(unittest.TestCase):
+class TestIssue10(TestCase):
     def test_issue10(self):
         m = Module.new('a')
         ti = Type.int()
@@ -838,7 +870,7 @@ tests.append(TestIssue10)
 
 # ---------------------------------------------------------------------------
 
-class TestOpaque(unittest.TestCase):
+class TestOpaque(TestCase):
 
     def test_opaque(self):
         # Create an opaque type
@@ -869,7 +901,7 @@ class TestOpaque(unittest.TestCase):
 tests.append(TestOpaque)
 
 # ---------------------------------------------------------------------------
-class TestCPUSupport(unittest.TestCase):
+class TestCPUSupport(TestCase):
 
     def _build_test_module(self):
         mod     = Module.new('test')
@@ -945,7 +977,7 @@ class TestCPUSupport(unittest.TestCase):
 tests.append(TestCPUSupport)
 
 # ---------------------------------------------------------------------------
-class TestIntrinsicBasic(unittest.TestCase):
+class TestIntrinsicBasic(TestCase):
 
     def _build_module(self, float):
         mod     = Module.new('test')
@@ -1032,7 +1064,7 @@ tests.append(TestIntrinsicBasic)
 
 # ---------------------------------------------------------------------------
 
-class TestIntrinsic(unittest.TestCase):
+class TestIntrinsic(TestCase):
     def test_bswap(self):
         # setup a function and a builder
         mod    = Module.new('test')
@@ -1130,7 +1162,7 @@ tests.append(TestIntrinsic)
 
 # ---------------------------------------------------------------------------
 
-class TestVolatile(unittest.TestCase):
+class TestVolatile(TestCase):
 
     def test_volatile(self):
         mod = Module.new('mod')
@@ -1184,7 +1216,7 @@ tests.append(TestVolatile)
 
 # ---------------------------------------------------------------------------
 
-class TestNamedMetaData(unittest.TestCase):
+class TestNamedMetaData(TestCase):
     def test_named_md(self):
         m = Module.new('test_named_md')
         nmd = m.get_or_insert_named_metadata('something')

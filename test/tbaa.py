@@ -1,8 +1,9 @@
 from llvm.core import *
 from llvm.tbaa import *
+from llvm.test_llvmpy import TestCase
 import unittest
 
-class TestTBAABuilder(unittest.TestCase):
+class TestTBAABuilder(TestCase):
     def test_tbaa_builder(self):
         mod = Module.new('test_tbaa_builder')
         fty = Type.function(Type.void(), [Type.pointer(Type.float())])

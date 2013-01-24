@@ -1,10 +1,10 @@
 from __future__ import print_function
 
 import unittest
-
+from llvm.test_llvmpy import TestCase
 from llvm.core import *
 
-class TestMetaData(unittest.TestCase):
+class TestMetaData(TestCase):
     def test_metadata_get(self):
         module = Module.new('test_metadata')
         md = MetaData.get(module, [Constant.int(Type.int(), 1234)])
