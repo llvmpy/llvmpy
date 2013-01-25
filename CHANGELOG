@@ -1,8 +1,10 @@
-0.10.1, 25-Jan-2013:
+2013-01-25   0.10.1:
+--------------------
   * fix support for Python 2.6
 
 
-0.10, 18-Jan-2013:
+2013-01-18   0.10.0:
+--------------------
   * Add LLVM 3.2 support.
   * New TargetData class.
   * Fixed windows issue (Issue #42).
@@ -11,16 +13,16 @@
   * Added llvm.passes.build_pass_managers as a simpler way to build PassManagers.
 
 
-0.7, in progress:
-
+in progress, 0.7:
+-----------------
   * Add llvm.core.Argument.alignment property.
   * Migrate to LLVM 2.8.
   * Fix ffi link issue on darwin (Albert Mietus) (Issue #29).
   * LLVM tutorial ported (Max Shawabkeh) (Issue #33).
 
 
-0.6, 31-Aug-2010:
-
+2010-08-31   0.6:
+-----------------
   * Add and remove function attributes (Krzysztof Goj) (Issue #21).
   * Wrap fadd,fsub,fmul (Aaron S Lav) (Issue #31).
   * Migrate to LLVM 2.7.
@@ -39,16 +41,16 @@
   * Migrate to LLVM 2.5.
 
 
-0.5, 22-Nov-2008:
-
+2008-11-22   0.5:
+-----------------
   * Added vicmp, vfcmp instructions and constant expressions.
   * Builds on FreeBSD.
   * Updated documentation.
   * Migrate to LLVM 2.4.
 
 
-0.4, 21-Nov-2008:
-
+2008-11-21   0.4:
+-----------------
   * Code cleanup, added license headers.
   * Added llvm.core.load_library_permanently() (Issue #12).
   * Fix comparison using != (Issue #11).
@@ -57,8 +59,8 @@
   * Added viewCFG methods to Function (Paulo Silva).
 
 
-0.3, 8-Sep-2008:
-
+2008-09-08   0.3:
+-----------------
   * Passes added.
   * Assembly support: create modules from .ll files.
   * Various bug fixes.
@@ -70,13 +72,13 @@
   * Updated documentation.
 
 
-0.2.1, 18-Jun-2008:
-
+2008-06-28   0.2.1:
+-------------------
   * Build cleanly with LLVM 2.3 and 2.3svn.
 
 
-0.2, 15-Jun-2008:
-
+2008-06-15   0.2:
+-----------------
   * Independent package, need not be unpacked into llvm/bindings.
   * Fixed ownership issues with Module/ModuleProvider.
   * Modules, values and types can be stringified, to get their LLVM
@@ -91,7 +93,6 @@
   * Lots of cleanup.
 
 
-0.1, 10-May-2008:
-
-  * Initial release.
-
+2008-05-10   0.1:
+-----------------
+  * Initial release
