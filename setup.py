@@ -11,8 +11,8 @@ else:
     default_llvm_config = 'llvm-config'
 
 llvm_config = os.environ.get('LLVM_CONFIG_PATH', default_llvm_config)
-# set LLVMPY_DYNLINK=1, if you want to link _core.so dynamically to libLLVM.so
-dynlink = int(os.environ.get('LLVMPY_DYNLINK', 0))
+# set LLVMPY_DYNLINK=0, if you want to link _core.so statically
+dynlink = int(os.environ.get('LLVMPY_DYNLINK', 1))
 
 def run_llvm_config(args):
     cmd = llvm_config + ' ' + ' '.join(args)
