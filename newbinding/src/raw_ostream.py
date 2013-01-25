@@ -3,10 +3,15 @@ from namespace import llvm
 from LLVMContext import LLVMContext
 from StringRef import StringRef
 
-raw_ostream = llvm.Class()
-raw_ostream.include.add("llvm/Support/raw_ostream.h")
-delete = raw_ostream.delete()
+@llvm.Class()
+class raw_ostream:
+    _include_ = "llvm/Support/raw_ostream.h"
+    delete = Destructor()
 
-raw_svector_ostream = raw_ostream.Subclass()
-raw_svector_ostream.include.add("llvm/Support/raw_os_ostream.h")
-str = raw_svector_ostream.method(StringRef.To(str))
+@llvm.Class(raw_ostream)
+class raw_svector_ostream:
+    _include_ = "llvm/Support/raw_os_ostream.h"
+    _base_ = raw_ostream
+
+    str = Method(cast(str, StringRef))
+

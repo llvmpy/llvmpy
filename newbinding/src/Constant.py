@@ -2,4 +2,6 @@ from binding import *
 from namespace import llvm
 from User import User
 
-Constant = User.Subclass()
+@llvm.Class(User)
+class Constant:
+    pass

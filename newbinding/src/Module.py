@@ -7,39 +7,39 @@ from DerivedTypes import FunctionType
 from raw_ostream import raw_ostream
 from AssemblyAnnotationWriter import AssemblyAnnotationWriter
 
-# class Module
-Module = llvm.Class()
-Module.include.add("llvm/Module.h")
+@llvm.Class()
+class Module:
+    _include_ = "llvm/Module.h"
+    # Enumerators
+    Endianness = Enum('AnyEndianness', 'LittleEndian', 'BigEndian')
+    PointerSize = Enum('AnyPointerSize', 'Pointer32', 'Pointer64')
 
-# Enumerators
-Endianness = Module.Enum('AnyEndianness', 'LittleEndian', 'BigEndian')
-PointerSize = Module.Enum('AnyPointerSize', 'Pointer32', 'Pointer64')
+    # Constructors & Destructors
+    new = Constructor(cast(str, StringRef), ref(LLVMContext))
+    delete = Destructor()
 
-# Constructors & Destructors
-new = Module.new(StringRef.From(str), LLVMContext.Ref)
-delete = Module.delete()
+    # Module Level Accessor
+    getModuleIdentifier = Method(cast(ConstStdString, str))
+    getDataLayout = Method(cast(ConstStdString, str))
+    getTargetTriple = Method(cast(ConstStdString, str))
+    getEndianness = Method(Endianness)
+    getPointerSize = Method(PointerSize)
+    getContext = Method(ref(LLVMContext))
+    getModuleInlineAsm = Method(cast(ConstStdString, str))
 
-# Module Level Accessor
-getModuleIdentifier = Module.method(ConstStdString.To(str))
-getDataLayout = Module.method(ConstStdString.To(str))
-getTargetTriple = Module.method(ConstStdString.To(str))
-getEndianness = Module.method(Endianness)
-getPointerSize = Module.method(PointerSize)
-getContext = Module.method(LLVMContext.Ref)
-getModuleInlineAsm = Module.method(ConstStdString.To(str))
+    # Module Level Mutators
+    setModuleIdentifier = Method(Void, cast(str, StringRef))
+    setDataLayout = Method(Void, cast(str, StringRef))
+    setTargetTriple = Method(Void, cast(str, StringRef))
+    setModuleInlineAsm = Method(Void, cast(str, StringRef))
+    appendModuleInlineAsm = Method(Void, cast(str, StringRef))
 
-# Module Level Mutators
-setModuleIdentifier = Module.method(Void, StringRef.From(str))
-setDataLayout = Module.method(Void, StringRef.From(str))
-setTargetTriple = Module.method(Void, StringRef.From(str))
-setModuleInlineAsm = Module.method(Void, StringRef.From(str))
-appendModuleInlineAsm = Module.method(Void, StringRef.From(str))
+    # Function Accessors
+    getOrInsertFunction = Method(ptr(Constant), cast(str, StringRef), ptr(FunctionType))
 
-# Function Accessors
-getOrInsertFunction = Module.method(Constant.Pointer, StringRef.From(str), FunctionType.Pointer)
+    # Utilities
+    dump = Method(Void)
+    print_ = Method(Void, ref(raw_ostream), ptr(AssemblyAnnotationWriter))
+    print_.realname = 'print'
 
-# Utilities
-dump = Module.method(Void)
-print_ = Module.method(Void, raw_ostream.Ref, AssemblyAnnotationWriter.Pointer)
-print_.realname = 'print'
-dropAllReferences = Module.method(Void)
+    dropAllReferences = Method()

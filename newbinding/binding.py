@@ -1,108 +1,352 @@
-import logging
-import re
-from utils import *
+import functools
+import codegen as cg
 
-logger = logging.getLogger(__name__)
+_rank = 0
+namespaces = {}
 
-_py2capi_fmtmap = {
-    str: 's#',
-}
+class Namespace(object):
+    def __init__(self, name):
+        self.name = name
+        self.classes = []
+        self.functions = []
+        namespaces[name] = self
 
-NULL = 'NULL'
+    def Class(self, *bases):
+        cls = Class(self, *bases)
+        self.classes.append(cls)
+        return cls
 
-_symbols = set()
+    def Function(self, *args):
+        fn = Function(self, *args)
+        self.functions.append(fn)
+        return fn
 
-def new_symbol(name):
-    if name in _symbols:
-        ct = 1
-        orig = name
-        while name in _symbols:
-            name = '%s%d' % (orig, ct)
-            ct += 1
-    _symbols.add(name)
-    return name
+    @property
+    def fullname(self):
+        return self.name
 
-def parse_arguments(println, var, *args):
-    typecodes = []
-    holders = []
-    argvals = []
-    for arg in args:
-        typecodes.append(arg.format)
-        val = declare(println, 'PyObject*')
-        argvals.append(val)
-        holders.append('&' + val)
+    def __str__(self):
+        return self.name
 
-    items = [var, '"%s"' % (''.join(typecodes))] + holders
-    println('if(!PyArg_ParseTuple(%s)) return NULL;' % ', '.join(items))
+class Type(object):
+    pass
 
-    # unwrap
-    unwrapped = []
-    for arg, val in zip(args, argvals):
-        unwrapped.append(arg.unwrap(println, val))
+class BuiltinTypes(Type):
+    def __init__(self, name):
+        self.name = name
 
-    return unwrapped
+    @property
+    def fullname(self):
+        return self.name
 
-_re_mangle_pattern = re.compile(r'[ _<>\*&]')
+    def wrap(self, writer, var):
+        return var
 
-def mangle(name):
-    def repl(m):
-        s = m.group(0)
-        if s in '<>*&':
-            return ''
-        elif s in ' ':
-            return '_'
-        elif s in '_':
-            return '__'
+Void = BuiltinTypes('void')
+Unsigned = BuiltinTypes('unsigned')
+Bool = BuiltinTypes('bool')
+ConstStdString = BuiltinTypes('const std::string')
+
+class Class(Type):
+    format = 'O'
+
+    def __init__(self, ns, *bases):
+        self.ns = ns
+        self.bases = bases
+        self._is_defined = False
+        self.methods = []
+        self.enums = []
+        self.includes = set()
+
+    def __call__(self, defn):
+        assert not self._is_defined
+        self.name = defn.__name__
+        for k, v in defn.__dict__.items():
+            if isinstance(v, Method):
+                self.methods.append(v)
+                if isinstance(v, Constructor):
+                    for sig in v.signatures:
+                        sig[0] = ptr(self)
+                v.name = k
+                v.parent = self
+            elif isinstance(v, Enum):
+                self.enums.append(v)
+                v.name = k
+                v.parent = self
+            elif k == '_include_':
+                if isinstance(v, str):
+                    self.includes.add(v)
+                else:
+                    for i in v:
+                        self.includes.add(i)
+        return self
+
+    def compile_cpp(self, writer):
+        # generate methods
+        for meth in self.methods:
+            meth.compile_cpp(writer)
+
+        # generate method table
+        writer.println('static')
+        writer.println('PyMethodDef %s[] = {' % cg.mangle(self.fullname))
+        with writer.indent():
+            fmt = '{ "%(name)s", (PyCFunction)%(func)s, METH_VARARGS, NULL },'
+            for meth in self.methods:
+                name = meth.name
+                func = cg.mangle(meth.fullname)
+                writer.println(fmt % locals())
+            writer.println('{ NULL },')
+        writer.println('};')
+        writer.println()
+
+    def compile_py(self, writer):
+        clsname = self.name
+        bases = 'capsule.Wrapper'
+        if self.bases:
+            bases = ', '.join(x.name for x in self.bases)
+        writer.println('@capsule.register_class')
+        with writer.block('class %(clsname)s(%(bases)s):' % locals()):
+            for enum in self.enums:
+                enum.compile_py(writer)
+            for meth in self.methods:
+                meth.compile_py(writer)
+            if not self.enums and not self.methods:
+                writer.println('pass')
+        writer.println()
+
+    @property
+    def capsule_name(self):
+        if self.bases:
+            return self.bases[-1].capsule_name
         else:
-            assert False
-    name = _re_mangle_pattern.sub(repl, name)
-    return name.replace('::', '_')
+            return self.fullname
 
-def pycapsule_new(println, ptr, name, clsname):
-    # build capsule
-    name_soften = mangle(name)
-    var = new_symbol('pycap_%s' % name_soften)
-    fmt = 'PyObject* %(var)s = pycapsule_new(%(ptr)s, "%(name)s", "%(clsname)s");'
-    println(fmt % locals())
-    println('if (!%(var)s) return NULL;' % locals())
-    return var
+    @property
+    def fullname(self):
+        try:
+            name = self.realname
+        except AttributeError:
+            name = self.name
+        return '::'.join([self.ns.fullname, name])
 
+    def __str__(self):
+        return self.fullname
 
-def declare(println, typ, init=None):
-    typ_soften = mangle(typ)
-    var = new_symbol('var_%s' % typ_soften)
-    if init is None:
-        println('%(typ)s %(var)s;' % locals())
-    else:
-        println('%(typ)s %(var)s = %(init)s;' % locals())
-    return var
-
-
-def return_value(println, var):
-    println('return %(var)s;' % locals())
+    def unwrap(self, writer, val):
+        fmt = 'PyCapsule_GetPointer(%(val)s, "%(name)s")'
+        name = self.capsule_name
+        raw = writer.declare('void*', fmt % locals())
+        writer.die_if_false(raw)
+        ptrty = ptr(self).fullname
+        ty = self.fullname
+        fmt = 'typecast<%(ty)s>::from(%(raw)s)'
+        casted = writer.declare(ptrty, fmt % locals())
+        writer.die_if_false(casted)
+        return casted
 
 
-def return_none(println):
-    println('Py_RETURN_NONE;')
+class Enum(object):
+    def __init__(self, *value_names):
+        self.parent = None
+        self.value_names = value_names
+
+    @property
+    def fullname(self):
+        try:
+            name = self.realname
+        except AttributeError:
+            name = self.name
+        return '::'.join([self.parent.fullname, name])
+
+    def __str__(self):
+        return self.fullname
+
+    def wrap(self, writer, val):
+        ret = writer.declare('PyObject*', 'NULL')
+        with writer.block('switch(%s) ' % val):
+            for v in self.value_names:
+                writer.println('case %s::%s:' % (self.parent, v))
+                with writer.indent():
+                    fmt = '%(ret)s = PyString_FromString("%(v)s");'
+                    writer.println(fmt % locals())
+                    writer.println('break;')
+            else:
+                writer.println('default:')
+                with writer.indent():
+                    writer.raises(ValueError, 'Invalid enum %s' % v)
+        return ret
+
+    def compile_py(self, writer):
+        with writer.block('class %s:' % self.name):
+            for v in self.value_names:
+                writer.println('%(v)s = "%(v)s"' % locals())
+        writer.println()
+
+class Method(object):
+    _kind_ = 'meth'
+
+    def __init__(self, return_type=Void, *args):
+        self.parent = None
+        self.signatures = []
+        self.includes = set()
+        self._add_signature(return_type, *args)
+
+    def _add_signature(self, return_type, *args):
+        prev_lens = set(map(len, self.signatures))
+        cur_len = len(args) + 1
+        if cur_len in prev_lens:
+            raise Exception('Only support overloading with different number'
+                            ' of arguments')
+        self.signatures.append([return_type] + list(args))
+
+    def __ior__(self, method):
+        assert type(self) is type(method)
+        for sig in method.signatures:
+            self._add_signature(sig[0], *sig[1:])
+        return self
+
+    @property
+    def fullname(self):
+        return '::'.join([self.parent.fullname, self.realname])
+
+    @property
+    def realname(self):
+        try:
+            return self.__realname
+        except AttributeError:
+            return self.name
+
+    @realname.setter
+    def realname(self, v):
+        self.__realname = v
+
+    def __str__(self):
+        return self.fullname
+
+    def compile_cpp(self, writer):
+        with writer.py_function(self.fullname):
+            if len(self.signatures) == 1:
+                sig = self.signatures[0]
+                retty = sig[0]
+                argtys = sig[1:]
+                self.compile_cpp_body(writer, retty, argtys)
+            else:
+                nargs = writer.declare('Py_ssize_t', 'PyTuple_Size(args)')
+                for sig in self.signatures:
+                    retty = sig[0]
+                    argtys = sig[1:]
+                    expect = len(argtys)
+                    if (not isinstance(self, StaticMethod) and
+                        isinstance(self.parent, Class)):
+                        # Is a instance method, add 1 for "this".
+                        expect += 1
+                    with writer.block('if (%(expect)d == %(nargs)s)' % locals()):
+                        self.compile_cpp_body(writer, retty, argtys)
+                writer.raises(TypeError, 'Invalid number of args')
+
+    def compile_cpp_body(self, writer, retty, argtys):
+        if isinstance(self.parent, Class):
+            args = writer.parse_arguments('args', ptr(self.parent), *argtys)
+            ret = writer.method_call(self.realname, retty.fullname, *args)
+        else:
+            args = writer.parse_arguments('args', *argtys)
+            ret = writer.call(self.fullname, retty.fullname, *args)
+        writer.return_value(retty.wrap(writer, ret))
+
+    def compile_py(self, writer):
+        decl = writer.function(self.name, args=('self',), varargs='args')
+        with decl as (this, varargs):
+            unwrap_this = writer.unwrap(this)
+            unwrapped = writer.unwrap_many(varargs)
+            func = '.'.join([self.parent.name, self.name])
+            ret = writer.call('_api.%s' % func,
+                              args=(unwrap_this,), varargs=unwrapped)
+            wrapped = writer.wrap(ret)
+            writer.return_value(wrapped)
+            writer.println()
 
 
-def die_if_null(println, var):
-    println('if (!%(var)s) return NULL;' % locals())
+class StaticMethod(Method):
+
+    def compile_cpp_body(self, writer, retty, argtys):
+        assert isinstance(self.parent, Class)
+        args = writer.parse_arguments('args', *argtys)
+        ret = self.compile_cpp_call(writer, retty, args)
+        writer.return_value(retty.wrap(writer, ret))
+
+    def compile_cpp_call(self, writer, retty, args):
+        ret = writer.call(self.fullname, retty.fullname, *args)
+        return ret
+
+    def compile_py(self, writer):
+        writer.println('@staticmethod')
+        decl = writer.function(self.name, varargs='args')
+        with decl as varargs:
+            unwrapped = writer.unwrap_many(varargs)
+            func = '.'.join([self.parent.name, self.name])
+            ret = writer.call('_api.%s' % func, varargs=unwrapped)
+            wrapped = writer.wrap(ret)
+            writer.return_value(wrapped)
+            writer.println()
 
 
-class Binding(object):
-    __rank_global = 0
+class Function(Method):
+    _kind_ = 'func'
+
+    def __init__(self, parent, name, return_type=Void, *args):
+        super(Function, self).__init__(return_type, *args)
+        self.parent = parent
+        self.name = name
+
+    def compile_py(self, writer):
+        with writer.function(self.name, varargs='args') as varargs:
+            unwrapped = writer.unwrap_many(varargs)
+            func = self.fullname.split('::', 1)[1].replace('::', '.')
+            ret = writer.call('_api.%s' % func,
+                              varargs=unwrapped)
+            wrapped = writer.wrap(ret)
+            writer.return_value(wrapped)
+        writer.println()
+
+
+class Destructor(Method):
+    _kind_ = 'dtor'
+
     def __init__(self):
-        self.rank = Binding.__rank_global
-        Binding.__rank_global += 1
-        self.include = set()
+        super(Destructor, self).__init__()
 
-    def compile(self, name, println):
-        raise NotImplementedError(type(self))
+    def compile_cpp_body(self, writer, retty, argtys):
+        assert isinstance(self.parent, Class)
+        assert not argtys
+        args = writer.parse_arguments('args', ptr(self.parent), *argtys)
+        writer.println('delete %s;' % args[0])
+        writer.return_value(None)
 
-class Ref(object):
-    def __init__(self, elem):
-        self.element = elem
+    def compile_py(self, writer):
+        func = '.'.join([self.parent.name, self.name])
+        writer.println('_delete_ = _api.%s' % func)
+
+
+class Constructor(StaticMethod):
+    _kind_ = 'ctor'
+
+    def __init__(self, *args):
+        super(Constructor, self).__init__(Void, *args)
+
+    def compile_cpp_call(self, writer, retty, args):
+        alloctype = retty.fullname.rstrip(' *')
+        arglist = ', '.join(args)
+        stmt = 'new %(alloctype)s(%(arglist)s)' % locals()
+        ret = writer.declare(retty.fullname, stmt)
+        return ret
+
+class ref(Type):
+    def __init__(self, element):
+        assert isinstance(element, Class), type(element)
+        self.element = element
+
+    def __str__(self):
+        return self.fullname
 
     @property
     def fullname(self):
@@ -113,502 +357,78 @@ class Ref(object):
         return self.element.capsule_name
 
     @property
-    def pointer(self):
-        return self.element.pointer
-
-    def as_pointer(self, println, var):
-        init = '&%s' % (var)
-        casted = declare(println, self.pointer, init)
-        return casted
-
-    @property
     def format(self):
-        return 'O'
+        return self.element.format
 
-    def unwrap(self, println, var):
-        ptr = self.element.unwrap(println, var)
-        return declare(println, self.fullname, '*%s' % ptr)
+    def wrap(self, writer, val):
+        p = writer.declare(ptr(self.element).fullname, '&%s' % val)
+        return writer.pycapsule_new(p, self.capsule_name, self.element.fullname)
 
-    def wrap(self, println, var):
-        return self.element.wrap(println, self.as_pointer(println, var))
+    def unwrap(self, writer, val):
+        p = self.element.unwrap(writer, val)
+        return writer.declare(self.fullname, '*%s' % p)
 
 
-class Pointer(object):
-    def __init__(self, elem):
-        self.element = elem
+class ptr(Type):
+    def __init__(self, element):
+        assert isinstance(element, Class)
+        self.element = element
 
     @property
     def fullname(self):
-        return '%s*' % self.element.fullname
-
-    @property
-    def capsule_name(self):
-        return self.element.capsule_name
-
-    @property
-    def pointer(self):
-        return self.element.pointer
+        return '%s*' % self.element
 
     @property
     def format(self):
-        return 'O'
+        return self.element.format
 
-    def unwrap(self, println, var):
-        ret = declare(println, self.fullname)
-        println2 = indent_println(println)
-        println('if (%(var)s == Py_None) {' % locals())
-        println2('%(ret)s = NULL;' % locals())
-        println('} else {')
-        ptr = self.element.unwrap(println2, var)
-        println2('%(ret)s = %(ptr)s;' % locals())
-        println('}')
+    def unwrap(self, writer, val):
+        ret = writer.declare(self.fullname, 'NULL')
+        with writer.block('if (%(val)s != Py_None)' % locals()):
+            val = self.element.unwrap(writer, val)
+            writer.println('%(ret)s = %(val)s;' % locals())
         return ret
 
-    def wrap(self, println, var):
-        return self.element.wrap(println, var)
+    def wrap(self, writer, val):
+        return writer.pycapsule_new(val, self.element.capsule_name,
+                                    self.element.fullname)
 
-
-class BuiltinType(object):
-    def __init__(self, name):
-        self.name = name
-        self.Ref = Ref(self)
-        self.Pointer = Pointer(self)
-
-    @property
-    def fullname(self):
-        return self.name
-
-    @property
-    def capsule_name(self):
-        return self.fullname
-
-    def To(self, pytype):
-        return Wrapper(self, pytype)
-
-    def From(self, pytype):
-        return Unwrapper(self, pytype)
-
-Void = BuiltinType('void')
-Bool = BuiltinType('bool')
-Unsigned = BuiltinType('unsigned')
-ConstStdString = BuiltinType('const std::string')
-
-class PyObjectImpl(object):
-    name = 'PyObject*'
-    fullname = name
+class cast(Type):
     format = 'O'
 
-    def unwrap(self, println, var):
-        return var
-
-PyObject = PyObjectImpl()
-
-class Unwrapper(object):
-    def __init__(self, cls, pytype):
-        self.cls = cls
-        self.pytype = pytype
+    def __init__(self, original, target):
+        self.original = original
+        self.target = target
 
     @property
     def fullname(self):
-        return str(self.pytype)
+        return self.binding_type.fullname
 
     @property
-    def format(self):
-        return 'O'
-
-    def unwrap(self, println, var):
-        out = declare(println, self.cls.fullname)
-        conv = 'py_%s_to' % (self.pytype.__name__)
-        status = '%(conv)s(%(var)s, %(out)s)' % locals()
-        println('if (!%(status)s) return NULL;' % locals())
-        return out
-
-
-class Wrapper(object):
-    def __init__(self, cls, pytype):
-        self.cls = cls
-        self.pytype = pytype
-
-    @property
-    def fullname(self):
-        return self.cls.fullname
-
-    def wrap(self, println, var):
-        conv = 'py_%s_from' % (self.pytype.__name__)
-        func = '%(conv)s(%(var)s)' % locals()
-        out = declare(println, 'PyObject*', func)
-        println('if (!%(out)s) return NULL;' % locals())
-        return out
-
-class Enum(Binding):
-    def __init__(self, ns, *values):
-        super(Enum, self).__init__()
-        self.values = values
-        self.ns = ns
-        self.name = None
-
-    def compile(self, name, println):
-        self.name = self.name or name
-
-    @property
-    def fullname(self):
-        return '::'.join([self.ns, self.name])
-
-class ClassEnum(Enum):
-    def __init__(self, cls, *values):
-        super(ClassEnum, self).__init__(None, *values)
-        self.cls = cls
-        self.cls.enums.append(self)
-
-    def compile(self, name, println):
-        self.ns = self.cls.fullname
-        super(ClassEnum, self).compile(name, println)
-
-    def wrap(self, println, var):
-        println2 = indent_println(println)
-        ret = declare(println, 'PyObject*', NULL)
-        println('switch(%s) { ' % var)
-        for v in self.values:
-            println('case %s::%s:' % (self.ns, v))
-            println2('%(ret)s = PyString_FromString("%(v)s");' % locals())
-            println2('break;')
+    def python_type(self):
+        if not isinstance(self.target, Type):
+            return self.target
         else:
-            println('default:')
-            println2('PyErr_SetString(PyExc_TypeError, "Invalid enum: %s");' %
-                     v)
-            println2('return NULL;')
-        println('}')
+            return self.original
+
+    @property
+    def binding_type(self):
+        if isinstance(self.target, Type):
+            return self.target
+        else:
+            return self.original
+
+    def wrap(self, writer, val):
+        dst = self.python_type.__name__
+        return writer.call('py_%(dst)s_from' % locals(), 'PyObject*', val)
+
+    def unwrap(self, writer, val):
+        src = self.python_type.__name__
+        dst = self.binding_type.fullname
+        ret = writer.declare(dst)
+        status = writer.call('py_%(src)s_to' % locals(), 'int', val, ret)
+        writer.die_if_false(status)
         return ret
 
-    def unwrap(self, println, var):
-        pass
 
-
-class Class(Binding):
-    def __init__(self, ns):
-        super(Class, self).__init__()
-        self.ctor = None
-        self.Ref = Ref(self)
-        self.Pointer = Pointer(self)
-        self.Subclass = lambda: Subclass(self)
-        self.Enum = lambda *v: ClassEnum(self, *v)
-        self.enums = []
-        self.ns = ns
-        self.methods = []
-        self.name = None
-
-    def To(self, pytype):
-        return Wrapper(self, pytype)
-
-    def From(self, pytype):
-        return Unwrapper(self, pytype)
-
-    def new(self, *args):
-        method = Constructor(self, self.Pointer, *args)
-        self.methods.append(method)
-        return method
-
-    def delete(self):
-        method = Destructor(self, Void, self.Pointer)
-        self.methods.append(method)
-        return method
-
-    def method(self, return_type, *args):
-        method = Method(self, return_type, self.Pointer, *args)
-        self.methods.append(method)
-        return method
-
-    def staticmethod(self, return_type, *args):
-        sm = StaticMethod(self, return_type, *args)
-        self.methods.append(sm)
-        return sm
-
-    def multimethod(self, *signatures):
-        mm = MultiMethod(self, signatures)
-        self.methods.append(mm)
-        return mm
-
-    def staticmultimethod(self, *signatures):
-        smm = StaticMultiMethod(self, signatures)
-        self.methods.append(smm)
-        return smm
-    
-    def compile(self, name, println):
-        # set name
-        self.name = self.name or name
-
-    @property
-    def capsule_name(self):
-        return self.fullname
-
-    @property
-    def pointer(self):
-        return '%s*' % self.fullname
-
-    @property
-    def fullname(self):
-        return '::'.join([self.ns, self.name])
-
-    @property
-    def mangled_name(self):
-        return mangle(self.fullname)
-
-    @property
-    def format(self):
-        return 'O'
-
-    def unwrap(self, println, var):
-        typ = self.pointer
-        elty = self.fullname
-        cap = self.capsule_name
-        capptr = 'PyCapsule_GetPointer(%(var)s, "%(cap)s")' % locals()
-        ptr = declare(println, 'void*', capptr)
-        unwrapped = 'typecast<%(elty)s>::from(%(ptr)s)' % locals()
-        var = declare(println, typ, unwrapped)
-        println('if (!%(var)s) {' % locals())
-        println2 = indent_println(println)
-        println2('PyErr_SetString(PyExc_TypeError, "Invalid cast");')
-        println2('return NULL;')
-        println('}')
-        die_if_null(println, var)
-        return var
-
-    def wrap(self, println, var):
-         return pycapsule_new(println, var, self.capsule_name, self.fullname)
-
-class Subclass(Class):
-    def __init__(self, parent):
-        super(Subclass, self).__init__(parent.ns)
-        self.parent = parent
-        self.ns = self.parent.ns
-
-    @property
-    def capsule_name(self):
-        return self.parent.capsule_name
-
-class Function(Binding):
-    def __init__(self, ns, return_type, *args):
-        super(Function, self).__init__()
-        self.return_type = return_type
-        self.args = args
-        self.ns = ns
-        self.name = None
-
-    def compile(self, name, println):
-        # set name
-        self.name = self.name or name
-        # generate wrapper
-        println('static')
-        println('PyObject*')
-        println('%(name)s(PyObject* self, PyObject* args)' % locals())
-        println('{')
-        self.compile_body(indent_println(println))
-        println('}')
-
-    def compile_body(self, println):
-        args = parse_arguments(println, 'args', *self.args)
-        call = '%s(%s)' % (self.fullname, ', '.join(args))
-        if self.return_type is not Void:
-            callres = declare(println, self.return_type.fullname, call)
-            pycap = self.return_type.wrap(println, callres)
-            return_value(println, pycap)
-        else:
-            println('%s;' % call)
-            return_none(println)
-
-
-    @property
-    def fullname(self):
-        return '::'.join([self.ns, self.name])
-
-class Method(Binding):
-    def __init__(self, cls, return_type, *args):
-        super(Method, self).__init__()
-        self.cls = cls
-        self.return_type = return_type
-        self.args = args
-        self.name = None
-        self._realname = None
-
-    def compile(self, name, println):
-        # set name
-        self.name = self.name or name
-        # generate wrapper
-        println('static')
-        println('PyObject*')
-        mangled = self.mangled_name
-        println('%(mangled)s(PyObject* self, PyObject* args)' % locals())
-        println('{')
-        self.compile_body(indent_println(println))
-        println('}')
-    
-    def compile_body(self, println):
-        args = parse_arguments(println, 'args', *self.args)
-        this = args[0]
-        args = ', '.join(args[1:])
-        name = self.realname
-        call = '%(this)s->%(name)s(%(args)s)' % locals()
-        if self.return_type is not Void:
-            obj = declare(println, self.return_type.fullname, call)
-            ret = self.return_type.wrap(println, obj)
-            return_value(println, ret)
-        else:
-            println('%s;' % call)
-            return_none(println)
-
-    @property
-    def fullname(self):
-        return '::'.join([self.cls.fullname, self.name])
-
-    @property
-    def realname(self):
-        if not self._realname:
-            return self.name
-        else:
-            return self._realname
-
-    @realname.setter
-    def realname(self, v):
-        self._realname = v
-
-
-    @property
-    def mangled_name(self):
-        return mangle(self.fullname)
-
-class MultiMethod(Binding):
-    '''Can only differs by the number of arguments.
-    '''
-    def __init__(self, cls, signatures):
-        super(MultiMethod, self).__init__()
-        nargs = set()
-        for sig in signatures:
-            n = len(sig)
-            if n in nargs:
-                raise TypeError("MultiMethod only supports overloaded version"
-                                "with different number of arguments")
-            nargs.add(n)
-        self.cls = cls
-        self.signatures = signatures
-        self.name = None
-
-    def compile(self, name, println):
-        # set name
-        self.name = self.name or name
-        # generate wrapper
-        println('static')
-        println('PyObject*')
-        mangled = self.mangled_name
-        println('%(mangled)s(PyObject* self, PyObject* args)' % locals())
-        println('{')
-        println2 = indent_println(println)
-        nargs = declare(println2, 'Py_ssize_t', 'PyTuple_Size(args)')
-        for sig in self.signatures:
-            expect = len(sig)
-            println2('if (%(nargs)s == %(expect)d) {' % locals())
-            method = Method(self.cls, sig[0], self.cls.Pointer, *sig[1:])
-            method.name = self.name
-            method.compile_body(indent_println(println2))
-            println2('}')
-        println2('PyErr_SetString(PyExc_TypeError, "Wrong # of args");')
-        println2('return NULL;')
-        println('}')
-
-    @property
-    def fullname(self):
-        return '::'.join([self.cls.fullname, self.name])
-
-    @property
-    def mangled_name(self):
-        return mangle(self.fullname)
-
-class StaticMethod(Method):
-    def compile_body(self, println):
-        args = parse_arguments(println, 'args', *self.args)
-        args = ', '.join(args)
-        fullname = self.fullname
-        call = '%(fullname)s(%(args)s)' % locals()
-        if self.return_type is not Void:
-            obj = declare(println, self.return_type.fullname, call)
-            ret = self.return_type.wrap(println, obj)
-            return_value(println, ret)
-        else:
-            println('%s;' % call)
-            return_none(println)
-
-class StaticMultiMethod(Binding):
-    '''Can only differs by the number of arguments.
-        '''
-    def __init__(self, cls, signatures):
-        super(StaticMultiMethod, self).__init__()
-        nargs = set()
-        for sig in signatures:
-            n = len(sig)
-            if n in nargs:
-                raise TypeError("StaticMultiMethod only supports overloaded "
-                                "version with different number of arguments")
-            nargs.add(n)
-        self.cls = cls
-        self.signatures = signatures
-        self.name = None
-
-
-    def compile(self, name, println):
-        # set name
-        self.name = self.name or name
-        # generate wrapper
-        println('static')
-        println('PyObject*')
-        mangled = self.mangled_name
-        println('%(mangled)s(PyObject* self, PyObject* args)' % locals())
-        println('{')
-        println2 = indent_println(println)
-        nargs = declare(println2, 'Py_ssize_t', 'PyTuple_Size(args)')
-        for sig in self.signatures:
-            expect = len(sig) - 1
-            println2('if (%(nargs)s == %(expect)d) {' % locals())
-            method = StaticMethod(self.cls, sig[0], *sig[1:])
-            method.name = self.name
-            method.compile_body(indent_println(println2))
-            println2('}')
-        println2('PyErr_SetString(PyExc_TypeError, "Wrong # of args");')
-        println2('return NULL;')
-        println('}')
-
-    @property
-    def fullname(self):
-        return '::'.join([self.cls.fullname, self.name])
-
-    @property
-    def mangled_name(self):
-        return mangle(self.fullname)
-
-class Constructor(StaticMethod):
-    def compile_body(self, println):
-        args = parse_arguments(println, 'args', *self.args)
-        args = ', '.join(args)
-        name = self.cls.fullname
-        ctor = 'new %(name)s(%(args)s)' % locals()
-        obj = declare(println, self.cls.pointer, ctor)
-        ret = self.return_type.wrap(println, obj)
-        return_value(println, ret)
-
-class Destructor(Method):
-    def compile_body(self, println):
-        args = parse_arguments(println, 'args', *self.args)
-        assert len(args) == 1
-        dtor = 'delete %s;' % args[0]
-        println(dtor)
-        return_none(println)
-
-
-class Namespace(object):
-    def __init__(self, name):
-        self.name = name
-
-    def Class(self, *args, **kwargs):
-        return Class(self.name, *args, **kwargs)
-
-    def Function(self, *args, **kwargs):
-        return Function(self.name, *args, **kwargs)
 

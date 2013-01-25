@@ -5,20 +5,23 @@ from AssemblyAnnotationWriter import AssemblyAnnotationWriter
 from Type import Type
 from LLVMContext import LLVMContext
 from StringRef import StringRef
-#
+
 Value = llvm.Class()
 
-dump = Value.method(Void)
+@Value
+class Value:
 
-print_ = Value.method(Void, raw_ostream.Ref, AssemblyAnnotationWriter.Pointer)
-print_.realname = 'print'
+    dump = Method()
 
-getType = Value.method(Type.Pointer)
-getContext = Value.method(LLVMContext.Ref)
+    print_ = Method(Void, ref(raw_ostream), ptr(AssemblyAnnotationWriter))
+    print_.realname = 'print'
 
-hasName = Value.method(Bool.To(bool))
-# skip getValueName, setValueName
-getName = Value.method(StringRef.To(str))
-setName = Value.method(Void, StringRef.From(str))
+    getType = Method(ptr(Type))
+    getContext = Method(ref(LLVMContext))
 
-replaceAllUsesWith = Value.method(Void, Value.Pointer)
+    hasName = Method(cast(Bool, bool))
+    # skip getValueName, setValueName
+    getName = Method(cast(StringRef, str))
+    setName = Method(Void, cast(str, StringRef))
+
+    replaceAllUsesWith = Method(Void, ptr(Value))

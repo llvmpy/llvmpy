@@ -1,17 +1,12 @@
 PYTHON = python
 
-PYMODS = raw_ostream SmallVector Type DerivedTypes StringRef 
-
-PYMODS += LLVMContext AssemblyAnnotationWriter Module
-PYMODS += Value User Constant
-
 all: _api.so _capsule.so
 
 _api.so _capsule.so: api.cpp capsule.cpp
 	$(PYTHON) setup.py build_ext --inplace
 
-api.cpp api.py: src/*.py include/llvm_binding/*.h
-	$(PYTHON) gen.py api src $(PYMODS)
+api.cpp api.py: src/*.py include/llvm_binding/*.h gen.py binding.py
+	$(PYTHON) gen.py api src
 	
 clean: cleantemp
 	rm -f _api.so _capsule.so

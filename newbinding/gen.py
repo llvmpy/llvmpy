@@ -1,26 +1,23 @@
-import sys, logging
+import sys
 from binding import *
-from utils import *
-from cStringIO import StringIO
+import codegen
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 extension_entry = '''
-    
+
 extern "C" {
 
 #if (PY_MAJOR_VERSION >= 3)
-    
+
 PyObject *
 PyInit_%(module)s(void)
 {
-    PyObject *module = create_python_module("%(module)s", %(methtable)s);
-    if (module) {
-        if (populate_submodules(module, submodules))
-            return module;
-    }
-    return NULL;
+PyObject *module = create_python_module("%(module)s", %(methtable)s);
+if (module) {
+if (populate_submodules(module, submodules))
+return module;
+}
+return NULL;
 }
 
 #else
@@ -28,182 +25,16 @@ PyInit_%(module)s(void)
 PyMODINIT_FUNC
 init%(module)s(void)
 {
-    PyObject *module = create_python_module("%(module)s", %(methtable)s);
-    if (module) {
-        populate_submodules(module, submodules);
-    }
+PyObject *module = create_python_module("%(module)s", %(methtable)s);
+if (module) {
+populate_submodules(module, submodules);
+}
 }
 #endif
 
 } // end extern C
 
 '''
-
-def build_methoddef(name, defns, println):
-    println('static PyMethodDef %s[] = {' % name)
-    for name, func in defns:
-        println('{ "%(name)s", (PyCFunction)%(func)s, METH_VARARGS, NULL },' %
-                locals())
-    else:
-        println('{ NULL }')
-        println('};')
-        println('')
-
-
-class Context(object):
-    def __init__(self):
-        self.includes = set()
-        self.functions = {}
-        self.classes = {}
-        self.definitions = []
-        self._pending_symbols = []
-
-    def generate_cpp(self, println):
-        for i in self.includes:
-            println('#include "%s"' % i)
-
-        println('\n'.join(self.definitions))
-
-        # global function
-        defns = []
-        for name, func in self.functions.items():
-            defns.append((name, func.name))
-        build_methoddef('global_functions', defns, println)
-
-        # classes
-        for name, cls in self.classes.items():
-            defns = []
-            for meth in cls.methods:
-                defns.append((meth.name, meth.mangled_name))
-            println("// %s" % cls.fullname)
-            build_methoddef(cls.mangled_name, defns, println)
-
-        println('static SubModuleEntry submodules[] = {')
-        for name, cls in self.classes.items():
-            table = cls.mangled_name
-            println('{ "%(name)s", %(table)s },' % locals())
-        println('{ "extra", extra_methodtable },')
-        println('{ NULL }')
-        println('};')
-        println('')
-
-        # generate entry
-        println(extension_entry % {'module': '_api',
-                                   'methtable': 'global_functions',})
-
-    def generate_py(self, println):
-        println('import _api, capsule')
-        println('')
-        # wraps all extras
-        extra_wrapper = '''
-def _init_extra_wrapper():
-    def wrap(callee):
-        def _wrapped(*args):
-            args = map(capsule.unwrap, args)
-            ret = callee(*args)
-            return capsule.wrap(ret)
-        return _wrapped
-    for k in dir(_api.extra):
-        v = getattr(_api.extra, k)
-        if not k.startswith('__') and callable(v):
-            globals()[k] = wrap(v)
-_init_extra_wrapper()
-        '''
-        println(extra_wrapper)
-        println('')
-        # global function
-        for name in self.functions:
-            println('def %(name)s(*args):' % locals())
-            println2 = indent_println(println)
-            println2('args = map(capsule.unwrap, args)')
-            println2('ptr = _api.%(name)s(*args)' % locals())
-            println2('return capsule.wrap(ptr)')
-            println('')
-        # classes
-        classes = sorted(self.classes.items(), key=lambda x: x[1].rank)
-
-        for name, cls in classes:
-            if isinstance(cls, Subclass):
-                parent = cls.parent.name
-            else:
-                parent = 'capsule.Wrapper'
-            println('@capsule.register_class')
-            println('class %(name)s(%(parent)s):' % locals())
-            self.generate_py_class(indent_println(println), cls)
-            println('')
-
-    def generate_py_class(self, println, cls):
-        if len(cls.methods) == 0:
-            println('pass')
-        else:
-            mod = cls.name
-            # generate class enums
-            for enum in cls.enums:
-                println('class %s:' % enum.name)
-                println2 = indent_println(println)
-                for v in enum.values:
-                    println2('%(v)s = "%(v)s"' % locals())
-                println('')
-            # generate class methods
-            for method in cls.methods:
-                name = method.name
-                if(isinstance(method, StaticMethod) or
-                   isinstance(method, StaticMultiMethod)):
-                    println('@staticmethod')
-                    println('def %(name)s(*args):' % locals())
-                    println2 = indent_println(println)
-                    println2('args = map(capsule.unwrap, args)')
-                    println2('ret = _api.%(mod)s.%(name)s(*args)' % locals())
-                    println2('return capsule.wrap(ret)')
-                elif isinstance(method, Destructor):
-                    println('_delete_ = _api.%(mod)s.%(name)s' % locals())
-                else:
-                    println('def %(name)s(self, *args):' % locals())
-                    println2 = indent_println(println)
-                    println2('args = map(capsule.unwrap, args)')
-                    println2('ret = _api.%(mod)s.%(name)s(self._ptr, *args)' %
-                             locals())
-                    println2('return capsule.wrap(ret)')
-                println('')
-
-    def add_module(self, module):
-        allsyms = [(k, v) for k, v in vars(module).items()
-                   if isinstance(v, Binding)]
-        # generate includes
-        for k, v in allsyms:
-            self.includes |= v.include
-
-        self._pending_symbols.extend(allsyms)
-
-    def materialize(self):
-        symtab = sorted(self._pending_symbols, key=lambda x: x[1].rank)
-
-        # compile everything
-        for k, v in symtab:
-            buf = StringIO()
-            def println_to_def(s):
-                buf.write(s)
-                buf.write('\n')
-            logger.info('compiling %s', k)
-            v.compile(k, println_to_def)
-            self.definitions.append(buf.getvalue())
-            buf.close()
-
-        # generate py defintion table for global functions
-        for k, v in symtab:
-            if isinstance(v, Function):
-                if v.name in self.functions:
-                    raise NameError("Duplicated function name: %s" % v.name)
-                self.functions[v.name] = v
-
-        # generate sub module tables for classes
-        submodules = []
-        for k, v in symtab:
-            if isinstance(v, Class):
-                if v.name in self.classes:
-                    if v is not self.classes[v.name]:
-                        raise NameError("Duplicated class: %s" % v.name)
-                self.classes[v.name] = v
 
 
 def populate_headers(println):
@@ -216,38 +47,96 @@ def populate_headers(println):
                 ]
     for inc in includes:
         println('#include "%s"' % inc)
+    println()
 
-def wrap_println(f):
-    def println(s):
-        f.write(s)
-        f.write('\n')
+
+def wrap_println_from_file(file):
+    def println(s=''):
+        file.write(s)
+        file.write('\n')
     return println
 
-if __name__ == '__main__':
+def main():
     outputfilename = sys.argv[1]
-    srcdir = sys.argv[2]
-    modnames = sys.argv[3:]
+    entry_modname = sys.argv[2]
 
-    modules = []
-    for m in modnames:
-        path = '%s.%s' % (srcdir, m)
-        logger.info("import module %s", path)
-        module = __import__(path)
-        for token in path.split('.')[1:]:
-            module = getattr(module, token)
-        modules.append(module)
+    entry_module = __import__(entry_modname)
 
-    context = Context()
+    units = []
+    for ns in namespaces.values():
+        print 'namespace', ns
+        for fn in ns.functions:
+            print fn
+            units.append(fn)
+        for cls in ns.classes:
+            print cls
+            units.append(cls)
 
-    for mod in modules:
-        context.add_module(mod)
-    context.materialize()
+    with open('%s.cpp' % outputfilename, 'w') as cppfile:
+        println = wrap_println_from_file(cppfile)
 
-    with open('%s.cpp' % outputfilename, 'w') as outfile:
-        println = wrap_println(outfile)
+        # extra headers
         populate_headers(println)
-        context.generate_cpp(println)
-    with open('%s.py' % outputfilename, 'w') as outfile:
-        println = wrap_println(outfile)
-        context.generate_py(println)
 
+        # required headers
+        includes = set()
+        for u in units:
+            includes |= u.includes
+
+        for inc in includes:
+            println('#include "%s"' % inc)
+        println()
+
+        # write methods and method tables
+        for u in units:
+            writer = codegen.CppCodeWriter(println)
+            u.compile_cpp(writer)
+        else:
+            del writer
+
+        # write function table
+        writer = codegen.CppCodeWriter(println)
+        writer.println('static')
+        writer.println('PyMethodDef methtable[] = {')
+        with writer.indent():
+            fmt = '{ "%(name)s", (PyCFunction)%(func)s, METH_VARARGS, NULL },'
+            for u in units:
+                if isinstance(u, Function):
+                    name = u.name
+                    func = codegen.mangle(u.fullname)
+                    writer.println(fmt % locals())
+            writer.println('{ NULL },')
+        writer.println('};')
+        writer.println()
+        del writer
+        
+
+        # write submodule table
+        writer = codegen.CppCodeWriter(println)
+        writer.println('static')
+        writer.println('SubModuleEntry submodules[] = {')
+        with writer.indent():
+            for cls in units:
+                if isinstance(cls, Class):
+                    name = cls.name
+                    table = codegen.mangle(cls.fullname)
+                    writer.println('{ "%(name)s", %(table)s },' % locals())
+            writer.println('{ "extra", extra_methodtable },')
+            writer.println('{ NULL }')
+        writer.println('};')
+        writer.println('')
+        del writer
+
+        println(extension_entry % {'module': '_api', 'methtable': 'methtable'})
+
+    with open('%s.py' % outputfilename, 'w') as pyfile:
+        println = wrap_println_from_file(pyfile)
+        println('import _api, capsule')
+        println()
+        for u in units:
+            writer = codegen.PyCodeWriter(println)
+            u.compile_py(writer)
+        
+
+if __name__ == '__main__':
+    main()

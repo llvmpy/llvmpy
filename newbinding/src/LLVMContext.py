@@ -1,8 +1,8 @@
 from binding import *
 from namespace import llvm
 
-LLVMContext = llvm.Class()
-LLVMContext.include.add("llvm/LLVMContext.h")
+@llvm.Class()
+class LLVMContext:
+    _include_ = "llvm/LLVMContext.h"
 
-getGlobalContext = llvm.Function(LLVMContext.Ref)
-
+llvm.Function('getGlobalContext', ref(LLVMContext))

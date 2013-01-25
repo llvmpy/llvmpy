@@ -62,6 +62,11 @@ static
 PyObject* py_str_from(const std::string &str){
     return PyString_FromStringAndSize(str.c_str(), str.size());
 }
+//
+//static
+//PyObject* py_str_from(const llvm::StringRef *str){
+//    return py_str_from(str->str());
+//}
 
 static
 PyObject* py_bool_from(bool val){

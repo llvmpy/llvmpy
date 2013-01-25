@@ -4,17 +4,15 @@ from LLVMContext import LLVMContext
 from Type import Type
 from SmallVector import SmallVector_Type
 
-FunctionType = Type.Subclass()
-FunctionType.include.add('llvm/DerivedTypes.h')
+FunctionType = llvm.Class(Type)
 
-_get_signatures = [(FunctionType.Pointer,
-                    Type.Pointer, Bool.From(bool)),
-                   (FunctionType.Pointer,
-                    Type.Pointer, SmallVector_Type.Ref, Bool.From(bool))]
+@FunctionType
+class FunctionType:
+    _include_ = 'llvm/DerivedTypes.h'
+    get = StaticMethod(ptr(FunctionType), ptr(Type), cast(bool, Bool))
+    get |= StaticMethod(ptr(FunctionType), ptr(Type), ref(SmallVector_Type), cast(bool, Bool))
+    isVarArg = Method(cast(Bool, bool))
+    getReturnType = Method(ptr(Type))
+    getParamType = Method(ptr(Type), cast(int, Unsigned))
+    getNumParams = Method(cast(Unsigned, int))
 
-get = FunctionType.staticmultimethod(*_get_signatures)
-
-isVarArg = FunctionType.method(Bool.To(bool))
-getReturnType = FunctionType.method(Type.Pointer)
-getParamType = FunctionType.method(Type.Pointer, Unsigned.From(int))
-getNumParams = FunctionType.method(Unsigned.To(int))

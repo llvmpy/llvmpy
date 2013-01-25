@@ -1,4 +1,5 @@
 import api
+import extra
 import _capsule
 api.capsule.set_debug(True)
 context = api.getGlobalContext()
@@ -15,7 +16,7 @@ assert m.getPointerSize() == api.Module.PointerSize.AnyPointerSize
 m.dump()
 
 
-os = api.make_raw_ostream_for_printing()
+os = extra.make_raw_ostream_for_printing()
 m.print_(os, None)
 print os.str()
 
@@ -29,15 +30,15 @@ fnty = api.FunctionType.get(int1ty, False)
 fnty.dump()
 
 types = [int1ty, api.Type.getIntNTy(context, 21)]
-svt = api.make_small_vector_from_types(*types)
+svt = extra.make_small_vector_from_types(*types)
 fnty = api.FunctionType.get(int1ty, svt, False)
 
-os = api.make_raw_ostream_for_printing()
+os = extra.make_raw_ostream_for_printing()
 fnty.print_(os)
 print os.str()
 
 fn = m.getOrInsertFunction("foo", fnty)
-os = api.make_raw_ostream_for_printing()
+os = extra.make_raw_ostream_for_printing()
 fn.print_(os, None)
 print os.str()
 assert fn.hasName()
