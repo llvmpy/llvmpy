@@ -449,7 +449,11 @@ class LLVMTranslator (BytecodeFlowVisitor):
         return [self.builder.branch(self.llvm_blocks[i + arg + 3])]
 
     def op_JUMP_IF_FALSE (self, i, op, arg, *args, **kws):
-        raise NotImplementedError("LLVMTranslator.op_JUMP_IF_FALSE")
+        cond = args[0]
+        block_false = self.llvm_blocks[op]
+        block_true = self.llvm_blocks[i + 3]
+        return [self.builder.cbranch(cond, block_true, block_false)]
+        # raise NotImplementedError("LLVMTranslator.op_JUMP_IF_FALSE")
 
     def op_JUMP_IF_FALSE_OR_POP (self, i, op, arg, *args, **kws):
         raise NotImplementedError("LLVMTranslator.op_JUMP_IF_FALSE_OR_POP")
