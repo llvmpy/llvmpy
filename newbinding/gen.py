@@ -72,6 +72,20 @@ def main():
             print cls
             units.append(cls)
 
+    # add extra stuffs
+    downcastlist = []
+    ## add downcast
+    for cls in units:
+        if isinstance(cls, Class):
+            for bcls in cls.downcastables:
+                from_to = bcls.fullname, cls.fullname
+                name = 'downcast_%s_to_%s' % tuple(map(codegen.mangle, from_to))
+                fn = Function(namespaces[''], name, ptr(cls), ptr(bcls))
+                downcastlist.append((from_to, fn))
+                units.append(fn)
+
+
+    # generate cpp source
     with open('%s.cpp' % outputfilename, 'w') as cppfile:
         println = wrap_println_from_file(cppfile)
 
@@ -86,6 +100,18 @@ def main():
         for inc in includes:
             println('#include "%s"' % inc)
         println()
+
+        # generate downcast
+        for ((fromty, toty), fn) in downcastlist:
+            name = fn.name
+            fmt = '''
+static
+%(toty)s* %(name)s(%(fromty)s* arg)
+{
+    return typecast<%(toty)s>::from(arg);
+}
+'''
+            println(fmt % locals())
 
         # write methods and method tables
         for u in units:

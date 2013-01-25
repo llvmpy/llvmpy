@@ -28,10 +28,10 @@ class Namespace(object):
     def __str__(self):
         return self.name
 
-class Type(object):
+class _Type(object):
     pass
 
-class BuiltinTypes(Type):
+class BuiltinTypes(_Type):
     def __init__(self, name):
         self.name = name
 
@@ -47,7 +47,7 @@ Unsigned = BuiltinTypes('unsigned')
 Bool = BuiltinTypes('bool')
 ConstStdString = BuiltinTypes('const std::string')
 
-class Class(Type):
+class Class(_Type):
     format = 'O'
 
     def __init__(self, ns, *bases):
@@ -57,9 +57,11 @@ class Class(Type):
         self.methods = []
         self.enums = []
         self.includes = set()
+        self.downcastables = set()
 
     def __call__(self, defn):
         assert not self._is_defined
+        # process the definition in "defn"
         self.name = defn.__name__
         for k, v in defn.__dict__.items():
             if isinstance(v, Method):
@@ -79,6 +81,12 @@ class Class(Type):
                 else:
                     for i in v:
                         self.includes.add(i)
+            elif k == '_downcast_':
+                if isinstance(v, Class):
+                    self.downcastables.add(v)
+                else:
+                    for i in v:
+                        self.downcastables.add(i)
         return self
 
     def compile_cpp(self, writer):
@@ -106,12 +114,11 @@ class Class(Type):
             bases = ', '.join(x.name for x in self.bases)
         writer.println('@capsule.register_class')
         with writer.block('class %(clsname)s(%(bases)s):' % locals()):
+            writer.println('_llvm_type_ = "%s"' % self.fullname)
             for enum in self.enums:
                 enum.compile_py(writer)
             for meth in self.methods:
                 meth.compile_py(writer)
-            if not self.enums and not self.methods:
-                writer.println('pass')
         writer.println()
 
     @property
@@ -178,6 +185,7 @@ class Enum(object):
 
     def compile_py(self, writer):
         with writer.block('class %s:' % self.name):
+            writer.println('_llvm_type_ = "%s"' % self.fullname)
             for v in self.value_names:
                 writer.println('%(v)s = "%(v)s"' % locals())
         writer.println()
@@ -340,7 +348,7 @@ class Constructor(StaticMethod):
         ret = writer.declare(retty.fullname, stmt)
         return ret
 
-class ref(Type):
+class ref(_Type):
     def __init__(self, element):
         assert isinstance(element, Class), type(element)
         self.element = element
@@ -369,7 +377,7 @@ class ref(Type):
         return writer.declare(self.fullname, '*%s' % p)
 
 
-class ptr(Type):
+class ptr(_Type):
     def __init__(self, element):
         assert isinstance(element, Class)
         self.element = element
@@ -393,7 +401,7 @@ class ptr(Type):
         return writer.pycapsule_new(val, self.element.capsule_name,
                                     self.element.fullname)
 
-class cast(Type):
+class cast(_Type):
     format = 'O'
 
     def __init__(self, original, target):
@@ -406,14 +414,14 @@ class cast(Type):
 
     @property
     def python_type(self):
-        if not isinstance(self.target, Type):
+        if not isinstance(self.target, _Type):
             return self.target
         else:
             return self.original
 
     @property
     def binding_type(self):
-        if isinstance(self.target, Type):
+        if isinstance(self.target, _Type):
             return self.target
         else:
             return self.original

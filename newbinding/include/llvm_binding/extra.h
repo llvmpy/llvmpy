@@ -37,9 +37,9 @@ PyObject* make_small_vector_from_types(PyObject* self, PyObject* args) {
 }
 
 static PyMethodDef extra_methodtable[] = {
-#define method(func) { #func, (PyCFunction)func, METH_VARARGS, NULL }
-method( make_raw_ostream_for_printing ),
-method( make_small_vector_from_types ),
-{ NULL }
-#undef method
+    #define method(func) { #func, (PyCFunction)func, METH_VARARGS, NULL }
+    method( make_raw_ostream_for_printing ),
+    method( make_small_vector_from_types ),
+    #undef method
+    { NULL }
 };

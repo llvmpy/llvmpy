@@ -19,7 +19,7 @@ def set_debug(enabled):
 
 
 class WeakRef(ref):
-    __slots__ = 'capsule', 'dtor'
+    __slots__ = 'capsule', 'dtor', 'owning'
 
 _pyclasses = {}
 _addr2obj = WeakValueDictionary()
@@ -33,12 +33,20 @@ def classof(cap):
     return _pyclasses[cls]
 
 def _capsule_destructor(weak):
-    cap = weak.capsule
-    addr = _capsule.getPointer(cap)
-    cls = _capsule.getClassName(cap)
-    logger.debug("destroy pointer 0x%08X to %s", addr, cls)
-    weak.dtor(cap)
-    del _owners[addr]
+    if weak.owning:
+        cap = weak.capsule
+        addr = _capsule.getPointer(cap)
+        cls = _capsule.getClassName(cap)
+        logger.debug("destroy pointer 0x%08X to %s", addr, cls)
+        weak.dtor(cap)
+        del _owners[addr]
+
+def release_ownership(old):
+    addr = _capsule.getPointer(old)
+    if hasattr(old, '_delete_'):
+        oldweak = _owners[addr]
+        oldweak.owning = False # dis-own
+        del _owners[addr]
 
 def wrap(cap):
     '''Wrap a PyCapsule with the corresponding Wrapper class.
@@ -60,13 +68,26 @@ def wrap(cap):
             weak = WeakRef(obj, _capsule_destructor)
             _owners[addr] = weak
             weak.capsule = cap
+            weak.owning = True
             weak.dtor = cls._delete_
     else:
-        assert classof(obj._ptr) is classof(cap)
-        # Unset destructor for capsules that are repeated
-        _capsule.setDestructor(cap, None)
+        oldcls = classof(obj._ptr)
+        newcls = classof(cap)
+        if issubclass(oldcls, newcls):
+            # do auto downcast
+            pass
+        else:
+            assert oldcls is newcls
     return obj
 
+def downcast(old, new):
+    assert old is not new
+    oldcls = classof(old)
+    newcls = classof(new)
+    assert issubclass(newcls, oldcls)
+    release_ownership(old)
+    del _addr2obj[_capsule.getPointer(old)] # clear cache
+    return wrap(new)
 
 def unwrap(obj):
     '''Unwrap a Wrapper instance into the underlying PyCapsule.
@@ -95,9 +116,4 @@ class Wrapper(object):
     @property
     def _ptr(self):
         return self.__ptr
-
-    def _release_ownership(self):
-        _capsule.setDestructor(self._ptr, None)
-
-
 
