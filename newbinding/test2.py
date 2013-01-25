@@ -37,7 +37,8 @@ os = extra.make_raw_ostream_for_printing()
 fnty.print_(os)
 print os.str()
 
-fn = m.getOrInsertFunction("foo", fnty)
+const = m.getOrInsertFunction("foo", fnty)
+fn = extra.downcast(const, api.Function)
 os = extra.make_raw_ostream_for_printing()
 fn.print_(os, None)
 print os.str()
@@ -45,3 +46,12 @@ assert fn.hasName()
 assert 'foo' == fn.getName()
 fn.setName('bar')
 assert 'bar' == fn.getName()
+
+os = extra.make_raw_ostream_for_printing()
+assert fn.getReturnType() is int1ty
+
+assert fnty is fn.getFunctionType()
+
+assert fn.isVarArg() == False
+assert fn.getIntrinsicID() == 0
+assert not fn.isIntrinsic()
