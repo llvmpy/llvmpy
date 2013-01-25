@@ -1,6 +1,7 @@
 2013-??-??   0.10.2:
 --------------------
-
+  * change default to link dynamically to LLVM (use LLVMPY_DYNLINK=0 to link
+    statically)
 
 
 2013-01-25   0.10.1:
