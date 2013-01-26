@@ -38,12 +38,7 @@ def get_enabled_components():
     return run_llvm_config(['--components']).split()
 
 def get_llvm_version():
-    # get version number; treat it as fixed point
-    pat = re.compile(r'(\d+)\.(\d+)')
-    m = pat.search(run_llvm_config([' --version']))
-    if m is None:
-        sys.exit('could not determine llvm version')
-    return tuple(map(int, m.groups()))
+    return run_llvm_config([' --version'])
 
 
 def auto_intrinsic_gen(incdir):
@@ -60,14 +55,14 @@ libdir = run_llvm_config(['--libdir'])
 ldflags = run_llvm_config(['--ldflags'])
 
 llvm_version = get_llvm_version()
-print('LLVM version = %d.%d' % llvm_version)
+print('LLVM version = %s' % llvm_version)
 
 auto_intrinsic_gen(incdir)
 
 macros = [('__STDC_CONSTANT_MACROS', None),
           ('__STDC_LIMIT_MACROS', None)]
 if dynlink:
-    libs_core = ['LLVM-%d.%d' % llvm_version]
+    libs_core = ['LLVM-%s' % llvm_version]
     objs_core = []
 else:
     enabled_components = set(get_enabled_components())
