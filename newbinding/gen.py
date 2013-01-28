@@ -41,7 +41,6 @@ def populate_headers(println):
     includes = [
                 'llvm_binding/conversion.h',
                 'llvm_binding/binding.h',
-                'llvm_binding/llvm_extra.h',
                 'llvm_binding/capsule_context.h',
                 'llvm_binding/extra.h',             # extra submodule to add
                 ]

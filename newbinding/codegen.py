@@ -42,14 +42,14 @@ def parse_arguments(println, var, *args):
 
     return unwrapped
 
-_re_mangle_pattern = re.compile(r'[ _<>\*&]')
+_re_mangle_pattern = re.compile(r'[ _<>\*&,]')
 
 def mangle(name):
     def repl(m):
         s = m.group(0)
         if s in '<>*&':
             return ''
-        elif s in ' ':
+        elif s in ' ,':
             return '_'
         elif s in '_':
             return '__'

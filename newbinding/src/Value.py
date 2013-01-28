@@ -32,8 +32,7 @@ class Value:
 
     replaceAllUsesWith = Method(Void, ptr(Value))
 
-    list_use = IterToList(ptr(User), (), 'llvm::Value::use_iterator',
-                          'use_begin', 'use_end')
+    list_use = CustomMethod('Value_use_iterator_to_list', PyObjectPtr)
 
     hasOneUse = Method(cast(Bool, bool))
     hasNUses = Method(cast(Bool, bool), cast(int, Unsigned))

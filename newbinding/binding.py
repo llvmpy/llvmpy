@@ -272,28 +272,17 @@ class Method(object):
             writer.println()
 
 
-class IterToList(Method):
-    def __init__(self, elemty, argtys, iterty, begin, end):
-        super(IterToList, self).__init__(PyObjectPtr, *argtys)
-        self.elemty = elemty
-        self.iterty = iterty
-        self.begin = begin
-        self.end = end
+class CustomMethod(Method):
+    def __init__(self, methodname, retty, *argtys):
+        super(CustomMethod, self).__init__(retty, *argtys)
+        self.methodname = methodname
 
     def compile_cpp_body(self, writer, retty, argtys):
         args = writer.parse_arguments('args', ptr(self.parent), *argtys)
-        it = writer.method_call(self.begin, self.iterty, *args)
-        end = writer.method_call(self.end, self.iterty, *args)
-        con = writer.call('PyList_New', 'PyObject*', '0')
-        writer.die_if_false(con)
-        with writer.block('for (; %(it)s != %(end)s; ++%(it)s)' % locals()):
-            elem = writer.declare(self.elemty.fullname, '*%(it)s;' % locals())
-            wrapped = self.elemty.wrap(writer, elem)
-            ok = writer.call('PyList_Append', 'int', con, wrapped)
-            with writer.block('if (%(ok)s == -1)' % locals()):
-                writer.return_value(None)
-        writer.return_value(con)
+        ret = writer.call(self.methodname, retty.fullname, *args)
+        writer.return_value(retty.wrap(writer, ret))
 
+        
 
 class StaticMethod(Method):
 
