@@ -46,6 +46,7 @@ Void = BuiltinTypes('void')
 Unsigned = BuiltinTypes('unsigned')
 Bool = BuiltinTypes('bool')
 ConstStdString = BuiltinTypes('const std::string')
+PyObjectPtr = BuiltinTypes('PyObject*')
 
 class Class(_Type):
     format = 'O'
@@ -81,6 +82,8 @@ class Class(_Type):
                 else:
                     for i in v:
                         self.includes.add(i)
+            elif k == '_realname_':
+                self.realname = v
             elif k == '_downcast_':
                 if isinstance(v, Class):
                     self.downcastables.add(v)
@@ -146,7 +149,7 @@ class Class(_Type):
         writer.die_if_false(raw)
         ptrty = ptr(self).fullname
         ty = self.fullname
-        fmt = 'typecast<%(ty)s>::from(%(raw)s)'
+        fmt = 'typecast<%(ty)s >::from(%(raw)s)'
         casted = writer.declare(ptrty, fmt % locals())
         writer.die_if_false(casted)
         return casted
@@ -252,12 +255,8 @@ class Method(object):
                 writer.raises(TypeError, 'Invalid number of args')
 
     def compile_cpp_body(self, writer, retty, argtys):
-        if isinstance(self.parent, Class):
-            args = writer.parse_arguments('args', ptr(self.parent), *argtys)
-            ret = writer.method_call(self.realname, retty.fullname, *args)
-        else:
-            args = writer.parse_arguments('args', *argtys)
-            ret = writer.call(self.fullname, retty.fullname, *args)
+        args = writer.parse_arguments('args', ptr(self.parent), *argtys)
+        ret = writer.method_call(self.realname, retty.fullname, *args)
         writer.return_value(retty.wrap(writer, ret))
 
     def compile_py(self, writer):
@@ -271,6 +270,29 @@ class Method(object):
             wrapped = writer.wrap(ret)
             writer.return_value(wrapped)
             writer.println()
+
+
+class IterToList(Method):
+    def __init__(self, elemty, argtys, iterty, begin, end):
+        super(IterToList, self).__init__(PyObjectPtr, *argtys)
+        self.elemty = elemty
+        self.iterty = iterty
+        self.begin = begin
+        self.end = end
+
+    def compile_cpp_body(self, writer, retty, argtys):
+        args = writer.parse_arguments('args', ptr(self.parent), *argtys)
+        it = writer.method_call(self.begin, self.iterty, *args)
+        end = writer.method_call(self.end, self.iterty, *args)
+        con = writer.call('PyList_New', 'PyObject*', '0')
+        writer.die_if_false(con)
+        with writer.block('for (; %(it)s != %(end)s; ++%(it)s)' % locals()):
+            elem = writer.declare(self.elemty.fullname, '*%(it)s;' % locals())
+            wrapped = self.elemty.wrap(writer, elem)
+            ok = writer.call('PyList_Append', 'int', con, wrapped)
+            with writer.block('if (%(ok)s == -1)' % locals()):
+                writer.return_value(None)
+        writer.return_value(con)
 
 
 class StaticMethod(Method):
@@ -296,7 +318,6 @@ class StaticMethod(Method):
             writer.return_value(wrapped)
             writer.println()
 
-
 class Function(Method):
     _kind_ = 'func'
 
@@ -304,6 +325,11 @@ class Function(Method):
         super(Function, self).__init__(return_type, *args)
         self.parent = parent
         self.name = name
+
+    def compile_cpp_body(self, writer, retty, argtys):
+        args = writer.parse_arguments('args', *argtys)
+        ret = writer.call(self.fullname, retty.fullname, *args)
+        writer.return_value(retty.wrap(writer, ret))
 
     def compile_py(self, writer):
         with writer.function(self.name, varargs='args') as varargs:
@@ -314,7 +340,6 @@ class Function(Method):
             wrapped = writer.wrap(ret)
             writer.return_value(wrapped)
         writer.println()
-
 
 class Destructor(Method):
     _kind_ = 'dtor'
