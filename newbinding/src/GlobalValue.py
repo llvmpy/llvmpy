@@ -1,8 +1,8 @@
 from binding import *
 from namespace import llvm
-from Constant import Constant
+from Value import GlobalValue
 
-@llvm.Class(Constant)
+@GlobalValue
 class GlobalValue:
     _include_ = 'llvm/GlobalValue.h'
 

@@ -55,3 +55,15 @@ assert fnty is fn.getFunctionType()
 assert fn.isVarArg() == False
 assert fn.getIntrinsicID() == 0
 assert not fn.isIntrinsic()
+
+print fn.list_use()
+
+builder = api.IRBuilder.new(context)
+print builder
+
+bb = api.BasicBlock.Create(context, "entry", fn, None)
+builder.SetInsertPoint(bb)
+
+builder.CreateRetVoid()
+
+fn.dump()

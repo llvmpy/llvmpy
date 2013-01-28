@@ -1,7 +1,8 @@
 from binding import *
 from namespace import llvm
-from User import User
+from Value import Constant
 
-@llvm.Class(User)
+@Constant
 class Constant:
     pass
+

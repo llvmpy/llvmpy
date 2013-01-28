@@ -1,12 +1,11 @@
 from binding import *
 from namespace import llvm
-from GlobalValue import GlobalValue
-from Constant import Constant
+from Value import GlobalValue, Constant, Function
 from Type import Type
 from DerivedTypes import FunctionType
 from LLVMContext import LLVMContext
 
-@llvm.Class(GlobalValue)
+@Function
 class Function:
     _include_ = 'llvm/Function.h'
     _downcast_  = GlobalValue, Constant
@@ -17,3 +16,4 @@ class Function:
     isVarArg = Method(cast(Bool, bool))
     getIntrinsicID = Method(cast(Unsigned, int))
     isIntrinsic = Method(cast(Bool, bool))
+

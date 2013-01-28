@@ -7,6 +7,12 @@ from LLVMContext import LLVMContext
 from StringRef import StringRef
 
 Value = llvm.Class()
+# forward declarations
+User = llvm.Class(Value)
+BasicBlock = llvm.Class(Value)
+Constant = llvm.Class(User)
+GlobalValue = llvm.Class(Constant)
+Function = llvm.Class(GlobalValue)
 
 @Value
 class Value:
@@ -25,3 +31,10 @@ class Value:
     setName = Method(Void, cast(str, StringRef))
 
     replaceAllUsesWith = Method(Void, ptr(Value))
+
+    list_use = IterToList(ptr(User), (), 'llvm::Value::use_iterator',
+                          'use_begin', 'use_end')
+
+    hasOneUse = Method(cast(Bool, bool))
+    hasNUses = Method(cast(Bool, bool), cast(int, Unsigned))
+    isUsedInBasicBlock = Method(cast(Bool, bool), BasicBlock)
