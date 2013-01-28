@@ -23,6 +23,9 @@ PyObject* pycapsule_new(void* ptr,
     if (!classname) {
         classname = basename;
     }
+    if (!ptr) {
+        Py_RETURN_NONE;
+    }
     PyObject* cap = PyCapsule_New(ptr, basename, NULL);
     if (!cap) {
         PyErr_SetString(PyExc_TypeError, "Error creating new PyCapsule");
