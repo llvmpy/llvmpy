@@ -184,14 +184,14 @@ class CppCodeWriter(CodeWriterBase):
         arglist = ', '.join(args[1:])
         if func == 'delete':
             assert not arglist
-            stmt = 'delete %(this)s;' % locals()
+            stmt = 'delete %(this)s' % locals()
         elif func == 'new':
             alloctype = retty.rstrip(' *')
-            stmt = 'new %(alloctype)s(%(arglist)s);' % locals()
+            stmt = 'new %(alloctype)s(%(arglist)s)' % locals()
         else:
-            stmt = '%(this)s->%(func)s(%(arglist)s);' % locals()
+            stmt = '%(this)s->%(func)s(%(arglist)s)' % locals()
         if retty == 'void':
-            self.println(stmt)
+            self.println('%s;' % stmt)
         else:
             return self.declare(retty, stmt)
 
