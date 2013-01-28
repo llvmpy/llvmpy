@@ -1,3 +1,4 @@
+import inspect, textwrap
 import functools
 import codegen as cg
 
@@ -56,6 +57,7 @@ class Class(_Type):
         self.bases = bases
         self._is_defined = False
         self.methods = []
+        self.pymethods = []
         self.enums = []
         self.includes = set()
         self.downcastables = set()
@@ -76,6 +78,8 @@ class Class(_Type):
                 self.enums.append(v)
                 v.name = k
                 v.parent = self
+            elif isinstance(v, CustomPythonMethod):
+                self.pymethods.append(v)
             elif k == '_include_':
                 if isinstance(v, str):
                     self.includes.add(v)
@@ -121,6 +125,8 @@ class Class(_Type):
             for enum in self.enums:
                 enum.compile_py(writer)
             for meth in self.methods:
+                meth.compile_py(writer)
+            for meth in self.pymethods:
                 meth.compile_py(writer)
         writer.println()
 
@@ -452,4 +458,22 @@ class cast(_Type):
         return ret
 
 
+
+class CustomPythonMethod(object):
+    def __init__(self, fn):
+        src = inspect.getsource(fn)
+        lines = textwrap.dedent(src).splitlines()
+        for i, line in enumerate(lines):
+            if not line.startswith('@'):
+                break
+        self.sourcelines = lines[i:]
+
+    def compile_py(self, writer):
+        for line in self.sourcelines:
+            writer.println(line)
+
+class CustomPythonStaticMethod(CustomPythonMethod):
+    def compile_py(self, writer):
+        writer.println('@staticmethod')
+        super(CustomPythonStaticMethod, self).compile_py(writer)
 

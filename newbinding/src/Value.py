@@ -37,3 +37,10 @@ class Value:
     hasOneUse = Method(cast(Bool, bool))
     hasNUses = Method(cast(Bool, bool), cast(int, Unsigned))
     isUsedInBasicBlock = Method(cast(Bool, bool), BasicBlock)
+
+    @CustomPythonMethod
+    def __str__(self):
+        import extra
+        os = extra.make_raw_ostream_for_printing()
+        self.print_(os, None)
+        return os.str()

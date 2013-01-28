@@ -1,6 +1,7 @@
 from binding import *
 from namespace import llvm
 from Value import Function, BasicBlock
+from Instruction import Instruction, TerminatorInst
 from LLVMContext import LLVMContext
 from StringRef import StringRef
 
@@ -12,6 +13,8 @@ class BasicBlock:
                           ptr(BasicBlock))
 
     getParent = Method(ptr(Function))
+    getTerminator = Method(ptr(TerminatorInst))
+    
     empty = Method(cast(Bool, bool))
     dropAllReferences = Method()
     isLandingPad = Method(cast(Bool, bool))

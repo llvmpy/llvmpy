@@ -30,24 +30,18 @@ fnty = api.FunctionType.get(int1ty, False)
 fnty.dump()
 
 types = [int1ty, api.Type.getIntNTy(context, 21)]
-svt = extra.make_small_vector_from_types(*types)
-fnty = api.FunctionType.get(int1ty, svt, False)
+fnty = api.FunctionType.get(int1ty, types, False)
 
-os = extra.make_raw_ostream_for_printing()
-fnty.print_(os)
-print os.str()
+print fnty
 
 const = m.getOrInsertFunction("foo", fnty)
 fn = extra.downcast(const, api.Function)
-os = extra.make_raw_ostream_for_printing()
-fn.print_(os, None)
-print os.str()
+print fn
 assert fn.hasName()
 assert 'foo' == fn.getName()
 fn.setName('bar')
 assert 'bar' == fn.getName()
 
-os = extra.make_raw_ostream_for_printing()
 assert fn.getReturnType() is int1ty
 
 assert fnty is fn.getFunctionType()
@@ -56,14 +50,24 @@ assert fn.isVarArg() == False
 assert fn.getIntrinsicID() == 0
 assert not fn.isIntrinsic()
 
-print fn.list_use()
+fn_uselist = fn.list_use()
+assert isinstance(fn_uselist, list)
+assert len(fn_uselist) == 0
 
 builder = api.IRBuilder.new(context)
 print builder
 
 bb = api.BasicBlock.Create(context, "entry", fn, None)
+assert bb.empty()
 builder.SetInsertPoint(bb)
+
+assert bb.getTerminator() is None
 
 builder.CreateRetVoid()
 
-fn.dump()
+assert not bb.empty()
+assert bb.getTerminator() is not None
+
+print bb
+
+
