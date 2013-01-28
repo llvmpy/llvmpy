@@ -63,11 +63,11 @@ builder.SetInsertPoint(bb)
 
 assert bb.getTerminator() is None
 
-builder.CreateRetVoid()
+arg0, arg1 = fn.getArgumentList()
+print arg0, arg1
 
-assert not bb.empty()
-assert bb.getTerminator() is not None
+ret = builder.CreateCall(fn, [arg0, arg1], '')
+builder.CreateRet(ret)
 
-print bb
-
+print fn
 

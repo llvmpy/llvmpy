@@ -8,6 +8,7 @@ from StringRef import StringRef
 
 Value = llvm.Class()
 # forward declarations
+Argument = llvm.Class(Value)
 User = llvm.Class(Value)
 BasicBlock = llvm.Class(Value)
 Constant = llvm.Class(User)

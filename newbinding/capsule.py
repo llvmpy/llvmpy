@@ -52,8 +52,10 @@ def wrap(cap):
     '''Wrap a PyCapsule with the corresponding Wrapper class.
     If `cap` is not a PyCapsule, returns `cap`
     '''
-    if not _capsule.check(cap):     # bypass if cap is not a PyCapsule
-        return cap
+    if not _capsule.check(cap):
+        if isinstance(cap, list):
+            return map(wrap, cap)
+        return cap     # bypass if cap is not a PyCapsule and not a list
     addr = _capsule.getPointer(cap)
     try:
         # find cached object by pointer address
@@ -77,7 +79,7 @@ def wrap(cap):
             # do auto downcast
             pass
         else:
-            assert oldcls is newcls
+            assert oldcls is newcls, (cap, obj, oldcls, newcls)
     return obj
 
 def downcast(old, new):

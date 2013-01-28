@@ -1,6 +1,6 @@
 from binding import *
 from namespace import llvm
-from Value import GlobalValue, Constant, Function
+from Value import GlobalValue, Constant, Function, Argument
 from Type import Type
 from DerivedTypes import FunctionType
 from LLVMContext import LLVMContext
@@ -17,3 +17,5 @@ class Function:
     getIntrinsicID = Method(cast(Unsigned, int))
     isIntrinsic = Method(cast(Bool, bool))
 
+    getArgumentList = CustomMethod('Function_getArgumentList', PyObjectPtr)
+    getBasicBlockList = CustomMethod('Function_getBasicBlockList', PyObjectPtr)
