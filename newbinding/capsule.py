@@ -99,10 +99,11 @@ def unwrap(obj):
         return obj
 
 
-def register_class(cls):
-    clsname = cls.__name__
-    _pyclasses['llvm::%s' % clsname] = cls
-    return cls
+def register_class(clsname):
+    def _wrapped(cls):
+        _pyclasses[clsname] = cls
+        return cls
+    return _wrapped
 
 
 class Wrapper(object):

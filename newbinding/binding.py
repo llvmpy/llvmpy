@@ -112,7 +112,7 @@ class Class(_Type):
         bases = 'capsule.Wrapper'
         if self.bases:
             bases = ', '.join(x.name for x in self.bases)
-        writer.println('@capsule.register_class')
+        writer.println('@capsule.register_class("%s")' % self.fullname)
         with writer.block('class %(clsname)s(%(bases)s):' % locals()):
             writer.println('_llvm_type_ = "%s"' % self.fullname)
             for enum in self.enums:
@@ -150,7 +150,6 @@ class Class(_Type):
         casted = writer.declare(ptrty, fmt % locals())
         writer.die_if_false(casted)
         return casted
-
 
 class Enum(object):
     def __init__(self, *value_names):
