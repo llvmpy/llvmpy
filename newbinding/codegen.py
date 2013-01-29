@@ -104,10 +104,9 @@ class CodeWriterBase(object):
 
     @contextlib.contextmanager
     def py_function(self, name):
-        mangled = mangle(name)
         self.println('static')
         self.println('PyObject*')
-        with self.block('%(mangled)s(PyObject* self, PyObject* args)' % locals()):
+        with self.block('%(name)s(PyObject* self, PyObject* args)' % locals()):
             self.used_symbols.add('self')
             self.used_symbols.add('args')
             yield
@@ -175,7 +174,7 @@ class CppCodeWriter(CodeWriterBase):
         arglist = ', '.join(args)
         stmt = '%(func)s(%(arglist)s)' % locals()
         if retty == 'void':
-            self.println(stmt)
+            self.println(stmt + ';')
         else:
             return self.declare(retty, stmt)
 
@@ -247,6 +246,9 @@ class PyCodeWriter(CodeWriterBase):
         yield
         self.used_symbols = self.old
 
+    def release_ownership(self, val):
+        self.println('capsule.release_ownership(%(val)s)' % locals())
+
     def unwrap_many(self, args):
         unwrapped = self.new_symbol('unwrapped')
         self.println('%(unwrapped)s = map(capsule.unwrap, %(args)s)' % locals())
@@ -255,9 +257,9 @@ class PyCodeWriter(CodeWriterBase):
     def unwrap(self, val):
         return self.call('capsule.unwrap', args=(val,), ret='unwrapped')
 
-    def wrap(self, val):
+    def wrap(self, val, owned):
         wrapped = self.new_symbol('wrapped')
-        self.println('%(wrapped)s = capsule.wrap(%(val)s)' % locals())
+        self.println('%(wrapped)s = capsule.wrap(%(val)s, %(owned)s)' % locals())
         return wrapped
 
     def call(self, func, args=(), varargs=None, ret='ret'):

@@ -11,3 +11,7 @@ class SmallVector_Value:
     _realname_ = 'SmallVector<llvm::Value*,8>'
     delete = Destructor()
 
+@llvm.Class()
+class SmallVector_Unsigned:
+    _realname_ = 'SmallVector<unsigned,8>'
+    delete = Destructor()

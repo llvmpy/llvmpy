@@ -6,6 +6,7 @@ from raw_ostream import raw_ostream
 Type = llvm.Class()
 IntegerType = llvm.Class(Type)
 CompositeType = llvm.Class(Type)
+StructType = llvm.Class(CompositeType)
 SequentialType = llvm.Class(CompositeType)
 PointerType = llvm.Class(SequentialType)
 
@@ -113,3 +114,6 @@ class SequentialType:
 class PointerType:
     pass
 
+@StructType
+class StructType:
+    pass

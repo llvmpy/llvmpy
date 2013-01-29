@@ -1,7 +1,11 @@
 import api
 import extra
 import _capsule
+from StringIO import StringIO
 api.capsule.set_debug(True)
+
+
+api.InitializeNativeTarget()
 context = api.getGlobalContext()
 
 
@@ -70,4 +74,14 @@ ret = builder.CreateCall(fn, [arg0, arg1], '')
 builder.CreateRet(ret)
 
 print fn
+
+errio = StringIO()
+ee = api.ExecutionEngine.createJIT(m)
+print ee, errio.getvalue()
+print ee.getDataLayout().getStringRepresentation()
+
+datalayout_str = 'e-p:64:64:64-S128-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f16:16:16-f32:32:32-f64:64:64-f128:128:128-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64'
+
+assert datalayout_str == str(api.DataLayout.new(datalayout_str))
+assert datalayout_str == str(api.DataLayout.new(str(api.DataLayout.new(datalayout_str))))
 

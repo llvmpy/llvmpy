@@ -36,7 +36,8 @@ class Module:
     appendModuleInlineAsm = Method(Void, cast(str, StringRef))
 
     # Function Accessors
-    getOrInsertFunction = Method(ptr(Constant), cast(str, StringRef), ptr(FunctionType))
+    getOrInsertFunction = Method(ptr(Constant), cast(str, StringRef),
+                                 ptr(FunctionType))
 
     # Utilities
     dump = Method(Void)

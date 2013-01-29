@@ -39,6 +39,7 @@ populate_submodules(module, submodules);
 
 def populate_headers(println):
     includes = [
+                'cstring',
                 'llvm_binding/conversion.h',
                 'llvm_binding/binding.h',
                 'llvm_binding/capsule_context.h',
@@ -70,6 +71,9 @@ def main():
         for cls in ns.classes:
             print cls
             units.append(cls)
+        for enum in ns.enums:
+            print enum
+            units.append(enum)
 
     # add extra stuffs
     downcastlist = []
@@ -84,7 +88,7 @@ def main():
                 units.append(fn)
 
 
-    # generate cpp source
+    # Generate C++ source
     with open('%s.cpp' % outputfilename, 'w') as cppfile:
         println = wrap_println_from_file(cppfile)
 
@@ -93,6 +97,8 @@ def main():
 
         # required headers
         includes = set()
+        for ns in namespaces.values():
+            includes |= ns.includes
         for u in units:
             includes |= u.includes
 
@@ -128,7 +134,7 @@ static
             for u in units:
                 if isinstance(u, Function):
                     name = u.name
-                    func = codegen.mangle(u.fullname)
+                    func = u.c_name
                     writer.println(fmt % locals())
             writer.println('{ NULL },')
         writer.println('};')
@@ -154,6 +160,7 @@ static
 
         println(extension_entry % {'module': '_api', 'methtable': 'methtable'})
 
+    # Generate Python source
     with open('%s.py' % outputfilename, 'w') as pyfile:
         println = wrap_println_from_file(pyfile)
         println('import _api, capsule')

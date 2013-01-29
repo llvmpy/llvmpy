@@ -39,6 +39,16 @@ PyObject* pycapsule_new(void* ptr,
 }
 
 
+static
+PyObject* pycapsule_new(const void* ptr,
+                        const char* basename,
+                        const char* classname=NULL)
+{
+    // Use const_cast to strip the constantness.
+    // Let the user take the responsibility.
+    return pycapsule_new(const_cast<void*>(ptr), basename, classname);
+}
+
 
 #endif //LLVMPY_CAPSULE_CONTEXT_H_
 

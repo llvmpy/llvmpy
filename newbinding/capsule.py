@@ -23,10 +23,11 @@ class WeakRef(ref):
 
 _pyclasses = {}
 _addr2obj = WeakValueDictionary()
-_owners = {}
+_owners = {}   # address to weak reference
 
 def _sentry(ptr):
-    assert _capsule.check(ptr)
+    if not _capsule.check(ptr):
+        raise ValueError('Must provide a PyCapsule object.')
 
 def classof(cap):
     cls = _capsule.getClassName(cap)
@@ -38,17 +39,16 @@ def _capsule_destructor(weak):
         addr = _capsule.getPointer(cap)
         cls = _capsule.getClassName(cap)
         logger.debug("destroy pointer 0x%08X to %s", addr, cls)
-        weak.dtor(cap)
+#        weak.dtor(cap)
         del _owners[addr]
 
 def release_ownership(old):
     addr = _capsule.getPointer(old)
-    if hasattr(old, '_delete_'):
-        oldweak = _owners[addr]
-        oldweak.owning = False # dis-own
-        del _owners[addr]
+    oldweak = _owners[addr]
+    oldweak.owning = False # dis-own
+    del _owners[addr]
 
-def wrap(cap):
+def wrap(cap, owned=False):
     '''Wrap a PyCapsule with the corresponding Wrapper class.
     If `cap` is not a PyCapsule, returns `cap`
     '''
@@ -66,7 +66,8 @@ def wrap(cap):
         obj = cls(cap)
         _addr2obj[addr] = obj       # cache object by address
         # set ownership if *cls* defines *_delete_*
-        if hasattr(cls, '_delete_'):
+        if not owned and hasattr(cls, '_delete_'):
+            assert addr not in _owners, "has existing owner"
             weak = WeakRef(obj, _capsule_destructor)
             _owners[addr] = weak
             weak.capsule = cap
@@ -84,10 +85,11 @@ def wrap(cap):
 
 def downcast(old, new):
     assert old is not new
+    assert _capsule.getPointer(old) not in _owners
     oldcls = classof(old)
     newcls = classof(new)
     assert issubclass(newcls, oldcls)
-    release_ownership(old)
+    #    release_ownership(old)
     del _addr2obj[_capsule.getPointer(old)] # clear cache
     return wrap(new)
 

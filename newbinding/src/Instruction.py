@@ -26,9 +26,9 @@ IntrinsicInst = llvm.Class(CallInst)
 FCmpInst = llvm.Class(CmpInst)
 ICmpInst = llvm.Class(CmpInst)
 
-
 BranchInst = llvm.Class(TerminatorInst)
 IndirectBrInst = llvm.Class(TerminatorInst)
+InvokeInst = llvm.Class(TerminatorInst)
 ResumeInst = llvm.Class(TerminatorInst)
 ReturnInst = llvm.Class(TerminatorInst)
 SwitchInst = llvm.Class(TerminatorInst)
@@ -56,14 +56,14 @@ FPTruncInst = llvm.Class(CastInst)
 class Instruction:
     pass
 
-
 @AtomicCmpXchgInst
 class AtomicCmpXchgInst:
     pass
 
 @AtomicRMWInst
 class AtomicRMWInst:
-    pass
+    BinOp = Enum('Xchg', 'Add', 'Sub', 'And', 'Nand', 'Or', 'Xor', 'Max', 'Min',
+                 'UMax', 'UMin', 'FIRST_BINOP', 'LAST_BINOP', 'BAD_BINOP')
 
 @BinaryOperator
 class BinaryOperator:
@@ -75,7 +75,17 @@ class CallInst:
 
 @CmpInst
 class CmpInst:
-    pass
+    Predicate = Enum('FCMP_FALSE', 'FCMP_OEQ', 'FCMP_OGT', 'FCMP_OGE',
+                     'FCMP_OLT', 'FCMP_OLE', 'FCMP_ONE', 'FCMP_ORD', 'FCMP_UNO',
+                     'FCMP_UEQ', 'FCMP_UGT', 'FCMP_UGE', 'FCMP_ULT', 'FCMP_ULE',
+                     'FCMP_UNE', 'FCMP_TRUE', 'FIRST_FCMP_PREDICATE',
+                     'LAST_FCMP_PREDICATE',
+                     'BAD_FCMP_PREDICATE',
+                     'ICMP_EQ', 'ICMP_NE', 'ICMP_UGT', 'ICMP_UGE', 'ICMP_ULT',
+                     'ICMP_ULE', 'ICMP_SGT', 'ICMP_SGE', 'ICMP_SLT', 'ICMP_SLE',
+                     'FIRST_ICMP_PREDICATE',
+                     'LAST_ICMP_PREDICATE',
+                     'BAD_ICMP_PREDICATE',)
 
 @ExtractElementInst
 class ExtractElementInst:
@@ -146,9 +156,12 @@ class ICmpInst:
 class BranchInst:
     pass
 
-
 @IndirectBrInst
 class IndirectBrInst:
+    pass
+
+@InvokeInst
+class InvokeInst:
     pass
 
 @ResumeInst
@@ -228,3 +241,12 @@ class FPToUIInst:
 @FPTruncInst
 class FPTruncInst:
     pass
+
+AtomicOrdering = llvm.Enum('AtomicOrdering',
+                           'NotAtomic', 'Unordered', 'Monotonic', 'Acquire',
+                           'Release', 'AcquireRelease',
+                           'SequentiallyConsistent')
+
+SynchronizationScope = llvm.Enum('SynchronizationScope',
+                                 'SingleThread', 'CrossThread')
+

@@ -5,11 +5,15 @@ import codegen as cg
 _rank = 0
 namespaces = {}
 
+RESERVED = frozenset(['None'])
+
 class Namespace(object):
     def __init__(self, name):
         self.name = name
+        self.enums = []
         self.classes = []
         self.functions = []
+        self.includes = set()
         namespaces[name] = self
 
     def Class(self, *bases):
@@ -21,6 +25,13 @@ class Namespace(object):
         fn = Function(self, *args)
         self.functions.append(fn)
         return fn
+
+    def Enum(self, name, *value_names):
+        enum = Enum(*value_names)
+        enum.parent = self
+        enum.name = name
+        self.enums.append(enum)
+        return enum
 
     @property
     def fullname(self):
@@ -43,11 +54,16 @@ class BuiltinTypes(_Type):
     def wrap(self, writer, var):
         return var
 
+    def unwrap(self, writer, var):
+        return var
+
 Void = BuiltinTypes('void')
 Unsigned = BuiltinTypes('unsigned')
+Uint64 = BuiltinTypes('uint64_t')
 Bool = BuiltinTypes('bool')
 ConstStdString = BuiltinTypes('const std::string')
 PyObjectPtr = BuiltinTypes('PyObject*')
+PyObjectPtr.format='O'
 
 class Class(_Type):
     format = 'O'
@@ -78,6 +94,7 @@ class Class(_Type):
                 self.enums.append(v)
                 v.name = k
                 v.parent = self
+                setattr(self, k, v)
             elif isinstance(v, CustomPythonMethod):
                 self.pymethods.append(v)
             elif k == '_include_':
@@ -108,7 +125,7 @@ class Class(_Type):
             fmt = '{ "%(name)s", (PyCFunction)%(func)s, METH_VARARGS, NULL },'
             for meth in self.methods:
                 name = meth.name
-                func = cg.mangle(meth.fullname)
+                func = meth.c_name
                 writer.println(fmt % locals())
             writer.println('{ NULL },')
         writer.println('};')
@@ -161,9 +178,12 @@ class Class(_Type):
         return casted
 
 class Enum(object):
+    format = 'O'
+    
     def __init__(self, *value_names):
         self.parent = None
         self.value_names = value_names
+        self.includes = set()
 
     @property
     def fullname(self):
@@ -191,11 +211,34 @@ class Enum(object):
                     writer.raises(ValueError, 'Invalid enum %s' % v)
         return ret
 
+    def unwrap(self, writer, val):
+        tostring = 'PyString_AsString(%(val)s)' % locals()
+        string = writer.declare('const char*', tostring)
+        ret = writer.declare('%s::%s' % (self.parent, self.name))
+        parent = self.parent
+        iffmt = 'if (string_equal(%(string)s, "%(v)s"))'
+        for i, v in enumerate(self.value_names):
+            with writer.block(iffmt % locals()):
+                fmt = '%(ret)s = %(parent)s::%(v)s;'
+                writer.println(fmt % locals())
+            if i == 0:
+                iffmt = 'else ' + iffmt
+        with writer.block('else'):
+            writer.raises(ValueError, 'Invalid enum.')
+        return ret
+
+    def compile_cpp(self, writer):
+        pass
+
     def compile_py(self, writer):
         with writer.block('class %s:' % self.name):
             writer.println('_llvm_type_ = "%s"' % self.fullname)
             for v in self.value_names:
-                writer.println('%(v)s = "%(v)s"' % locals())
+                if v in RESERVED:
+                    k = '%s_' % v
+                else:
+                    k = v
+                writer.println('%(k)s = "%(v)s"' % locals())
         writer.println()
 
 class Method(object):
@@ -236,11 +279,15 @@ class Method(object):
     def realname(self, v):
         self.__realname = v
 
+    @property
+    def c_name(self):
+        return cg.mangle("%s_%s" % (self.parent, self.name))
+
     def __str__(self):
         return self.fullname
 
     def compile_cpp(self, writer):
-        with writer.py_function(self.fullname):
+        with writer.py_function(self.c_name):
             if len(self.signatures) == 1:
                 sig = self.signatures[0]
                 retty = sig[0]
@@ -270,13 +317,40 @@ class Method(object):
         with decl as (this, varargs):
             unwrap_this = writer.unwrap(this)
             unwrapped = writer.unwrap_many(varargs)
+            self.process_ownedptr_args(writer, unwrapped)
+            
             func = '.'.join([self.parent.name, self.name])
             ret = writer.call('_api.%s' % func,
                               args=(unwrap_this,), varargs=unwrapped)
-            wrapped = writer.wrap(ret)
+
+            wrapped = writer.wrap(ret, self.is_return_ownedptr())
+
             writer.return_value(wrapped)
             writer.println()
 
+    def require_only(self, num):
+        '''Require only "num" of argument.
+        '''
+        assert len(self.signatures) == 1
+        sig = self.signatures[0]
+        ret = sig[0]
+        args = sig[1:]
+        arg_ct = len(args)
+
+        for i in range(num, arg_ct):
+            self._add_signature(ret, *args[:i])
+
+        return self
+
+    def is_return_ownedptr(self):
+        retty = self.signatures[0][0]
+        return isinstance(retty, ownedptr)
+    
+    def process_ownedptr_args(self, writer, unwrapped):
+        argtys = self.signatures[0][1:]
+        for i, ty in enumerate(argtys):
+            if isinstance(ty, ownedptr):
+                writer.release_ownership('%s[%d]' % (unwrapped, i))
 
 class CustomMethod(Method):
     def __init__(self, methodname, retty, *argtys):
@@ -289,7 +363,6 @@ class CustomMethod(Method):
         writer.return_value(retty.wrap(writer, ret))
 
         
-
 class StaticMethod(Method):
 
     def compile_cpp_body(self, writer, retty, argtys):
@@ -307,11 +380,23 @@ class StaticMethod(Method):
         decl = writer.function(self.name, varargs='args')
         with decl as varargs:
             unwrapped = writer.unwrap_many(varargs)
+            self.process_ownedptr_args(writer, unwrapped)
+            
             func = '.'.join([self.parent.name, self.name])
             ret = writer.call('_api.%s' % func, varargs=unwrapped)
-            wrapped = writer.wrap(ret)
+            wrapped = writer.wrap(ret, self.is_return_ownedptr())
             writer.return_value(wrapped)
             writer.println()
+
+class CustomStaticMethod(StaticMethod):
+    def __init__(self, methodname, retty, *argtys):
+        super(CustomStaticMethod, self).__init__(retty, *argtys)
+        self.methodname = methodname
+
+    def compile_cpp_body(self, writer, retty, argtys):
+        args = writer.parse_arguments('args', *argtys)
+        ret = writer.call(self.methodname, retty.fullname, *args)
+        writer.return_value(retty.wrap(writer, ret))
 
 class Function(Method):
     _kind_ = 'func'
@@ -329,10 +414,11 @@ class Function(Method):
     def compile_py(self, writer):
         with writer.function(self.name, varargs='args') as varargs:
             unwrapped = writer.unwrap_many(varargs)
+            self.process_ownedptr_args(writer, unwrapped)
             func = self.fullname.split('::', 1)[1].replace('::', '.')
             ret = writer.call('_api.%s' % func,
                               varargs=unwrapped)
-            wrapped = writer.wrap(ret)
+            wrapped = writer.wrap(ret, self.is_return_ownedptr())
             writer.return_value(wrapped)
         writer.println()
 
@@ -400,10 +486,14 @@ class ptr(_Type):
     def __init__(self, element):
         assert isinstance(element, Class)
         self.element = element
+        self.const = False
 
     @property
     def fullname(self):
-        return '%s*' % self.element
+        if self.const:
+            return 'const %s*' % self.element
+        else:
+            return '%s*' % self.element
 
     @property
     def format(self):
@@ -419,6 +509,13 @@ class ptr(_Type):
     def wrap(self, writer, val):
         return writer.pycapsule_new(val, self.element.capsule_name,
                                     self.element.fullname)
+
+class ownedptr(ptr):
+    pass
+
+def const(ptr):
+    ptr.const = True
+    return ptr
 
 class cast(_Type):
     format = 'O'
@@ -456,7 +553,6 @@ class cast(_Type):
         status = writer.call('py_%(src)s_to' % locals(), 'int', val, ret)
         writer.die_if_false(status)
         return ret
-
 
 
 class CustomPythonMethod(object):
