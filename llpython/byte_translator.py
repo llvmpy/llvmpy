@@ -225,6 +225,12 @@ class LLVMTranslator (BytecodeFlowVisitor):
         return ret_val
 
     def exit_block (self, block):
+        bb_instrs = self.llvm_block.instructions
+        if ((len(bb_instrs) == 0) or
+                (not bb_instrs[-1].is_terminator)):
+            out_blocks = list(self.cfg.blocks_out[block])
+            assert len(out_blocks) == 1
+            self.builder.branch(self.llvm_blocks[out_blocks[0]])
         del self.llvm_block
         del self.builder
 
