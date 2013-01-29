@@ -127,9 +127,10 @@ class PhiInjector (BenignBytecodeVisitorMixin, BytecodeFlowVisitor):
 def inject_phis (func):
     '''Given a Python function, return a bytecode flow object that has
     been transformed by a fresh PhiInjector instance.'''
-    import byte_control
+    import byte_control, byte_flow
     argcount = byte_control.opcode_util.get_code_object(func).co_argcount
     cfg = byte_control.build_cfg(func)
+    cfg.blocks = byte_flow.BytecodeFlowBuilder().visit_cfg(cfg)
     return PhiInjector().visit_cfg(cfg, argcount)
 
 # ______________________________________________________________________

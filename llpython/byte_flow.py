@@ -4,13 +4,13 @@
 import dis
 import opcode
 
-from bytecode_visitor import BytecodeIterVisitor
+from bytecode_visitor import BasicBlockVisitor
 import opcode_util
 
 # ______________________________________________________________________
 
-class BytecodeFlowBuilder (BytecodeIterVisitor):
-    '''Transforms a bytecode vector into a bytecode "flow tree".
+class BytecodeFlowBuilder (BasicBlockVisitor):
+    '''Transforms a CFG into a bytecode "flow tree".
 
     The flow tree is a Python dictionary, described loosely by the
     following set of productions:
@@ -36,6 +36,8 @@ class BytecodeFlowBuilder (BytecodeIterVisitor):
         if pops:
             if pops < 0:
                 pops = arg - pops - 1
+            assert pops <= len(self.stack), ("Stack underflow at instruction "
+                                             "%d (%s)!" % (i, opname))
             stk_args = self.stack[-pops:]
             del self.stack[-pops:]
         else:
@@ -51,27 +53,50 @@ class BytecodeFlowBuilder (BytecodeIterVisitor):
         opname, pops, pushes, appends = self.opmap[op]
         return self._visit_op(i, op, arg, opname, pops, pushes, appends)
 
-    def enter_code_object (self, co_obj):
-        labels = dis.findlabels(co_obj.co_code)
-        labels = opcode_util.extendlabels(co_obj.co_code, labels)
+    def visit_cfg (self, cfg):
+        self.cfg = cfg
+        ret_val = self.visit(cfg.blocks)
+        del self.cfg
+        return ret_val
+
+    def enter_blocks (self, blocks):
+        labels = list(blocks.keys())
+        labels.sort()
         self.blocks = dict((index, [])
                            for index in labels)
-        self.stack = []
         self.loop_stack = []
-        self.blocks[0] = self.block = []
+        self.stacks = {}
 
-    def exit_code_object (self, co_obj):
+    def exit_blocks (self, blocks):
         ret_val = self.blocks
-        del self.stack
+        del self.stacks
         del self.loop_stack
-        del self.block
         del self.blocks
         return ret_val
 
-    def visit_op (self, i, op, arg):
-        if i in self.blocks:
-            self.block = self.blocks[i]
-        return super(BytecodeFlowBuilder, self).visit_op(i, op, arg)
+    def enter_block (self, block):
+        self.block_no = block
+        self.block = self.blocks[block]
+        in_blocks = self.cfg.blocks_in[block]
+        if len(in_blocks) == 0:
+            self.stack = []
+        else:
+            pred_stack = None
+            for pred in in_blocks:
+                if pred in self.stacks:
+                    pred_stack = self.stacks[pred]
+                    break
+            if pred_stack is not None:
+                self.stack = pred_stack[:]
+            else:
+                raise NotImplementedError()
+
+    def exit_block (self, block):
+        assert self.block_no == block
+        self.stacks[block] = self.stack
+        del self.stack
+        del self.block
+        del self.block_no
 
     op_BINARY_ADD = _op
     op_BINARY_AND = _op
@@ -140,8 +165,14 @@ class BytecodeFlowBuilder (BytecodeIterVisitor):
     op_INPLACE_XOR = _op
     op_JUMP_ABSOLUTE = _op
     op_JUMP_FORWARD = _op
-    op_JUMP_IF_FALSE = _op
-    op_JUMP_IF_TRUE = _op
+
+    def op_JUMP_IF_FALSE (self, i, op, arg):
+        opname, _, _, _ = self.opmap[op]
+        ret_val = (i, op, opname, arg, [self.stack[-1]])
+        self.block.append(ret_val)
+        return ret_val
+
+    op_JUMP_IF_TRUE = op_JUMP_IF_FALSE
     op_LIST_APPEND = _op
     op_LOAD_ATTR = _op
     op_LOAD_CLOSURE = _op
@@ -211,7 +242,9 @@ class BytecodeFlowBuilder (BytecodeIterVisitor):
 def build_flow (func):
     '''Given a Python function, return a bytecode flow tree for that
     function.'''
-    return BytecodeFlowBuilder().visit(opcode_util.get_code_object(func))
+    import byte_control
+    cfg = byte_control.build_cfg(func)
+    return BytecodeFlowBuilder().visit_cfg(cfg)
 
 # ______________________________________________________________________
 # Main (self-test) routine

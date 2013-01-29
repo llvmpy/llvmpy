@@ -164,6 +164,32 @@ class BytecodeIterVisitor (BytecodeVisitor):
 
 # ______________________________________________________________________
 
+class BasicBlockVisitor (BytecodeVisitor):
+    def visit (self, blocks):
+        self.enter_blocks(blocks)
+        block_indices = list(blocks.keys())
+        block_indices.sort()
+        for block_index in block_indices:
+            self.enter_block(block_index)
+            for i, op, arg in blocks[block_index]:
+                self.visit_op(i, op, arg)
+            self.exit_block(block_index)
+        return self.exit_blocks(blocks)
+
+    def enter_blocks (self, blocks):
+        pass
+
+    def exit_blocks (self, blocks):
+        pass
+
+    def enter_block (self, block_index):
+        pass
+
+    def exit_block (self, block_index):
+        pass
+
+# ______________________________________________________________________
+
 class BytecodeFlowVisitor (BytecodeVisitor):
     def visit (self, flow):
         self.block_list = list(flow.keys())

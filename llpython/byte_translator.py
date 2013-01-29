@@ -153,7 +153,7 @@ class LLVMTranslator (BytecodeFlowVisitor):
         environment.'''
         if llvm_type is None:
             if llvm_function is None:
-                llvm_type = lc.Type.function(lvoid, ())
+                llvm_type = lc.Type.function(bytetype.lvoid, ())
             else:
                 llvm_type = llvm_function.type.pointee
         if env is None:
@@ -178,7 +178,8 @@ class LLVMTranslator (BytecodeFlowVisitor):
         self.globals = func_globals
         nargs = self.code_obj.co_argcount
         self.cfg = self.control_flow_builder.visit(
-            self.bytecode_flow_builder.visit(self.code_obj), nargs)
+            opcode_util.build_basic_blocks(self.code_obj), nargs)
+        self.cfg.blocks = self.bytecode_flow_builder.visit_cfg(self.cfg)
         self.llvm_function = llvm_function
         flow = self.phi_injector.visit_cfg(self.cfg, nargs)
         ret_val = self.visit(flow)
@@ -450,7 +451,7 @@ class LLVMTranslator (BytecodeFlowVisitor):
 
     def op_JUMP_IF_FALSE (self, i, op, arg, *args, **kws):
         cond = args[0]
-        block_false = self.llvm_blocks[op]
+        block_false = self.llvm_blocks[i + 3 + arg]
         block_true = self.llvm_blocks[i + 3]
         return [self.builder.cbranch(cond, block_true, block_false)]
         # raise NotImplementedError("LLVMTranslator.op_JUMP_IF_FALSE")

@@ -79,9 +79,9 @@ OPCODE_MAP = {
     'INPLACE_XOR': (2, 1, None),
     'JUMP_ABSOLUTE': (0, None, 1),
     'JUMP_FORWARD': (0, None, 1),
-    'JUMP_IF_FALSE': (1, None, 1),
+    'JUMP_IF_FALSE': (1, 1, 1),
     'JUMP_IF_FALSE_OR_POP': (None, None, None),
-    'JUMP_IF_TRUE': (1, None, 1),
+    'JUMP_IF_TRUE': (1, 1, 1),
     'JUMP_IF_TRUE_OR_POP': (None, None, None),
     'LIST_APPEND': (2, 0, 1),
     'LOAD_ATTR': (1, 1, None),
@@ -148,7 +148,7 @@ OPCODE_MAP = {
 # ______________________________________________________________________
 # Module functions
 
-def itercode(code):
+def itercode(code, start = 0):
     """Return a generator of byte-offset, opcode, and argument
     from a byte-code-string
     """
@@ -159,7 +159,7 @@ def itercode(code):
     n = len(code)
     while i < n:
         op = code[i]
-        num = i
+        num = i + start
         i = i + 1
         oparg = None
         if op >= opcode.HAVE_ARGUMENT:
@@ -210,6 +210,17 @@ def extendlabels(code, labels = None):
 
 def get_code_object (func):
     return getattr(func, '__code__', getattr(func, 'func_code', None))
+
+# ______________________________________________________________________
+
+def build_basic_blocks (co_obj):
+    co_code = co_obj.co_code
+    labels = extendlabels(co_code, dis.findlabels(co_code))
+    labels.sort()
+    blocks = dict((index, list(itercode(co_code[index:next_index], index)))
+                  for index, next_index in zip([0] + labels,
+                                               labels + [len(co_code)]))
+    return blocks
 
 # ______________________________________________________________________
 # End of opcode_util.py
