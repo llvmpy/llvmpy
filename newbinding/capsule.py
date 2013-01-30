@@ -1,5 +1,5 @@
-import _capsule
-from weakref import WeakValueDictionary, ref
+from weakref import WeakKeyDictionary, WeakValueDictionary, ref
+from collections import defaultdict
 import logging
 logger = logging.getLogger(__name__)
 
@@ -17,81 +17,106 @@ def set_debug(enabled):
     else:
         logger.setLevel(logging.WARNING)
 
+def _capsule_weakref_dtor(item):
+    addr = item.pointer
+    _addr2refct[addr] -= 1
+    refct = _addr2refct[addr]
+    assert refct >= 0, "RefCt drop below 0"
+    if refct == 0:
+        dtor = _addr2dtor.pop(addr, None)
+        if dtor is not None:
+            logger.debug('Destroy %s %s', item.name, hex(item.pointer))
+            dtor(item.capsule)
+
+class Capsule(object):
+    "Wraps PyCapsule so that we can build weakref of it."
+
+    from _capsule import check, getClassName, getName, getPointer
+    
+    def __init__(self, capsule):
+        assert Capsule.valid(capsule)
+        self.capsule = capsule
+
+        weak = WeakRef(self, _capsule_weakref_dtor)
+        weak.pointer = self.pointer
+        weak.capsule = capsule
+        weak.name = self.name
+        _capsule2weak[self] = weak
+        _addr2refct[self.pointer] += 1
+
+    @property
+    def classname(self):
+        return Capsule.getClassName(self.capsule)
+
+    @property
+    def name(self):
+        return Capsule.getName(self.capsule)
+
+    @property
+    def pointer(self):
+        return Capsule.getPointer(self.capsule)
+
+    @staticmethod
+    def valid(capsule):
+        return Capsule.check(capsule)
+
+    def get_class(self):
+        return _pyclasses[self.classname]
+
+    def instantiate(self):
+        cls = self.get_class()
+        return cls(self)
+
+    def __eq__(self, other):
+        if self.pointer == other.pointer:
+            assert self.name == other.name
+            return True
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not (self == other)
 
 class WeakRef(ref):
-    __slots__ = 'capsule', 'dtor', 'owning'
+    pass
 
+_addr2refct = defaultdict(lambda: 0)
+_capsule2weak = WeakKeyDictionary()
+_addr2dtor = {}
 _pyclasses = {}
-_addr2obj = WeakValueDictionary()
-_owners = {}   # address to weak reference
 
-def _sentry(ptr):
-    if not _capsule.check(ptr):
-        raise ValueError('Must provide a PyCapsule object.')
-
-def classof(cap):
-    cls = _capsule.getClassName(cap)
-    return _pyclasses[cls]
-
-def _capsule_destructor(weak):
-    if weak.owning:
-        cap = weak.capsule
-        addr = _capsule.getPointer(cap)
-        cls = _capsule.getClassName(cap)
-        logger.debug("destroy pointer 0x%08X to %s", addr, cls)
-#        weak.dtor(cap)
-        del _owners[addr]
+# Cache {cls: {addr: obj}}
+# NOTE: The same 'addr' may appear in multiple class bins.
+_cache = defaultdict(WeakValueDictionary)
 
 def release_ownership(old):
-    addr = _capsule.getPointer(old)
-    oldweak = _owners[addr]
-    oldweak.owning = False # dis-own
-    del _owners[addr]
+    logger.debug('Release %s', old)
+    _addr2dtor[Capsule.getPointer(old)] = None
+
+def has_ownership(cap):
+    addr = Capsule.getPointer(cap)
+    return _addr2dtor.get(addr) is not None
 
 def wrap(cap, owned=False):
     '''Wrap a PyCapsule with the corresponding Wrapper class.
     If `cap` is not a PyCapsule, returns `cap`
     '''
-    if not _capsule.check(cap):
+    if not Capsule.valid(cap):
         if isinstance(cap, list):
             return map(wrap, cap)
         return cap     # bypass if cap is not a PyCapsule and not a list
-    addr = _capsule.getPointer(cap)
-    try:
-        # find cached object by pointer address
-        obj = _addr2obj[addr]
-    except KeyError:
-        # create new object and cache it
-        cls = classof(cap)
-        obj = cls(cap)
-        _addr2obj[addr] = obj       # cache object by address
-        # set ownership if *cls* defines *_delete_*
-        if not owned and hasattr(cls, '_delete_'):
-            assert addr not in _owners, "has existing owner"
-            weak = WeakRef(obj, _capsule_destructor)
-            _owners[addr] = weak
-            weak.capsule = cap
-            weak.owning = True
-            weak.dtor = cls._delete_
-    else:
-        oldcls = classof(obj._ptr)
-        newcls = classof(cap)
-        if issubclass(oldcls, newcls):
-            # do auto downcast
-            pass
-        else:
-            assert oldcls is newcls, (cap, obj, oldcls, newcls)
-    return obj
 
-def downcast(old, new):
-    assert old is not new
-    assert _capsule.getPointer(old) not in _owners
-    oldcls = classof(old)
-    newcls = classof(new)
-    assert issubclass(newcls, oldcls)
-    #    release_ownership(old)
-    del _addr2obj[_capsule.getPointer(old)] # clear cache
-    return wrap(new)
+    cap = Capsule(cap)
+    cls = cap.get_class()
+    addr = cap.pointer
+    try: # lookup cached object
+        return _cache[cls][addr]
+    except KeyError:
+        if not owned and hasattr(cls, '_delete_'):
+            _addr2dtor[addr] = cls._delete_
+        obj = cap.instantiate()
+        _cache[cls][addr] = obj    # cache it
+    return obj
 
 def unwrap(obj):
     '''Unwrap a Wrapper instance into the underlying PyCapsule.
@@ -112,13 +137,43 @@ def register_class(clsname):
 
 class Wrapper(object):
 
-    __slots__ = '__ptr'
+    __slots__ = '__capsule'
 
-    def __init__(self, ptr):
-        _sentry(ptr)
-        self.__ptr = ptr
+    def __init__(self, capsule):
+        self.__capsule = capsule
+
+    @property
+    def _capsule(self):
+        return self.__capsule
 
     @property
     def _ptr(self):
-        return self.__ptr
+        return self._capsule.capsule
 
+    def __eq__(self, other):
+        return self._capsule == other._capsule
+
+    def __ne__(self, other):
+        return self._capsule != other._capsule
+
+    def _downcast(self, newcls):
+        return downcast(self, newcls)
+
+def downcast(obj, cls):
+    import _api
+    if type(obj) is cls:
+        return obj
+    fromty = obj._llvm_type_
+    toty = cls._llvm_type_
+    logger.debug("Downcast %s to %s" , fromty, toty)
+    fname = 'downcast_%s_to_%s' % (fromty, toty)
+    fname = fname.replace('::', '_')
+    try:
+        caster = getattr(_api, fname)
+    except AttributeError:
+        fmt = "Downcast from %s to %s is not supported"
+        raise TypeError(fmt % (fromty, toty))
+    old = unwrap(obj)
+    new = caster(old)
+    used_to_own = has_ownership(old)
+    return wrap(new, owned=not used_to_own)

@@ -22,22 +22,4 @@ def _init(glob):
 
 _init(globals())
 
-#
-# Downcasts
-#
 
-def downcast(obj, cls):
-    if type(obj) is cls:
-        return obj
-    fromty = obj._llvm_type_
-    toty = cls._llvm_type_
-    fname = 'downcast_%s_to_%s' % (fromty, toty)
-    fname = fname.replace('::', '_')
-    try:
-        caster = getattr(_api, fname)
-    except AttributeError:
-        fmt = "Downcast from %s to %s is not supported"
-        raise TypeError(fmt % (fromty, toty))
-    old = capsule.unwrap(obj)
-    new = caster(old)
-    return capsule.downcast(old, new)
