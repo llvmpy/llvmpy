@@ -454,7 +454,7 @@ class TestEngineBuilder(TestCase):
         with self.assertRaises(llvm.LLVMException):
             # Ensure the targetmachine is owned.
             llvm._util.check_is_unowned(tm)
-        
+
 
         with self.assertRaises(llvm.LLVMException):
             # Ensure the module is owned.
@@ -932,7 +932,7 @@ class TestCPUSupport(TestCase):
 
         arg = le.GenericValue.real(Type.double(), 1.234)
         retval = ee.run_function(func, [arg])
-        
+
         golden = math.sin(1.234)
         answer = retval.as_real(Type.double())
         self.assertTrue(abs(answer-golden)/golden < 1e-5)

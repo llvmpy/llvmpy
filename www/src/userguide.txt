@@ -35,7 +35,7 @@ information is available link:license.html[here].
 .Platforms
 llvm-py has been built/tested/reported to work on various GNU/Linux
 flavours, *BSD, Mac OS X; on i386 and amd64 architectures. Windows is not
-supported, for a variety of reasons. 
+supported, for a variety of reasons.
 
 .Versions
 llvm-py 0.6 requires verion 2.7 of LLVM. It will not work with previous
@@ -433,7 +433,7 @@ Here is a quick overview of the contents of each package:
   sizes and alignment of primitive types, endinanness etc)
 
 .llvm.passes
-- PassManager -- represents an LLVM pass manager 
+- PassManager -- represents an LLVM pass manager
 - FunctionPassManager -- represents an LLVM function pass manager
 - constants +PASS_*+ that represent various passes
 
@@ -1007,7 +1007,7 @@ The `Function` object represents an instance of a function type.
 Such objects contain `Argument` objects, which represent the actual,
 local-variable-like arguments of the function (not to be confused with
 the arguments returned by a function _type_ object -- these represent
-the _type_ of the arguments). 
+the _type_ of the arguments).
 
 The various `Instruction`-s are created by the `Builder` class. Most
 instructions are represented by `Instruction` itself, but there are
@@ -1260,7 +1260,7 @@ Global Value (llvm.core)
 
 The class `llvm.core.GlobalValue` represents module-scope aliases, variables
 and functions. Global variables are represented by the sub-class
-`llvm.core.GlobalVariable` and functions by `llvm.core.Function`. 
+`llvm.core.GlobalVariable` and functions by `llvm.core.Function`.
 
 Global values have the read-write properties `linkage`, `section`,
 `visibility` and `alignment`. Use one of the following constants (from
@@ -1841,7 +1841,7 @@ The `llvm.core.PHINode` is a subclass of
 created (using `Builder.phi`) the phi node contains no incoming
 blocks (nor their corresponding values). To add an incoming arc to
 the phi node, use the `add_incoming` method, which takes a source
-block (`llvm.core.BasicBlock` object) and a value (object of 
+block (`llvm.core.BasicBlock` object) and a value (object of
 `llvm.core.Value` or of a class derived from it) that the phi node
 will take on if control branches in from that block.
 

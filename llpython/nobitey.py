@@ -16,7 +16,7 @@ from pyaddfunc import pyaddfunc
 
 LLVM_TO_INT_PARSE_STR_MAP = {
     8 : 'b',
-    16 : 'h', 
+    16 : 'h',
     32 : 'i', # Note that on 32-bit systems sizeof(int) == sizeof(long)
     64 : 'L', # Seeing sizeof(long long) == 8 on both 32 and 64-bit platforms
 }

@@ -156,7 +156,7 @@ class PassManager(object):
 
     def add(self, pass_obj):
         '''Add a pass to the pass manager.
-        
+
         pass_obj --- Either a Pass instance, a string name of a pass
         '''
         if isinstance(pass_obj, Pass):
@@ -340,7 +340,7 @@ def build_pass_managers(tm, opt=2, loop_vectorize=False, vectorize=False,
                         inline_threshold=2000, pm=True, fpm=True, mod=None):
     '''
     tm --- The TargetMachine for which the passes are optimizing for.
-           The TargetMachine must stay alive until the pass managers 
+           The TargetMachine must stay alive until the pass managers
            are removed.
     opt --- [0-3] Optimization level. Default to 2.
     loop_vectorize --- [boolean] Whether to use loop-vectorizer.

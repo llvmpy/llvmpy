@@ -18,7 +18,7 @@ def run_llvm_config(args):
 
 if run_llvm_config(['--version']) == '':
     sys.exit("Cannot invoke llvm-config.\n"
-             "Try setting LLVM_CONFIG_PATH=/path/to/llvm-config")        
+             "Try setting LLVM_CONFIG_PATH=/path/to/llvm-config")
 
 def get_libs_and_objs(components):
     parts = run_llvm_config(['--libs'] + components).split()

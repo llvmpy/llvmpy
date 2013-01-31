@@ -139,7 +139,7 @@ def get_opts():
     usage = "usage: %prog [options] srcdir destdir"
 
     p = OptionParser(usage=usage)
-    p.add_option("-f", "--force", action="store_true", dest="force", default=False, 
+    p.add_option("-f", "--force", action="store_true", dest="force", default=False,
         help="ignore timestamps and force build of all files")
     p.add_option("-v", "--verbose", action="count", dest="verbose", default=0,
         help="be chatty (use more v's to be more friendly)")

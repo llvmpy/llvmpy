@@ -63,7 +63,7 @@ Shell32
         print('-lLLVMNVPTXCodeGen')
         print('-lLLVMNVPTXDesc')
         print('-lLLVMNVPTXInfo')
-elif sys.argv[1] == '--includedir': 
+elif sys.argv[1] == '--includedir':
     llvmbin = find_path_of('llvm-tblgen.exe')
     if llvmbin is None:
         raise RuntimeError('Could not find LLVM')
@@ -71,7 +71,7 @@ elif sys.argv[1] == '--includedir':
     if not os.path.exists(os.path.join(incdir, 'llvm/BasicBlock.h')):
         raise RuntimeError('Could not find LLVM include dir')
     print incdir
-elif sys.argv[1] == '--libdir': 
+elif sys.argv[1] == '--libdir':
     llvmbin = find_path_of('llvm-tblgen.exe')
     if llvmbin is None:
         raise RuntimeError('Could not find LLVM')
