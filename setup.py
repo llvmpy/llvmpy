@@ -11,8 +11,6 @@ else:
     default_llvm_config = 'llvm-config'
 
 llvm_config = os.environ.get('LLVM_CONFIG_PATH', default_llvm_config)
-# set LLVMPY_DYNLINK=0, if you want to link _core.so statically
-dynlink = int(os.environ.get('LLVMPY_DYNLINK', 1))
 
 def run_llvm_config(args):
     cmd = llvm_config + ' ' + ' '.join(args)
@@ -20,8 +18,7 @@ def run_llvm_config(args):
 
 if run_llvm_config(['--version']) == '':
     sys.exit("Cannot invoke llvm-config.\n"
-             "Try setting LLVM_CONFIG_PATH=/path/to/llvm-config")
-
+             "Try setting LLVM_CONFIG_PATH=/path/to/llvm-config")        
 
 def get_libs_and_objs(components):
     parts = run_llvm_config(['--libs'] + components).split()
@@ -61,7 +58,37 @@ auto_intrinsic_gen(incdir)
 
 macros = [('__STDC_CONSTANT_MACROS', None),
           ('__STDC_LIMIT_MACROS', None)]
+
+def determine_to_use_dynlink(libdir, llvm_version):
+    user_envvar = os.environ.get('LLVMPY_DYNLINK', None)
+    if user_envvar is not None:
+        # if users sets LLVMPY_DYNLINK=[0|1]
+        # respect the user setting
+        print('User sets LLVMPY_DYNLINK to %s' % user_envvar)
+        return bool(int(user_envvar))
+    else:
+        # otherwise, determine by scanning the libdir
+        libfile = 'libLLVM-%s' % llvm_version
+        print('Searching shared library %s in %s' % (libfile, libdir))
+        so = '%s.so' % libfile
+        dylib = '%s.dylib' % libfile
+        dll = '%s.dll' % libfile
+        libdir_content = os.listdir(libdir)
+        if sys.platform.startswith('linux'):
+            return so in libdir_content
+        elif sys.platform.startswith('darwin'):
+            return dylib in libdir_content or so in libdir_content
+        elif sys.platform.startswith('win32'):
+            return dll in libdir_content
+        else: # other platforms
+            return any((x in libdir_content) for x in [so, dyld, dll])
+
+
+dynlink = determine_to_use_dynlink(libdir, llvm_version)
+
+
 if dynlink:
+    print('Using dynamic linking')
     libs_core = ['LLVM-%s' % llvm_version]
     objs_core = []
 else:
