@@ -59,9 +59,17 @@ class BuiltinTypes(_Type):
 
 Void = BuiltinTypes('void')
 Unsigned = BuiltinTypes('unsigned')
+UnsignedLongLong = BuiltinTypes('unsigned long long') # used in llvm-3.2
+LongLong = BuiltinTypes('long long')
+Float = BuiltinTypes('float')
+Double = BuiltinTypes('double')
 Uint64 = BuiltinTypes('uint64_t')
+Size_t = BuiltinTypes('size_t')
+VoidPtr = BuiltinTypes('void*')
 Bool = BuiltinTypes('bool')
+StdString = BuiltinTypes('std::string')
 ConstStdString = BuiltinTypes('const std::string')
+ConstCharPtr = BuiltinTypes('const char*')
 PyObjectPtr = BuiltinTypes('PyObject*')
 PyObjectPtr.format='O'
 

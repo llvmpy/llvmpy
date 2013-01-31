@@ -2,6 +2,7 @@ from binding import *
 from namespace import llvm
 from LLVMContext import LLVMContext
 from raw_ostream import raw_ostream
+from StringRef import StringRef
 
 Type = llvm.Class()
 IntegerType = llvm.Class(Type)
@@ -51,6 +52,19 @@ class Type:
 
     isIntegerTy = Method(cast(Bool, bool))
     isIntegerTy |= Method(cast(Bool, bool), cast(int, Unsigned))
+
+    getIntegerBitWidth = Method(cast(Unsigned, int))
+    getFunctionParamType = Method(ptr(Type), cast(int, Unsigned))
+    getFunctionNumParams = Method(cast(int, Unsigned))
+
+    isFunctionVarArg = type_checker()
+
+    getStructName = Method(cast(StringRef, str))
+    getStructNumElements = Method(cast(Unsigned, int))
+    getStructElementType = Method(ptr(Type), cast(int, Unsigned))
+    getSequentialElementType = Method(ptr(Type))
+
+    # Factories
 
 
     def type_factory():

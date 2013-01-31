@@ -44,4 +44,11 @@ class Module:
     print_ = Method(Void, ref(raw_ostream), ptr(AssemblyAnnotationWriter))
     print_.realname = 'print'
 
+    @CustomPythonMethod
+    def __str__(self):
+        import extra
+        os = extra.make_raw_ostream_for_printing()
+        self.print_(os, None)
+        return os.str()
+
     dropAllReferences = Method()

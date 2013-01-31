@@ -28,25 +28,25 @@ print os.str()
 int1ty = api.Type.getInt1Ty(context)
 int1ty.dump()
 
-print int1ty.isIntegerTy(1)
+assert int1ty.isIntegerTy(1)
 
 fnty = api.FunctionType.get(int1ty, False)
 fnty.dump()
 
-types = [int1ty, api.Type.getIntNTy(context, 21)]
-fnty = api.FunctionType.get(int1ty, types, False)
+types = [api.Type.getIntNTy(context, 8), api.Type.getIntNTy(context, 32)]
+fnty = api.FunctionType.get(api.Type.getIntNTy(context, 8), types, False)
 
 print fnty
 
 const = m.getOrInsertFunction("foo", fnty)
-fn = extra.downcast(const, api.Function)
+fn = const._downcast(api.Function)
 print fn
 assert fn.hasName()
 assert 'foo' == fn.getName()
 fn.setName('bar')
 assert 'bar' == fn.getName()
 
-assert fn.getReturnType() is int1ty
+assert fn.getReturnType().isIntegerTy(8)
 
 assert fnty is fn.getFunctionType()
 
@@ -70,13 +70,19 @@ assert bb.getTerminator() is None
 arg0, arg1 = fn.getArgumentList()
 print arg0, arg1
 
-ret = builder.CreateCall(fn, [arg0, arg1], '')
+extended = builder.CreateZExt(arg0, arg1.getType())
+result = builder.CreateAdd(extended, arg1)
+ret = builder.CreateTrunc(result, fn.getReturnType())
 builder.CreateRet(ret)
+
+print arg0.list_use()
 
 print fn
 
 errio = StringIO()
-ee = api.ExecutionEngine.createJIT(m)
+print m
+
+ee = api.ExecutionEngine.createJIT(m, errio)
 print ee, errio.getvalue()
 print ee.getDataLayout().getStringRepresentation()
 
@@ -84,4 +90,25 @@ datalayout_str = 'e-p:64:64:64-S128-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-
 
 assert datalayout_str == str(api.DataLayout.new(datalayout_str))
 assert datalayout_str == str(api.DataLayout.new(str(api.DataLayout.new(datalayout_str))))
+
+fn2 = ee.FindFunctionNamed(fn.getName())
+assert fn2 is fn
+
+assert ee.getPointerToFunction(fn)
+assert ee.getPointerToNamedFunction('printf')
+
+gv0 = api.GenericValue.CreateInt(arg0.getType(), 12, False)
+gv1 = api.GenericValue.CreateInt(arg1.getType(), -32, True)
+
+assert gv0.valueIntWidth() == arg0.getType().getIntegerBitWidth()
+assert gv1.valueIntWidth() == arg1.getType().getIntegerBitWidth()
+
+assert gv0.toUnsignedInt() == 12
+assert gv1.toSignedInt() == -32
+
+gv1 = api.GenericValue.CreateInt(arg1.getType(), 32, False)
+
+gvR = ee.runFunction(fn, (gv0, gv1))
+
+assert 44 == gvR.toUnsignedInt()
 

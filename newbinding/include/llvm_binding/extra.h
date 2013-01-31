@@ -4,6 +4,7 @@
 #include <llvm/Function.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/ExecutionEngine/GenericValue.h>
 
 namespace extra{
     using namespace llvm;
@@ -234,3 +235,108 @@ llvm::ExecutionEngine* ExecutionEngine_createJIT(
     PyFile_WriteString(ErrorStr.c_str(), errout);
     return ee;
 }
+
+static
+llvm::GenericValue* GenericValue_CreateInt(llvm::Type* Ty, unsigned long long N,
+                                           bool IsSigned)
+{
+    // Shamelessly copied from LLVM
+    llvm::GenericValue *GenVal = new llvm::GenericValue();
+    GenVal->IntVal = llvm::APInt(Ty->getIntegerBitWidth(), N, IsSigned);
+    return GenVal;
+}
+
+static
+llvm::GenericValue* GenericValue_CreateFloat(float Val)
+{
+    llvm::GenericValue *GenVal = new llvm::GenericValue();
+    GenVal->FloatVal = Val;
+    return GenVal;
+}
+
+static
+llvm::GenericValue* GenericValue_CreateDouble(double Val)
+{
+    llvm::GenericValue *GenVal = new llvm::GenericValue();
+    GenVal->DoubleVal = Val;
+    return GenVal;
+}
+
+static
+llvm::GenericValue* GenericValue_CreatePointer(void * Ptr)
+{
+    llvm::GenericValue *GenVal = new llvm::GenericValue();
+    GenVal->PointerVal = Ptr;
+    return GenVal;
+}
+
+static
+unsigned GenericValue_ValueIntWidth(llvm::GenericValue *GenValRef)
+{
+    return GenValRef->IntVal.getBitWidth();
+}
+
+static
+unsigned long long GenericValue_ToUnsignedInt(llvm::GenericValue* GenVal)
+{
+    return GenVal->IntVal.getZExtValue();
+}
+
+
+static
+long long GenericValue_ToSignedInt(llvm::GenericValue* GenVal)
+{
+    return GenVal->IntVal.getSExtValue();
+}
+
+static
+void* GenericValue_ToPointer(llvm::GenericValue* GenVal)
+{
+    return GenVal->PointerVal;
+}
+
+static
+double GenericValue_ToFloat(llvm::GenericValue* GenVal, llvm::Type* Ty)
+{
+    switch (Ty->getTypeID()) {
+        case llvm::Type::FloatTyID:
+            return GenVal->FloatVal;
+        default:
+            // Behavior undefined if type is not a float or a double
+            return GenVal->DoubleVal;
+    }
+}
+
+static
+PyObject* ExecutionEngine_RunFunction(llvm::ExecutionEngine* EE,
+                                      llvm::Function* Fn, PyObject* Args)
+{
+    using namespace llvm;
+    const char * GVN = "llvm::GenericValue";
+    if (!PyTuple_Check(Args)) {
+        PyErr_SetString(PyExc_TypeError, "Expect a tuple of args.");
+        return NULL;
+    }
+    std::vector<GenericValue> vec_args;
+    Py_ssize_t nargs = PyTuple_Size(Args);
+    vec_args.reserve(nargs);
+    for (Py_ssize_t i = 0; i < nargs; ++i) {
+        PyObject* obj = PyTuple_GetItem(Args, i);
+        if (!obj) {
+            PyErr_SetString(PyExc_RuntimeError, "Failed to index into args?");
+            return NULL;
+        }
+        
+        GenericValue* gv = static_cast<GenericValue*>(
+                              PyCapsule_GetPointer(obj, GVN));
+
+        if (!gv) {
+            return NULL;
+        }
+        vec_args.push_back(*gv);
+    }
+
+    GenericValue ret = EE->runFunction(Fn, vec_args);
+    return pycapsule_new(new GenericValue(ret), GVN);
+}
+
