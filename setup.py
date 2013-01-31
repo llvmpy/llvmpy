@@ -60,8 +60,8 @@ macros = [('__STDC_CONSTANT_MACROS', None),
           ('__STDC_LIMIT_MACROS', None)]
 
 def determine_to_use_dynlink(libdir, llvm_version):
-    user_envvar = os.environ.get('LLVMPY_DYNLINK', None)
-    if user_envvar is not None:
+    user_envvar = os.getenv('LLVMPY_DYNLINK')
+    if user_envvar:
         # if users sets LLVMPY_DYNLINK=[0|1]
         # respect the user setting
         print('User sets LLVMPY_DYNLINK to %s' % user_envvar)
