@@ -125,6 +125,8 @@ class Class(_Type):
         # generate methods
         for meth in self.methods:
             meth.compile_cpp(writer)
+        for enum in self.enums:
+            enum.compile_cpp(writer)
 
         # generate method table
         writer.println('static')
@@ -135,6 +137,11 @@ class Class(_Type):
                 name = meth.name
                 func = meth.c_name
                 writer.println(fmt % locals())
+            for enumkind in self.enums:
+                for enum in enumkind.value_names:
+                    name = enum
+                    func = enumkind.c_name(enum)
+                    writer.println(fmt % locals())
             writer.println('{ NULL },')
         writer.println('};')
         writer.println()
@@ -212,38 +219,22 @@ class Enum(object):
         return self.fullname
 
     def wrap(self, writer, val):
-        ret = writer.declare('PyObject*', 'NULL')
-        with writer.block('switch(%s) ' % val):
-            for v in self.value_names:
-                writer.println('case %s::%s:' % (self.parent, v))
-                with writer.indent():
-                    fmt = '%(ret)s = PyString_FromString("%(v)s");'
-                    writer.println(fmt % locals())
-                    writer.println('break;')
-            else:
-                writer.println('default:')
-                with writer.indent():
-                    writer.raises(ValueError, 'Invalid enum %s' % v)
+        ret = writer.declare('PyObject*', 'PyInt_FromLong(%s)' % val)
         return ret
 
     def unwrap(self, writer, val):
-        tostring = 'PyString_AsString(%(val)s)' % locals()
-        string = writer.declare('const char*', tostring)
-        ret = writer.declare('%s::%s' % (self.parent, self.name))
-        parent = self.parent
-        iffmt = 'if (string_equal(%(string)s, "%(v)s"))'
-        for i, v in enumerate(self.value_names):
-            with writer.block(iffmt % locals()):
-                fmt = '%(ret)s = %(parent)s::%(v)s;'
-                writer.println(fmt % locals())
-            if i == 0:
-                iffmt = 'else ' + iffmt
-        with writer.block('else'):
-            writer.raises(ValueError, 'Invalid enum.')
+        convert_long_to_enum = '(%s)PyInt_AsLong(%s)' % (self.fullname, val)
+        ret = writer.declare(self.fullname, convert_long_to_enum)
         return ret
 
+    def c_name(self, enum):
+        return cg.mangle("%s_%s_%s" % (self.parent, self.name, enum))
+
     def compile_cpp(self, writer):
-        pass
+        for enum in self.value_names:
+            with writer.py_function(self.c_name(enum)):
+                ret = self.wrap(writer, '::'.join([self.parent.fullname, enum]))
+                writer.return_value(ret)
 
     def compile_py(self, writer):
         with writer.block('class %s:' % self.name):
@@ -251,9 +242,12 @@ class Enum(object):
             for v in self.value_names:
                 if v in RESERVED:
                     k = '%s_' % v
+                    fmt = '%(k)s = getattr(%(p)s, "%(v)s")()'
                 else:
                     k = v
-                writer.println('%(k)s = "%(v)s"' % locals())
+                    fmt = '%(k)s = %(p)s.%(v)s()'
+                p = '.'.join(['_api'] + self.parent.fullname.split('::')[1:])
+                writer.println(fmt % locals())
         writer.println()
 
 class Method(object):

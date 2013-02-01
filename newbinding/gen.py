@@ -136,6 +136,13 @@ static
                     name = u.name
                     func = u.c_name
                     writer.println(fmt % locals())
+            for u in units:
+                if isinstance(u, Enum):
+                    for enum in u.value_names:
+                        name = enum
+                        func = u.c_name(enum)
+                        writer.println(fmt % locals())
+
             writer.println('{ NULL },')
         writer.println('};')
         writer.println()
