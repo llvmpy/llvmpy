@@ -185,6 +185,11 @@ class Class(_Type):
         writer.die_if_false(casted)
         return casted
 
+    def wrap(self, writer, val):
+        copy = 'new %s(%s)' % (self.fullname, val)
+        return writer.pycapsule_new(copy, self.capsule_name, self.fullname)
+
+
 class Enum(object):
     format = 'O'
     
@@ -466,13 +471,17 @@ class ref(_Type):
     def __init__(self, element):
         assert isinstance(element, Class), type(element)
         self.element = element
+        self.const = False
 
     def __str__(self):
         return self.fullname
 
     @property
     def fullname(self):
-        return '%s&' % self.element.fullname
+        if self.const:
+            return 'const %s&' % self.element.fullname
+        else:
+            return '%s&' % self.element.fullname
 
     @property
     def capsule_name(self):
@@ -483,7 +492,7 @@ class ref(_Type):
         return self.element.format
 
     def wrap(self, writer, val):
-        p = writer.declare(ptr(self.element).fullname, '&%s' % val)
+        p = writer.declare(const(ptr(self.element)).fullname, '&%s' % val)
         return writer.pycapsule_new(p, self.capsule_name, self.element.fullname)
 
     def unwrap(self, writer, val):
@@ -522,9 +531,9 @@ class ptr(_Type):
 class ownedptr(ptr):
     pass
 
-def const(ptr):
-    ptr.const = True
-    return ptr
+def const(ptr_or_ref):
+    ptr_or_ref.const = True
+    return ptr_or_ref
 
 class cast(_Type):
     format = 'O'

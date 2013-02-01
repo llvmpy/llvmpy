@@ -368,9 +368,9 @@ PyObject* EngineBuilder_setMAttrs(llvm::EngineBuilder* eb,
         return NULL;
     }
     std::vector<const char*> tmp;
-    const int N = PyList_Size(strlist);
+    const Py_ssize_t N = PyList_Size(strlist);
     tmp.reserve(N);
-    for (int i = 0; i < N; ++i) {
+    for (Py_ssize_t i = 0; i < N; ++i) {
         const char * elem = PyString_AsString(PyList_GetItem(strlist, i));
         if (!elem) {
             return NULL;
@@ -378,6 +378,30 @@ PyObject* EngineBuilder_setMAttrs(llvm::EngineBuilder* eb,
         tmp.push_back(elem);
     }
     eb->setMAttrs(tmp);
+    return pycapsule_new(eb, "llvm::EngineBuilder");
+}
+
+static
+PyObject* EngineBuilder_selectTarget(llvm::EngineBuilder* eb,
+                                     const llvm::Triple& TargetTriple,
+                                     llvm::StringRef MArch,
+                                     llvm::StringRef MCPU,
+                                     PyObject* strlist)
+{
+    const Py_ssize_t N = PySequence_Size(strlist);
+    llvm::SmallVector<std::string, 8> MAttrs;
+    MAttrs.reserve(N);
+    for (Py_ssize_t i = 0; i < N; ++i) {
+        PyObject* str = PySequence_GetItem(strlist, i);
+        const char * cp = PyString_AsString(str);
+        if (!cp) {
+            Py_DECREF(str);
+            return NULL;
+        }
+        MAttrs.push_back(cp);
+        Py_DECREF(str);
+    }
+    eb->selectTarget(TargetTriple, MArch, MCPU, MAttrs);
     return pycapsule_new(eb, "llvm::EngineBuilder");
 }
 

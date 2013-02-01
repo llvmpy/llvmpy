@@ -6,6 +6,7 @@ from CodeGen import CodeGenOpt, Reloc, CodeModel
 from StringRef import StringRef
 from ExecutionEngine import ExecutionEngine
 from TargetMachine import TargetMachine
+from Triple import Triple
 
 EngineBuilder = llvm.Class()
 
@@ -45,5 +46,17 @@ class EngineBuilder:
     create = Method(ptr(ExecutionEngine),
                     ownedptr(TargetMachine)).require_only(0)
 
-    selectTarget = Method(ptr(TargetMachine))
+    _selectTarget0 = Method(ptr(TargetMachine))
+    _selectTarget0.realname = 'selectTarget'
+
+    _selectTarget1 = CustomMethod('EngineBuilder_selectTarget',
+                                 const(ref(Triple)), cast(str, StringRef),
+                                 cast(str, StringRef), PyObjectPtr),
+
+    @CustomPythonMethod
+    def selectTarget(self, *args):
+        if not args:
+            return self._selectTarget0()
+        else:
+            return self._selectTarget1(*args)
 

@@ -17,3 +17,4 @@ class TLSModel:
 class CodeGenOpt:
     'Actually a namespace'
     Level = Enum('None', 'Less', 'Default', 'Aggressive')
+

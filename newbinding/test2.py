@@ -124,7 +124,30 @@ def test_engine_builder():
     eb.setOptLevel(api.CodeGenOpt.Level.Aggressive).setUseMCJIT(False)
 
     tm = eb.selectTarget()
+
+    print 'target triple:', tm.getTargetTriple()
+    print 'target cpu:', tm.getTargetCPU()
+    print 'target feature string:', tm.getTargetFeatureString()
+
+    target = tm.getTarget()
+    print 'target name:', target.getName()
+    print 'target short description:', target.getShortDescription()
+
+    assert target.hasJIT()
+    assert target.hasTargetMachine()
+
     ee = eb.create(tm)
+
+    triple = api.Triple.new('x86_64-unknown-linux')
+    assert triple.getArchName() == 'x86_64'
+    assert triple.getVendorName() == 'unknown'
+    assert triple.getOSName() == 'linux'
+    assert triple.isArch64Bit()
+    assert not triple.isArch32Bit()
+    triple_32variant = triple.get32BitArchVariant()
+    assert triple_32variant.isArch32Bit()
+
+    print tm.getDataLayout()
 
 
 def main():
