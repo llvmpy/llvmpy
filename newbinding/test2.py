@@ -8,7 +8,6 @@ def test_basic_jit_use():
     api.InitializeNativeTarget()
     context = api.getGlobalContext()
 
-
     m = api.Module.new("modname", context)
     print m.getModuleIdentifier()
     m.setModuleIdentifier('modname2')
@@ -82,6 +81,26 @@ def test_basic_jit_use():
     errio = StringIO()
     print m
 
+    # build pass manager
+
+    pmb = api.PassManagerBuilder.new()
+
+    fpm = api.FunctionPassManager.new(m)
+    pm = api.PassManager.new()
+
+    pmb.populateFunctionPassManager(fpm)
+    pmb.populateModulePassManager(pm)
+
+    fpm.doInitialization()
+    fpm.run(fn)
+    fpm.doFinalization()
+    
+    pm.run(m)
+
+    print m
+
+    # build engine
+
     ee = api.ExecutionEngine.createJIT(m, errio)
     print ee, errio.getvalue()
     print ee.getDataLayout().getStringRepresentation()
@@ -148,6 +167,10 @@ def test_engine_builder():
     assert triple_32variant.isArch32Bit()
 
     print tm.getDataLayout()
+
+    pm = api.PassManager.new()
+    pm.add(api.DataLayout.new(str(tm.getDataLayout())))
+    pm.add(api.TargetLibraryInfo.new())
 
 
 def main():

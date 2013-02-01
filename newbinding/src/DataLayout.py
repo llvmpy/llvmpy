@@ -6,8 +6,9 @@ from Module import Module
 from Type import Type, IntegerType, StructType
 from SmallVector import SmallVector_Value
 from GlobalVariable import GlobalVariable
+from Pass import ImmutablePass
 
-DataLayout = llvm.Class()
+DataLayout = llvm.Class(ImmutablePass)
 StructLayout = llvm.Class()
 
 @DataLayout
@@ -23,8 +24,6 @@ class DataLayout:
             return DataLayout._new_module(arg)
         else:
             return DataLayout._new_string(arg)
-
-    delete = Destructor()
 
     isLittleEndian = Method(cast(Bool, bool))
     isBigEndian = Method(cast(Bool, bool))

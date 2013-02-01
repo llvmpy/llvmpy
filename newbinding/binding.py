@@ -195,6 +195,8 @@ class Enum(object):
     
     def __init__(self, *value_names):
         self.parent = None
+        if len(value_names) == 1:
+            value_names = filter(bool, value_names[0].replace(',', ' ').split())
         self.value_names = value_names
         self.includes = set()
 
