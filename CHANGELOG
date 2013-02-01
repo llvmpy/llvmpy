@@ -5,7 +5,7 @@
       $ export LLVMPY_DYNLINK=1   # link dynamically
       $ unset LLVMPY_DYNLINK  # tries to link dynamically if LLVM shared
                               # objects are found and statically otherwise
-
+  * fix llpython for Python 2.6 support.
 
 2013-01-25   0.10.1:
 --------------------
