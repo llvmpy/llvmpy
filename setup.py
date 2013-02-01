@@ -88,7 +88,7 @@ def determine_to_use_dynlink(libdir, llvm_version):
         elif sys.platform.startswith('win32'):
             return dll in libdir_content
         else: # other platforms
-            return any((x in libdir_content) for x in [so, dyld, dll])
+            return any((x in libdir_content) for x in [so, dylib, dll])
 
 
 dynlink = determine_to_use_dynlink(libdir, llvm_version)
