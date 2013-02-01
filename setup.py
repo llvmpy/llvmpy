@@ -1,7 +1,14 @@
 import sys
 import os
-import re
 from distutils.core import setup, Extension
+
+import versioneer
+
+
+versioneer.versionfile_source = 'llvm/_version.py'
+versioneer.versionfile_build = 'llvm/_version.py'
+versioneer.tag_prefix = ''
+versioneer.parentdir_prefix = 'llvmpy-'
 
 
 # On win32, there is a fake llvm-config since llvm doesn't supply one
@@ -130,20 +137,24 @@ else:
     macros.append(('_GNU_SOURCE', None))
 
 extra_link_args = ldflags.split()
-kwds = dict(ext_modules = [Extension(
-    name='llvm._core',
-    sources=['llvm/_core.cpp', 'llvm/wrap.cpp', 'llvm/extra.cpp'],
-    define_macros = macros,
-    include_dirs = ['/usr/include', incdir],
-    library_dirs = [libdir],
-    libraries = libs_core,
-    extra_objects = objs_core,
-    extra_link_args = extra_link_args),
+kwds = dict(
+    ext_modules = [
+        Extension(
+            name='llvm._core',
+            sources=['llvm/_core.cpp', 'llvm/wrap.cpp', 'llvm/extra.cpp'],
+            define_macros = macros,
+            include_dirs = ['/usr/include', incdir],
+            library_dirs = [libdir],
+            libraries = libs_core,
+            extra_objects = objs_core,
+            extra_link_args = extra_link_args),
 
-    Extension(name='llvm._dwarf',
-              sources=['llvm/_dwarf.cpp'],
-              include_dirs=[incdir])
-])
+        Extension(name='llvm._dwarf',
+                  sources=['llvm/_dwarf.cpp'],
+                  include_dirs=[incdir])
+        ],
+    cmdclass = versioneer.get_cmdclass(),
+)
 
 def run_2to3():
     import lib2to3.refactor
@@ -155,19 +166,16 @@ def run_2to3():
     #          if fix.split('fix_')[-1] not in ('next',)
     #]
 
-    kwds["cmdclass"] = {"build_py": build_py}
+    kwds["cmdclass"].update(dict(build_py=build_py))
 
 if sys.version_info[0] >= 3:
     run_2to3()
 
-# Read version from llvm/__init__.py
-pat = re.compile(r'__version__\s*=\s*(\S+)', re.M)
-data = open('llvm/__init__.py').read()
-kwds['version'] = eval(pat.search(data).group(1))
 kwds['long_description'] = open('README.rst').read()
 
 setup(
     name = 'llvmpy',
+    version=versioneer.get_version(),
     description = 'Python bindings for LLVM',
     author = 'R Mahadevan',
     maintainer = 'Continuum Analytics, Inc.',
