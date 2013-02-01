@@ -340,3 +340,44 @@ PyObject* ExecutionEngine_RunFunction(llvm::ExecutionEngine* EE,
     return pycapsule_new(new GenericValue(ret), GVN);
 }
 
+static
+PyObject* EngineBuilder_setErrorStr(llvm::EngineBuilder* eb, PyObject* fileobj)
+{
+    
+    if (!PyFile_Check(fileobj)) {
+        PyErr_SetString(PyExc_TypeError, "Expecting a file object.");
+        return NULL;
+    }
+
+    std::string buffer;
+    eb->setErrorStr(&buffer);
+
+    if (-1 == PyFile_WriteString(buffer.c_str(), fileobj)) {
+        return NULL;
+    }
+
+    return pycapsule_new(eb, "llvm::EngineBuilder");
+}
+
+static
+PyObject* EngineBuilder_setMAttrs(llvm::EngineBuilder* eb,
+                                  PyObject* strlist)
+{
+    if (!PyList_Check(strlist)) {
+        PyErr_SetString(PyExc_TypeError, "Expecting a list of string.");
+        return NULL;
+    }
+    std::vector<const char*> tmp;
+    const int N = PyList_Size(strlist);
+    tmp.reserve(N);
+    for (int i = 0; i < N; ++i) {
+        const char * elem = PyString_AsString(PyList_GetItem(strlist, i));
+        if (!elem) {
+            return NULL;
+        }
+        tmp.push_back(elem);
+    }
+    eb->setMAttrs(tmp);
+    return pycapsule_new(eb, "llvm::EngineBuilder");
+}
+

@@ -358,7 +358,8 @@ class Method(object):
         argtys = self.signatures[0][1:]
         for i, ty in enumerate(argtys):
             if isinstance(ty, ownedptr):
-                writer.release_ownership('%s[%d]' % (unwrapped, i))
+                with writer.block('if len(%s) > %d:' % (unwrapped, i)):
+                    writer.release_ownership('%s[%d]' % (unwrapped, i))
 
 class CustomMethod(Method):
     def __init__(self, methodname, retty, *argtys):

@@ -91,7 +91,12 @@ _cache = defaultdict(WeakValueDictionary)
 
 def release_ownership(old):
     logger.debug('Release %s', old)
-    _addr2dtor[Capsule.getPointer(old)] = None
+    addr = Capsule.getPointer(old)
+    if _addr2dtor[addr] is None:
+        # Guard deduplicated release
+        raise Exception("Already released")
+    _addr2dtor[addr] = None
+
 
 def has_ownership(cap):
     addr = Capsule.getPointer(cap)
