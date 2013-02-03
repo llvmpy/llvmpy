@@ -1,5 +1,5 @@
 from binding import *
-from namespace import llvm
+from ..namespace import llvm
 
 @llvm.Class()
 class Reloc:

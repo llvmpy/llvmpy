@@ -8,8 +8,8 @@ from Instruction import UnreachableInst, AllocaInst, LoadInst, StoreInst
 from Instruction import FenceInst, AtomicCmpXchgInst, AtomicRMWInst, CmpInst
 from Instruction import LandingPadInst, VAArgInst
 from Instruction import AtomicOrdering, SynchronizationScope
-from SmallVector import SmallVector_Value, SmallVector_Unsigned
-from StringRef import StringRef
+from ADT.SmallVector import SmallVector_Value, SmallVector_Unsigned
+from ADT.StringRef import StringRef
 from Value import Value, MDNode
 from Type import Type, IntegerType
 

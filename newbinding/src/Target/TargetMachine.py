@@ -1,12 +1,12 @@
 from binding import *
-from namespace import llvm
-from StringRef import StringRef
-from CodeGen import CodeModel, TLSModel, CodeGenOpt, Reloc
-from GlobalValue import GlobalValue
-from Target import Target
-from DataLayout import DataLayout
-from TargetTransformInfo import (ScalarTargetTransformInfo,
-                                 VectorTargetTransformInfo)
+from ..namespace import llvm
+from ..ADT.StringRef import StringRef
+from ..Support.CodeGen import CodeModel, TLSModel, CodeGenOpt, Reloc
+from ..GlobalValue import GlobalValue
+from ..Support.Target import Target
+from ..DataLayout import DataLayout
+from ..TargetTransformInfo import (ScalarTargetTransformInfo,
+                                   VectorTargetTransformInfo)
 
 TargetMachine = llvm.Class()
 

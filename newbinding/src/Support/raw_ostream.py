@@ -1,7 +1,7 @@
 from binding import *
-from namespace import llvm
-from LLVMContext import LLVMContext
-from StringRef import StringRef
+from ..namespace import llvm
+from ..LLVMContext import LLVMContext
+from ..ADT.StringRef import StringRef
 
 @llvm.Class()
 class raw_ostream:

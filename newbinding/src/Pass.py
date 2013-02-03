@@ -1,6 +1,6 @@
 from binding import *
 from namespace import llvm
-from StringRef import StringRef
+from ADT.StringRef import StringRef
 from Module import Module
 from Function import Function
 

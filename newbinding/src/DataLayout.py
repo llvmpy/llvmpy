@@ -1,10 +1,10 @@
 from binding import *
 from namespace import llvm
 from LLVMContext import LLVMContext
-from StringRef import StringRef
+from ADT.StringRef import StringRef
 from Module import Module
 from Type import Type, IntegerType, StructType
-from SmallVector import SmallVector_Value
+from ADT.SmallVector import SmallVector_Value
 from GlobalVariable import GlobalVariable
 from Pass import ImmutablePass
 

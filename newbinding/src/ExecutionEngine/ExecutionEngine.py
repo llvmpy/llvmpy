@@ -1,14 +1,14 @@
 from binding import *
-from namespace import llvm
-from Module import Module
-from JITMemoryManager import JITMemoryManager
-from CodeGen import CodeGenOpt, Reloc, CodeModel
-from DataLayout import DataLayout
-from Value import Function, GlobalValue, BasicBlock, Constant
-from GlobalVariable import GlobalVariable
-from MachineCodeInfo import MachineCodeInfo
-from GenericValue import GenericValue
-from Type import Type
+from ..namespace import llvm
+from ..Module import Module
+from ..JITMemoryManager import JITMemoryManager
+from ..Support.CodeGen import CodeGenOpt, Reloc, CodeModel
+from ..DataLayout import DataLayout
+from ..Value import Function, GlobalValue, BasicBlock, Constant
+from ..GlobalVariable import GlobalVariable
+from ..CodeGen.MachineCodeInfo import MachineCodeInfo
+from ..GenericValue import GenericValue
+from ..Type import Type
 
 ExecutionEngine = llvm.Class()
 

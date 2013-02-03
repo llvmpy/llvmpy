@@ -2,11 +2,11 @@ from binding import *
 from namespace import llvm
 from Module import Module
 from JITMemoryManager import JITMemoryManager
-from CodeGen import CodeGenOpt, Reloc, CodeModel
-from StringRef import StringRef
-from ExecutionEngine import ExecutionEngine
-from TargetMachine import TargetMachine
-from Triple import Triple
+from Support.CodeGen import CodeGenOpt, Reloc, CodeModel
+from ADT.StringRef import StringRef
+from ExecutionEngine.ExecutionEngine import ExecutionEngine
+from Target.TargetMachine import TargetMachine
+from ADT.Triple import Triple
 
 EngineBuilder = llvm.Class()
 

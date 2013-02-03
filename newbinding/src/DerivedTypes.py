@@ -2,7 +2,7 @@ from binding import *
 from namespace import llvm
 from LLVMContext import LLVMContext
 from Type import Type
-from SmallVector import SmallVector_Type
+from ADT.SmallVector import SmallVector_Type
 
 FunctionType = llvm.Class(Type)
 

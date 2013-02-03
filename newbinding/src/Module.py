@@ -1,12 +1,12 @@
 from binding import *
 from namespace import llvm
 from LLVMContext import LLVMContext
-from StringRef import StringRef
+from ADT.StringRef import StringRef
 from Constant import Constant
 from Function import Function
 from DerivedTypes import FunctionType
-from raw_ostream import raw_ostream
-from AssemblyAnnotationWriter import AssemblyAnnotationWriter
+from Support.raw_ostream import raw_ostream
+from Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
 
 @llvm.Class()
 class Module:

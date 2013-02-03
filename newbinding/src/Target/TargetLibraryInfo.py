@@ -1,8 +1,8 @@
 from binding import *
-from namespace import llvm
-from Triple import Triple
-from Pass import ImmutablePass
-from StringRef import StringRef
+from ..namespace import llvm
+from ..ADT.Triple import Triple
+from ..Pass import ImmutablePass
+from ..ADT.StringRef import StringRef
 
 TargetLibraryInfo = llvm.Class(ImmutablePass)
 

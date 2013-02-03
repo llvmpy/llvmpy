@@ -3,7 +3,7 @@ from namespace import llvm
 from Value import Function, BasicBlock
 from Instruction import Instruction, TerminatorInst
 from LLVMContext import LLVMContext
-from StringRef import StringRef
+from ADT.StringRef import StringRef
 
 @BasicBlock
 class BasicBlock:

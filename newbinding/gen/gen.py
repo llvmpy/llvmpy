@@ -1,4 +1,4 @@
-import sys
+import sys, os
 from binding import *
 import codegen
 
@@ -59,7 +59,7 @@ def wrap_println_from_file(file):
 def main():
     outputfilename = sys.argv[1]
     entry_modname = sys.argv[2]
-
+    sys.path += [os.path.dirname(os.curdir)]
     entry_module = __import__(entry_modname)
 
     units = []

@@ -1,8 +1,8 @@
 from binding import *
-from namespace import llvm
-from PassManager import PassManagerBase, FunctionPassManager
-from TargetLibraryInfo import TargetLibraryInfo
-from Pass import Pass
+from ..namespace import llvm
+from ..PassManager import PassManagerBase, FunctionPassManager
+from ..Target.TargetLibraryInfo import TargetLibraryInfo
+from ..Pass import Pass
 
 @llvm.Class()
 class PassManagerBuilder:

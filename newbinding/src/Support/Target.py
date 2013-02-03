@@ -1,6 +1,6 @@
 from binding import *
-from namespace import llvm
-from StringRef import StringRef
+from ..namespace import llvm
+from ..ADT.StringRef import StringRef
 Target = llvm.Class()
 
 @Target

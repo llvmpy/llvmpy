@@ -1,5 +1,5 @@
 from binding import *
-from namespace import llvm
+from ..namespace import llvm
 from StringRef import StringRef
 
 Triple = llvm.Class()

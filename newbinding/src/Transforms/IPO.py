@@ -1,5 +1,5 @@
 from binding import *
-from namespace import llvm
+from ..namespace import llvm
 from ..Pass import Pass
 
 llvm.includes.add('llvm/Transforms/IPO.h')

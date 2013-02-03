@@ -1,10 +1,10 @@
 from binding import *
 from namespace import llvm
-from raw_ostream import raw_ostream
-from AssemblyAnnotationWriter import AssemblyAnnotationWriter
+from Support.raw_ostream import raw_ostream
+from Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
 from Type import Type
 from LLVMContext import LLVMContext
-from StringRef import StringRef
+from ADT.StringRef import StringRef
 
 Value = llvm.Class()
 # forward declarations
