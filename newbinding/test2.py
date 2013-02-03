@@ -84,6 +84,10 @@ def test_basic_jit_use():
     # build pass manager
 
     pmb = api.PassManagerBuilder.new()
+    pmb.OptLevel = 3
+    assert pmb.OptLevel == 3
+    pmb.LibraryInfo = api.TargetLibraryInfo.new()
+    pmb.Inliner = api.createFunctionInliningPass()
 
     fpm = api.FunctionPassManager.new(m)
     pm = api.PassManager.new()

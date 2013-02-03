@@ -50,8 +50,9 @@ class EngineBuilder:
     _selectTarget0.realname = 'selectTarget'
 
     _selectTarget1 = CustomMethod('EngineBuilder_selectTarget',
+                                 PyObjectPtr,
                                  const(ref(Triple)), cast(str, StringRef),
-                                 cast(str, StringRef), PyObjectPtr),
+                                 cast(str, StringRef), PyObjectPtr)
 
     @CustomPythonMethod
     def selectTarget(self, *args):

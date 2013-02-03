@@ -163,13 +163,13 @@ PyObject* iplist_to_pylist(iplist &IPL, const char * capsuleName,
                                     className);
 }
 
-static
-bool string_equal(const char *A, const char *B){
-    for (; *A and *B; ++A, ++B) {
-        if (*A != *B) return false;
-    }
-    return true;
-}
+//static
+//bool string_equal(const char *A, const char *B){
+//    for (; *A and *B; ++A, ++B) {
+//        if (*A != *B) return false;
+//    }
+//    return true;
+//}
 
 ////////////
 static

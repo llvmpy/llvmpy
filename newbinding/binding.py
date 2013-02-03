@@ -83,6 +83,7 @@ class Class(_Type):
         self.methods = []
         self.pymethods = []
         self.enums = []
+        self.attrs = []
         self.includes = set()
         self.downcastables = set()
 
@@ -103,6 +104,10 @@ class Class(_Type):
                 v.name = k
                 v.parent = self
                 setattr(self, k, v)
+            elif isinstance(v, Attr):
+                self.attrs.append(v)
+                v.name = k
+                v.parent = self
             elif isinstance(v, CustomPythonMethod):
                 self.pymethods.append(v)
             elif k == '_include_':
@@ -127,6 +132,8 @@ class Class(_Type):
             meth.compile_cpp(writer)
         for enum in self.enums:
             enum.compile_cpp(writer)
+        for attr in self.attrs:
+            attr.compile_cpp(writer)
 
         # generate method table
         writer.println('static')
@@ -142,6 +149,16 @@ class Class(_Type):
                     name = enum
                     func = enumkind.c_name(enum)
                     writer.println(fmt % locals())
+            for attr in self.attrs:
+                # getter
+                name = attr.getter_name
+                func = attr.getter_c_name
+                writer.println(fmt % locals())
+                # setter
+                name = attr.setter_name
+                func = attr.setter_c_name
+                writer.println(fmt % locals())
+
             writer.println('{ NULL },')
         writer.println('};')
         writer.println()
@@ -160,6 +177,8 @@ class Class(_Type):
                 meth.compile_py(writer)
             for meth in self.pymethods:
                 meth.compile_py(writer)
+            for attr in self.attrs:
+                attr.compile_py(writer)
         writer.println()
 
     @property
@@ -586,4 +605,77 @@ class CustomPythonStaticMethod(CustomPythonMethod):
     def compile_py(self, writer):
         writer.println('@staticmethod')
         super(CustomPythonStaticMethod, self).compile_py(writer)
+
+
+class Attr(object):
+    def __init__(self, getter, setter):
+        self.getter = getter
+        self.setter = setter
+
+    @property
+    def fullname(self):
+        try:
+            name = self.realname
+        except AttributeError:
+            name = self.name
+        return '::'.join([self.parent.fullname, name])
+
+    def __str__(self):
+        return self.fullname
+
+    @property
+    def getter_name(self):
+        return '%s_get' % self.name
+
+    @property
+    def setter_name(self):
+        return '%s_set' % self.name
+
+    @property
+    def getter_c_name(self):
+        return cg.mangle('%s_get' % self.fullname)
+
+    @property
+    def setter_c_name(self):
+        return cg.mangle('%s_set' % self.fullname)
+
+    def compile_cpp(self, writer):
+        # getter
+        with writer.py_function(self.getter_c_name):
+            (this,) = writer.parse_arguments('args', ptr(self.parent))
+            attr = self.name
+            ret = writer.declare(self.getter.fullname,
+                                 '%(this)s->%(attr)s' % locals())
+            writer.return_value(self.getter.wrap(writer, ret))
+        # setter
+        with writer.py_function(self.setter_c_name):
+            (this, value) = writer.parse_arguments('args', ptr(self.parent),
+                                                   self.setter)
+            attr = self.name
+            writer.println('%(this)s->%(attr)s = %(value)s;' % locals())
+            writer.return_value(None)
+
+    def compile_py(self, writer):
+        name = self.name
+        parent = '.'.join(self.parent.fullname.split('::')[1:])
+        getter = '.'.join([parent, self.getter_name])
+        setter = '.'.join([parent, self.setter_name])
+        writer.println('@property')
+        with writer.block('def %(name)s(self):' % locals()):
+            unself = writer.unwrap('self')
+            ret = writer.new_symbol('ret')
+            writer.println('%(ret)s = _api.%(getter)s(%(unself)s)' % locals())
+            is_ownedptr = isinstance(self.getter, ownedptr)
+            writer.return_value(writer.wrap(ret, is_ownedptr))
+        writer.println()
+        writer.println('@%(name)s.setter' % locals())
+        with writer.block('def %(name)s(self, value):' % locals()):
+            unself = writer.unwrap('self')
+            unvalue = writer.unwrap('value')
+            if isinstance(self.setter, ownedptr):
+                writer.release_ownership(unvalue)
+            writer.println('return _api.%(setter)s(%(unself)s, %(unvalue)s)' %
+                           locals())
+        writer.println()
+
 
