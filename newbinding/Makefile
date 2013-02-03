@@ -13,10 +13,10 @@ clean: cleantemp
 	
 cleantemp:
 	rm -f api.cpp api.py
-	rm -f src/*.pyc
+	rm -f src/*.pyc src/Transforms/*.pyc
 
 
 check: _api.so api.py
-	$(PYTHON) test2.py
+	$(PYTHON) test_binding.py
 	
 @PHONY: all clean check
