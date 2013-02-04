@@ -3,6 +3,8 @@
 #include <llvm/Value.h>
 #include <llvm/Function.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 
@@ -405,3 +407,61 @@ PyObject* EngineBuilder_selectTarget(llvm::EngineBuilder* eb,
     return pycapsule_new(eb, "llvm::EngineBuilder");
 }
 
+
+static
+PyObject* llvm_ParseBitCodeFile(llvm::StringRef Buf, llvm::LLVMContext& Ctx,
+                                PyObject* FObj=NULL)
+{
+    using namespace llvm;
+    MemoryBuffer* MB = MemoryBuffer::getMemBuffer(Buf);
+    Module* M;
+    if (FObj) {
+        std::string ErrStr;
+        M = ParseBitcodeFile(MB, Ctx, &ErrStr);
+        if (-1 == PyFile_WriteString(ErrStr.c_str(), FObj)) {
+            return NULL;
+        }
+    } else {
+        M = ParseBitcodeFile(MB, Ctx);
+    }
+    delete MB;
+    return pycapsule_new(M, "llvm::Module");
+}
+
+
+static
+PyObject* llvm_WriteBitcodeToFile(const llvm::Module *M, PyObject* FObj)
+{
+    using namespace llvm;
+    llvm::SmallVector<char, 32> sv;
+    llvm::raw_svector_ostream rso(sv);
+    llvm::WriteBitcodeToFile(M, rso);
+    rso.flush();
+    StringRef ref = rso.str();
+    PyObject* buf = PyString_FromStringAndSize(ref.data(), ref.size());
+    if (-1 == PyFile_WriteObject(buf, FObj, Py_PRINT_RAW)){
+        return NULL;
+    }
+    Py_RETURN_NONE;
+}
+
+static
+PyObject* llvm_getBitcodeTargetTriple(llvm::StringRef Buf,
+                                      llvm::LLVMContext& Ctx,
+                                      PyObject* FObj = NULL)
+{
+    using namespace llvm;
+    MemoryBuffer* MB = MemoryBuffer::getMemBuffer(Buf);
+    std::string Triple;
+    if (FObj) {
+        std::string ErrStr;
+        Triple = getBitcodeTargetTriple(MB, Ctx, &ErrStr);
+        if (-1 == PyFile_WriteString(ErrStr.c_str(), FObj)) {
+            return NULL;
+        }
+    } else {
+        Triple = getBitcodeTargetTriple(MB, Ctx);
+    }
+    delete MB;
+    return PyString_FromString(Triple.c_str());
+}

@@ -26,6 +26,11 @@ class Namespace(object):
         self.functions.append(fn)
         return fn
 
+    def CustomFunction(self, *args):
+        fn = CustomFunction(self, *args)
+        self.functions.append(fn)
+        return fn
+
     def Enum(self, name, *value_names):
         enum = Enum(*value_names)
         enum.parent = self
@@ -444,12 +449,21 @@ class Function(Method):
         with writer.function(self.name, varargs='args') as varargs:
             unwrapped = writer.unwrap_many(varargs)
             self.process_ownedptr_args(writer, unwrapped)
-            func = self.fullname.split('::', 1)[1].replace('::', '.')
+            func = self.name
             ret = writer.call('_api.%s' % func,
                               varargs=unwrapped)
             wrapped = writer.wrap(ret, self.is_return_ownedptr())
             writer.return_value(wrapped)
         writer.println()
+
+class CustomFunction(Function):
+    def __init__(self, parent, name, realname, return_type=Void, *args):
+        super(CustomFunction, self).__init__(parent, name, return_type, *args)
+        self.realname = realname
+
+    @property
+    def fullname(self):
+        return self.realname
 
 class Destructor(Method):
     _kind_ = 'dtor'

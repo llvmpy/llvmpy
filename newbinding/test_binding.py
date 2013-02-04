@@ -135,6 +135,22 @@ def test_basic_jit_use():
 
     assert 44 == gvR.toUnsignedInt()
 
+    # write bitcode
+    bc_buffer = StringIO()
+    api.WriteBitcodeToFile(m, bc_buffer)
+    bc = bc_buffer.getvalue()
+    bc_buffer.close()
+
+    # read bitcode
+    errbuf = StringIO()
+    m2 = api.ParseBitCodeFile(bc, context, errbuf)
+    if not m2:
+        raise Exception(errbuf.getvalue())
+    else:
+        m2.setModuleIdentifier(m.getModuleIdentifier())
+        assert str(m2) == str(m)
+
+
 def test_engine_builder():
     api.InitializeNativeTarget()
     context = api.getGlobalContext()
