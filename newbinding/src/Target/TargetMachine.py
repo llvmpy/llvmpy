@@ -7,12 +7,20 @@ from ..Support.Target import Target
 from ..DataLayout import DataLayout
 from ..TargetTransformInfo import (ScalarTargetTransformInfo,
                                    VectorTargetTransformInfo)
+from ..PassManager import PassManagerBase
+from ..Support.FormattedStream import formatted_raw_ostream
 
 TargetMachine = llvm.Class()
 
 @TargetMachine
 class TargetMachine:
     _include_ = 'llvm/Target/TargetMachine.h'
+
+    CodeGenFileType = Enum('''
+                           CGFT_AssemblyFile
+                           CGFT_ObjectFile
+                           CGFT_Null''')
+
     delete = Destructor()
 
     getTarget = Method(const(ref(Target)))
@@ -34,3 +42,12 @@ class TargetMachine:
                                          ownedptr(ScalarTargetTransformInfo)))
     getVectorTargetTransformInfo = Method(const(
                                          ownedptr(VectorTargetTransformInfo)))
+
+    addPassesToEmitFile = Method(cast(bool, Bool),
+                                 ref(PassManagerBase),
+                                 ref(formatted_raw_ostream),
+                                 CodeGenFileType,
+                                 cast(bool, Bool)
+                                 ).require_only(3)
+
+

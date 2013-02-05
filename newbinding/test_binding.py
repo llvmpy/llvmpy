@@ -6,6 +6,7 @@ api.capsule.set_debug(True)
 
 def test_basic_jit_use():
     api.InitializeNativeTarget()
+    api.InitializeNativeTargetAsmPrinter()
     context = api.getGlobalContext()
 
     m = api.Module.new("modname", context)
@@ -157,6 +158,16 @@ def test_engine_builder():
 
     m = api.Module.new("modname", context)
 
+    int32ty = api.Type.getIntNTy(context, 32)
+    fnty = api.FunctionType.get(int32ty, [int32ty], False)
+    fn = m.getOrInsertFunction("foo", fnty)._downcast(api.Function)
+    bb = api.BasicBlock.Create(context, "entry", fn, None)
+    builder = api.IRBuilder.new(context)
+    builder.SetInsertPoint(bb)
+    builder.CreateRet(fn.getArgumentList()[0])
+
+    print fn
+
     eb = api.EngineBuilder.new(m)
     eb2 = eb.setEngineKind(api.EngineKind.Kind.JIT)
     assert eb is eb2
@@ -191,6 +202,30 @@ def test_engine_builder():
     pm = api.PassManager.new()
     pm.add(api.DataLayout.new(str(tm.getDataLayout())))
     pm.add(api.TargetLibraryInfo.new())
+
+    # write assembly
+    pm = api.PassManager.new()
+    pm.add(api.DataLayout.new(str(tm.getDataLayout())))
+
+    raw = extra.make_raw_ostream_for_printing()
+    formatted = api.formatted_raw_ostream.new(raw, False)
+
+    cgft = api.TargetMachine.CodeGenFileType.CGFT_AssemblyFile
+    failed = tm.addPassesToEmitFile(pm, formatted, cgft, False)
+    assert not failed
+
+    pm.run(m)
+
+    formatted.flush()
+    raw.flush()
+    asm = raw.str()
+    print asm
+    assert 'foo' in asm
+
+
+
+
+
 
 
 def main():

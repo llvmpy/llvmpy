@@ -3,6 +3,7 @@
 #include <llvm/Value.h>
 #include <llvm/Function.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
@@ -465,3 +466,33 @@ PyObject* llvm_getBitcodeTargetTriple(llvm::StringRef Buf,
     delete MB;
     return PyString_FromString(Triple.c_str());
 }
+
+static
+PyObject* TargetMachine_addPassesToEmitFile(
+                                llvm::TargetMachine *TM,
+                                llvm::PassManagerBase & PM,
+                                PyObject* Out,
+                                llvm::TargetMachine::CodeGenFileType FTy,
+                                bool disableVerify=true)
+{
+    using namespace llvm;
+    llvm::SmallVector<char, 32> sv;
+    raw_svector_ostream rso(sv);
+    formatted_raw_ostream fso(rso);
+    fso.flush();
+    bool status = TM->addPassesToEmitFile(PM, fso, FTy, disableVerify);
+    if (status) {
+        StringRef sr = rso.str();
+        PyObject* buf = PyString_FromStringAndSize(sr.data(), sr.size());
+        if (!buf) {
+            return NULL;
+        }
+        if ( -1 == PyFile_WriteObject(buf, Out, Py_PRINT_RAW) ){
+            return NULL;
+        }
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+}
+

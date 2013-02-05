@@ -7,6 +7,7 @@ from ..ADT.StringRef import StringRef
 class raw_ostream:
     _include_ = "llvm/Support/raw_ostream.h"
     delete = Destructor()
+    flush = Method()
 
 @llvm.Class(raw_ostream)
 class raw_svector_ostream:
