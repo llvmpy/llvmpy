@@ -151,6 +151,10 @@ def test_basic_jit_use():
         m2.setModuleIdentifier(m.getModuleIdentifier())
         assert str(m2) == str(m)
 
+    # parse llvm ir
+    m3 = api.ParseAssemblyString(str(m), None, api.SMDiagnostic.new(), context)
+    m3.setModuleIdentifier(m.getModuleIdentifier())
+    assert str(m3) == str(m)
 
 def test_engine_builder():
     api.InitializeNativeTarget()
@@ -223,16 +227,71 @@ def test_engine_builder():
     assert 'foo' in asm
 
 
+def test_linker():
+    context = api.getGlobalContext()
 
+    mA = api.Module.new("modA", context)
+    mB = api.Module.new("modB", context)
 
+    def create_function(m, name):
+        int32ty = api.Type.getIntNTy(context, 32)
+        fnty = api.FunctionType.get(int32ty, [int32ty], False)
+        fn = m.getOrInsertFunction(name, fnty)._downcast(api.Function)
+        bb = api.BasicBlock.Create(context, "entry", fn, None)
+        builder = api.IRBuilder.new(context)
+        builder.SetInsertPoint(bb)
+        builder.CreateRet(fn.getArgumentList()[0])
 
+    create_function(mA, 'foo')
+    create_function(mB, 'bar')
 
+    errmsg = StringIO()
+    linkermode = api.Linker.LinkerMode.PreserveSource
+    failed = api.Linker.LinkModules(mA, mB, linkermode, errmsg)
+    assert not failed, errmsg.getvalue()
+    assert mA.getFunction('foo')
+    assert mA.getFunction('bar')
+
+    assert set(mA.list_functions()) == set([mA.getFunction('foo'),
+                                            mA.getFunction('bar')])
+
+def test_structtype():
+    context = api.getGlobalContext()
+    m = api.Module.new("modname", context)
+
+    assert m.getTypeByName("truck") is None
+
+    truck = api.StructType.create(context, "truck")
+    assert 'type opaque' in str(truck)
+    elemtys = [api.Type.getInt32Ty(context), api.Type.getDoubleTy(context)]
+    truck.setBody(elemtys)
+
+    assert 'i32' in str(truck)
+    assert 'double' in str(truck)
+
+    assert m.getTypeByName("truck") is truck
+
+def test_globalvariable():
+    context = api.getGlobalContext()
+    m = api.Module.new("modname", context)
+
+    ty = api.Type.getInt32Ty(context)
+    LinkageTypes = api.GlobalVariable.LinkageTypes
+    linkage = LinkageTypes.ExternalLinkage
+    gvar = api.GlobalVariable.new(m, ty, False, linkage, None, "apple")
+    assert '@apple = external global i32' in str(m)
+
+    gvar2 = m.getNamedGlobal('apple')
+    assert gvar2 is gvar
+
+    print m.list_globals()
 
 def main():
     for name, value in globals().items():
         if name.startswith('test_') and callable(value):
             print name.center(80, '-')
             value()
+
 
 if __name__ == '__main__':
     main()
