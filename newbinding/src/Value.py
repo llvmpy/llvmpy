@@ -1,13 +1,8 @@
 from binding import *
 from namespace import llvm
-from Support.raw_ostream import raw_ostream
-from Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
-from Type import Type
-from LLVMContext import LLVMContext
-from ADT.StringRef import StringRef
 
-Value = llvm.Class()
 # forward declarations
+Value = llvm.Class()
 Argument = llvm.Class(Value)
 MDNode = llvm.Class(Value)
 User = llvm.Class(Value)
@@ -15,6 +10,13 @@ BasicBlock = llvm.Class(Value)
 Constant = llvm.Class(User)
 GlobalValue = llvm.Class(Constant)
 Function = llvm.Class(GlobalValue)
+
+from Support.raw_ostream import raw_ostream
+from Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
+from Type import Type
+from LLVMContext import LLVMContext
+from ADT.StringRef import StringRef
+
 
 @Value
 class Value:

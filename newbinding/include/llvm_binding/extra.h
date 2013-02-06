@@ -1,6 +1,7 @@
 #include <Python.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/Value.h>
+#include <llvm/DerivedTypes.h>
 #include <llvm/Function.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/FormattedStream.h>
@@ -8,6 +9,10 @@
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
+#include <llvm/Linker.h>
+#include <llvm/Module.h>
+
+#include "auto_pyobject.h"
 
 namespace extra{
     using namespace llvm;
@@ -494,5 +499,82 @@ PyObject* TargetMachine_addPassesToEmitFile(
     } else {
         Py_RETURN_FALSE;
     }
+}
+
+static
+PyObject* Linker_LinkInModule(llvm::Linker* Linker,
+                               llvm::Module* Mod,
+                               PyObject* ErrMsg)
+{
+    std::string errmsg;
+    bool failed = Linker->LinkInModule(Mod, &errmsg);
+    if (not failed) {
+        Py_RETURN_FALSE;
+    } else {
+        if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
+            return NULL;
+        }
+        Py_RETURN_TRUE;
+    }
+}
+
+static
+PyObject* Linker_LinkModules(llvm::Module* Dest,
+                             llvm::Module* Src,
+                             unsigned Mode,
+                             PyObject* ErrMsg)
+{
+    std::string errmsg;
+    bool failed = llvm::Linker::LinkModules(Dest, Src, Mode, &errmsg);
+    if (not failed) {
+        Py_RETURN_FALSE;
+    } else {
+        if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
+            return NULL;
+        }
+        Py_RETURN_TRUE;
+    }
+}
+
+static
+PyObject* StructType_setBody(llvm::StructType* Self,
+                             PyObject* Elems,
+                             bool isPacked=false)
+{
+    using namespace llvm;
+    std::vector<Type*> elements;
+    Py_ssize_t N = PySequence_Size(Elems);
+    elements.reserve(N);
+    for (Py_ssize_t i=0; i < N; ++i) {
+        auto_pyobject obj = PySequence_GetItem(Elems, i);
+        auto_pyobject capsule = PyObject_GetAttrString(*obj, "_ptr");
+        if (!capsule) {
+            return NULL;
+        }
+        void * ptr = PyCapsule_GetPointer(*capsule, "llvm::Type");
+        if (!ptr) {
+            return NULL;
+        }
+        Type* type = static_cast<Type*>(ptr);
+        elements.push_back(type);
+    }
+
+    Self->setBody(elements, isPacked);
+
+    Py_RETURN_NONE;
+}
+
+static
+PyObject* Module_list_globals(llvm::Module* Mod)
+{
+    return iplist_to_pylist(Mod->getGlobalList(),
+                            "llvm::Value", "llvm::GlobalVariable");
+}
+
+static
+PyObject* Module_list_functions(llvm::Module* Mod)
+{
+    return iplist_to_pylist(Mod->getFunctionList(),
+                            "llvm::Value", "llvm::Function");
 }
 

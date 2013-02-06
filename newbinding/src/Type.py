@@ -110,6 +110,12 @@ class Type:
     getIntNPtrTy = StaticMethod(ptr(PointerType),
                                 ref(LLVMContext), cast(int, Unsigned))
 
+    @CustomPythonMethod
+    def __str__(self):
+        import extra
+        os = extra.make_raw_ostream_for_printing()
+        self.print_(os)
+        return os.str()
 
 @IntegerType
 class IntegerType:
@@ -130,4 +136,23 @@ class PointerType:
 
 @StructType
 class StructType:
-    pass
+    isPacked = Method(cast(Bool, bool))
+    isLiteral = Method(cast(Bool, bool))
+    isOpaque = Method(cast(Bool, bool))
+    hasName = Method(cast(Bool, bool))
+    getName = Method(cast(StringRef, str))
+    setName = Method(Void, cast(str, StringRef))
+    setBody = CustomMethod('StructType_setBody',
+                           PyObjectPtr, # None
+                           PyObjectPtr, # ArrayRef<Type*>
+                           cast(bool, Bool),
+                           ).require_only(1)
+    getNumElements = Method(cast(Unsigned, int))
+    getElementType = Method(ptr(Type), cast(int, Unsigned))
+    
+    create = StaticMethod(ptr(StructType),
+                          ref(LLVMContext),
+                          cast(str, StringRef),
+                          ).require_only(1)
+    isValidElementType = StaticMethod(cast(Bool, bool), ptr(Type))
+

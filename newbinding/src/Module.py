@@ -1,14 +1,19 @@
 from binding import *
 from namespace import llvm
+
+Module = llvm.Class()
+
 from LLVMContext import LLVMContext
 from ADT.StringRef import StringRef
 from Constant import Constant
+from GlobalVariable import GlobalVariable
 from Function import Function
 from DerivedTypes import FunctionType
 from Support.raw_ostream import raw_ostream
 from Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
+from Type import Type, StructType
 
-@llvm.Class()
+@Module
 class Module:
     _include_ = "llvm/Module.h"
     # Enumerators
@@ -38,6 +43,21 @@ class Module:
     # Function Accessors
     getOrInsertFunction = Method(ptr(Constant), cast(str, StringRef),
                                  ptr(FunctionType))
+    getFunction = Method(ptr(Function), cast(str, StringRef))
+
+    # Function Iteration
+    list_functions = CustomMethod('Module_list_functions', PyObjectPtr)
+
+    # GlobalVariabe Accessors
+    getGlobalVariable = Method(ptr(GlobalVariable),
+                               cast(str, StringRef),
+                               cast(bool, Bool),
+                               ).require_only(1)
+    getNamedGlobal = Method(ptr(GlobalVariable), cast(str, StringRef))
+    getOrInsertGlobal = Method(ptr(Constant), cast(str, StringRef), ptr(Type))
+
+    # GlobalVariable Iteration
+    list_globals = CustomMethod('Module_list_globals', PyObjectPtr)
 
     # Utilities
     dump = Method(Void)
@@ -52,3 +72,7 @@ class Module:
         return os.str()
 
     dropAllReferences = Method()
+
+    getTypeByName = Method(ptr(StructType), cast(str, StringRef))
+
+    
