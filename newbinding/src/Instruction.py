@@ -1,6 +1,11 @@
 from binding import *
 from namespace import llvm
-from Value import User
+from Value import Value, MDNode, User, BasicBlock, Function
+from ADT.StringRef import StringRef
+from CallingConv import CallingConv
+from Attributes import Attributes
+from Constant import ConstantInt
+
 
 Instruction = llvm.Class(User)
 AtomicCmpXchgInst = llvm.Class(Instruction)
@@ -54,7 +59,49 @@ FPTruncInst = llvm.Class(CastInst)
 
 @Instruction
 class Instruction:
-    pass
+    removeFromParent = Method()
+    eraseFromParent = Method()
+    eraseFromParent.disowning = True
+
+    getParent = Method(ptr(BasicBlock))
+    getOpcode = Method(cast(Unsigned, int))
+    getOpcodeName = Method(cast(ConstCharPtr, str))
+
+    insertBefore = Method(Void, ptr(Instruction))
+    insertAfter = Method(Void, ptr(Instruction))
+    moveBefore = Method(Void, ptr(Instruction))
+    
+    isTerminator = Method(cast(Bool, bool))
+    isBinaryOp = Method(cast(Bool, bool))
+    isShift = Method(cast(Bool, bool))
+    isCast = Method(cast(Bool, bool))
+    isLogicalShift = Method(cast(Bool, bool))
+    isArithmeticShift = Method(cast(Bool, bool))
+    hasMetadata = Method(cast(Bool, bool))
+    hasMetadataOtherThanDebugLoc = Method(cast(Bool, bool))
+    isAssociative = Method(cast(Bool, bool))
+    isCommutative = Method(cast(Bool, bool))
+    isIdempotent = Method(cast(Bool, bool))
+    isNilpotent = Method(cast(Bool, bool))
+    mayWriteToMemory = Method(cast(Bool, bool))
+    mayReadFromMemory = Method(cast(Bool, bool))
+    mayReadOrWriteMemory = Method(cast(Bool, bool))
+    mayThrow = Method(cast(Bool, bool))
+    mayHaveSideEffects = Method(cast(Bool, bool))
+
+    hasMetadata = Method(cast(Bool, bool))
+    getMetadata = Method(ptr(MDNode), cast(str, StringRef))
+    setMetadata = Method(Void, cast(str, StringRef), ptr(MDNode))
+
+    clone = Method(ptr(Instruction))
+
+# LLVM 3.3
+#    hasUnsafeAlgebra = Method(cast(Bool, bool))
+#    hasNoNans = Method(cast(Bool, bool))
+#    hasNoInfs = Method(cast(Bool, bool))
+#    hasNoSignedZeros = Method(cast(Bool, bool))
+#    hasAllowReciprocal = Method(cast(Bool, bool))
+
 
 @AtomicCmpXchgInst
 class AtomicCmpXchgInst:
@@ -71,7 +118,16 @@ class BinaryOperator:
 
 @CallInst
 class CallInst:
-    pass
+    _downcast_ = Value, Instruction
+    getCallingConv = Method(CallingConv.ID)
+    setCallingConv = Method(Void, CallingConv.ID)
+    getParamAlignment = Method(cast(Unsigned, int), cast(int, Unsigned))
+    addAttribute = Method(Void, cast(int, Unsigned), ref(Attributes))
+    removeAttribute = Method(Void, cast(int, Unsigned), ref(Attributes))
+    getCalledFunction = Method(ptr(Function))
+    getCalledValue = Method(ptr(Value))
+    setCalledFunction = Method(Void, ptr(Function))
+    isInlineAsm = Method(cast(Bool, bool))
 
 @CmpInst
 class CmpInst:
@@ -86,6 +142,8 @@ class CmpInst:
                      'FIRST_ICMP_PREDICATE',
                      'LAST_ICMP_PREDICATE',
                      'BAD_ICMP_PREDICATE',)
+
+    getPredicate = Method(Predicate)
 
 @ExtractElementInst
 class ExtractElementInst:
@@ -113,7 +171,14 @@ class LandingPadInst:
 
 @PHINode
 class PHINode:
-    pass
+    getNumIncomingValues = Method(cast(Unsigned, int))
+    getIncomingValue = Method(ptr(Value), cast(int, Unsigned))
+    setIncomingValue = Method(Void, cast(int, Unsigned), ptr(Value))
+    getIncomingBlock = Method(ptr(BasicBlock), cast(int, Unsigned))
+    setIncomingBlock = Method(Void, cast(int, Unsigned), ptr(BasicBlock))
+    addIncoming = Method(Void, ptr(Value), ptr(BasicBlock))
+    hasConstantValue = Method(ptr(Value))
+    getBasicBlockIndex = Method(cast(Int, int), ptr(BasicBlock))
 
 @SelectInst
 class SelectInst:
@@ -125,11 +190,24 @@ class ShuffleVectorInst:
 
 @StoreInst
 class StoreInst:
-    pass
+    _downcast_ = Instruction
+    isVolatile = Method(cast(Bool, bool))
+    isSimple = Method(cast(Bool, bool))
+    isUnordered = Method(cast(Bool, bool))
+    isAtomic = Method(cast(Bool, bool))
+
+    setVolatile = Method(Void, cast(Bool, bool))
+
+    getAlignment = Method(cast(Unsigned, int))
+    setAlignment = Method(Void, cast(int, Unsigned))
+
+    classof = StaticMethod(cast(Bool, bool), ptr(Value))
 
 @TerminatorInst
 class TerminatorInst:
-    pass
+    getNumSuccessors = Method(cast(Unsigned, int))
+    getSuccessor = Method(ptr(BasicBlock), cast(int, Unsigned))
+    setSuccessor = Method(Void, cast(int, Unsigned), ptr(BasicBlock))
 
 @UnaryInstruction
 class UnaryInstruction:
@@ -162,7 +240,15 @@ class IndirectBrInst:
 
 @InvokeInst
 class InvokeInst:
-    pass
+    _downcast_ = Value, Instruction
+    getCallingConv = Method(CallingConv.ID)
+    setCallingConv = Method(Void, CallingConv.ID)
+    getParamAlignment = Method(cast(Unsigned, int), cast(int, Unsigned))
+    addAttribute = Method(Void, cast(int, Unsigned), ref(Attributes))
+    removeAttribute = Method(Void, cast(int, Unsigned), ref(Attributes))
+    getCalledFunction = Method(ptr(Function))
+    getCalledValue = Method(ptr(Value))
+    setCalledFunction = Method(Void, ptr(Function))
 
 @ResumeInst
 class ResumeInst:
@@ -174,7 +260,13 @@ class ReturnInst:
 
 @SwitchInst
 class SwitchInst:
-    pass
+    getCondition = Method(ptr(Value))
+    setCondition = Method(Void, ptr(Value))
+    getDefaultDest = Method(ptr(BasicBlock))
+    setDefaultDest = Method(Void, ptr(BasicBlock))
+    getNumCases = Method(cast(int, Unsigned))
+    addCase = Method(Void, ptr(ConstantInt), ptr(BasicBlock))
+
 
 @UnreachableInst
 class UnreachableInst:
@@ -195,7 +287,18 @@ class ExtractValueInst:
 
 @LoadInst
 class LoadInst:
-    pass
+    _downcast_ = Value, Instruction
+    isVolatile = Method(cast(Bool, bool))
+    isSimple = Method(cast(Bool, bool))
+    isUnordered = Method(cast(Bool, bool))
+    isAtomic = Method(cast(Bool, bool))
+
+    setVolatile = Method(Void, cast(Bool, bool))
+
+    getAlignment = Method(cast(Unsigned, int))
+    setAlignment = Method(Void, cast(int, Unsigned))
+
+    classof = StaticMethod(cast(Bool, bool), ptr(Value))
 
 @VAArgInst
 class VAArgInst:

@@ -31,6 +31,8 @@ class MDString:
 @llvm.Class()
 class NamedMDNode:
     eraseFromParent = Method()
+    eraseFromParent.disowning = True
+
     dropAllReferences = Method()
     getParent = Method(ptr(Module))
     getOperand = Method(ptr(MDNode), cast(int, Unsigned))
@@ -41,3 +43,10 @@ class NamedMDNode:
     print_.realname = "print"
     dump = Method()
 
+
+    @CustomPythonMethod
+    def __str__(self):
+        import extra
+        os = extra.make_raw_ostream_for_printing()
+        self.print_(os, None)
+        return os.str()

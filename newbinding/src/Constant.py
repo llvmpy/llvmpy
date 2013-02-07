@@ -1,10 +1,22 @@
 from binding import *
 from namespace import llvm
+
+from Value import Constant, Value
+
+UndefValue = llvm.Class(Constant)
+ConstantInt = llvm.Class(Constant)
+ConstantFP = llvm.Class(Constant)
+ConstantArray = llvm.Class(Constant)
+ConstantStruct = llvm.Class(Constant)
+ConstantVector = llvm.Class(Constant)
+ConstantDataSequential = llvm.Class(Constant)
+ConstantDataArray = llvm.Class(ConstantDataSequential)
+ConstantExpr = llvm.Class(Constant)
+
 from LLVMContext import LLVMContext
 from ADT.StringRef import StringRef
 from ADT.SmallVector import SmallVector_Value, SmallVector_Unsigned
 from Type import Type, IntegerType, ArrayType, StructType
-from Value import Constant, Value
 from Instruction import CmpInst
 
 @Constant
@@ -42,7 +54,6 @@ class Constant:
                                          PyObjectPtr)
 
 
-UndefValue = llvm.Class(Constant)
 
 @UndefValue
 class UndefValue:
@@ -67,7 +78,6 @@ class UndefValue:
     get = StaticMethod(ptr(UndefValue), ptr(Type))
 
 
-ConstantInt = llvm.Class(Constant)
 
 @ConstantInt
 class ConstantInt:
@@ -82,7 +92,6 @@ class ConstantInt:
     getZExtValue = Method(cast(Uint64, int))
     getSExtValue = Method(cast(Int64, int))
 
-ConstantFP = llvm.Class(Constant)
 
 @ConstantFP
 class ConstantFP:
@@ -95,7 +104,6 @@ class ConstantFP:
     isNaN = Method(cast(Bool, bool))
 
 
-ConstantArray = llvm.Class(Constant)
 
 @ConstantArray
 class ConstantArray:
@@ -105,7 +113,6 @@ class ConstantArray:
                              PyObjectPtr,    # Constants
                              )
 
-ConstantStruct = llvm.Class(Constant)
 
 @ConstantStruct
 class ConstantStruct:
@@ -120,7 +127,6 @@ class ConstantStruct:
                                  cast(bool, Bool), # packed
                                  ).require_only(1)
 
-ConstantVector = llvm.Class(Constant)
 
 @ConstantVector
 class ConstantVector:
@@ -129,13 +135,11 @@ class ConstantVector:
                              PyObjectPtr, # constants
                              )
 
-ConstantDataSequential = llvm.Class(Constant)
 
 @ConstantDataSequential
 class ConstantDataSequential:
     pass
 
-ConstantDataArray = llvm.Class(ConstantDataSequential)
 
 @ConstantDataArray
 class ConstantDataArray:
@@ -146,7 +150,6 @@ class ConstantDataArray:
                              ).require_only(2)
 
 
-ConstantExpr = llvm.Class(Constant)
 
 def _factory(*args):
     return StaticMethod(ptr(Constant), *args)
