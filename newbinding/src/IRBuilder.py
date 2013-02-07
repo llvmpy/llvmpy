@@ -2,6 +2,7 @@ from binding import *
 from namespace import llvm
 from LLVMContext import LLVMContext
 from BasicBlock import BasicBlock
+from Instruction import Instruction
 from Instruction import ReturnInst, CallInst, BranchInst, SwitchInst
 from Instruction import IndirectBrInst, InvokeInst, ResumeInst, PHINode
 from Instruction import UnreachableInst, AllocaInst, LoadInst, StoreInst
@@ -23,12 +24,30 @@ class IRBuilder:
     new = Constructor(ref(LLVMContext))
     delete = Destructor()
 
-    SetInsertPoint = Method(Void, ptr(BasicBlock))
+    GetInsertBlock = Method(ptr(BasicBlock))
+
+    _SetInsertPoint_end_of_bb = Method(Void, ptr(BasicBlock))
+    _SetInsertPoint_end_of_bb.realname = 'SetInsertPoint'
+    _SetInsertPoint_before_instr = Method(Void, ptr(Instruction))
+    _SetInsertPoint_before_instr.realname = 'SetInsertPoint'
+
+    @CustomPythonMethod
+    def SetInsertPoint(self, pt):
+        if isinstance(pt, Instruction):
+            return self._SetInsertPoint_before_instr(pt)
+        elif isinstance(pt, BasicBlock):
+            return self._SetInsertPoint_end_of_bb(pt)
+        else:
+            raise ValueError("Expected either an Instruction or a BasicBlock")
 
     isNamePreserving = Method(cast(Bool, bool))
 
     CreateRetVoid = Method(ptr(ReturnInst))
     CreateRet = Method(ptr(ReturnInst), ptr(Value))
+    CreateAggregateRet = CustomMethod('IRBuilder_CreateAggregateRet',
+                                      PyObjectPtr,      # ptr(ReturnInst),
+                                      PyObjectPtr,      # list of Value
+                                      cast(int, Unsigned))
 
     CreateBr = Method(ptr(BranchInst), ptr(BasicBlock))
 
@@ -42,9 +61,18 @@ class IRBuilder:
     CreateIndirectBr = Method(ptr(IndirectBrInst), ptr(Value),
                               cast(int, Unsigned)).require_only(1)
 
-    CreateInvoke = Method(ptr(InvokeInst), ptr(Value), ptr(BasicBlock),
+    _CreateInvoke = Method(ptr(InvokeInst), ptr(Value), ptr(BasicBlock),
                           ptr(BasicBlock), ref(SmallVector_Value),
                           cast(str, StringRef)).require_only(4)
+    _CreateInvoke.realname = 'CreateInvoke'
+
+    @CustomPythonMethod
+    def CreateInvoke(self, *args):
+        import extra
+        args = list(args)
+        valuelist = args[3]
+        args[3] = extra.make_small_vector_from_values(*valuelist)
+        return self._CreateInvoke(*args)
 
     CreateResume = Method(ptr(ResumeInst), ptr(Value))
 
@@ -114,8 +142,11 @@ class IRBuilder:
                        ptr(Value), cast(str, StringRef)).require_only(1)
 
 
-    CreateAlloca = Method(ptr(AllocaInst), ptr(Type), ptr(Value),
-                          cast(str, StringRef)).require_only(2)
+    CreateAlloca = Method(ptr(AllocaInst),
+                          ptr(Type),            # ty
+                          ptr(Value),           # arysize = 0
+                          cast(str, StringRef), # name = ''
+                          ).require_only(1)
 
     CreateLoad = Method(ptr(LoadInst),
                         ptr(Value), cast(str, StringRef)).require_only(1)
@@ -208,6 +239,14 @@ class IRBuilder:
                          cast(str, StringRef)).require_only(2)
     _CreateCall.realname = 'CreateCall'
 
+    @CustomPythonMethod
+    def CreateCall(self, *args):
+        import extra
+        args = list(args)
+        valuelist = args[1]
+        args[1] = extra.make_small_vector_from_values(*valuelist)
+        return self._CreateCall(*args)
+
     # Skip specialized CreateICmp* and CreateFCmp*
 
     CreateICmp = Method(ptr(Value), CmpInst.Predicate, ptr(Value), ptr(Value),
@@ -219,13 +258,6 @@ class IRBuilder:
     CreatePHI = Method(ptr(PHINode), ptr(Type), cast(int, Unsigned),
                        cast(str, StringRef)).require_only(2)
 
-    @CustomPythonMethod
-    def CreateCall(self, *args):
-        import extra
-        args = list(args)
-        valuelist = args[1]
-        args[1] = extra.make_small_vector_from_values(*valuelist)
-        return self._CreateCall(*args)
 
     CreateSelect = Method(ptr(Value), ptr(Value), ptr(Value), ptr(Value),
                           cast(str, StringRef)).require_only(3)

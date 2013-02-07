@@ -5,6 +5,7 @@ from ADT.StringRef import StringRef
 from CallingConv import CallingConv
 from Attributes import Attributes
 from Constant import ConstantInt
+from Type import Type
 
 
 Instruction = llvm.Class(User)
@@ -56,6 +57,17 @@ FPExtInst = llvm.Class(CastInst)
 FPToSIInst = llvm.Class(CastInst)
 FPToUIInst = llvm.Class(CastInst)
 FPTruncInst = llvm.Class(CastInst)
+
+AtomicOrdering = llvm.Enum('AtomicOrdering',
+                           'NotAtomic', 'Unordered', 'Monotonic', 'Acquire',
+                           'Release', 'AcquireRelease',
+                           'SequentiallyConsistent')
+
+SynchronizationScope = llvm.Enum('SynchronizationScope',
+                                 'SingleThread', 'CrossThread')
+
+
+
 
 @Instruction
 class Instruction:
@@ -129,6 +141,18 @@ class CallInst:
     setCalledFunction = Method(Void, ptr(Function))
     isInlineAsm = Method(cast(Bool, bool))
 
+    CreateMalloc = StaticMethod(ptr(Instruction),
+                                ptr(BasicBlock),    # insertAtEnd
+                                ptr(Type),          # intptrty
+                                ptr(Type),          # allocty
+                                ptr(Value),         # allocsz
+                                ptr(Value),         # array size = 0
+                                ptr(Function),      # malloc fn = 0
+                                cast(str, StringRef), # name
+                                ).require_only(4)
+
+    CreateFree = StaticMethod(ptr(Instruction), ptr(Value), ptr(BasicBlock))
+
 @CmpInst
 class CmpInst:
     Predicate = Enum('FCMP_FALSE', 'FCMP_OEQ', 'FCMP_OGT', 'FCMP_OGE',
@@ -200,6 +224,10 @@ class StoreInst:
 
     getAlignment = Method(cast(Unsigned, int))
     setAlignment = Method(Void, cast(int, Unsigned))
+
+    setAtomic = Method(Void,
+                       AtomicOrdering,
+                       SynchronizationScope).require_only(1)
 
     classof = StaticMethod(cast(Bool, bool), ptr(Value))
 
@@ -298,6 +326,10 @@ class LoadInst:
     getAlignment = Method(cast(Unsigned, int))
     setAlignment = Method(Void, cast(int, Unsigned))
 
+    setAtomic = Method(Void,
+                       AtomicOrdering,
+                       SynchronizationScope).require_only(1)
+
     classof = StaticMethod(cast(Bool, bool), ptr(Value))
 
 @VAArgInst
@@ -344,12 +376,4 @@ class FPToUIInst:
 @FPTruncInst
 class FPTruncInst:
     pass
-
-AtomicOrdering = llvm.Enum('AtomicOrdering',
-                           'NotAtomic', 'Unordered', 'Monotonic', 'Acquire',
-                           'Release', 'AcquireRelease',
-                           'SequentiallyConsistent')
-
-SynchronizationScope = llvm.Enum('SynchronizationScope',
-                                 'SingleThread', 'CrossThread')
 

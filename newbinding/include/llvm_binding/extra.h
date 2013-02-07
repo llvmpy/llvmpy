@@ -14,6 +14,7 @@
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Constants.h>
 #include <llvm/Intrinsics.h>
+#include <llvm/IRBuilder.h>
 
 #include "auto_pyobject.h"
 
@@ -730,5 +731,19 @@ PyObject* BasicBlock_getInstList(llvm::BasicBlock* BB)
     return iplist_to_pylist(BB->getInstList(),
                             "llvm::Value",
                             "llvm::Instruction");
+}
+
+static
+PyObject* IRBuilder_CreateAggregateRet(llvm::IRBuilder<>* builder,
+                                       PyObject* Vals,
+                                       unsigned N)
+{
+    using namespace llvm;
+    std::vector<Value*> vec_values;
+    bool ok = extract<Value>::from_py_sequence(vec_values, Vals, "llvm::Value");
+    if (not ok) return NULL;
+    Value** ptr_values = &vec_values[0];
+    ReturnInst* inst = builder->CreateAggregateRet(ptr_values, N);
+    return pycapsule_new(inst, "llvm::Value", "llvm:ReturnInst");
 }
 
