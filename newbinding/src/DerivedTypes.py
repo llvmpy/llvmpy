@@ -25,7 +25,6 @@ class FunctionType:
         else:
             return FunctionType._get(*args)
 
-
     isVarArg = Method(cast(Bool, bool))
     getReturnType = Method(ptr(Type))
     getParamType = Method(ptr(Type), cast(int, Unsigned))

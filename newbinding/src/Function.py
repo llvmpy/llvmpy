@@ -4,6 +4,7 @@ from Value import GlobalValue, Constant, Function, Argument
 from Type import Type
 from DerivedTypes import FunctionType
 from LLVMContext import LLVMContext
+from CallingConv import CallingConv
 
 @Function
 class Function:
@@ -16,6 +17,10 @@ class Function:
     isVarArg = Method(cast(Bool, bool))
     getIntrinsicID = Method(cast(Unsigned, int))
     isIntrinsic = Method(cast(Bool, bool))
+
+    getCallingConv = Method(CallingConv.ID)
+    setCallingConv = Method(Void, CallingConv.ID)
+
 
     getArgumentList = CustomMethod('Function_getArgumentList', PyObjectPtr)
     getBasicBlockList = CustomMethod('Function_getBasicBlockList', PyObjectPtr)

@@ -9,16 +9,28 @@ IntegerType = llvm.Class(Type)
 CompositeType = llvm.Class(Type)
 StructType = llvm.Class(CompositeType)
 SequentialType = llvm.Class(CompositeType)
+ArrayType = llvm.Class(SequentialType)
 PointerType = llvm.Class(SequentialType)
+VectorType = llvm.Class(SequentialType)
 
 @Type
 class Type:
     _include_ = 'llvm/Type.h'
 
+    TypeID = Enum('''
+        VoidTyID, HalfTyID, FloatTyID, DoubleTyID,
+        X86_FP80TyID, FP128TyID, PPC_FP128TyID, LabelTyID,
+        MetadataTyID, X86_MMXTyID, IntegerTyID, FunctionTyID,
+        StructTyID, ArrayTyID, PointerTyID, VectorTyID,
+        NumTypeIDs, LastPrimitiveTyID, FirstDerivedTyID
+        ''')
+
     getContext = Method(ref(LLVMContext))
     dump = Method()
     print_ = Method(Void, ref(raw_ostream))
     print_.realname = 'print'
+
+    getTypeID = Method(TypeID)
 
     def type_checker():
         return Method(cast(Bool, bool))
@@ -81,7 +93,8 @@ class Type:
     getPPC_FP128Ty = type_factory()
     getX86_MMXTy = type_factory()
 
-    getIntNTy = StaticMethod(ptr(IntegerType), ref(LLVMContext), cast(Unsigned, int))
+    getIntNTy = StaticMethod(ptr(IntegerType),
+                             ref(LLVMContext), cast(Unsigned, int))
 
     def integer_factory():
         return StaticMethod(ptr(IntegerType), ref(LLVMContext))
@@ -117,6 +130,20 @@ class Type:
         self.print_(os)
         return os.str()
 
+    getContainedType = Method(ptr(Type), cast(int, Unsigned))
+    getNumContainedTypes = Method(cast(int, Unsigned))
+
+    getArrayNumElements = Method(cast(Uint64, int))
+    getArrayElementType = Method(ptr(Type))
+
+    getVectorNumElements = Method(cast(Unsigned, int))
+    getVectorElementType = Method(ptr(Type))
+
+    getPointerElementType = Method(ptr(Type))
+    getPointerAddressSpace = Method(cast(Unsigned, int))
+    getPointerTo = Method(ptr(PointerType), cast(int, Unsigned))
+
+
 @IntegerType
 class IntegerType:
     pass
@@ -130,9 +157,30 @@ class CompositeType:
 class SequentialType:
     pass
 
+@ArrayType
+class ArrayType:
+    getNumElements = Method(cast(Uint64, int))
+    get = StaticMethod(ptr(ArrayType), ptr(Type), cast(int, Uint64))
+    isValidElementType = StaticMethod(cast(Bool, bool), ptr(Type))
+
 @PointerType
 class PointerType:
-    pass
+    getAddressSpace = Method(cast(Unsigned, int))
+    get = StaticMethod(ptr(PointerType), ptr(Type), cast(int, Unsigned))
+    getUnqual = StaticMethod(ptr(PointerType), ptr(Type))
+    isValidElementType = StaticMethod(cast(Bool, bool), ptr(Type))
+
+@VectorType
+class VectorType:
+    getNumElements = Method(cast(Unsigned, int))
+    getBitWidth = Method(cast(Unsigned, int))
+    get = StaticMethod(ptr(VectorType), ptr(Type), cast(int, Unsigned))
+    getInteger = StaticMethod(ptr(VectorType), ptr(VectorType))
+    getExtendedElementVectorType = StaticMethod(ptr(VectorType),
+                                                ptr(VectorType))
+    getTruncatedElementVectorType = StaticMethod(ptr(VectorType),
+                                                 ptr(VectorType))
+    isValidElementType = StaticMethod(cast(Bool, bool), ptr(Type))
 
 @StructType
 class StructType:
@@ -154,5 +202,12 @@ class StructType:
                           ref(LLVMContext),
                           cast(str, StringRef),
                           ).require_only(1)
+
+    get = StaticMethod(ptr(StructType),
+                       ref(LLVMContext),
+                       cast(bool, Bool), # is packed
+                       ).require_only(1)
+
+
     isValidElementType = StaticMethod(cast(Bool, bool), ptr(Type))
 

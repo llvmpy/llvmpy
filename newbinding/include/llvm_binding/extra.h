@@ -11,6 +11,8 @@
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/Linker.h>
 #include <llvm/Module.h>
+#include <llvm/Analysis/Verifier.h>
+#include <llvm/Constants.h>
 
 #include "auto_pyobject.h"
 
@@ -171,6 +173,33 @@ PyObject* iplist_to_pylist(iplist &IPL, const char * capsuleName,
                                     className);
 }
 
+template<class ElemTy>
+struct extract {
+
+    template<class VecTy>
+    static
+    bool from_py_sequence(VecTy& vec, PyObject* seq, const char *capsuleName)
+    {
+        Py_ssize_t N = PySequence_Size(seq);
+        for (Py_ssize_t i = 0; i < N; ++i) {
+            auto_pyobject item = PySequence_GetItem(seq, i);
+            if (!item) {
+                return false;
+            }
+            auto_pyobject capsule = PyObject_GetAttrString(*item, "_ptr");
+            if (!capsule) {
+                return false;
+            }
+            void* ptr = PyCapsule_GetPointer(*capsule, capsuleName);
+            if (!ptr) {
+                return false;
+            }
+            vec.push_back(static_cast<ElemTy*>(ptr));
+        }
+        return true;
+    }
+
+};
 //static
 //bool string_equal(const char *A, const char *B){
 //    for (; *A and *B; ++A, ++B) {
@@ -492,7 +521,7 @@ PyObject* TargetMachine_addPassesToEmitFile(
         if (!buf) {
             return NULL;
         }
-        if ( -1 == PyFile_WriteObject(buf, Out, Py_PRINT_RAW) ){
+        if (-1 == PyFile_WriteObject(buf, Out, Py_PRINT_RAW)){
             return NULL;
         }
         Py_RETURN_TRUE;
@@ -500,6 +529,30 @@ PyObject* TargetMachine_addPassesToEmitFile(
         Py_RETURN_FALSE;
     }
 }
+
+static
+PyObject* Constant_getIntegerValue(llvm::Type* Ty, PyObject* pyint)
+{
+    using namespace llvm;
+    if (!Ty->isIntegerTy()) {
+        PyErr_SetString(PyExc_ValueError, "Type should be of integer type.");
+        return NULL;
+    }
+    unsigned width = Ty->getIntegerBitWidth();
+    if (width > sizeof(unsigned long long)*8) {
+        PyErr_SetString(PyExc_ValueError, "Integer value is too large.");
+    }
+    Constant* K;
+    if (PyLong_Check(pyint)){
+        APInt apint(width, PyLong_AsLongLong(pyint), true);
+        K = Constant::getIntegerValue(Ty, apint);
+    } else {
+        APInt apint(width, PyInt_AsLong(pyint), true);
+        K = Constant::getIntegerValue(Ty, apint);
+    }
+    return pycapsule_new(K, "llvm::Value", "llvm::Constant");
+}
+
 
 static
 PyObject* Linker_LinkInModule(llvm::Linker* Linker,
@@ -543,24 +596,8 @@ PyObject* StructType_setBody(llvm::StructType* Self,
 {
     using namespace llvm;
     std::vector<Type*> elements;
-    Py_ssize_t N = PySequence_Size(Elems);
-    elements.reserve(N);
-    for (Py_ssize_t i=0; i < N; ++i) {
-        auto_pyobject obj = PySequence_GetItem(Elems, i);
-        auto_pyobject capsule = PyObject_GetAttrString(*obj, "_ptr");
-        if (!capsule) {
-            return NULL;
-        }
-        void * ptr = PyCapsule_GetPointer(*capsule, "llvm::Type");
-        if (!ptr) {
-            return NULL;
-        }
-        Type* type = static_cast<Type*>(ptr);
-        elements.push_back(type);
-    }
-
+    extract<Type>::from_py_sequence(elements, Elems, "llvm::Type");
     Self->setBody(elements, isPacked);
-
     Py_RETURN_NONE;
 }
 
@@ -576,5 +613,84 @@ PyObject* Module_list_functions(llvm::Module* Mod)
 {
     return iplist_to_pylist(Mod->getFunctionList(),
                             "llvm::Value", "llvm::Function");
+}
+
+static
+PyObject* Module_list_named_metadata(llvm::Module* Mod)
+{
+    return iplist_to_pylist(Mod->getFunctionList(),
+                            "llvm::NamedMDNode", "llvm::NamedMDNode");
+
+}
+
+static
+PyObject* llvm_verifyModule(const llvm::Module& Fn,
+                              llvm::VerifierFailureAction Action,
+                              PyObject* ErrMsg)
+{
+    std::string errmsg;
+    bool failed = llvm::verifyModule(Fn, Action, &errmsg);
+
+    if (failed) {
+        if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
+            return NULL;
+        }
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+}
+
+static
+PyObject* ConstantArray_get(llvm::ArrayType* Ty, PyObject* Consts)
+{
+    using namespace llvm;
+
+    std::vector<Constant*> vec_consts;
+    bool ok = extract<Constant>::from_py_sequence(vec_consts, Consts,
+                                                   "llvm::Value");
+    if (not ok) return NULL;
+    Constant* ary = ConstantArray::get(Ty, vec_consts);
+    return pycapsule_new(ary, "llvm::Value", "llvm::Constant");
+}
+
+static
+PyObject* ConstantStruct_get(llvm::StructType* Ty, PyObject* Elems)
+{
+    using namespace llvm;
+
+    std::vector<Constant*> vec_consts;
+    bool ok = extract<Constant>::from_py_sequence(vec_consts, Elems,
+                                                  "llvm::Value");
+    if (not ok) return NULL;
+    Constant* ary = ConstantStruct::get(Ty, vec_consts);
+    return pycapsule_new(ary, "llvm::Value", "llvm::Constant");
+}
+
+static
+PyObject* ConstantStruct_getAnon(PyObject* Elems,
+                                            bool isPacked=false)
+{
+    using namespace llvm;
+
+    std::vector<Constant*> vec_consts;
+    bool ok = extract<Constant>::from_py_sequence(vec_consts, Elems,
+                                                  "llvm::Value");
+    if (not ok) return NULL;
+    Constant* ary = ConstantStruct::getAnon(vec_consts, isPacked);
+    return pycapsule_new(ary, "llvm::Value", "llvm::Constant");
+}
+
+static
+PyObject* ConstantVector_get(PyObject* Elems)
+{
+    using namespace llvm;
+
+    std::vector<Constant*> vec_consts;
+    bool ok = extract<Constant>::from_py_sequence(vec_consts, Elems,
+                                                  "llvm::Value");
+    if (not ok) return NULL;
+    Constant* ary = ConstantVector::get(vec_consts);
+    return pycapsule_new(ary, "llvm::Value", "llvm::Constant");
 }
 

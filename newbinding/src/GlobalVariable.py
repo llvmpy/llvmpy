@@ -33,7 +33,7 @@ class GlobalVariable:
     isThreadLocal = Method(cast(Bool, bool))
 
     isConstant = Method(cast(Bool, bool))
-    setConstant = Method(Void, ptr(Constant))
+    setConstant = Method(Void, cast(bool, Bool))
 
     setInitializer = Method(Void, ptr(Constant))
     getInitializer = Method(ptr(Constant))
@@ -45,4 +45,5 @@ class GlobalVariable:
 #    isExternallyInitialized = Method(cast(Bool, bool))
 #    setExternallyinitialized = Method(Void, cast(bool, Bool))
 
+    eraseFromParent = Method()
     

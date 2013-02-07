@@ -64,6 +64,28 @@ int py_str_to(PyObject *strobj, const char* &strref){
     return 1;
 }
 
+
+static
+int py_int_to(PyObject *intobj, int64_t & val){
+    if (!PyInt_Check(intobj)) {
+        // raise TypeError
+        PyErr_SetString(PyExc_TypeError, "Expecting an int");
+        return 0;
+    }
+    if (PyLong_Check(intobj)) {
+        val = PyLong_AsLongLong(intobj);
+    } else {
+        val = PyInt_AsLong(intobj);
+    }
+    if (PyErr_Occurred()){
+        return NULL;
+    }
+    // success
+    return 1;
+}
+
+
+
 static
 int py_int_to(PyObject *intobj, unsigned & val){
     if (!PyInt_Check(intobj)) {

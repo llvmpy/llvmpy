@@ -12,6 +12,7 @@ from DerivedTypes import FunctionType
 from Support.raw_ostream import raw_ostream
 from Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
 from Type import Type, StructType
+from Metadata import NamedMDNode
 
 @Module
 class Module:
@@ -59,6 +60,16 @@ class Module:
     # GlobalVariable Iteration
     list_globals = CustomMethod('Module_list_globals', PyObjectPtr)
 
+    # Named MetaData Accessors
+    getNamedMetadata = Method(ptr(NamedMDNode), cast(str, StringRef))
+    getOrInsertNamedMetadata = Method(ptr(NamedMDNode), cast(str, StringRef))
+    eraseNamedMetadata = Method(Void, ptr(NamedMDNode))
+
+    # Named MetaData Iteration
+    list_named_metadata = CustomMethod('Module_list_named_metadata',
+                                       PyObjectPtr)
+
+
     # Utilities
     dump = Method(Void)
     print_ = Method(Void, ref(raw_ostream), ptr(AssemblyAnnotationWriter))
@@ -74,5 +85,3 @@ class Module:
     dropAllReferences = Method()
 
     getTypeByName = Method(ptr(StructType), cast(str, StringRef))
-
-    

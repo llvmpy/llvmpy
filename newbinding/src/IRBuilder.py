@@ -242,13 +242,32 @@ class IRBuilder:
                                  ptr(Value), cast(str, StringRef))
     CreateShuffleVector.require_only(3)
 
-    CreateExtractValue = Method(ptr(Value), ptr(Value), ref(SmallVector_Unsigned),
-                                cast(str, StringRef))
-    CreateExtractValue.require_only(2)
+    _CreateExtractValue = Method(ptr(Value), ptr(Value),
+                                 ref(SmallVector_Unsigned),
+                                 cast(str, StringRef))
+    _CreateExtractValue.require_only(2)
+    _CreateExtractValue.realname = 'CreateExtractValue'
 
-    CreateInsertValue = Method(ptr(Value), ptr(Value), ptr(Value),
+    @CustomPythonMethod
+    def CreateExtractValue(self, args):
+        import extra
+        args = list(args)
+        valuelist = args[1]
+        args[1] = extra.make_small_vector_from_unsigned(*valuelist)
+        return self._CreateExtractValue(*args)
+
+    _CreateInsertValue = Method(ptr(Value), ptr(Value), ptr(Value),
                                 ref(SmallVector_Unsigned), cast(str, StringRef))
-    CreateInsertValue.require_only(3)
+    _CreateInsertValue.require_only(3)
+    _CreateInsertValue.realname = 'CreateInsertValue'
+
+    @CustomPythonMethod
+    def CreateInsertValue(self, args):
+        import extra
+        args = list(args)
+        valuelist = args[2]
+        args[1] = extra.make_small_vector_from_unsigned(*valuelist)
+        return self._CreateInsertValue(*args)
 
     CreateLandingPad = Method(ptr(LandingPadInst), ptr(Type), ptr(Value),
                               cast(int, Unsigned), cast(str, StringRef))

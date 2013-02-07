@@ -21,6 +21,16 @@ from ADT.StringRef import StringRef
 @Value
 class Value:
 
+    ValueTy = Enum('''
+        ArgumentVal, BasicBlockVal, FunctionVal, GlobalAliasVal,
+        GlobalVariableVal, UndefValueVal, BlockAddressVal, ConstantExprVal,
+        ConstantAggregateZeroVal, ConstantDataArrayVal, ConstantDataVectorVal, 
+        ConstantIntVal, ConstantFPVal, ConstantArrayVal, ConstantStructVal, 
+        ConstantVectorVal, ConstantPointerNullVal, MDNodeVal, MDStringVal, 
+        InlineAsmVal, PseudoSourceValueVal, FixedStackPseudoSourceValueVal, 
+        InstructionVal, ConstantFirstVal, ConstantLastVal
+        ''')
+
     dump = Method()
 
     print_ = Method(Void, ref(raw_ostream), ptr(AssemblyAnnotationWriter))
@@ -41,6 +51,7 @@ class Value:
     hasOneUse = Method(cast(Bool, bool))
     hasNUses = Method(cast(Bool, bool), cast(int, Unsigned))
     isUsedInBasicBlock = Method(cast(Bool, bool), BasicBlock)
+    getNumUses = Method(cast(Unsigned, int))
 
     @CustomPythonMethod
     def __str__(self):
@@ -48,3 +59,5 @@ class Value:
         os = extra.make_raw_ostream_for_printing()
         self.print_(os, None)
         return os.str()
+
+    getValueID = Method(cast(Unsigned, int))
