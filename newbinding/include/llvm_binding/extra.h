@@ -697,8 +697,8 @@ PyObject* ConstantVector_get(PyObject* Elems)
 
 static
 PyObject* Intrinsic_getDeclaration(llvm::Module* Mod,
-                                        unsigned ID,
-                                        PyObject* Types=NULL)
+                                   unsigned ID,
+                                   PyObject* Types=NULL)
 {
     using namespace llvm;
     Function* Fn = NULL;
@@ -712,4 +712,17 @@ PyObject* Intrinsic_getDeclaration(llvm::Module* Mod,
     }
     return pycapsule_new(Fn, "llvm::Value", "llvm::Function");
 }
+
+static
+PyObject* MDNode_get(llvm::LLVMContext &Cxt, PyObject* Vals)
+{
+    std::vector<llvm::Value*> vals;
+    bool ok = extract<llvm::Value>::from_py_sequence(vals, Vals, "llvm::Value");
+    if (not ok) return NULL;
+    llvm::MDNode* md = llvm::MDNode::get(Cxt, vals);
+    return pycapsule_new(md, "llvm::Value", "llvm::MDNode");
+}
+
+
+
 

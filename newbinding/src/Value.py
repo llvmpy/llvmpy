@@ -5,6 +5,7 @@ from namespace import llvm
 Value = llvm.Class()
 Argument = llvm.Class(Value)
 MDNode = llvm.Class(Value)
+MDString = llvm.Class(Value)
 User = llvm.Class(Value)
 BasicBlock = llvm.Class(Value)
 Constant = llvm.Class(User)
