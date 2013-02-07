@@ -283,6 +283,7 @@ class Method(object):
         self.signatures = []
         self.includes = set()
         self._add_signature(return_type, *args)
+        self.disowning = False
 
     def _add_signature(self, return_type, *args):
         prev_lens = set(map(len, self.signatures))
@@ -350,6 +351,8 @@ class Method(object):
         decl = writer.function(self.name, args=('self',), varargs='args')
         with decl as (this, varargs):
             unwrap_this = writer.unwrap(this)
+            if self.disowning:
+                writer.release_ownership(unwrap_this)
             unwrapped = writer.unwrap_many(varargs)
             self.process_ownedptr_args(writer, unwrapped)
             

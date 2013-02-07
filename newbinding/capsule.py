@@ -92,8 +92,12 @@ _cache = defaultdict(WeakValueDictionary)
 def release_ownership(old):
     logger.debug('Release %s', old)
     addr = Capsule.getPointer(old)
-    if _addr2dtor[addr] is None:
-        # Guard deduplicated release
+
+    if _addr2dtor.get(addr) is None:
+        clsname = Capsule.getClassName(old)
+        if not _pyclasses[clsname]._has_dtor():
+            return
+        # Guard duplicated release
         raise Exception("Already released")
     _addr2dtor[addr] = None
 
@@ -117,7 +121,7 @@ def wrap(cap, owned=False):
     try: # lookup cached object
         return _cache[cls][addr]
     except KeyError:
-        if not owned and hasattr(cls, '_delete_'):
+        if not owned and cls._has_dtor():
             _addr2dtor[addr] = cls._delete_
         obj = cap.instantiate()
         _cache[cls][addr] = obj    # cache it
@@ -163,6 +167,10 @@ class Wrapper(object):
 
     def _downcast(self, newcls):
         return downcast(self, newcls)
+
+    @classmethod
+    def _has_dtor(cls):
+        return hasattr(cls, '_delete_')
 
 def downcast(obj, cls):
     import _api

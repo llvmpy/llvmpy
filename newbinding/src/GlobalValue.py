@@ -44,4 +44,6 @@ class GlobalValue:
     isDeclaration = Method(cast(Bool, bool))
     removeFromParent = Method()
     eraseFromParent = Method()
+    eraseFromParent.disowning = True
+
     getParent = Method(ptr(Module))

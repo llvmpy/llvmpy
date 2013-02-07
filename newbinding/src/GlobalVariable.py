@@ -45,5 +45,5 @@ class GlobalVariable:
 #    isExternallyInitialized = Method(cast(Bool, bool))
 #    setExternallyinitialized = Method(Void, cast(bool, Bool))
 
-    eraseFromParent = Method()
+
     

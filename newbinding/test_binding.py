@@ -319,6 +319,16 @@ def test_constants():
     aryconst = api.ConstantArray.get(ary_int32x4, [intconst] * 4)
     assert str(aryconst.getAggregateElement(0)) == str(intconst)
 
+def test_intrinsic():
+    context = api.getGlobalContext()
+    m = api.Module.new("modname", context)
+    INTR_SIN = 1652
+    floatty = api.Type.getFloatTy(context)
+    fn = api.Intrinsic.getDeclaration(m, INTR_SIN, [floatty])
+    assert 'llvm.sin.f32' in str(fn)
+    fn.eraseFromParent()
+    assert 'llvm.sin.f32' not in str(m)
+
 def main():
     for name, value in globals().items():
         if name.startswith('test_') and callable(value):

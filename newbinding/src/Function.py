@@ -1,6 +1,8 @@
 from binding import *
 from namespace import llvm
 from Value import GlobalValue, Constant, Function, Argument
+from BasicBlock import BasicBlock
+from Attributes import Attributes
 from Type import Type
 from DerivedTypes import FunctionType
 from LLVMContext import LLVMContext
@@ -21,6 +23,33 @@ class Function:
     getCallingConv = Method(CallingConv.ID)
     setCallingConv = Method(Void, CallingConv.ID)
 
+    hasGC = Method(cast(bool, Bool))
+    getGC = Method(cast(ConstCharPtr, str))
+    setGC = Method(Void, cast(str, ConstCharPtr))
+
 
     getArgumentList = CustomMethod('Function_getArgumentList', PyObjectPtr)
     getBasicBlockList = CustomMethod('Function_getBasicBlockList', PyObjectPtr)
+    getEntryBlock = Method(ref(BasicBlock))
+
+    copyAttributesFrom = Method(Void, ptr(GlobalValue))
+
+    setDoesNotThrow = Method()
+    doesNotThrow = Method(cast(Bool, bool))
+    setDoesNotReturn = Method()
+    doesNotReturn = Method(cast(Bool, bool))
+    setOnlyReadsMemory = Method()
+    onlyReadsMemory = Method(cast(Bool, bool))
+    setDoesNotAccessMemory = Method()
+    doesNotAccessMemory = Method(cast(Bool, bool))
+
+    deleteBody = Method()
+    viewCFG = Method()
+    viewCFGOnly = Method()
+
+    addFnAttr = Method(Void, Attributes.AttrVal)
+    removeFnAttr = Method(Void, ref(Attributes))
+
+    eraseFromParent = Method()
+    eraseFromParent.disowning = True
+

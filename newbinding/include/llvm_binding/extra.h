@@ -13,6 +13,7 @@
 #include <llvm/Module.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Constants.h>
+#include <llvm/Intrinsics.h>
 
 #include "auto_pyobject.h"
 
@@ -692,5 +693,23 @@ PyObject* ConstantVector_get(PyObject* Elems)
     if (not ok) return NULL;
     Constant* ary = ConstantVector::get(vec_consts);
     return pycapsule_new(ary, "llvm::Value", "llvm::Constant");
+}
+
+static
+PyObject* Intrinsic_getDeclaration(llvm::Module* Mod,
+                                        unsigned ID,
+                                        PyObject* Types=NULL)
+{
+    using namespace llvm;
+    Function* Fn = NULL;
+    if (Types) {
+        std::vector<Type*> types;
+        bool ok = extract<Type>::from_py_sequence(types, Types, "llvm::Type");
+        if (!ok) return NULL;
+        Fn = Intrinsic::getDeclaration(Mod, (Intrinsic::ID)ID, types);
+    } else {
+        Fn = Intrinsic::getDeclaration(Mod, (Intrinsic::ID)ID);
+    }
+    return pycapsule_new(Fn, "llvm::Value", "llvm::Function");
 }
 
