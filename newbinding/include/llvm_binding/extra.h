@@ -724,5 +724,11 @@ PyObject* MDNode_get(llvm::LLVMContext &Cxt, PyObject* Vals)
 }
 
 
-
+static
+PyObject* BasicBlock_getInstList(llvm::BasicBlock* BB)
+{
+    return iplist_to_pylist(BB->getInstList(),
+                            "llvm::Value",
+                            "llvm::Instruction");
+}
 

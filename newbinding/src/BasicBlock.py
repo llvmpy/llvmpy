@@ -20,3 +20,5 @@ class BasicBlock:
     isLandingPad = Method(cast(Bool, bool))
     removePredecessor = Method(Void, ptr(BasicBlock), cast(bool, Bool))
     removePredecessor |= Method(Void, ptr(BasicBlock))
+
+    getInstList = CustomMethod('BasicBlock_getInstList', PyObjectPtr)
