@@ -82,8 +82,16 @@ def test_basic_jit_use():
     errio = StringIO()
     print m
 
-    # build pass manager
+    # verifier
+    action = api.VerifierFailureAction.ReturnStatusAction
 
+    corrupted = api.verifyFunction(fn, action)
+    assert not corrupted
+    corrupted = api.verifyModule(m, action, errio)
+    print corrupted
+    assert not corrupted, errio.getvalue()
+
+    # build pass manager
     pmb = api.PassManagerBuilder.new()
     pmb.OptLevel = 3
     assert pmb.OptLevel == 3
@@ -155,6 +163,11 @@ def test_basic_jit_use():
     m3 = api.ParseAssemblyString(str(m), None, api.SMDiagnostic.new(), context)
     m3.setModuleIdentifier(m.getModuleIdentifier())
     assert str(m3) == str(m)
+
+    # test clone
+    m4 = api.CloneModule(m)
+    assert m4 is not m
+    assert str(m4) == str(m)
 
 def test_engine_builder():
     api.InitializeNativeTarget()
@@ -285,6 +298,26 @@ def test_globalvariable():
     assert gvar2 is gvar
 
     print m.list_globals()
+
+
+def test_sequentialtypes():
+    context = api.getGlobalContext()
+    int32ty = api.Type.getInt32Ty(context)
+    ary_int32x4 = api.ArrayType.get(int32ty, 4)
+    assert '[4 x i32]' == str(ary_int32x4)
+    ptr_int32 = api.PointerType.get(int32ty, 1)
+    assert 'i32 addrspace(1)*' == str(ptr_int32)
+    vec_int32x4 = api.VectorType.get(int32ty, 4)
+    assert '<4 x i32>' == str(vec_int32x4)
+
+
+def test_constants():
+    context = api.getGlobalContext()
+    int32ty = api.Type.getInt32Ty(context)
+    ary_int32x4 = api.ArrayType.get(int32ty, 4)
+    intconst = api.ConstantInt.get(int32ty, 123)
+    aryconst = api.ConstantArray.get(ary_int32x4, [intconst] * 4)
+    assert str(aryconst.getAggregateElement(0)) == str(intconst)
 
 def main():
     for name, value in globals().items():
