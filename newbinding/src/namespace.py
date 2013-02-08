@@ -1,4 +1,7 @@
 from binding import *
 
-llvm = Namespace('llvm')
 default = Namespace('')
+
+llvm = Namespace('llvm')
+sys = llvm.Namespace('sys')
+

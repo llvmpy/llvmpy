@@ -4,6 +4,12 @@ NULL = 'NULL'
 
 _symbols = set()
 
+def wrap_println_from_file(file):
+    def println(s=''):
+        file.write(s)
+        file.write('\n')
+    return println
+
 def indent(println):
     def _println(s=''):
         println("%s%s" % (' '* 4, s))

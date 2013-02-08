@@ -10,9 +10,8 @@ from ADT.Triple import Triple
 
 EngineBuilder = llvm.Class()
 
-@llvm.Class() # a fake class (actually a namespace)
-class EngineKind:
-    Kind = Enum('JIT', 'Interpreter')
+EngineKind = llvm.Namespace('EngineKind')
+Kind = EngineKind.Enum('Kind', 'JIT', 'Interpreter')
 
 @EngineBuilder
 class EngineBuilder:
@@ -22,7 +21,7 @@ class EngineBuilder:
     def _setter(*args):
         return Method(ref(EngineBuilder), *args)
 
-    setEngineKind = _setter(EngineKind.Kind)
+    setEngineKind = _setter(Kind)
     setJITMemoryManager = _setter(ptr(JITMemoryManager))
 
     setErrorStr = CustomMethod('EngineBuilder_setErrorStr',

@@ -6,9 +6,8 @@ from ..ADT.StringRef import StringRef
 
 TargetLibraryInfo = llvm.Class(ImmutablePass)
 
-@llvm.Class()
-class LibFunc:
-    Func = Enum('''
+LibFunc = llvm.Namespace('LibFunc')
+LibFunc.Enum('Func',  '''
                 ZdaPv, ZdlPv, Znaj, ZnajRKSt9nothrow_t,
                 Znam, ZnamRKSt9nothrow_t, Znwj, ZnwjRKSt9nothrow_t,
                 Znwm, ZnwmRKSt9nothrow_t, cxa_atexit, cxa_guard_abort,

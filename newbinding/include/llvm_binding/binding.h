@@ -63,13 +63,23 @@ create_python_submodule(PyObject* parent, const char* name,
 struct SubModuleEntry{
     const char* name;
     PyMethodDef* methtable;
+    SubModuleEntry* submodule;
 };
 
 static
 int populate_submodules(PyObject* parent, SubModuleEntry* entries){
     for(SubModuleEntry* iter = entries; iter->name; ++iter){
-        if (!create_python_submodule(parent, iter->name, iter->methtable))
+        PyObject* submodule = create_python_submodule(parent,
+                                                      iter->name,
+                                                      iter->methtable);
+        if (!submodule){
             return 0;
+        } else if (iter->submodule){
+            // Recursively populate submodules
+            if (!populate_submodules(submodule, iter->submodule)) {
+                return 0;
+            }
+        }
     }
     return 1;
 }

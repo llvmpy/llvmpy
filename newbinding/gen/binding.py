@@ -1,19 +1,157 @@
 import inspect, textwrap
 import functools
 import codegen as cg
+import os
 
 _rank = 0
 namespaces = {}
 
 RESERVED = frozenset(['None'])
 
-class Namespace(object):
-    def __init__(self, name):
-        self.name = name
+def makedir(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+class SubModule(object):
+    def __init__(self):
+        self.methods = []
         self.enums = []
         self.classes = []
-        self.functions = []
+        self.namespaces = []
+        self.attrs = []
         self.includes = set()
+
+    def aggregate_includes(self):
+        includes = set(self.includes)
+        for unit in self.iter_all():
+            if isinstance(unit, SubModule):
+                includes |= unit.aggregate_includes()
+            else:
+                includes |= unit.includes
+        return includes
+
+    def aggregate_downcast(self):
+        dclist = []
+        for cls in self.classes:
+            for bcls in cls.downcastables:
+                from_to = bcls.fullname, cls.fullname
+                name = 'downcast_%s_to_%s' % tuple(map(cg.mangle, from_to))
+                fn = Function(namespaces[''], name, ptr(cls), ptr(bcls))
+                dclist.append((from_to, fn))
+        for ns in self.namespaces:
+            dclist.extend(ns.aggregate_downcast())
+        return dclist
+
+    def iter_all(self):
+        for fn in self.methods:
+            yield fn
+        for cls in self.classes:
+            yield cls
+        for enum in self.enums:
+            yield enum
+        for attr in self.attrs:
+            yield attr
+        for ns in self.namespaces:
+            yield ns
+
+
+    def generate_method_table(self, println):
+        writer = cg.CppCodeWriter(println)
+        writer.println('static')
+        writer.println('PyMethodDef meth_%s[] = {' % cg.mangle(self.fullname))
+        with writer.indent():
+            fmt = '{ "%(name)s", (PyCFunction)%(func)s, METH_VARARGS, NULL },'
+            for meth in self.methods:
+                name = meth.name
+                func = meth.c_name
+                writer.println(fmt % locals())
+            for enumkind in self.enums:
+                for enum in enumkind.value_names:
+                    name = enum
+                    func = enumkind.c_name(enum)
+                    writer.println(fmt % locals())
+            for attr in self.attrs:
+                # getter
+                name = attr.getter_name
+                func = attr.getter_c_name
+                writer.println(fmt % locals())
+                # setter
+                name = attr.setter_name
+                func = attr.setter_c_name
+                writer.println(fmt % locals())
+            writer.println('{ NULL },')
+        writer.println('};')
+        writer.println()
+
+    def generate_downcasts(self, println):
+        for ((fromty, toty), fn) in self.downcastlist:
+            name = fn.name
+            fmt = '''
+static
+%(toty)s* %(name)s(%(fromty)s* arg)
+{
+    return typecast<%(toty)s>::from(arg);
+}
+                '''
+            println(fmt % locals())
+
+            fn.generate_cpp(println)
+
+    def generate_cpp(self, println, extras=()):
+        for unit in self.iter_all():
+            unit.generate_cpp(println)
+        self.generate_method_table(println)
+        self.generate_submodule_table(println, extras=extras)
+
+    def generate_submodule_table(self, println, extras=()):
+        writer = cg.CppCodeWriter(println)
+        writer.println('static')
+        name = cg.mangle(self.fullname)
+        writer.println('SubModuleEntry submodule_%(name)s[] = {' % locals())
+        with writer.indent():
+            for cls in self.classes:
+                name = cls.name
+                table = cg.mangle(cls.fullname)
+                writer.println('{ "%(name)s", meth_%(table)s, NULL },' %
+                               locals())
+            for ns in self.namespaces:
+                name = ns.localname
+                table = cg.mangle(ns.fullname)
+                fmt = '{ "%(name)s", meth_%(table)s, submodule_%(table)s },'
+                writer.println(fmt % locals())
+            for name, table in extras:
+                writer.println('{ "%(name)s", %(table)s, NULL },' % locals())
+            writer.println('{ NULL }')
+        writer.println('};')
+        writer.println('')
+
+    def generate_py(self, rootdir='.', name=''):
+        name = name or self.localname
+        if self.namespaces: # should make new directory
+            path = os.path.join(rootdir, name)
+            makedir(path)
+            filepath = os.path.join(path, '__init__.py')
+        else:
+            filepath = os.path.join(rootdir, '%s.py' % name)
+        with open(filepath, 'w') as pyfile:
+            println = cg.wrap_println_from_file(pyfile)
+            println('import _api, capsule')
+            for ns in self.namespaces:
+                println('from . import %s' % ns.localname)
+            println()
+            for unit in self.iter_all():
+                if not isinstance(unit, Namespace):
+                    writer = cg.PyCodeWriter(println)
+                    unit.compile_py(writer)
+
+        for ns in self.namespaces:
+            ns.generate_py(rootdir=path)
+
+
+class Namespace(SubModule):
+    def __init__(self, name):
+        SubModule.__init__(self)
+        self.name = name
         namespaces[name] = self
 
     def Class(self, *bases):
@@ -23,12 +161,12 @@ class Namespace(object):
 
     def Function(self, *args):
         fn = Function(self, *args)
-        self.functions.append(fn)
+        self.methods.append(fn)
         return fn
 
     def CustomFunction(self, *args):
         fn = CustomFunction(self, *args)
-        self.functions.append(fn)
+        self.methods.append(fn)
         return fn
 
     def Enum(self, name, *value_names):
@@ -36,11 +174,22 @@ class Namespace(object):
         enum.parent = self
         enum.name = name
         self.enums.append(enum)
+        assert name not in vars(self), 'Duplicated'
+        setattr(self, name, enum)
         return enum
+
+    def Namespace(self, name):
+        ns = Namespace('::'.join([self.name, name]))
+        self.namespaces.append(ns)
+        return ns
 
     @property
     def fullname(self):
         return self.name
+
+    @property
+    def localname(self):
+        return self.name.rsplit('::', 1)[-1]
 
     def __str__(self):
         return self.name
@@ -80,18 +229,15 @@ ConstCharPtr = BuiltinTypes('const char*')
 PyObjectPtr = BuiltinTypes('PyObject*')
 PyObjectPtr.format='O'
 
-class Class(_Type):
+class Class(SubModule, _Type):
     format = 'O'
 
     def __init__(self, ns, *bases):
+        SubModule.__init__(self)
         self.ns = ns
         self.bases = bases
         self._is_defined = False
-        self.methods = []
         self.pymethods = []
-        self.enums = []
-        self.attrs = []
-        self.includes = set()
         self.downcastables = set()
 
     def __call__(self, defn):
@@ -110,6 +256,7 @@ class Class(_Type):
                 self.enums.append(v)
                 v.name = k
                 v.parent = self
+                assert k not in vars(self), "Duplicated: %s" % k
                 setattr(self, k, v)
             elif isinstance(v, Attr):
                 self.attrs.append(v)
@@ -132,43 +279,6 @@ class Class(_Type):
                     for i in v:
                         self.downcastables.add(i)
         return self
-
-    def compile_cpp(self, writer):
-        # generate methods
-        for meth in self.methods:
-            meth.compile_cpp(writer)
-        for enum in self.enums:
-            enum.compile_cpp(writer)
-        for attr in self.attrs:
-            attr.compile_cpp(writer)
-
-        # generate method table
-        writer.println('static')
-        writer.println('PyMethodDef %s[] = {' % cg.mangle(self.fullname))
-        with writer.indent():
-            fmt = '{ "%(name)s", (PyCFunction)%(func)s, METH_VARARGS, NULL },'
-            for meth in self.methods:
-                name = meth.name
-                func = meth.c_name
-                writer.println(fmt % locals())
-            for enumkind in self.enums:
-                for enum in enumkind.value_names:
-                    name = enum
-                    func = enumkind.c_name(enum)
-                    writer.println(fmt % locals())
-            for attr in self.attrs:
-                # getter
-                name = attr.getter_name
-                func = attr.getter_c_name
-                writer.println(fmt % locals())
-                # setter
-                name = attr.setter_name
-                func = attr.setter_c_name
-                writer.println(fmt % locals())
-
-            writer.println('{ NULL },')
-        writer.println('};')
-        writer.println()
 
     def compile_py(self, writer):
         clsname = self.name
@@ -256,6 +366,9 @@ class Enum(object):
     def c_name(self, enum):
         return cg.mangle("%s_%s_%s" % (self.parent, self.name, enum))
 
+    def generate_cpp(self, println):
+        self.compile_cpp(cg.CppCodeWriter(println))
+
     def compile_cpp(self, writer):
         for enum in self.value_names:
             with writer.py_function(self.c_name(enum)):
@@ -321,6 +434,9 @@ class Method(object):
 
     def __str__(self):
         return self.fullname
+
+    def generate_cpp(self, println):
+        self.compile_cpp(cg.CppCodeWriter(println))
 
     def compile_cpp(self, writer):
         with writer.py_function(self.c_name):
@@ -454,9 +570,12 @@ class Function(Method):
         with writer.function(self.name, varargs='args') as varargs:
             unwrapped = writer.unwrap_many(varargs)
             self.process_ownedptr_args(writer, unwrapped)
-            func = self.name
-            ret = writer.call('_api.%s' % func,
-                              varargs=unwrapped)
+            if '::' in self.parent.name:
+                ns = self.parent.name.split('::', 1)[-1].replace('::', '.')
+                func = '.'.join([ns, self.name])
+            else:
+                func = self.name
+            ret = writer.call('_api.%s' % func, varargs=unwrapped)
             wrapped = writer.wrap(ret, self.is_return_ownedptr())
             writer.return_value(wrapped)
         writer.println()
@@ -630,6 +749,7 @@ class Attr(object):
     def __init__(self, getter, setter):
         self.getter = getter
         self.setter = setter
+        self.includes = set()
 
     @property
     def fullname(self):
@@ -657,6 +777,9 @@ class Attr(object):
     @property
     def setter_c_name(self):
         return cg.mangle('%s_set' % self.fullname)
+
+    def generate_cpp(self, println):
+        self.compile_cpp(cg.CppCodeWriter(println))
 
     def compile_cpp(self, writer):
         # getter

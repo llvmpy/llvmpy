@@ -1,20 +1,20 @@
 from binding import *
 from ..namespace import llvm
 
-@llvm.Class()
-class Reloc:
-    Model = Enum('Default', 'Static', 'PIC_', 'DynamicNoPIC')
 
-@llvm.Class()
-class CodeModel:
-    Model = Enum('Default', 'JITDefault', 'Small', 'Kernel', 'Medium', 'Large')
+Reloc = llvm.Namespace('Reloc')
+Reloc.Enum('Model',
+           'Default', 'Static', 'PIC_', 'DynamicNoPIC')
 
-@llvm.Class()
-class TLSModel:
-    Model = Enum('GeneralDynamic', 'LocalDynamic', 'InitialExec', 'LocalExec')
+CodeModel = llvm.Namespace('CodeModel')
+CodeModel.Enum('Model',
+               'Default', 'JITDefault', 'Small', 'Kernel', 'Medium', 'Large')
 
-@llvm.Class()
-class CodeGenOpt:
-    'Actually a namespace'
-    Level = Enum('None', 'Less', 'Default', 'Aggressive')
+TLSModel = llvm.Namespace('TLSModel')
+TLSModel.Enum('Model',
+             'GeneralDynamic', 'LocalDynamic', 'InitialExec', 'LocalExec')
+
+CodeGenOpt = llvm.Namespace('CodeGenOpt')
+CodeGenOpt.Enum('Level',
+                'None', 'Less', 'Default', 'Aggressive')
 

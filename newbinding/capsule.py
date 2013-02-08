@@ -182,7 +182,7 @@ def downcast(obj, cls):
     fname = 'downcast_%s_to_%s' % (fromty, toty)
     fname = fname.replace('::', '_')
     try:
-        caster = getattr(_api, fname)
+        caster = getattr(_api.downcast, fname)
     except AttributeError:
         fmt = "Downcast from %s to %s is not supported"
         raise TypeError(fmt % (fromty, toty))
