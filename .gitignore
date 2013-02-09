@@ -2,4 +2,7 @@
 build
 _build
 *.pyc
+*.so
 /llvm/_intrinsic_ids.py
+llvm_
+newbinding/api/*
