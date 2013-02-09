@@ -318,7 +318,7 @@ class Module(llvm.Wrapper):
             ll = str(module_obj)
             print module_obj     # same as `print ll'
             """
-        return str(self.ptr)
+        return str(self._ptr)
 
     def __eq__(self, rhs):
         if isinstance(rhs, Module):
@@ -331,20 +331,20 @@ class Module(llvm.Wrapper):
 
 
     def _get_target(self):
-        return self.ptr.getTargetTriple()
+        return self._ptr.getTargetTriple()
 
     def _set_target(self, value):
-        return self.ptr.setTargetTriple(value)
+        return self._ptr.setTargetTriple(value)
 
     target = property(_get_target, _set_target,
               doc="The target triple string describing the target host.")
 
 
     def _get_data_layout(self):
-        return self.ptr.getDataLayout()
+        return self._ptr.getDataLayout()
 
     def _set_data_layout(self, value):
-        return self.ptr.setDataLayout(value)
+        return self._ptr.setDataLayout(value)
 
     data_layout = property(_get_data_layout, _set_data_layout,
            doc = """The data layout string for the module's target platform.
@@ -383,7 +383,7 @@ class Module(llvm.Wrapper):
                 raise llvm.LLVMException(errmsg)
 
     def get_type_named(self, name):
-        typ = self.ptr.getTypeByName(name)
+        typ = self._ptr.getTypeByName(name)
         return StructType(typ)
 
     def add_global_variable(self, ty, name, addrspace=0):
@@ -405,12 +405,12 @@ class Module(llvm.Wrapper):
 
     def get_global_variable_named(self, name):
         """Return a GlobalVariable object for the given name."""
-        ptr = self.ptr.getNamedGlobal(name)
+        ptr = self._ptr.getNamedGlobal(name)
         return GlobalVariable(ptr)
 
     @property
     def global_variables(self):
-        return self.ptr.list_globals()
+        return self._ptr.list_globals()
 
     def add_function(self, ty, name):
         """Add a function of given type with given name."""
@@ -421,7 +421,7 @@ class Module(llvm.Wrapper):
 
     def get_function_named(self, name):
         """Return a Function object representing function with given name."""
-        fn = self.ptr.getFunction(name)
+        fn = self._ptr.getFunction(name)
         if fn is None:
             return None
         return Function(fn)
@@ -429,14 +429,14 @@ class Module(llvm.Wrapper):
     def get_or_insert_function(self, ty, name):
         """Like get_function_named(), but does add_function() first, if
            function is not present."""
-        constant = self.ptr.getOrInsertFunction(name, ty._ptr)
+        constant = self._ptr.getOrInsertFunction(name, ty._ptr)
         fn = constant._downcast(api.llvm.Function)
         return Function(fn)
 
     @property
     def functions(self):
         """All functions in this module."""
-        return map(Function, self.ptr.list_functions())
+        return map(Function, self._ptr.list_functions())
 
     def verify(self):
         """Verify module.
@@ -445,7 +445,7 @@ class Module(llvm.Wrapper):
             error."""
         action = api.llvm.VerifierFailureAction.ReturnStatusAction
         errio = StringIO()
-        broken = api.llvm.verifyModule(self.ptr, action, errio)
+        broken = api.llvm.verifyModule(self._ptr, action, errio)
         if broken:
             raise llvm.LLVMException(errio.getvalue())
 
@@ -463,15 +463,15 @@ class Module(llvm.Wrapper):
         if fileobj is None:
             ret = True
             fileobj = StringIO
-        api.llvm.WriteBitcodeToFile(self.ptr, fileobj)
+        api.llvm.WriteBitcodeToFile(self._ptr, fileobj)
         if ret:
             return fileobj.getvalue()
 
     def _get_id(self):
-        return self.ptr.getModuleIdentifier(self.ptr)
+        return self._ptr.getModuleIdentifier(self._ptr)
 
     def _set_id(self, string):
-        self.ptr.setModuleIdentifier(string)
+        self._ptr.setModuleIdentifier(string)
 
     id = property(_get_id, _set_id)
 
@@ -508,13 +508,13 @@ class Module(llvm.Wrapper):
         return self._to_native_something(fileobj, CGFT.CGFT_AssemblyFile)
 
     def get_or_insert_named_metadata(self, name):
-        return NamedMetadata(self.ptr.getOrInsertNamedMetadata(name))
+        return NamedMetadata(self._ptr.getOrInsertNamedMetadata(name))
 
     def get_named_metadata(self, name):
-        return NamedMetadata(self.ptr.get_named_metadata(name))
+        return NamedMetadata(self._ptr.get_named_metadata(name))
 
     def clone(self):
-        return NamedMetadata(api.llvm.CloneModule(self.ptr))
+        return NamedMetadata(api.llvm.CloneModule(self._ptr))
 
 class Type(llvm.Wrapper):
     """Represents a type, like a 32-bit integer or an 80-bit x86 float.
@@ -860,7 +860,7 @@ class User(Value):
                 for i in range(self.operand_count)]
 
     def _get_operand(self, i):
-        return _make_value(_core.LLVMUserGetOperand(self.ptr, i))
+        return _make_value(_core.LLVMUserGetOperand(self._ptr, i))
 
 class Constant(User):
 
@@ -1309,7 +1309,7 @@ class Function(GlobalValue):
         return self._ptr.viewCFG()
 
     def add_attribute(self, attr):
-        _core.LLVMAddFunctionAttr(self.ptr, attr)
+        _core.LLVMAddFunctionAttr(self._ptr, attr)
 
     def remove_attribute(self, attr):
         attrbldr = api.llvm.AttrBuilder()
@@ -1589,7 +1589,7 @@ class Builder(llvm.Wrapper):
         context = api.llvm.getGlobalContext()
         ptr = api.llvm.IRBuilder.new(context)
         ptr.SetInsertPoint(basic_block._ptr)
-        return BasicBlock(ptr)
+        return Builder(ptr)
 
     def position_at_beginning(self, bblk):
         """Position the builder at the beginning of the given block.
@@ -1970,20 +1970,20 @@ def load_library_permanently(filename):
     path of the .so file) using LLVM. Symbols from these are available
     from the execution engine thereafter."""
     with contextlib.closing(StringIO()) as errmsg:
-        failed = _api.llvm.sys.LoadLibraryPermanently(filename, errmsg)
+        failed = api.llvm.sys.LoadLibraryPermanently(filename, errmsg)
         if failed:
             raise llvm.LLVMException(errmsg.getvalue())
 
 def inline_function(call):
-    info = _api.llvm.InlineFunctionInfo()
-    return _api.llvm.InlineFunction(call._ptr, info)
+    info = api.llvm.InlineFunctionInfo()
+    return api.llvm.InlineFunction(call._ptr, info)
 
 def parse_environment_options(progname, envname):
-    _api.llvm.cl.ParseEnvironmentOptions(progname, envname)
+    api.llvm.cl.ParseEnvironmentOptions(progname, envname)
 
-if _api.llvm.InitializeNativeTarget():
+if api.llvm.InitializeNativeTarget():
     raise llvm.LLVMException("No native target!?")
-if _api.llvm.InitializeNativeTargetAsmPrinter():
+if api.llvm.InitializeNativeTargetAsmPrinter():
     # should this be an optional feature?
     # should user trigger the initialization?
     raise llvm.LLVMException("No native asm printer!?")
@@ -1996,17 +1996,17 @@ HAS_PTX = HAS_NVPTX = False
 
 if True: # use PTX?
     try:
-        _api.LLVMInitializePTXTarget()
-        _api.LLVMInitializePTXTargetInfo()
-        _api.LLVMInitializePTXTargetMC()
-        _api.LLVMInitializePTXAsmPrinter()
+        api.LLVMInitializePTXTarget()
+        api.LLVMInitializePTXTargetInfo()
+        api.LLVMInitializePTXTargetMC()
+        api.LLVMInitializePTXAsmPrinter()
         HAS_PTX = True
     except AttributeError:
         try:
-            _api.LLVMInitializeNVPTXTarget()
-            _api.LLVMInitializeNVPTXTargetInfo()
-            _api.LLVMInitializeNVPTXTargetMC()
-            _api.LLVMInitializeNVPTXAsmPrinter()
+            api.LLVMInitializeNVPTXTarget()
+            api.LLVMInitializeNVPTXTargetInfo()
+            api.LLVMInitializeNVPTXTargetMC()
+            api.LLVMInitializeNVPTXAsmPrinter()
             HAS_NVPTX = True
         except AttributeError:
             pass
