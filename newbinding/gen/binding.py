@@ -578,7 +578,7 @@ class Function(Method):
         with writer.function(self.name, varargs='args') as varargs:
             unwrapped = writer.unwrap_many(varargs)
             self.process_ownedptr_args(writer, unwrapped)
-            func = '.'.join([self.parent.py_name, self.name])
+            func = '.'.join([self.parent.py_name, self.name]).lstrip('.')
             ret = writer.call('_api.%s' % func, varargs=unwrapped)
             wrapped = writer.wrap(ret, self.is_return_ownedptr())
             writer.return_value(wrapped)
