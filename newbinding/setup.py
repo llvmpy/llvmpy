@@ -26,12 +26,22 @@ macros = [('__STDC_CONSTANT_MACROS', None),
 
 extra_link_args = ldflags.split()
 
-libs_core, objs_core = get_libs_and_objs(['core', 'analysis', 'scalaropts',
-                                          'executionengine', 'jit',  'native',
-                                          'interpreter', 'bitreader',
-                                          'bitwriter', 'instrumentation', 'ipa',
-                                          'ipo', 'transformutils', 'asmparser',
-                                          'linker', 'support', 'vectorize'])
+components = ['core', 'analysis', 'scalaropts',
+              'executionengine', 'jit',  'native',
+              'interpreter', 'bitreader',
+              'bitwriter', 'instrumentation', 'ipa',
+              'ipo', 'transformutils', 'asmparser',
+              'linker', 'support', 'vectorize',
+              ]
+
+nvptx = ['nvptx',
+         'nvptxasmprinter',
+         'nvptxcodegen',
+         'nvptxdesc',
+         'nvptxinfo']
+
+libs_core, objs_core = get_libs_and_objs(components + nvptx)
+
 
 ext_modules = [Extension(name='_api',
                          sources=['api.cpp'],
