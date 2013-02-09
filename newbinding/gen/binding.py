@@ -83,19 +83,19 @@ class SubModule(object):
         writer.println('};')
         writer.println()
 
-    def generate_downcasts(self, println):
-        for ((fromty, toty), fn) in self.downcastlist:
-            name = fn.name
-            fmt = '''
-static
-%(toty)s* %(name)s(%(fromty)s* arg)
-{
-    return typecast<%(toty)s>::from(arg);
-}
-                '''
-            println(fmt % locals())
-
-            fn.generate_cpp(println)
+#    def generate_downcasts(self, println):
+#        for ((fromty, toty), fn) in self.downcastlist:
+#            name = fn.name
+#            fmt = '''
+#static
+#%(toty)s* %(name)s(%(fromty)s* arg)
+#{
+#    return typecast< %(toty)s >::from(arg);
+#}
+#                '''
+#            println(fmt % locals())
+#
+#            fn.generate_cpp(println)
 
     def generate_cpp(self, println, extras=()):
         for unit in self.iter_all():
@@ -151,7 +151,7 @@ static
 class Namespace(SubModule):
     def __init__(self, name):
         SubModule.__init__(self)
-        self.name = name
+        self.name = name = name.lstrip(':')
         namespaces[name] = self
 
     def Class(self, *bases):
@@ -186,6 +186,10 @@ class Namespace(SubModule):
     @property
     def fullname(self):
         return self.name
+
+    @property
+    def py_name(self):
+        return self.name.replace('::', '.')
 
     @property
     def localname(self):
@@ -313,6 +317,11 @@ class Class(SubModule, _Type):
             name = self.name
         return '::'.join([self.ns.fullname, name])
 
+    @property
+    def py_name(self):
+        ns = self.ns.name.split('::')
+        return '.'.join(ns + [self.name])
+
     def __str__(self):
         return self.fullname
 
@@ -323,7 +332,7 @@ class Class(SubModule, _Type):
         writer.die_if_false(raw)
         ptrty = ptr(self).fullname
         ty = self.fullname
-        fmt = 'typecast<%(ty)s >::from(%(raw)s)'
+        fmt = 'typecast< %(ty)s >::from(%(raw)s)'
         casted = writer.declare(ptrty, fmt % locals())
         writer.die_if_false(casted)
         return casted
@@ -385,7 +394,7 @@ class Enum(object):
                 else:
                     k = v
                     fmt = '%(k)s = %(p)s.%(v)s()'
-                p = '.'.join(['_api'] + self.parent.fullname.split('::')[1:])
+                p = '.'.join(['_api'] + self.parent.fullname.split('::'))
                 writer.println(fmt % locals())
         writer.println()
 
@@ -415,7 +424,7 @@ class Method(object):
 
     @property
     def fullname(self):
-        return '::'.join([self.parent.fullname, self.realname])
+        return '::'.join([self.parent.fullname, self.realname]).lstrip(':')
 
     @property
     def realname(self):
@@ -472,8 +481,7 @@ class Method(object):
                 writer.release_ownership(unwrap_this)
             unwrapped = writer.unwrap_many(varargs)
             self.process_ownedptr_args(writer, unwrapped)
-            
-            func = '.'.join([self.parent.name, self.name])
+            func = '.'.join([self.parent.py_name, self.name])
             ret = writer.call('_api.%s' % func,
                               args=(unwrap_this,), varargs=unwrapped)
 
@@ -537,7 +545,7 @@ class StaticMethod(Method):
             unwrapped = writer.unwrap_many(varargs)
             self.process_ownedptr_args(writer, unwrapped)
             
-            func = '.'.join([self.parent.name, self.name])
+            func = '.'.join([self.parent.py_name, self.name])
             ret = writer.call('_api.%s' % func, varargs=unwrapped)
             wrapped = writer.wrap(ret, self.is_return_ownedptr())
             writer.return_value(wrapped)
@@ -570,11 +578,7 @@ class Function(Method):
         with writer.function(self.name, varargs='args') as varargs:
             unwrapped = writer.unwrap_many(varargs)
             self.process_ownedptr_args(writer, unwrapped)
-            if '::' in self.parent.name:
-                ns = self.parent.name.split('::', 1)[-1].replace('::', '.')
-                func = '.'.join([ns, self.name])
-            else:
-                func = self.name
+            func = '.'.join([self.parent.py_name, self.name])
             ret = writer.call('_api.%s' % func, varargs=unwrapped)
             wrapped = writer.wrap(ret, self.is_return_ownedptr())
             writer.return_value(wrapped)
@@ -603,7 +607,7 @@ class Destructor(Method):
         writer.return_value(None)
 
     def compile_py(self, writer):
-        func = '.'.join([self.parent.name, self.name])
+        func = '.'.join([self.parent.py_name, self.name])
         writer.println('_delete_ = _api.%s' % func)
 
 
@@ -799,7 +803,7 @@ class Attr(object):
 
     def compile_py(self, writer):
         name = self.name
-        parent = '.'.join(self.parent.fullname.split('::')[1:])
+        parent = '.'.join(self.parent.fullname.split('::'))
         getter = '.'.join([parent, self.getter_name])
         setter = '.'.join([parent, self.setter_name])
         writer.println('@property')

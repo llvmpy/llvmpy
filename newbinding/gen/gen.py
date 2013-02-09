@@ -12,9 +12,9 @@ extern "C" {
 PyObject *
 PyInit_%(module)s(void)
 {
-PyObject *module = create_python_module("%(module)s", %(methtable)s);
+PyObject *module = create_python_module("%(module)s", meth_%(ns)s);
 if (module) {
-if (populate_submodules(module, submodule_llvm))
+if (populate_submodules(module, submodule_%(ns)s))
 return module;
 }
 return NULL;
@@ -25,9 +25,9 @@ return NULL;
 PyMODINIT_FUNC
 init%(module)s(void)
 {
-PyObject *module = create_python_module("%(module)s", %(methtable)s);
+PyObject *module = create_python_module("%(module)s", meth_%(ns)s);
 if (module) {
-populate_submodules(module, submodule_llvm);
+populate_submodules(module, submodule_%(ns)s);
 }
 }
 #endif
@@ -55,7 +55,7 @@ def main():
     sys.path += [os.path.dirname(os.curdir)]
     entry_module = __import__(entry_modname)
 
-    rootns = namespaces['llvm']
+    rootns = namespaces['']
 
     # Generate C++ source
     with open('%s.cpp' % outputfilename, 'w') as cppfile:
@@ -73,7 +73,7 @@ def main():
 static
 %(toty)s* %(name)s(%(fromty)s* arg)
 {
-    return typecast<%(toty)s>::from(arg);
+    return typecast< %(toty)s >::from(arg);
 }
 '''
             println(fmt % locals())
@@ -93,8 +93,8 @@ static
         # generate submodule
         rootns.generate_cpp(println, extras=[('extra', 'extra_methodtable'),
                                              ('downcast', 'downcast_methodtable')])
-        println(extension_entry % {'module'   : '_api',
-                                   'methtable': 'meth_llvm'})
+        println(extension_entry % {'module' : '_api',
+                                   'ns'     : ''})
 
     # Generate Python source
     rootns.generate_py(rootdir='.', name='api')
