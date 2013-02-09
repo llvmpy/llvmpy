@@ -6,6 +6,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Support/DynamicLibrary.h>
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
@@ -745,5 +746,30 @@ PyObject* IRBuilder_CreateAggregateRet(llvm::IRBuilder<>* builder,
     Value** ptr_values = &vec_values[0];
     ReturnInst* inst = builder->CreateAggregateRet(ptr_values, N);
     return pycapsule_new(inst, "llvm::Value", "llvm:ReturnInst");
+}
+
+static
+PyObject* DynamicLibrary_LoadLibraryPermanently(const char * Filename,
+                                                PyObject* ErrMsg = 0)
+{
+    using namespace llvm::sys;
+    bool failed;
+    if (ErrMsg) {
+        std::string errmsg;
+        failed = DynamicLibrary::LoadLibraryPermanently(Filename, &errmsg);
+        if (failed) {
+            if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
+                return NULL;
+            }
+        }
+    } else {
+        failed = DynamicLibrary::LoadLibraryPermanently(Filename);
+    }
+
+    if (failed) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
 }
 
