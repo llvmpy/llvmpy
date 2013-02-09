@@ -57,6 +57,7 @@ create_python_submodule(PyObject* parent, const char* name,
     if (-1 == PyModule_AddObject(parent, name, submod)) {
         return NULL;
     }
+    Py_INCREF(submod); // otherwise, it would segfault on exit 
     return submod;
 }
 
