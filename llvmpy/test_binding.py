@@ -1,8 +1,11 @@
-from api import llvm
-import extra
-import _capsule
 from StringIO import StringIO
-llvm.capsule.set_debug(True)
+
+from llvmpy.api import llvm
+from llvmpy import extra
+from llvmpy import _capsule
+import llvmpy.capsule
+llvmpy.capsule.set_debug(True)
+
 
 def test_basic_jit_use():
     llvm.InitializeNativeTarget()

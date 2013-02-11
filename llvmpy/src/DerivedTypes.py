@@ -17,7 +17,7 @@ class FunctionType:
 
     @CustomPythonStaticMethod
     def get(*args):
-        import extra
+        from llvmpy import extra
         if len(args) == 3:
             typelist = args[1]
             sv = extra.make_small_vector_from_types(*typelist)

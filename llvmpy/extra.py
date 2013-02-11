@@ -2,8 +2,8 @@
 Wrapped the extra functions in _api.so
 '''
 
-import capsule
-import _api
+from llvmpy import capsule
+from llvmpy import _api
 #
 # Re-export the native API from the _api.extra and wrap the functions
 #

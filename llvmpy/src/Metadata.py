@@ -46,7 +46,7 @@ class NamedMDNode:
 
     @CustomPythonMethod
     def __str__(self):
-        import extra
+        from llvmpy import extra
         os = extra.make_raw_ostream_for_printing()
         self.print_(os, None)
         return os.str()

@@ -68,7 +68,7 @@ class IRBuilder:
 
     @CustomPythonMethod
     def CreateInvoke(self, *args):
-        import extra
+        from llvmpy import extra
         args = list(args)
         valuelist = args[3]
         args[3] = extra.make_small_vector_from_values(*valuelist)
@@ -181,7 +181,7 @@ class IRBuilder:
 
     @CustomPythonMethod
     def CreateGEP(self, *args):
-        import extra
+        from llvmpy import extra
         args = list(args)
         valuelist = args[1]
         args[1] = extra.make_small_vector_from_values(*valuelist)
@@ -194,7 +194,7 @@ class IRBuilder:
 
     @CustomPythonMethod
     def CreateInBoundsGEP(self, *args):
-        import extra
+        from llvmpy import extra
         args = list(args)
         valuelist = args[1]
         args[1] = extra.make_small_vector_from_values(*valuelist)
@@ -241,7 +241,7 @@ class IRBuilder:
 
     @CustomPythonMethod
     def CreateCall(self, *args):
-        import extra
+        from llvmpy import extra
         args = list(args)
         valuelist = args[1]
         args[1] = extra.make_small_vector_from_values(*valuelist)
@@ -282,7 +282,7 @@ class IRBuilder:
 
     @CustomPythonMethod
     def CreateExtractValue(self, args):
-        import extra
+        from llvmpy import extra
         args = list(args)
         valuelist = args[1]
         args[1] = extra.make_small_vector_from_unsigned(*valuelist)
@@ -295,7 +295,7 @@ class IRBuilder:
 
     @CustomPythonMethod
     def CreateInsertValue(self, args):
-        import extra
+        from llvmpy import extra
         args = list(args)
         valuelist = args[2]
         args[1] = extra.make_small_vector_from_unsigned(*valuelist)

@@ -81,7 +81,7 @@ class DataLayout:
 
     @CustomPythonMethod
     def getIndexedOffset(self, *args):
-        import extra
+        from llvmpy import extra
         args = list(args)
         args[1] = extra.make_small_vector_from_values(args[1])
         return self.getIndexedOffset(*args)

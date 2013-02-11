@@ -135,7 +135,7 @@ class SubModule(object):
             filepath = os.path.join(rootdir, '%s.py' % name)
         with open(filepath, 'w') as pyfile:
             println = cg.wrap_println_from_file(pyfile)
-            println('import _api, capsule')
+            println('from llvmpy import _api, capsule')
             for ns in self.namespaces:
                 println('from . import %s' % ns.localname)
             println()

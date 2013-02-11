@@ -227,7 +227,7 @@ class ConstantExpr:
 
     @CustomPythonStaticMethod
     def getGetElementPtr(*args):
-        import extra
+        from llvmpy import extra
         args = list(args)
         valuelist = args[1]
         args[1] = extra.make_small_vector_from_values(*valuelist)
@@ -242,7 +242,7 @@ class ConstantExpr:
 
     @CustomPythonStaticMethod
     def getExtractValue(*args):
-        import extra
+        from llvmpy import extra
         args = list(args)
         valuelist = args[1]
         args[1] = extra.make_small_vector_from_unsigned(*valuelist)
@@ -254,7 +254,7 @@ class ConstantExpr:
 
     @CustomPythonStaticMethod
     def getInsertValue(*args):
-        import extra
+        from llvmpy import extra
         args = list(args)
         valuelist = args[2]
         args[1] = extra.make_small_vector_from_unsigned(*valuelist)

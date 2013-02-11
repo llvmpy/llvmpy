@@ -358,6 +358,7 @@ PyObject* ExecutionEngine_RunFunction(llvm::ExecutionEngine* EE,
         return NULL;
     }
     std::vector<GenericValue> vec_args;
+
     Py_ssize_t nargs = PyTuple_Size(Args);
     vec_args.reserve(nargs);
     for (Py_ssize_t i = 0; i < nargs; ++i) {
