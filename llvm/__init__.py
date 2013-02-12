@@ -1,5 +1,6 @@
 class Wrapper(object):
     def __init__(self, ptr):
+        assert ptr
         self.__ptr = ptr
 
     @property
@@ -9,3 +10,6 @@ class Wrapper(object):
 
 def _extract_ptrs(objs):
     return [x._ptr for x in objs]
+
+class LLVMException(Exception):
+    pass
