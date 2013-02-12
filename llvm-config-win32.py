@@ -1,4 +1,6 @@
-import sys, os
+import sys
+import os
+
 
 def find_path_of(filename, envvar='PATH'):
     """Finds the path from $PATH where the file exists, returns None if not found."""
@@ -8,11 +10,12 @@ def find_path_of(filename, envvar='PATH'):
             return os.path.abspath(path)
     return None
 
+
 if sys.argv[1] == '--version':
     cmd = 'llvm-tblgen --version'
     # Hardcoded extraction, only tested on llvm 3.1
     result = os.popen(cmd).read().split('\n')[1].strip().split(' ')[2]
-    print result
+    print(result)
 elif sys.argv[1] == '--libs':
     # NOTE: instead of actually looking at the components requested,
     #       we just spit out a bunch of libs
@@ -70,7 +73,7 @@ elif sys.argv[1] == '--includedir':
     incdir = os.path.abspath(os.path.join(llvmbin, '../include'))
     if not os.path.exists(os.path.join(incdir, 'llvm/BasicBlock.h')):
         raise RuntimeError('Could not find LLVM include dir')
-    print incdir
+    print(incdir)
 elif sys.argv[1] == '--libdir':
     llvmbin = find_path_of('llvm-tblgen.exe')
     if llvmbin is None:
@@ -78,6 +81,6 @@ elif sys.argv[1] == '--libdir':
     libdir = os.path.abspath(os.path.join(llvmbin, '../lib'))
     if not os.path.exists(os.path.join(libdir, 'LLVMCore.lib')):
         raise RuntimeError('Could not find LLVM lib dir')
-    print libdir
+    print(libdir)
 else:
     raise RuntimeError('Unrecognized llvm-config command %s' % sys.argv[1])
