@@ -42,7 +42,7 @@ def get_enabled_components():
     return run_llvm_config(['--components']).split()
 
 def get_llvm_version():
-    return run_llvm_config([' --version'])
+    return run_llvm_config(['--version'])
 
 
 def auto_intrinsic_gen(incdir):
