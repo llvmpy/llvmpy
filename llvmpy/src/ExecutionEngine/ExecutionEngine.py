@@ -34,16 +34,25 @@ class ExecutionEngine:
                                    Reloc.Model,
                                    CodeModel.Model).require_only(1)
 
-    addModule = Method(Void, ptr(Module))
+    addModule = Method(Void, ownedptr(Module))
     getDataLayout = Method(const(ownedptr(DataLayout)))
-    removeModule = Method(cast(Bool, bool), ptr(Module))
+    _removeModule = Method(cast(Bool, bool), ptr(Module))
+    _removeModule.realname = 'removeModule'
+    @CustomPythonMethod
+    def removeModule(self, module):
+        if self._removeModule(module):
+            capsule.obtain_ownership(module._ptr)
+            return True
+        return False
 
     FindFunctionNamed = Method(ptr(Function), cast(str, ConstCharPtr))
     getPointerToNamedFunction = Method(cast(VoidPtr, int),
                                        cast(str, StdString),
                                        cast(bool, Bool)).require_only(1)
 
-    runStaticConstructorsDestructors = Method(Void, cast(Bool, bool))
+    runStaticConstructorsDestructors = Method(Void,
+                                              cast(Bool, bool), # is dtor
+                                              )
     runStaticConstructorsDestructors |= Method(Void, ptr(Module),
                                               cast(Bool, bool))
 

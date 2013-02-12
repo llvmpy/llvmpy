@@ -1,16 +1,17 @@
 from binding import *
-from ..namespace import llvm
-from ..ADT.StringRef import StringRef
-from ..Support.CodeGen import CodeModel, TLSModel, CodeGenOpt, Reloc
-from ..GlobalValue import GlobalValue
-from ..Support.Target import Target
-from ..DataLayout import DataLayout
-from ..TargetTransformInfo import (ScalarTargetTransformInfo,
-                                   VectorTargetTransformInfo)
-from ..PassManager import PassManagerBase
-from ..Support.FormattedStream import formatted_raw_ostream
+from src.namespace import llvm
 
 TargetMachine = llvm.Class()
+
+from src.Support.TargetRegistry import Target
+from src.ADT.StringRef import StringRef
+from src.Support.CodeGen import CodeModel, TLSModel, CodeGenOpt, Reloc
+from src.GlobalValue import GlobalValue
+from src.DataLayout import DataLayout
+from src.TargetTransformInfo import (ScalarTargetTransformInfo,
+                                   VectorTargetTransformInfo)
+from src.PassManager import PassManagerBase
+from src.Support.FormattedStream import formatted_raw_ostream
 
 @TargetMachine
 class TargetMachine:

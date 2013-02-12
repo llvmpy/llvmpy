@@ -1,7 +1,7 @@
 from binding import *
 from ..namespace import llvm
 from ..Module import Module
-from ..Function import Function
+from ..Value import Function
 
 llvm.includes.add('llvm/Analysis/Verifier.h')
 

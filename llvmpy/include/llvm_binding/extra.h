@@ -7,6 +7,7 @@
 #include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/DynamicLibrary.h>
+#include <llvm/Support/TargetRegistry.h>
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
@@ -16,6 +17,9 @@
 #include <llvm/Constants.h>
 #include <llvm/Intrinsics.h>
 #include <llvm/IRBuilder.h>
+#include <llvm/PassRegistry.h>
+#include <llvm/Support/Host.h>
+
 
 #include "auto_pyobject.h"
 
@@ -768,6 +772,99 @@ PyObject* DynamicLibrary_LoadLibraryPermanently(const char * Filename,
     }
 
     if (failed) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+}
+
+class PassRegistryEnumerator : public llvm::PassRegistrationListener{
+public:
+    PyObject* List;
+public:
+    PassRegistryEnumerator(PyObject* list) : List(list) { }
+
+    inline virtual void passEnumerate(const llvm::PassInfo * pass_info){
+        PyObject* passArg = PyString_FromString(pass_info->getPassArgument());
+        PyObject* passName = PyString_FromString(pass_info->getPassName());
+        PyList_Append(List, Py_BuildValue("(OO)", passArg, passName));
+    }
+};
+
+static
+PyObject* PassRegistry_enumerate(llvm::PassRegistry* PR)
+{
+    using namespace llvm;
+    PassRegistryEnumerator PRE(PyList_New(0));
+    PR->enumerateWith(&PRE);
+    return PRE.List;
+}
+
+static
+PyObject* TargetRegistry_lookupTarget(const std::string &Triple,
+                                      PyObject* Error)
+{
+    using namespace llvm;
+    std::string error;
+    const Target* target = TargetRegistry::lookupTarget(Triple, error);
+    if (!target) {
+        PyFile_WriteString(error.c_str(), Error);
+        Py_RETURN_NONE;
+    } else {
+        return pycapsule_new(const_cast<Target*>(target), "llvm::Target");
+    }
+}
+
+
+static
+PyObject* TargetRegistry_lookupTarget(const std::string &Arch,
+                                      llvm::Triple &Triple,
+                                      PyObject* Error)
+{
+    using namespace llvm;
+    std::string error;
+    const Target* target = TargetRegistry::lookupTarget(Arch, Triple, error);
+    if (!target) {
+        PyFile_WriteString(error.c_str(), Error);
+        Py_RETURN_NONE;
+    } else {
+        return pycapsule_new(const_cast<Target*>(target), "llvm::Target");
+    }
+}
+
+
+static
+PyObject* TargetRegistry_getClosestTargetForJIT(PyObject* Error)
+{
+    using namespace llvm;
+    std::string error;
+    const Target* target = TargetRegistry::getClosestTargetForJIT(error);
+    if (!target) {
+        PyFile_WriteString(error.c_str(), Error);
+        Py_RETURN_NONE;
+    } else {
+        return pycapsule_new(const_cast<Target*>(target), "llvm::Target");
+    }
+
+}
+
+static
+PyObject* llvm_sys_getHostCPUFeatures(PyObject* Features)
+{
+    using namespace llvm::sys;
+    using namespace llvm;
+    typedef StringMap<bool>::iterator iterator;
+    StringMap<bool> features;
+    bool ok = getHostCPUFeatures(features);
+    if (ok) {
+        for (iterator it = features.begin(); it != features.end(); ++it) {
+            const char *key = it->getKey().data();
+            PyObject *val = it->getValue() ? Py_True : Py_False;
+            Py_INCREF(val);
+            if (-1 == PyDict_SetItemString(Features, key, val)) {
+                return NULL;
+            }
+        }
         Py_RETURN_TRUE;
     } else {
         Py_RETURN_FALSE;

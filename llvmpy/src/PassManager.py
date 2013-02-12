@@ -2,7 +2,7 @@ from binding import *
 from namespace import llvm
 from Pass import Pass
 from Module import Module
-from Function import Function
+from Value import Function
 
 PassManagerBase = llvm.Class()
 PassManager = llvm.Class(PassManagerBase)

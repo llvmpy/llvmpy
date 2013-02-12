@@ -1,15 +1,17 @@
 from binding import *
 from namespace import llvm
+from Pass import ImmutablePass
+
+DataLayout = llvm.Class(ImmutablePass)
+StructLayout = llvm.Class()
+
 from LLVMContext import LLVMContext
 from ADT.StringRef import StringRef
 from Module import Module
 from Type import Type, IntegerType, StructType
 from ADT.SmallVector import SmallVector_Value
 from GlobalVariable import GlobalVariable
-from Pass import ImmutablePass
 
-DataLayout = llvm.Class(ImmutablePass)
-StructLayout = llvm.Class()
 
 @DataLayout
 class DataLayout:
@@ -93,4 +95,9 @@ class DataLayout:
 
 @StructLayout
 class StructLayout:
-    pass
+    getSizeInBytes = Method(cast(Uint64, int))
+    getSizeInBits = Method(cast(Uint64, int))
+    getAlignment = Method(cast(Unsigned, int))
+    getElementContainingOffset = Method(cast(Unsigned, int), cast(int, Uint64))
+    getElementOffset = Method(cast(Uint64, int), cast(int, Unsigned))
+    getElementOffsetInBits = Method(cast(Uint64, int), cast(int, Unsigned))

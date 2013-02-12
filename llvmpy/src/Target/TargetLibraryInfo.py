@@ -1,8 +1,7 @@
 from binding import *
 from ..namespace import llvm
-from ..ADT.Triple import Triple
-from ..Pass import ImmutablePass
-from ..ADT.StringRef import StringRef
+
+from src.Pass import ImmutablePass
 
 TargetLibraryInfo = llvm.Class(ImmutablePass)
 
@@ -53,6 +52,10 @@ LibFunc.Enum('Func',  '''
                 truncl, valloc, NumLibFuncs''')
                 # not in llvm-3.2 abs, ffs, ffsl, ffsll, fprintf, isascii,
                 #             isdigit, labs, llabs, printf, sprintf, toascii
+
+from src.ADT.Triple import Triple
+from src.ADT.StringRef import StringRef
+
 
 @TargetLibraryInfo
 class TargetLibraryInfo:

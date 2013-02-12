@@ -102,6 +102,13 @@ def release_ownership(old):
     _addr2dtor[addr] = None
 
 
+def obtain_ownership(cap):
+    cls = cap.get_class()
+    if cls._has_dtor():
+        addr = cap.pointer
+        assert _addr2dtor[addr] is None
+        _addr2dtor[addr] = cls._delete_
+
 def has_ownership(cap):
     addr = Capsule.getPointer(cap)
     return _addr2dtor.get(addr) is not None

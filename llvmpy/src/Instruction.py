@@ -1,11 +1,6 @@
 from binding import *
 from namespace import llvm
 from Value import Value, MDNode, User, BasicBlock, Function
-from ADT.StringRef import StringRef
-from CallingConv import CallingConv
-from Attributes import Attributes
-from Constant import ConstantInt
-from Type import Type
 
 
 Instruction = llvm.Class(User)
@@ -66,6 +61,13 @@ AtomicOrdering = llvm.Enum('AtomicOrdering',
 SynchronizationScope = llvm.Enum('SynchronizationScope',
                                  'SingleThread', 'CrossThread')
 
+
+
+from ADT.StringRef import StringRef
+from CallingConv import CallingConv
+from Attributes import Attributes
+from Constant import ConstantInt
+from Type import Type
 
 
 

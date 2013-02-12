@@ -7,9 +7,10 @@ import llvmpy.capsule
 llvmpy.capsule.set_debug(True)
 
 
+llvm.InitializeNativeTarget()
+llvm.InitializeNativeTargetAsmPrinter()
+
 def test_basic_jit_use():
-    llvm.InitializeNativeTarget()
-    llvm.InitializeNativeTargetAsmPrinter()
     context = llvm.getGlobalContext()
 
     m = llvm.Module.new("modname", context)
@@ -331,6 +332,42 @@ def test_intrinsic():
     assert 'llvm.sin.f32' in str(fn)
     fn.eraseFromParent()
     assert 'llvm.sin.f32' not in str(m)
+
+def test_passregistry():
+    passreg = llvm.PassRegistry.getPassRegistry()
+
+    llvm.initializeScalarOpts(passreg)
+
+    passinfo = passreg.getPassInfo("dce")
+    dcepass = passinfo.createPass()
+    print dcepass.getPassName()
+
+    print passreg.enumerate()
+
+def test_targetregistry():
+    llvm.TargetRegistry.printRegisteredTargetsForVersion()
+    errmsg = StringIO()
+
+    target = llvm.TargetRegistry.getClosestTargetForJIT(errmsg)
+    errmsg.close()
+
+    print target.getName()
+    print target.getShortDescription()
+    assert target.hasJIT()
+    assert target.hasTargetMachine()
+
+    next = target.getNext()
+    if next:
+        print next.getName()
+        print next.getShortDescription()
+
+    triple = llvm.sys.getDefaultTargetTriple()
+    cpu = llvm.sys.getHostCPUName()
+    features = {}
+    assert not llvm.sys.getHostCPUFeatures(features), "Only for Linux and ARM?"
+
+    targetoptions = llvm.TargetOptions.new()
+    tm = target.createTargetMachine(triple, cpu, "", targetoptions)
 
 def main():
     for name, value in globals().items():

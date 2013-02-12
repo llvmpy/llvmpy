@@ -4,10 +4,10 @@ from namespace import llvm
 from GlobalValue import GlobalValue
 GlobalVariable = llvm.Class(GlobalValue)
 
-from Constant import Constant
 from Module import Module
 from Type import Type
 from ADT.StringRef import StringRef
+from Value import Constant
 
 @GlobalVariable
 class GlobalVariable:

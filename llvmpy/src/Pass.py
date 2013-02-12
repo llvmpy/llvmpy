@@ -1,14 +1,14 @@
 from binding import *
 from namespace import llvm
-from ADT.StringRef import StringRef
-from Module import Module
-from Function import Function
 
 Pass = llvm.Class()
 ModulePass = llvm.Class(Pass)
 FunctionPass = llvm.Class(Pass)
 ImmutablePass = llvm.Class(ModulePass)
 
+from ADT.StringRef import StringRef
+from Module import Module
+from Value import Function
 
 @Pass
 class Pass:
@@ -16,7 +16,7 @@ class Pass:
 
     delete = Destructor()
     getPassName = Method(cast(StringRef, str))
-
+    dump = Method()
 
 @ModulePass
 class ModulePass:

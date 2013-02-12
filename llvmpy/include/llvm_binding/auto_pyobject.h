@@ -34,5 +34,4 @@ private:
     void operator = (const auto_pyobject&);
 };
 
-#endif AUTO_PYOBJECT_H_
-
+#endif // AUTO_PYOBJECT_H_
