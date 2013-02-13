@@ -719,13 +719,26 @@ class cast(_Type):
 
     def wrap(self, writer, val):
         dst = self.python_type.__name__
-        return writer.call('py_%(dst)s_from' % locals(), 'PyObject*', val)
+        if dst == 'int':
+            unsigned = set([Unsigned, UnsignedLongLong, Uint64,
+                            Size_t, VoidPtr])
+            signed = set([LongLong, Int64, Int])
+            assert self.binding_type in unsigned|signed
+            if self.binding_type in signed:
+                signflag = 'signed'
+            else:
+                signflag = 'unsigned'
+            fn = 'py_%(dst)s_from_%(signflag)s' % locals()
+        else:
+            fn = 'py_%(dst)s_from' % locals()
+        return writer.call(fn, 'PyObject*', val)
 
     def unwrap(self, writer, val):
         src = self.python_type.__name__
         dst = self.binding_type.fullname
         ret = writer.declare(dst)
-        status = writer.call('py_%(src)s_to' % locals(), 'int', val, ret)
+        fn = 'py_%(src)s_to' % locals()
+        status = writer.call(fn, 'int', val, ret)
         writer.die_if_false(status)
         return ret
 

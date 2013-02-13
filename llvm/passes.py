@@ -46,7 +46,7 @@ from llvmpy import api
 class PassManagerBuilder(llvm.Wrapper):
     @staticmethod
     def new():
-        return PassManagerBuilder(api.llvm.PassManagerBuilder())
+        return PassManagerBuilder(api.llvm.PassManagerBuilder.new())
 
     def populate(self, pm):
         if isinstance(pm, FunctionPassManager):
@@ -59,7 +59,7 @@ class PassManagerBuilder(llvm.Wrapper):
         return self._ptr.OptLevel
 
     @opt_level.setter
-    def _set_opt_level(self, optlevel):
+    def opt_level(self, optlevel):
         self._ptr.OptLevel = optlevel
 
     @property
@@ -67,7 +67,7 @@ class PassManagerBuilder(llvm.Wrapper):
         return self._ptr.SizeLevel
 
     @size_level.setter
-    def _set_size_level(self, sizelevel):
+    def size_level(self, sizelevel):
         self._ptr.SizeLevel = sizelevel
 
     @property
@@ -75,8 +75,9 @@ class PassManagerBuilder(llvm.Wrapper):
         return self._ptr.Vectorize
 
     @vectorize.setter
-    def _set_vectorize(self, enable):
-        self._ptr.Vectroize = enable
+    def vectorize(self, enable):
+        self._ptr.Vectorize = enable
+    
 
     @property
     def loop_vectorize(self):
@@ -142,10 +143,11 @@ class PassManager(llvm.Wrapper):
 
     def _add_pass(self, pass_name):
         passreg = api.llvm.PassRegistry.getPassRegistry()
-        a_pass = passreg.getPassInfo(pass_name)
+        a_pass = passreg.getPassInfo(pass_name).createPass()
         if not a_pass:
             assert pass_name not in PASSES, "Registered but not found?"
             raise llvm.LLVMException('Invalid pass name "%s"' % pass_name)
+        print a_pass
         self._ptr.add(a_pass)
 
     def run(self, module):
@@ -155,17 +157,17 @@ class FunctionPassManager(PassManager):
 
     @staticmethod
     def new(module):
-        ptr = api.llvm.FunctionPassManager.new(module)
+        ptr = api.llvm.FunctionPassManager.new(module._ptr)
         return FunctionPassManager(ptr)
 
     def __init__(self, ptr):
         PassManager.__init__(self, ptr)
 
     def initialize(self):
-        self._ptr.doInitization()
+        self._ptr.doInitialization()
 
     def run(self, fn):
-        return self._ptr.run(fn)
+        return self._ptr.run(fn._ptr)
 
     def finalize(self):
         self._ptr.doFinalization()
@@ -187,7 +189,7 @@ class Pass(llvm.Wrapper):
             The error cannot be caught.
             '''
         passreg = api.llvm.PassRegistry.getPassRegistry()
-        a_pass = passreg.getPassInfo(pass_name)
+        a_pass = passreg.getPassInfo(name).createPass()
         p = Pass(a_pass)
         p.__name = name
         return p
@@ -196,7 +198,10 @@ class Pass(llvm.Wrapper):
     def name(self):
         '''The name used in PassRegistry.
         '''
-        return p.__name
+        try:
+            return self.__name
+        except AttributeError:
+            return 
 
     @property
     def description(self):
@@ -235,7 +240,8 @@ class TargetData(Pass):
 
     @property
     def target_integer_type(self):
-        return self._ptr.core.IntegerType(core.Type.getInt32Ty())
+        context = api.llvm.getGlobalContext()
+        return api.llvm.IntegerType(api.llvm.Type.getInt32Ty(context))
 
     def size(self, ty):
         return self._ptr.getTypeSizeInBits(ty._ptr)
@@ -256,15 +262,15 @@ class TargetData(Pass):
         if isinstance(ty_or_gv, core.Type):
             return self._ptr.getPrefTypeAlignment(ty_or_gv._ptr)
         elif isinstance(ty_or_gv, core.GlobalVariable):
-            return self._ptr._core.getPreferredAlignment(ty_or_gv._ptr)
+            return self._ptr.getPreferredAlignment(ty_or_gv._ptr)
         else:
             raise core.LLVMException("argument is neither a type nor a global variable")
 
     def element_at_offset(self, ty, ofs):
-        return self._ptr.getStructLayout(ty).getElementContainingOffset(ofs)
+        return self._ptr.getStructLayout(ty._ptr).getElementContainingOffset(ofs)
 
     def offset_of_element(self, ty, el):
-        return self._ptr.getStructLayout(ty).getElementOffset(el)
+        return self._ptr.getStructLayout(ty._ptr).getElementOffset(el)
 
 #===----------------------------------------------------------------------===
 # Target Library Info
@@ -276,6 +282,19 @@ class TargetLibraryInfo(Pass):
         triple = api.llvm.Triple.new(str(triple))
         ptr = api.llvm.TargetLibraryInfo.new(triple)
         return TargetLibraryInfo(ptr)
+
+#===----------------------------------------------------------------------===
+# Target Transformation Info
+#===----------------------------------------------------------------------===
+
+class TargetTransformInfo(Pass):
+    @staticmethod
+    def new(targetmachine):
+        scalartti = targetmachine._ptr.getScalarTargetTransformInfo()
+        vectortti = targetmachine._ptr.getVectorTargetTransformInfo()
+        ptr = api.llvm.TargetTransformInfo.new(scalartti, vectortti)
+        return TargetTransformInfo(ptr)
+
 
 #===----------------------------------------------------------------------===
 # Helpers

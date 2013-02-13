@@ -281,7 +281,7 @@ class IRBuilder:
     _CreateExtractValue.realname = 'CreateExtractValue'
 
     @CustomPythonMethod
-    def CreateExtractValue(self, args):
+    def CreateExtractValue(self, *args):
         from llvmpy import extra
         args = list(args)
         valuelist = args[1]
@@ -316,3 +316,8 @@ class IRBuilder:
     # New in llvm 3.3
     #CreateVectorSplat = Method(ptr(Value), cast(int, Unsigned), ptr(Value),
     #                           cast(str, StringRef))
+
+
+    Insert = Method(ptr(Instruction),
+                    ptr(Instruction),
+                    cast(str, StringRef)).require_only(1)

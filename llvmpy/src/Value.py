@@ -11,6 +11,15 @@ BasicBlock = llvm.Class(Value)
 Constant = llvm.Class(User)
 GlobalValue = llvm.Class(Constant)
 Function = llvm.Class(GlobalValue)
+UndefValue = llvm.Class(Constant)
+ConstantInt = llvm.Class(Constant)
+ConstantFP = llvm.Class(Constant)
+ConstantArray = llvm.Class(Constant)
+ConstantStruct = llvm.Class(Constant)
+ConstantVector = llvm.Class(Constant)
+ConstantDataSequential = llvm.Class(Constant)
+ConstantDataArray = llvm.Class(ConstantDataSequential)
+ConstantExpr = llvm.Class(Constant)
 
 from Support.raw_ostream import raw_ostream
 from Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter

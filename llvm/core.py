@@ -32,11 +32,12 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
-import contextlib
+import contextlib, weakref
 
 import llvm
+from llvm._intrinsic_ids import *
 
-import api
+from llvmpy import api
 
 #===----------------------------------------------------------------------===
 # Enumerations
@@ -88,167 +89,180 @@ VALUE_PSEUDO_SOURCE_VALUE               = api.llvm.Value.ValueTy.PseudoSourceVal
 VALUE_FIXED_STACK_PSEUDO_SOURCE_VALUE   = api.llvm.Value.ValueTy.FixedStackPseudoSourceValueVal
 VALUE_INSTRUCTION                       = api.llvm.Value.ValueTy.InstructionVal
 
-## instruction opcodes (from include/llvm/Instruction.def)
-#OPCODE_RET            = 1
-#OPCODE_BR             = 2
-#OPCODE_SWITCH         = 3
-#OPCODE_INDIRECT_BR    = 4
-#OPCODE_INVOKE         = 5
-#OPCODE_RESUME         = 6
-#OPCODE_UNREACHABLE    = 7
-#OPCODE_ADD            = 8
-#OPCODE_FADD           = 9
-#OPCODE_SUB            = 10
-#OPCODE_FSUB           = 11
-#OPCODE_MUL            = 12
-#OPCODE_FMUL           = 13
-#OPCODE_UDIV           = 14
-#OPCODE_SDIV           = 15
-#OPCODE_FDIV           = 16
-#OPCODE_UREM           = 17
-#OPCODE_SREM           = 18
-#OPCODE_FREM           = 19
-#OPCODE_SHL            = 20
-#OPCODE_LSHR           = 21
-#OPCODE_ASHR           = 22
-#OPCODE_AND            = 23
-#OPCODE_OR             = 24
-#OPCODE_XOR            = 25
-#OPCODE_ALLOCA         = 26
-#OPCODE_LOAD           = 27
-#OPCODE_STORE          = 28
-#OPCODE_GETELEMENTPTR  = 29
-#OPCODE_FENCE          = 30
-#OPCODE_ATOMICCMPXCHG  = 31
-#OPCODE_ATOMICRMW      = 32
-#OPCODE_TRUNC          = 33
-#OPCODE_ZEXT           = 34
-#OPCODE_SEXT           = 35
-#OPCODE_FPTOUI         = 36
-#OPCODE_FPTOSI         = 37
-#OPCODE_UITOFP         = 38
-#OPCODE_SITOFP         = 39
-#OPCODE_FPTRUNC        = 40
-#OPCODE_FPEXT          = 41
-#OPCODE_PTRTOINT       = 42
-#OPCODE_INTTOPTR       = 43
-#OPCODE_BITCAST        = 44
-#OPCODE_ICMP           = 45
-#OPCODE_FCMP           = 46
-#OPCODE_PHI            = 47
-#OPCODE_CALL           = 48
-#OPCODE_SELECT         = 49
-#OPCODE_USEROP1        = 50
-#OPCODE_USEROP2        = 51
-#OPCODE_VAARG          = 52
-#OPCODE_EXTRACTELEMENT = 53
-#OPCODE_INSERTELEMENT  = 54
-#OPCODE_SHUFFLEVECTOR  = 55
-#OPCODE_EXTRACTVALUE   = 56
-#OPCODE_INSERTVALUE    = 57
-#OPCODE_LANDINGPAD     = 58
-#
-## calling conventions
-#CC_C             = 0
-#CC_FASTCALL      = 8
-#CC_COLDCALL      = 9
-#CC_GHC           = 10
-#CC_X86_STDCALL   = 64
-#CC_X86_FASTCALL  = 65
-#CC_ARM_APCS      = 66
-#CC_ARM_AAPCS     = 67
-#CC_ARM_AAPCS_VFP = 68
-#CC_MSP430_INTR   = 69
-#CC_X86_THISCALL  = 70
-#CC_PTX_KERNEL    = 71
-#CC_PTX_DEVICE    = 72
-#CC_MBLAZE_INTR   = 73
-#CC_MBLAZE_SVOL   = 74
-#
-#
-## int predicates
-#ICMP_EQ         = 32
-#ICMP_NE         = 33
-#ICMP_UGT        = 34
-#ICMP_UGE        = 35
-#ICMP_ULT        = 36
-#ICMP_ULE        = 37
-#ICMP_SGT        = 38
-#ICMP_SGE        = 39
-#ICMP_SLT        = 40
-#ICMP_SLE        = 41
-#
-## same as ICMP_xx, for backward compatibility
-#IPRED_EQ        = ICMP_EQ
-#IPRED_NE        = ICMP_NE
-#IPRED_UGT       = ICMP_UGT
-#IPRED_UGE       = ICMP_UGE
-#IPRED_ULT       = ICMP_ULT
-#IPRED_ULE       = ICMP_ULE
-#IPRED_SGT       = ICMP_SGT
-#IPRED_SGE       = ICMP_SGE
-#IPRED_SLT       = ICMP_SLT
-#IPRED_SLE       = ICMP_SLE
-#
-## real predicates
-#FCMP_FALSE      = 0
-#FCMP_OEQ        = 1
-#FCMP_OGT        = 2
-#FCMP_OGE        = 3
-#FCMP_OLT        = 4
-#FCMP_OLE        = 5
-#FCMP_ONE        = 6
-#FCMP_ORD        = 7
-#FCMP_UNO        = 8
-#FCMP_UEQ        = 9
-#FCMP_UGT        = 10
-#FCMP_UGE        = 11
-#FCMP_ULT        = 12
-#FCMP_ULE        = 13
-#FCMP_UNE        = 14
-#FCMP_TRUE       = 15
-#
-## real predicates
-#RPRED_FALSE     = FCMP_FALSE
-#RPRED_OEQ       = FCMP_OEQ
-#RPRED_OGT       = FCMP_OGT
-#RPRED_OGE       = FCMP_OGE
-#RPRED_OLT       = FCMP_OLT
-#RPRED_OLE       = FCMP_OLE
-#RPRED_ONE       = FCMP_ONE
-#RPRED_ORD       = FCMP_ORD
-#RPRED_UNO       = FCMP_UNO
-#RPRED_UEQ       = FCMP_UEQ
-#RPRED_UGT       = FCMP_UGT
-#RPRED_UGE       = FCMP_UGE
-#RPRED_ULT       = FCMP_ULT
-#RPRED_ULE       = FCMP_ULE
-#RPRED_UNE       = FCMP_UNE
-#RPRED_TRUE      = FCMP_TRUE
-#
-## linkages (see llvm-c/Core.h)
-#LINKAGE_EXTERNAL                        = 0
-#LINKAGE_AVAILABLE_EXTERNALLY            = 1
-#LINKAGE_LINKONCE_ANY                    = 2
-#LINKAGE_LINKONCE_ODR                    = 3
-#LINKAGE_WEAK_ANY                        = 4
-#LINKAGE_WEAK_ODR                        = 5
-#LINKAGE_APPENDING                       = 6
-#LINKAGE_INTERNAL                        = 7
-#LINKAGE_PRIVATE                         = 8
-#LINKAGE_DLLIMPORT                       = 9
-#LINKAGE_DLLEXPORT                       = 10
-#LINKAGE_EXTERNAL_WEAK                   = 11
-#LINKAGE_GHOST                           = 12
-#LINKAGE_COMMON                          = 13
-#LINKAGE_LINKER_PRIVATE                  = 14
-#LINKAGE_LINKER_PRIVATE_WEAK             = 15
-#LINKAGE_LINKER_PRIVATE_WEAK_DEF_AUTO    = 16
-#
-## visibility (see llvm/GlobalValue.h)
-#VISIBILITY_DEFAULT   = 0
-#VISIBILITY_HIDDEN    = 1
-#VISIBILITY_PROTECTED = 2
+# instruction opcodes (from include/llvm/Instruction.def)
+OPCODE_RET            = 1
+OPCODE_BR             = 2
+OPCODE_SWITCH         = 3
+OPCODE_INDIRECT_BR    = 4
+OPCODE_INVOKE         = 5
+OPCODE_RESUME         = 6
+OPCODE_UNREACHABLE    = 7
+OPCODE_ADD            = 8
+OPCODE_FADD           = 9
+OPCODE_SUB            = 10
+OPCODE_FSUB           = 11
+OPCODE_MUL            = 12
+OPCODE_FMUL           = 13
+OPCODE_UDIV           = 14
+OPCODE_SDIV           = 15
+OPCODE_FDIV           = 16
+OPCODE_UREM           = 17
+OPCODE_SREM           = 18
+OPCODE_FREM           = 19
+OPCODE_SHL            = 20
+OPCODE_LSHR           = 21
+OPCODE_ASHR           = 22
+OPCODE_AND            = 23
+OPCODE_OR             = 24
+OPCODE_XOR            = 25
+OPCODE_ALLOCA         = 26
+OPCODE_LOAD           = 27
+OPCODE_STORE          = 28
+OPCODE_GETELEMENTPTR  = 29
+OPCODE_FENCE          = 30
+OPCODE_ATOMICCMPXCHG  = 31
+OPCODE_ATOMICRMW      = 32
+OPCODE_TRUNC          = 33
+OPCODE_ZEXT           = 34
+OPCODE_SEXT           = 35
+OPCODE_FPTOUI         = 36
+OPCODE_FPTOSI         = 37
+OPCODE_UITOFP         = 38
+OPCODE_SITOFP         = 39
+OPCODE_FPTRUNC        = 40
+OPCODE_FPEXT          = 41
+OPCODE_PTRTOINT       = 42
+OPCODE_INTTOPTR       = 43
+OPCODE_BITCAST        = 44
+OPCODE_ICMP           = 45
+OPCODE_FCMP           = 46
+OPCODE_PHI            = 47
+OPCODE_CALL           = 48
+OPCODE_SELECT         = 49
+OPCODE_USEROP1        = 50
+OPCODE_USEROP2        = 51
+OPCODE_VAARG          = 52
+OPCODE_EXTRACTELEMENT = 53
+OPCODE_INSERTELEMENT  = 54
+OPCODE_SHUFFLEVECTOR  = 55
+OPCODE_EXTRACTVALUE   = 56
+OPCODE_INSERTVALUE    = 57
+OPCODE_LANDINGPAD     = 58
+
+# calling conventions
+CC_C             = api.llvm.CallingConv.ID.C
+CC_FASTCALL      = api.llvm.CallingConv.ID.Fast
+CC_COLDCALL      = api.llvm.CallingConv.ID.Cold
+CC_GHC           = api.llvm.CallingConv.ID.GHC
+CC_X86_STDCALL   = api.llvm.CallingConv.ID.X86_StdCall
+CC_X86_FASTCALL  = api.llvm.CallingConv.ID.X86_FastCall
+CC_ARM_APCS      = api.llvm.CallingConv.ID.ARM_APCS
+CC_ARM_AAPCS     = api.llvm.CallingConv.ID.ARM_AAPCS
+CC_ARM_AAPCS_VFP = api.llvm.CallingConv.ID.ARM_AAPCS_VFP
+CC_MSP430_INTR   = api.llvm.CallingConv.ID.MSP430_INTR
+CC_X86_THISCALL  = api.llvm.CallingConv.ID.X86_ThisCall
+CC_PTX_KERNEL    = api.llvm.CallingConv.ID.PTX_Kernel
+CC_PTX_DEVICE    = api.llvm.CallingConv.ID.PTX_Device
+CC_MBLAZE_INTR   = api.llvm.CallingConv.ID.MBLAZE_INTR
+CC_MBLAZE_SVOL   = api.llvm.CallingConv.ID.MBLAZE_SVOL
+
+
+# int predicates
+ICMP_EQ         = api.llvm.CmpInst.Predicate.ICMP_EQ
+ICMP_NE         = api.llvm.CmpInst.Predicate.ICMP_NE
+ICMP_UGT        = api.llvm.CmpInst.Predicate.ICMP_UGT
+ICMP_UGE        = api.llvm.CmpInst.Predicate.ICMP_UGE
+ICMP_ULT        = api.llvm.CmpInst.Predicate.ICMP_ULT
+ICMP_ULE        = api.llvm.CmpInst.Predicate.ICMP_ULE
+ICMP_SGT        = api.llvm.CmpInst.Predicate.ICMP_SGT
+ICMP_SGE        = api.llvm.CmpInst.Predicate.ICMP_SGE
+ICMP_SLT        = api.llvm.CmpInst.Predicate.ICMP_SLT
+ICMP_SLE        = api.llvm.CmpInst.Predicate.ICMP_SLE
+
+# same as ICMP_xx, for backward compatibility
+IPRED_EQ        = ICMP_EQ
+IPRED_NE        = ICMP_NE
+IPRED_UGT       = ICMP_UGT
+IPRED_UGE       = ICMP_UGE
+IPRED_ULT       = ICMP_ULT
+IPRED_ULE       = ICMP_ULE
+IPRED_SGT       = ICMP_SGT
+IPRED_SGE       = ICMP_SGE
+IPRED_SLT       = ICMP_SLT
+IPRED_SLE       = ICMP_SLE
+
+# real predicates
+FCMP_FALSE      = api.llvm.CmpInst.Predicate.FCMP_FALSE
+FCMP_OEQ        = api.llvm.CmpInst.Predicate.FCMP_OEQ
+FCMP_OGT        = api.llvm.CmpInst.Predicate.FCMP_OGT
+FCMP_OGE        = api.llvm.CmpInst.Predicate.FCMP_OGE
+FCMP_OLT        = api.llvm.CmpInst.Predicate.FCMP_OLT
+FCMP_OLE        = api.llvm.CmpInst.Predicate.FCMP_OLE
+FCMP_ONE        = api.llvm.CmpInst.Predicate.FCMP_ONE
+FCMP_ORD        = api.llvm.CmpInst.Predicate.FCMP_ORD
+FCMP_UNO        = api.llvm.CmpInst.Predicate.FCMP_UNO
+FCMP_UEQ        = api.llvm.CmpInst.Predicate.FCMP_UEQ
+FCMP_UGT        = api.llvm.CmpInst.Predicate.FCMP_UGT
+FCMP_UGE        = api.llvm.CmpInst.Predicate.FCMP_UGE
+FCMP_ULT        = api.llvm.CmpInst.Predicate.FCMP_ULT
+FCMP_ULE        = api.llvm.CmpInst.Predicate.FCMP_ULE
+FCMP_UNE        = api.llvm.CmpInst.Predicate.FCMP_UNE
+FCMP_TRUE       = api.llvm.CmpInst.Predicate.FCMP_TRUE
+
+# real predicates
+RPRED_FALSE     = FCMP_FALSE
+RPRED_OEQ       = FCMP_OEQ
+RPRED_OGT       = FCMP_OGT
+RPRED_OGE       = FCMP_OGE
+RPRED_OLT       = FCMP_OLT
+RPRED_OLE       = FCMP_OLE
+RPRED_ONE       = FCMP_ONE
+RPRED_ORD       = FCMP_ORD
+RPRED_UNO       = FCMP_UNO
+RPRED_UEQ       = FCMP_UEQ
+RPRED_UGT       = FCMP_UGT
+RPRED_UGE       = FCMP_UGE
+RPRED_ULT       = FCMP_ULT
+RPRED_ULE       = FCMP_ULE
+RPRED_UNE       = FCMP_UNE
+RPRED_TRUE      = FCMP_TRUE
+
+# linkages (see llvm::GlobalValue::LinkageTypes)
+LINKAGE_EXTERNAL                        = \
+    api.llvm.GlobalValue.LinkageTypes.ExternalLinkage
+LINKAGE_AVAILABLE_EXTERNALLY            = \
+    api.llvm.GlobalValue.LinkageTypes.AvailableExternallyLinkage
+LINKAGE_LINKONCE_ANY                    = \
+    api.llvm.GlobalValue.LinkageTypes.LinkOnceAnyLinkage
+LINKAGE_LINKONCE_ODR                    = \
+    api.llvm.GlobalValue.LinkageTypes.LinkOnceODRLinkage
+LINKAGE_WEAK_ANY                        = \
+    api.llvm.GlobalValue.LinkageTypes.WeakAnyLinkage
+LINKAGE_WEAK_ODR                        = \
+    api.llvm.GlobalValue.LinkageTypes.WeakODRLinkage
+LINKAGE_APPENDING                       = \
+    api.llvm.GlobalValue.LinkageTypes.AppendingLinkage
+LINKAGE_INTERNAL                        = \
+    api.llvm.GlobalValue.LinkageTypes.InternalLinkage
+LINKAGE_PRIVATE                         = \
+    api.llvm.GlobalValue.LinkageTypes.PrivateLinkage
+LINKAGE_DLLIMPORT                       = \
+    api.llvm.GlobalValue.LinkageTypes.DLLImportLinkage
+LINKAGE_DLLEXPORT                       = \
+    api.llvm.GlobalValue.LinkageTypes.DLLExportLinkage
+LINKAGE_EXTERNAL_WEAK                   = \
+    api.llvm.GlobalValue.LinkageTypes.ExternalWeakLinkage
+LINKAGE_COMMON                          = \
+    api.llvm.GlobalValue.LinkageTypes.CommonLinkage
+LINKAGE_LINKER_PRIVATE                  = \
+    api.llvm.GlobalValue.LinkageTypes.LinkerPrivateLinkage
+LINKAGE_LINKER_PRIVATE_WEAK             = \
+    api.llvm.GlobalValue.LinkageTypes.LinkerPrivateWeakLinkage
+
+# visibility (see llvm/GlobalValue.h)
+VISIBILITY_DEFAULT   = api.llvm.GlobalValue.VisibilityTypes.DefaultVisibility
+VISIBILITY_HIDDEN    = api.llvm.GlobalValue.VisibilityTypes.HiddenVisibility
+VISIBILITY_PROTECTED = api.llvm.GlobalValue.VisibilityTypes.ProtectedVisibility
 
 # parameter attributes llvm::Attributes::AttrVal (see llvm/Attributes.h)
 ATTR_NONE               = api.llvm.Attributes.AttrVal.None_
@@ -291,6 +305,16 @@ class Module(llvm.Wrapper):
 
     module_obj = Module.new('my_module')
     """
+    __cache = weakref.WeakValueDictionary()
+
+    def __new__(cls, ptr):
+        cached = cls.__cache.get(ptr)
+        if cached:
+            return cached
+        obj = object.__new__(cls)
+        cls.__cache[ptr] = obj
+        return obj
+
     @staticmethod
     def new(id):
         """Create a new Module instance.
@@ -314,6 +338,7 @@ class Module(llvm.Wrapper):
         else:
             bc = fileobj_or_str.read()
         errbuf = StringIO()
+        context = api.llvm.getGlobalContext()
         m = api.llvm.ParseBitCodeFile(bc, context, errbuf)
         if not m:
             raise Exception(errbuf.getvalue())
@@ -335,7 +360,9 @@ class Module(llvm.Wrapper):
         else:
             ir = fileobj_or_str.read()
         errbuf = StringIO()
-        m = api.llvm.ParseAssemblyString(ir, None, api.llvm.SMDIagnostic.new(), context)
+        context = api.llvm.getGlobalContext()
+        m = api.llvm.ParseAssemblyString(ir, None, api.llvm.SMDiagnostic.new(),
+                                         context)
         errbuf.close()
         return Module(m)
 
@@ -351,6 +378,7 @@ class Module(llvm.Wrapper):
         return str(self._ptr)
 
     def __eq__(self, rhs):
+        assert isinstance(rhs, Module), type(rhs)
         if isinstance(rhs, Module):
             return str(self) == str(rhs)
         else:
@@ -386,7 +414,7 @@ class Module(llvm.Wrapper):
 
     @property
     def pointer_size(self):
-        return self.getPointerSize()
+        return self._ptr.getPointerSize()
 
     def link_in(self, other, preserve=False):
         """Link the `other' module into this one.
@@ -401,20 +429,21 @@ class Module(llvm.Wrapper):
         Linker class.
         """
         assert isinstance(other, Module)
-        enum_mode = api.llvm.Linker.LinkMode
+        enum_mode = api.llvm.Linker.LinkerMode
         mode = enum_mode.PreserveSource if preserve else enum_mode.DestroySource
 
         with contextlib.closing(StringIO()) as errmsg:
-            failed = api.llvm.Linker.LinkModule(self._ptr,
-                                           other._ptr,
-                                           mode,
-                                           errmsg)
+            failed = api.llvm.Linker.LinkModules(self._ptr,
+                                                 other._ptr,
+                                                 mode,
+                                                 errmsg)
             if failed:
                 raise llvm.LLVMException(errmsg)
 
     def get_type_named(self, name):
         typ = self._ptr.getTypeByName(name)
-        return StructType(typ)
+        if typ:
+            return StructType(typ)
 
     def add_global_variable(self, ty, name, addrspace=0):
         """Add a global variable of given type with given name."""
@@ -422,7 +451,7 @@ class Module(llvm.Wrapper):
         notthreadlocal = api.llvm.GlobalVariable.ThreadLocalMode.NotThreadLocal
         init = None
         insertbefore = None
-        ptr = api.llvm.GlobalVariable.new(self,
+        ptr = api.llvm.GlobalVariable.new(self._ptr,
                                      ty._ptr,
                                      False,
                                      external,
@@ -431,16 +460,18 @@ class Module(llvm.Wrapper):
                                      insertbefore,
                                      notthreadlocal,
                                      addrspace)
-        return GlobalVariable(ptr)
+        return _make_value(ptr)
 
     def get_global_variable_named(self, name):
         """Return a GlobalVariable object for the given name."""
         ptr = self._ptr.getNamedGlobal(name)
-        return GlobalVariable(ptr)
+        if ptr is None:
+            raise llvm.LLVMException("No global named: %s" % name)
+        return _make_value(ptr)
 
     @property
     def global_variables(self):
-        return self._ptr.list_globals()
+        return map(_make_value, self._ptr.list_globals())
 
     def add_function(self, ty, name):
         """Add a function of given type with given name."""
@@ -452,21 +483,25 @@ class Module(llvm.Wrapper):
     def get_function_named(self, name):
         """Return a Function object representing function with given name."""
         fn = self._ptr.getFunction(name)
-        if fn is None:
-            return None
-        return Function(fn)
+        if fn is not None:
+            return _make_value(fn)
 
     def get_or_insert_function(self, ty, name):
         """Like get_function_named(), but does add_function() first, if
            function is not present."""
         constant = self._ptr.getOrInsertFunction(name, ty._ptr)
-        fn = constant._downcast(api.llvm.Function)
-        return Function(fn)
+        try:
+            fn = constant._downcast(api.llvm.Function)
+        except ValueError:
+            # bitcasted to function type
+            return _make_value(constant)
+        else:
+            return _make_value(fn)
 
     @property
     def functions(self):
         """All functions in this module."""
-        return map(Function, self._ptr.list_functions())
+        return map(_make_value, self._ptr.list_functions())
 
     def verify(self):
         """Verify module.
@@ -498,7 +533,7 @@ class Module(llvm.Wrapper):
             return fileobj.getvalue()
 
     def _get_id(self):
-        return self._ptr.getModuleIdentifier(self._ptr)
+        return self._ptr.getModuleIdentifier()
 
     def _set_id(self, string):
         self._ptr.setModuleIdentifier(string)
@@ -506,13 +541,18 @@ class Module(llvm.Wrapper):
     id = property(_get_id, _set_id)
 
     def _to_native_something(self, fileobj, cgft):
-        ret = False
-        if fileobj is None:
-            ret = True
-            fileobj = StringIO()
+
         cgft = api.llvm.TargetMachine.CodeGenFileType.CGFT_AssemblyFile
         cgft = api.llvm.TargetMachine.CodeGenFileType.CGFT_ObjectFile
-        failed = tm.addPassesToEmitFile(pm, formatted, cgft, False)
+
+        from llvm.ee import TargetMachine
+        from llvm.passes import PassManager
+        from llvmpy import extra
+        tm = TargetMachine.new()._ptr
+        pm = PassManager.new()._ptr
+        formatted
+        failed = tm.addPassesToEmitFile(pm, fileobj, cgft, False)
+        
         if failed:
             raise llvm.LLVMException("Failed to write native object file")
         if ret:
@@ -525,8 +565,16 @@ class Module(llvm.Wrapper):
         If a fileobj is given, the output is written to it;
         Otherwise, the output is returned
         '''
-        CGFT = api.llvm.TargetMachine.CodeGenFileType
-        return self._to_native_something(fileobj, CGFT.CGFT_ObjectFile)
+        ret = False
+        if fileobj is None:
+            ret = True
+            fileobj = StringIO()
+        from llvm.ee import TargetMachine
+        tm = TargetMachine.new()
+        fileobj.write(tm.emit_object(self))
+        if ret:
+            return fileobj.getvalue()
+
 
     def to_native_assembly(self, fileobj=None):
         '''Outputs the byte string of the module as native assembly code
@@ -534,17 +582,27 @@ class Module(llvm.Wrapper):
         If a fileobj is given, the output is written to it;
         Otherwise, the output is returned
         '''
-        CGFT = api.llvm.TargetMachine.CodeGenFileType
-        return self._to_native_something(fileobj, CGFT.CGFT_AssemblyFile)
+        ret = False
+        if fileobj is None:
+            ret = True
+            fileobj = StringIO()
+        from llvm.ee import TargetMachine
+        tm = TargetMachine.new()
+        fileobj.write(tm.emit_assembly(self))
+        if ret:
+            return fileobj.getvalue()
+
 
     def get_or_insert_named_metadata(self, name):
-        return NamedMetadata(self._ptr.getOrInsertNamedMetadata(name))
+        return NamedMetaData(self._ptr.getOrInsertNamedMetadata(name))
 
     def get_named_metadata(self, name):
-        return NamedMetadata(self._ptr.get_named_metadata(name))
+        md = self._ptr.getNamedMetadata(name)
+        if md:
+            return NamedMetaData(md)
 
     def clone(self):
-        return NamedMetadata(api.llvm.CloneModule(self._ptr))
+        return Module(api.llvm.CloneModule(self._ptr))
 
 class Type(llvm.Wrapper):
     """Represents a type, like a 32-bit integer or an 80-bit x86 float.
@@ -552,6 +610,11 @@ class Type(llvm.Wrapper):
     Use one of the static methods to create an instance. Example:
     ty = Type.double()
     """
+    _type_ = api.llvm.Type
+
+    def __init__(self, ptr):
+        ptr = ptr._downcast(type(self)._type_)
+        super(Type, self).__init__(ptr)
 
     @staticmethod
     def int(bits=32):
@@ -614,6 +677,8 @@ class Type(llvm.Wrapper):
     def opaque(name):
         """Create a opaque StructType"""
         context = api.llvm.getGlobalContext()
+        if not name:
+            raise llvm.LLVMException("Opaque type must have a non-empty name")
         ptr = api.llvm.StructType.create(context, name)
         return StructType(ptr)
 
@@ -629,8 +694,15 @@ class Type(llvm.Wrapper):
         otherwise, creates a literal type."""
         context = api.llvm.getGlobalContext()
         is_packed = False
-        ptr = api.llvm.StructType.create(context)
-        ptr.setBody(_extract_ptrs(element_tys), is_packed)
+        if name:
+            ptr = api.llvm.StructType.create(context, name)
+            ptr.setBody(llvm._extract_ptrs(element_tys), is_packed)
+        else:
+            ptr = api.llvm.StructType.get(context,
+                                          llvm._extract_ptrs(element_tys),
+                                          is_packed)
+
+
         return StructType(ptr)
 
     @staticmethod
@@ -646,7 +718,7 @@ class Type(llvm.Wrapper):
         context = api.llvm.getGlobalContext()
         is_packed = True
         ptr = api.llvm.StructType.create(context)
-        ptr.setBody(_extract_ptrs(element_tys), is_packed)
+        ptr.setBody(llvm._extract_ptrs(element_tys), is_packed)
         return StructType(ptr)
 
     @staticmethod
@@ -723,6 +795,7 @@ class Type(llvm.Wrapper):
 
 class IntegerType(Type):
     """Represents an integer type."""
+    _type_ = api.llvm.IntegerType
 
     @property
     def width(self):
@@ -731,6 +804,7 @@ class IntegerType(Type):
 
 class FunctionType(Type):
     """Represents a function type."""
+    _type_ = api.llvm.FunctionType
 
     @property
     def return_type(self):
@@ -746,7 +820,7 @@ class FunctionType(Type):
     def args(self):
         """An iterable that yields Type objects, representing the types of the
             arguments accepted by this function, in order."""
-        tys = [Type(self._ptr.getParamType(i)) for i in range(self.arg_count)]
+        return [Type(self._ptr.getParamType(i)) for i in range(self.arg_count)]
 
     @property
     def arg_count(self):
@@ -759,6 +833,7 @@ class FunctionType(Type):
 
 class StructType(Type):
     """Represents a structure type."""
+    _type_ = api.llvm.StructType
 
     @property
     def element_count(self):
@@ -798,18 +873,19 @@ class StructType(Type):
 
     @property
     def is_literal(self):
-        return self.isLiteral()
+        return self._ptr.isLiteral()
 
     @property
     def is_identified(self):
-        return not self.is_literal()
+        return not self.is_literal
 
     @property
     def is_opaque(self):
-        return self.isOpaque()
+        return self._ptr.isOpaque()
 
 class ArrayType(Type):
     """Represents an array type."""
+    _type_ = api.llvm.ArrayType
 
     @property
     def element(self):
@@ -820,6 +896,7 @@ class ArrayType(Type):
         return self._ptr.getNumElements()
 
 class PointerType(Type):
+    _type_ = api.llvm.PointerType
 
     @property
     def pointee(self):
@@ -830,7 +907,8 @@ class PointerType(Type):
         return self._ptr.getAddressSpace()
 
 class VectorType(Type):
-
+    _type_ = api.llvm.VectorType
+    
     @property
     def element(self):
         return self._ptr.getVectorElementType()
@@ -840,6 +918,34 @@ class VectorType(Type):
         return self._ptr.getNumElements()
 
 class Value(llvm.Wrapper):
+    _type_ = api.llvm.Value
+
+
+    def __init__(self, builder, ptr):
+        assert builder is _ValueFactory
+
+        if type(self._type_) is type:
+            if isinstance(ptr, self._type_): # is not downcast
+                casted = ptr
+            else:
+                casted = ptr._downcast(self._type_)
+        else:
+            try:
+                for ty in self._type_:
+                    if isinstance(ptr, ty): # is not downcast
+                        casted = ptr
+                    else:
+                        try:
+                            casted = ptr._downcast(ty)
+                        except ValueError:
+                            pass
+                        else:
+                            break
+                else:
+                    casted = ptr
+            except TypeError:
+                casted = ptr
+        super(Value, self).__init__(casted)
 
     def __str__(self):
         return str(self._ptr)
@@ -875,9 +981,10 @@ class Value(llvm.Wrapper):
     
     @property
     def uses(self):
-        return map(User, self._ptr.list_use())
+        return map(_make_value, self._ptr.list_use())
 
 class User(Value):
+    _type_ = api.llvm.User
 
     @property
     def operand_count(self):
@@ -886,193 +993,198 @@ class User(Value):
     @property
     def operands(self):
         """Yields operands of this instruction."""
-        return [Value(self._ptr.getOperand(i))
+        return [_make_value(self._ptr.getOperand(i))
                 for i in range(self.operand_count)]
 
-    def _get_operand(self, i):
-        return _make_value(_core.LLVMUserGetOperand(self._ptr, i))
 
 class Constant(User):
+    _type_ = api.llvm.Constant
 
     @staticmethod
     def null(ty):
-        return Value(api.llvm.Constant.getNullValue(ty._ptr))
+        return _make_value(api.llvm.Constant.getNullValue(ty._ptr))
 
     @staticmethod
     def all_ones(ty):
-        return Value(api.llvm.Constant.getAllOnesValue(ty._ptr))
+        return _make_value(api.llvm.Constant.getAllOnesValue(ty._ptr))
 
     @staticmethod
     def undef(ty):
-        return Value(api.llvm.UndefValue.get(ty._ptr))
+        return _make_value(api.llvm.UndefValue.get(ty._ptr))
 
     @staticmethod
     def int(ty, value):
-        return Value(api.llvm.ConstantInt.get(ty._ptr, value, False))
+        return _make_value(api.llvm.ConstantInt.get(ty._ptr, int(value), False))
 
     @staticmethod
     def int_signextend(ty, value):
-        return Value(api.llvm.ConstantInt.get(ty._ptr, value, True))
+        return _make_value(api.llvm.ConstantInt.get(ty._ptr, int(value), True))
 
     @staticmethod
     def real(ty, value):
-        return Value(api.llvm.ConstantFP.get(ty._ptr, value))
+        return _make_value(api.llvm.ConstantFP.get(ty._ptr, float(value)))
 
     @staticmethod
     def string(strval): # dont_null_terminate=True
-        return Value(api.llvm.ConstantDataArray.getString(strval, False))
+        cxt = api.llvm.getGlobalContext()
+        return _make_value(api.llvm.ConstantDataArray.getString(cxt, strval, False))
 
     @staticmethod
     def stringz(strval): # dont_null_terminate=False
-        return Value(api.llvm.ConstantDataArray.getString(strval, True))
+        cxt = api.llvm.getGlobalContext()
+        return _make_value(api.llvm.ConstantDataArray.getString(cxt, strval, True))
 
     @staticmethod
     def array(ty, consts):
-        return Value(api.llvm.ConstantArray.get(ty._ptr, consts))
+        aryty = Type.array(ty, len(consts))
+        return _make_value(api.llvm.ConstantArray.get(aryty._ptr,
+                                                      llvm._extract_ptrs(consts)))
 
     @staticmethod
     def struct(consts): # not packed
-        return Value(api.llvm.ConstantStruct.getAnon(llvm._extract_ptrs(consts),
+        return _make_value(api.llvm.ConstantStruct.getAnon(llvm._extract_ptrs(consts),
                                                 False))
 
     @staticmethod
     def packed_struct(consts):
-         return Value(api.llvm.ConstantStruct.getAnon(llvm._extract_ptrs(consts),
+         return _make_value(api.llvm.ConstantStruct.getAnon(llvm._extract_ptrs(consts),
                                                  False))
 
     @staticmethod
     def vector(consts):
-        return Value(api.llvm.ConstantVector.get(llvm._extract_ptrs(consts)))
+        return _make_value(api.llvm.ConstantVector.get(llvm._extract_ptrs(consts)))
 
     @staticmethod
     def sizeof(ty):
-        return Value(api.llvm.ConstantExpr.getSizeOf(ty._ptr))
+        return _make_value(api.llvm.ConstantExpr.getSizeOf(ty._ptr))
 
     def neg(self):
-        return Value(api.llvm.ConstantExpr.getNeg(self._ptr))
+        return _make_value(api.llvm.ConstantExpr.getNeg(self._ptr))
 
     def not_(self):
-        return Value(api.llvm.ConstantExpr.getNot(self._ptr))
+        return _make_value(api.llvm.ConstantExpr.getNot(self._ptr))
 
     def add(self, rhs):
-        return Value(api.llvm.ConstantExpr.getAdd(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getAdd(self._ptr, rhs._ptr))
 
     def fadd(self, rhs):
-        return Value(api.llvm.ConstantExpr.getFAdd(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getFAdd(self._ptr, rhs._ptr))
 
     def sub(self, rhs):
-        return Value(api.llvm.ConstantExpr.getSub(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getSub(self._ptr, rhs._ptr))
 
     def fsub(self, rhs):
-        return Value(api.llvm.ConstantExpr.getFSub(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getFSub(self._ptr, rhs._ptr))
 
     def mul(self, rhs):
-        return Value(api.llvm.ConstantExpr.getMul(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getMul(self._ptr, rhs._ptr))
 
     def fmul(self, rhs):
-        return Value(api.llvm.ConstantExpr.getFMul(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getFMul(self._ptr, rhs._ptr))
 
     def udiv(self, rhs):
-        return Value(api.llvm.ConstantExpr.getUDiv(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getUDiv(self._ptr, rhs._ptr))
 
     def sdiv(self, rhs):
-        return Value(api.llvm.ConstantExpr.getSDiv(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getSDiv(self._ptr, rhs._ptr))
 
     def fdiv(self, rhs):
-        return Value(api.llvm.ConstantExpr.getFDiv(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getFDiv(self._ptr, rhs._ptr))
 
     def urem(self, rhs):
-        return Value(api.llvm.ConstantExpr.getURem(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getURem(self._ptr, rhs._ptr))
 
     def srem(self, rhs):
-        return Value(api.llvm.ConstantExpr.getSRem(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getSRem(self._ptr, rhs._ptr))
 
     def frem(self, rhs):
-        return Value(api.llvm.ConstantExpr.getFRem(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getFRem(self._ptr, rhs._ptr))
 
     def and_(self, rhs):
-        return Value(api.llvm.ConstantExpr.getAnd(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getAnd(self._ptr, rhs._ptr))
 
     def or_(self, rhs):
-        return Value(api.llvm.ConstantExpr.getOr(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getOr(self._ptr, rhs._ptr))
 
     def xor(self, rhs):
-        return Value(api.llvm.ConstantExpr.getXor(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getXor(self._ptr, rhs._ptr))
 
     def icmp(self, int_pred, rhs):
-        return Value(api.llvm.ConstantExpr.getICmp(int_pred, self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getICmp(int_pred, self._ptr, rhs._ptr))
 
     def fcmp(self, real_pred, rhs):
-        return Value(api.llvm.ConstantExpr.getFCmp(real_pred, self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getFCmp(real_pred, self._ptr, rhs._ptr))
 
     def shl(self, rhs):
-        return Value(api.llvm.ConstantExpr.getShl(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getShl(self._ptr, rhs._ptr))
 
     def lshr(self, rhs):
-        return Value(api.llvm.ConstantExpr.getLShr(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getLShr(self._ptr, rhs._ptr))
 
     def ashr(self, rhs):
-        return Value(api.llvm.ConstantExpr.getAShr(self._ptr, rhs._ptr))
+        return _make_value(api.llvm.ConstantExpr.getAShr(self._ptr, rhs._ptr))
 
     def gep(self, indices):
         indices = llvm._extract_ptrs(indices)
-        return Value(api.llvm.ConstantExpr.getGetElementPtr(self._ptr, indices))
+        return _make_value(api.llvm.ConstantExpr.getGetElementPtr(self._ptr, indices))
 
     def trunc(self, ty):
-        return Value(api.llvm.ConstantExpr.getTrunc(self._ptr, ty))
+        return _make_value(api.llvm.ConstantExpr.getTrunc(self._ptr, ty._ptr))
 
     def sext(self, ty):
-        return Value(api.llvm.ConstantExpr.getSExt(self._ptr, ty))
+        return _make_value(api.llvm.ConstantExpr.getSExt(self._ptr, ty._ptr))
 
     def zext(self, ty):
-        return Value(api.llvm.ConstantExpr.getZExt(self._ptr, ty))
+        return _make_value(api.llvm.ConstantExpr.getZExt(self._ptr, ty._ptr))
 
     def fptrunc(self, ty):
-        return Value(api.llvm.ConstantExpr.getFPTrunc(self._ptr, ty))
+        return _make_value(api.llvm.ConstantExpr.getFPTrunc(self._ptr, ty._ptr))
 
     def fpext(self, ty):
-        return Value(api.llvm.ConstantExpr.getFPExtend(self._ptr, ty))
+        return _make_value(api.llvm.ConstantExpr.getFPExtend(self._ptr, ty._ptr))
 
     def uitofp(self, ty):
-        return Value(api.llvm.ConstantExpr.getUIToFP(self._ptr, ty))
+        return _make_value(api.llvm.ConstantExpr.getUIToFP(self._ptr, ty._ptr))
 
     def sitofp(self, ty):
-        return Value(api.llvm.ConstantExpr.getSIToFP(self._ptr, ty))
+        return _make_value(api.llvm.ConstantExpr.getSIToFP(self._ptr, ty._ptr))
 
     def fptoui(self, ty):
-        return Value(api.llvm.ConstantExpr.getFPToUI(self._ptr, ty))
+        return _make_value(api.llvm.ConstantExpr.getFPToUI(self._ptr, ty._ptr))
 
     def fptosi(self, ty):
-        return Value(api.llvm.ConstantExpr.getFPToSI(self._ptr, ty))
+        return _make_value(api.llvm.ConstantExpr.getFPToSI(self._ptr, ty._ptr))
 
     def ptrtoint(self, ty):
-        return Value(api.llvm.ConstantExpr.getPtrToInt(self._ptr, ty))
+        return _make_value(api.llvm.ConstantExpr.getPtrToInt(self._ptr, ty._ptr))
 
     def inttoptr(self, ty):
-        return Value(api.llvm.ConstantExpr.getIntToPtr(self._ptr, ty))
+        return _make_value(api.llvm.ConstantExpr.getIntToPtr(self._ptr, ty._ptr))
 
     def bitcast(self, ty):
-        return Value(api.llvm.ConstantExpr.getBitCast(self._ptr, ty))
+        return _make_value(api.llvm.ConstantExpr.getBitCast(self._ptr, ty._ptr))
 
     def select(self, true_const, false_const):
-        return Value(api.llvm.ConstantExpr.getSelect(self._ptr,
+        return _make_value(api.llvm.ConstantExpr.getSelect(self._ptr,
                                                 true_const._ptr,
                                                 false_const._ptr))
 
     def extract_element(self, index): # note: self must be a _vector_ constant
-        return Value(api.llvm.ConstantExpr.getExtractElement(self._ptr, index._ptr))
+        return _make_value(api.llvm.ConstantExpr.getExtractElement(self._ptr, index._ptr))
 
     def insert_element(self, value, index):
-        return Value(api.llvm.ConstantExpr.getExtractElement(self._ptr,
+        return _make_value(api.llvm.ConstantExpr.getExtractElement(self._ptr,
                                                         value._ptr,
                                                         index._ptr))
 
     def shuffle_vector(self, vector_b, mask):
-        return Value(api.llvm.ConstantExpr.getShuffleVector(self._ptr,
+        return _make_value(api.llvm.ConstantExpr.getShuffleVector(self._ptr,
                                                        vector_b._ptr,
                                                        mask._ptr))
 
 class ConstantExpr(Constant):
+    _type_ = api.llvm.ConstantExpr
+
     @property
     def opcode(self):
         return self._ptr.getOpcode()
@@ -1094,6 +1206,8 @@ class ConstantDataVector(Constant):
 
 
 class ConstantInt(Constant):
+    _type_ = api.llvm.ConstantInt
+
     @property
     def z_ext_value(self):
         '''Obtain the zero extended value for an integer constant value.'''
@@ -1130,8 +1244,8 @@ class ConstantPointerNull(Constant):
 class UndefValue(Constant):
     pass
 
-
 class GlobalValue(Constant):
+    _type_ = api.llvm.GlobalValue
 
     def _get_linkage(self):
         return self._ptr.getLinkage()
@@ -1176,6 +1290,7 @@ class GlobalValue(Constant):
 
 
 class GlobalVariable(GlobalValue):
+    _type_ = api.llvm.GlobalVariable
 
     @staticmethod
     def new(module, ty, name, addrspace=0):
@@ -1183,7 +1298,7 @@ class GlobalVariable(GlobalValue):
         external_linkage = linkage.ExternalLinkage
         tlmode = api.llvm.GlobalVariable.ThreadLocalMode
         not_threadlocal = tlmode.NotThreadLocal
-        gv = api.llvm.GlobalVariablel.new(module._ptr,
+        gv = api.llvm.GlobalVariable.new(module._ptr,
                                      ty._ptr,
                                      False, # is constant
                                      external_linkage,
@@ -1192,22 +1307,23 @@ class GlobalVariable(GlobalValue):
                                      None, # insert before
                                      not_threadlocal,
                                      addrspace)
-        return GlobalVariable(gv)
+        return _make_value(gv)
 
     @staticmethod
     def get(module, name):
-        gv = GlobalVariable(module._ptr.getNamedGlobal(name))
+        gv = _make_value(module._ptr.getNamedGlobal(name))
         if not gv:
             llvm.LLVMException("no global named `%s`" % name)
         return gv
 
     def delete(self):
+        _ValueFactory.delete(self._ptr)
         self._ptr.eraseFromParent()
 
     def _get_initializer(self):
         if not self._ptr.hasInitializer():
             return None
-        return Constant(self._ptr.getInitializer())
+        return _make_value(self._ptr.getInitializer())
 
     def _set_initializer(self, const):
         self._ptr.setInitializer(const._ptr)
@@ -1235,21 +1351,25 @@ class GlobalVariable(GlobalValue):
     thread_local = property(_get_thread_local, _set_thread_local)
 
 class Argument(Value):
+    _type_ = api.llvm.Argument
 
     def add_attribute(self, attr):
-        attrbldr = api.llvm.AttrBuilder()
+        context = api.llvm.getGlobalContext()
+        attrbldr = api.llvm.AttrBuilder.new()
         attrbldr.addAttribute(attr)
         attrs = api.llvm.Attributes.get(context, attrbldr)
         self._ptr.addAttr(attrs)
 
     def remove_attribute(self, attr):
-        attrbldr = api.llvm.AttrBuilder()
+        context = api.llvm.getGlobalContext()
+        attrbldr = api.llvm.AttrBuilder.new()
         attrbldr.addAttribute(attr)
         attrs = api.llvm.Attributes.get(context, attrbldr)
         self._ptr.removeAttr(attrs)
 
     def _set_alignment(self, align):
-        attrbldr = api.llvm.AttrBuilder()
+        context = api.llvm.getGlobalContext()
+        attrbldr = api.llvm.AttrBuilder.new()
         attrbldr.addAlignmentAttr(align)
         attrs = api.llvm.Attributes.get(context, attrbldr)
         self._ptr.addAttr(attrs)
@@ -1261,6 +1381,7 @@ class Argument(Value):
                          _set_alignment)
 
 class Function(GlobalValue):
+    _type_ = api.llvm.Function
 
     @staticmethod
     def new(module, func_ty, name):
@@ -1277,11 +1398,12 @@ class Function(GlobalValue):
     @staticmethod
     def intrinsic(module, intrinsic_id, types):
         fn = api.llvm.Intrinsic.getDeclaration(module._ptr,
-                                          intrinsic_id,
-                                          types)
-        return Function(fn)
+                                               intrinsic_id,
+                                               llvm._extract_ptrs(types))
+        return _make_value(fn)
 
     def delete(self):
+        _ValueFactory.delete(self._ptr)
         self._ptr.eraseFromParent()
 
     @property
@@ -1310,13 +1432,14 @@ class Function(GlobalValue):
 
     def _set_does_not_throw(self,value):
         assert value
-        self._ptr.setDoesNotThow()
+        self._ptr.setDoesNotThrow()
 
     does_not_throw = property(_get_does_not_throw, _set_does_not_throw)
 
     @property
     def args(self):
-        return self._ptr.getArgumentList()
+        args = self._ptr.getArgumentList()
+        return map(_make_value, args)
 
     @property
     def basic_block_count(self):
@@ -1324,25 +1447,27 @@ class Function(GlobalValue):
 
     @property
     def entry_basic_block(self):
-        return self._ptr.getEntryBlock()
+        assert self.basic_block_count
+        return _make_value(self._ptr.getEntryBlock())
 
     def append_basic_block(self, name):
         context = api.llvm.getGlobalContext()
         bb = api.llvm.BasicBlock.Create(context, name, self._ptr, None)
-        return BasicBlock(bb)
+        return _make_value(bb)
 
     @property
     def basic_blocks(self):
-        return self._ptr.getBasicBlockList()
+        return map(_make_value, self._ptr.getBasicBlockList())
     
     def viewCFG(self):
         return self._ptr.viewCFG()
 
     def add_attribute(self, attr):
-        _core.LLVMAddFunctionAttr(self._ptr, attr)
+        self._ptr.addFnAttr(attr)
 
     def remove_attribute(self, attr):
-        attrbldr = api.llvm.AttrBuilder()
+        context = api.llvm.getGlobalContext()
+        attrbldr = api.llvm.AttrBuilder.new()
         attrbldr.addAttribute(attr)
         attrs = api.llvm.Attributes.get(context, attrbldr)
         self._ptr.removeFnAttr(attrs)
@@ -1356,25 +1481,30 @@ class Function(GlobalValue):
         
         # Note: LLVM has a bug in preverifier that will always abort
         #       the process upon failure.
-        return api.llvm.verifyFunction()
+        actions = api.llvm.VerifierFailureAction
+        return api.llvm.verifyFunction(self._ptr, actions.PrintMessageAction)
 
 #===----------------------------------------------------------------------===
 # InlineAsm
 #===----------------------------------------------------------------------===
 
 class InlineAsm(Value):
+    _type_ = api.llvm.InlineAsm
+    
     @staticmethod
     def get(functype, asm, constrains, side_effect=False,
             align_stack=False, dialect=api.llvm.InlineAsm.AsmDialect.AD_ATT):
-        ilasm = api.llvm.InlineAsm.get(functype._ptr, asm, contrains, side_effect,
-                                  align_stack, dialect)
-        return InlineAsm(ilasm)
+        ilasm = api.llvm.InlineAsm.get(functype._ptr, asm, constrains,
+                                       side_effect, align_stack, dialect)
+        return _make_value(ilasm)
 
 #===----------------------------------------------------------------------===
 # MetaData
 #===----------------------------------------------------------------------===
 
 class MetaData(Value):
+    _type_ = api.llvm.MDNode
+
     @staticmethod
     def get(module, values):
         '''
@@ -1382,13 +1512,15 @@ class MetaData(Value):
         '''
         context = api.llvm.getGlobalContext()
         ptr = api.llvm.MDNode.get(context, llvm._extract_ptrs(values))
-        return MetaData(ptr)
+        return _make_value(ptr)
 
     @staticmethod
     def get_named_operands(module, name):
-        namedmd = module.get_named_metadata(name)._ptr
-        return [MetaData(namedmd.getOperand(i))
-                for i in namedmd.getNumOperands()]
+        namedmd = module.get_named_metadata(name)
+        if not namedmd:
+            return []
+        return [_make_value(namedmd._ptr.getOperand(i))
+                for i in range(namedmd._ptr.getNumOperands())]
 
     @staticmethod
     def add_named_operand(module, name, operand):
@@ -1397,20 +1529,28 @@ class MetaData(Value):
 
     @property
     def operand_count(self):
-        return self._ptr.getOperand()
+        return self._ptr.getNumOperands()
 
     @property
     def operands(self):
         """Yields operands of this metadata."""
-        return [Value(self._ptr.getOperand(i)) for i in self.operand_count]
-
+        res = []
+        for i in range(self.operand_count):
+            op = self._ptr.getOperand(i)
+            if op is None:
+                res.append(None)
+            else:
+                res.append(_make_value(op))
+        return res
 
 class MetaDataString(Value):
+    _type_ = api.llvm.MDString
+
     @staticmethod
     def get(module, s):
         context = api.llvm.getGlobalContext()
         ptr = api.llvm.MDString.get(context, s)
-        return MetaDataString(ptr)
+        return _make_value(ptr)
 
     @property
     def string(self):
@@ -1419,6 +1559,7 @@ class MetaDataString(Value):
 
 
 class NamedMetaData(llvm.Wrapper):
+
     @staticmethod
     def get_or_insert(mod, name):
         return mod.get_or_insert_named_metadata(name)
@@ -1446,10 +1587,11 @@ class NamedMetaData(llvm.Wrapper):
 #===----------------------------------------------------------------------===
 
 class Instruction(User):
+    _type_ = api.llvm.Instruction
 
     @property
     def basic_block(self):
-        return BasicBlock(self._ptr.getParent())
+        return _make_value(self._ptr.getParent())
 
     @property
     def is_terminator(self):
@@ -1517,6 +1659,7 @@ class Instruction(User):
 
 
 class CallOrInvokeInstruction(Instruction):
+    _type_ = api.llvm.CallInst, api.llvm.InvokeInst
 
     def _get_cc(self):
         return self._ptr.getCallingConv()
@@ -1527,19 +1670,22 @@ class CallOrInvokeInstruction(Instruction):
     calling_convention = property(_get_cc, _set_cc)
 
     def add_parameter_attribute(self, idx, attr):
-        attrbldr = api.llvm.AttrBuilder()
+        context = api.llvm.getGlobalContext()
+        attrbldr = api.llvm.AttrBuilder.new()
         attrbldr.addAttribute(attr)
         attrs = api.llvm.Attributes.get(context, attrbldr)
         self._ptr.addAttribute(idx, attrs)
 
     def remove_parameter_attribute(self, idx, attr):
-        attrbldr = api.llvm.AttrBuilder()
+        context = api.llvm.getGlobalContext()
+        attrbldr = api.llvm.AttrBuilder.new()
         attrbldr.addAttribute(attr)
         attrs = api.llvm.Attributes.get(context, attrbldr)
         self._ptr.removeAttribute(idx, attrs)
 
     def set_parameter_alignment(self, idx, align):
-        attrbldr = api.llvm.AttrBuilder()
+        context = api.llvm.getGlobalContext()
+        attrbldr = api.llvm.AttrBuilder.new()
         attrbldr.addAlignmentAttr(align)
         attrs = api.llvm.Attributes.get(context, attrbldr)
         self._ptr.addAttribute(idx, attrs)
@@ -1547,7 +1693,7 @@ class CallOrInvokeInstruction(Instruction):
     def _get_called_function(self):
         function = self._ptr.getCalledFunction()
         if function: # Return value can be None on indirect call/invoke
-            return Value(function)
+            return _make_value(function)
 
     def _set_called_function(self, function):
         self._ptr.setCalledFunction(function)
@@ -1556,6 +1702,7 @@ class CallOrInvokeInstruction(Instruction):
 
 
 class PHINode(Instruction):
+    _type_ = api.llvm.PHINode
 
     @property
     def incoming_count(self):
@@ -1565,10 +1712,10 @@ class PHINode(Instruction):
         self._ptr.addIncoming(value._ptr, block._ptr)
 
     def get_incoming_value(self, idx):
-        return self._ptr.getIncomingValue(idx)
+        return _make_value(self._ptr.getIncomingValue(idx))
 
     def get_incoming_block(self, idx):
-        return self._ptr.getIncomingBlock(idx)
+        return _make_value(self._ptr.getIncomingBlock(idx))
 
 
 class SwitchInstruction(Instruction):
@@ -1582,35 +1729,107 @@ class CompareInstruction(Instruction):
     @property
     def predicate(self):
         return self._ptr.getPredicate()
-
-
 #===----------------------------------------------------------------------===
 # Basic block
 #===----------------------------------------------------------------------===
 
 class BasicBlock(Value):
+    _type_ = api.llvm.BasicBlock
 
     def insert_before(self, name):
         context = api.llvm.getGlobalContext()
         ptr = api.llvm.BasicBlock.Create(context, name, self.function._ptr,
                                     self._ptr)
-        return BasicBlock(ptr)
+        return _make_value(ptr)
 
     def delete(self):
+        _ValueFactory.delete(self._ptr)
         self._ptr.eraseFromParent()
 
     @property
     def function(self):
-        return Function(self._ptr.getParent())
+        return _make_value(self._ptr.getParent())
 
     @property
     def instructions(self):
-        return map(Value, self._ptr.getInstList())
+        return map(_make_value, self._ptr.getInstList())
 
+#===----------------------------------------------------------------------===
+# Value factory method
+#===----------------------------------------------------------------------===
+
+
+class _ValueFactory(object):
+    cache = weakref.WeakValueDictionary()
+
+    # value ID -> class map
+    class_for_valueid = {
+        VALUE_ARGUMENT                        : Argument,
+        VALUE_BASIC_BLOCK                     : BasicBlock,
+        VALUE_FUNCTION                        : Function,
+        VALUE_GLOBAL_ALIAS                    : GlobalValue,
+        VALUE_GLOBAL_VARIABLE                 : GlobalVariable,
+        VALUE_UNDEF_VALUE                     : UndefValue,
+        VALUE_CONSTANT_EXPR                   : ConstantExpr,
+        VALUE_CONSTANT_AGGREGATE_ZERO         : ConstantAggregateZero,
+        VALUE_CONSTANT_DATA_ARRAY             : ConstantDataArray,
+        VALUE_CONSTANT_DATA_VECTOR            : ConstantDataVector,
+        VALUE_CONSTANT_INT                    : ConstantInt,
+        VALUE_CONSTANT_FP                     : ConstantFP,
+        VALUE_CONSTANT_ARRAY                  : ConstantArray,
+        VALUE_CONSTANT_STRUCT                 : ConstantStruct,
+        VALUE_CONSTANT_VECTOR                 : ConstantVector,
+        VALUE_CONSTANT_POINTER_NULL           : ConstantPointerNull,
+        VALUE_MD_NODE                         : MetaData,
+        VALUE_MD_STRING                       : MetaDataString,
+        VALUE_INLINE_ASM                      : InlineAsm,
+        VALUE_INSTRUCTION + OPCODE_PHI        : PHINode,
+        VALUE_INSTRUCTION + OPCODE_CALL       : CallOrInvokeInstruction,
+        VALUE_INSTRUCTION + OPCODE_INVOKE     : CallOrInvokeInstruction,
+        VALUE_INSTRUCTION + OPCODE_SWITCH     : SwitchInstruction,
+        VALUE_INSTRUCTION + OPCODE_ICMP       : CompareInstruction,
+        VALUE_INSTRUCTION + OPCODE_FCMP       : CompareInstruction
+    }
+
+    @classmethod
+    def build(cls, ptr):
+        # try to look in the cache
+        addr = ptr._capsule.pointer
+        try:
+            obj = cls.cache[addr]
+            return obj
+        except KeyError:
+            pass
+        # find class by value id
+        id = ptr.getValueID()
+        ctorcls = cls.class_for_valueid.get(id)
+        if not ctorcls:
+            if id > VALUE_INSTRUCTION: # "generic" instruction
+                ctorcls = Instruction
+            else: # "generic" value
+                ctorcls = Value
+        # cache the obj
+        obj = ctorcls(_ValueFactory, ptr)
+        cls.cache[addr] = obj
+        return obj
+
+    @classmethod
+    def delete(cls, ptr):
+        del cls.cache[ptr._capsule.pointer]
+
+def _make_value(ptr):
+    return _ValueFactory.build(ptr)
 
 #===----------------------------------------------------------------------===
 # Builder
 #===----------------------------------------------------------------------===
+
+_atomic_orderings = { 'unordered' : api.llvm.AtomicOrdering.Unordered,
+    'monotonic' : api.llvm.AtomicOrdering.Monotonic,
+    'acquire'   : api.llvm.AtomicOrdering.Acquire,
+    'release'   : api.llvm.AtomicOrdering.Release,
+    'acq_rel'   : api.llvm.AtomicOrdering.AcquireRelease,
+    'seq_cst'   : api.llvm.AtomicOrdering.SequentiallyConsistent}
 
 class Builder(llvm.Wrapper):
 
@@ -1628,7 +1847,7 @@ class Builder(llvm.Wrapper):
 
         # Instruction list won't be long anyway,
         # Does not matter much to build a list of all instructions
-        instrs = bblk._ptr.getInstList()
+        instrs = bblk.instructions
         if instrs:
             self.position_before(instrs[0])
         else:
@@ -1650,150 +1869,163 @@ class Builder(llvm.Wrapper):
     @property
     def basic_block(self):
         """The basic block where the builder is positioned."""
-        return BasicBlock(self._ptr.GetInsertBlock())
+        return _make_value(self._ptr.GetInsertBlock())
 
     # terminator instructions
+    def _guard_terminators(self):
+        if __debug__:
+            import warnings
+            for instr in self.basic_block.instructions:
+                if instr.is_terminator:
+                    warnings.warn("BasicBlock can only have one terminator")
 
     def ret_void(self):
-        return Value(self._ptr.CreateRetVoid())
+        self._guard_terminators()
+        return _make_value(self._ptr.CreateRetVoid())
     
     def ret(self, value):
-        return Value(self._ptr.CreateRet(value._ptr))
+        self._guard_terminators()
+        return _make_value(self._ptr.CreateRet(value._ptr))
 
     def ret_many(self, values):
+        self._guard_terminators()
         values = llvm._extract_ptrs(values)
-        return Value(self._ptr.CreateAggregateRet(values, len(values)))
+        return _make_value(self._ptr.CreateAggregateRet(values, len(values)))
 
     def branch(self, bblk):
-        if __debug__:
-            for instr in self.basic_block.instructions:
-                assert not instr.is_terminator, "BasicBlock can only have one terminator"
-        return Value(self._ptr.CreateBr(bblk._ptr))
+        self._guard_terminators()
+        return _make_value(self._ptr.CreateBr(bblk._ptr))
 
     def cbranch(self, if_value, then_blk, else_blk):
-        return Value(self._ptr.CreateCondBr(if_value._ptr,
+        self._guard_terminators()
+        return _make_value(self._ptr.CreateCondBr(if_value._ptr,
                                             then_blk._ptr,
                                             else_blk._ptr))
 
     def switch(self, value, else_blk, n=10):
-        return Value(self._ptr.CreateSwitch(self.value._ptr,
-                                            self.else_blk._ptr,
-                                            n))
+        self._guard_terminators()
+        return _make_value(self._ptr.CreateSwitch(value._ptr,
+                                                  else_blk._ptr,
+                                                  n))
 
     def invoke(self, func, args, then_blk, catch_blk, name=""):
-        return Value(self._ptr.CreateInvoke(self.func._ptr,
-                                            self.then_blk._ptr,
-                                            self.catch_blk._ptr,
-                                            args))
+        self._guard_terminators()
+        return _make_value(self._ptr.CreateInvoke(func._ptr,
+                                                  then_blk._ptr,
+                                                  catch_blk._ptr,
+                                                  llvm._extract_ptrs(args)))
 
     def unreachable(self):
-        return Value(self._ptr.CreateUnreachable())
+        self._guard_terminators()
+        return _make_value(self._ptr.CreateUnreachable())
 
     # arithmethic, bitwise and logical
 
     def add(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateAdd(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateAdd(lhs._ptr, rhs._ptr, name))
 
     def fadd(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateFAdd(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateFAdd(lhs._ptr, rhs._ptr, name))
 
     def sub(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateSub(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateSub(lhs._ptr, rhs._ptr, name))
 
     def fsub(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateFSub(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateFSub(lhs._ptr, rhs._ptr, name))
 
     def mul(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateMul(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateMul(lhs._ptr, rhs._ptr, name))
 
     def fmul(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateFMul(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateFMul(lhs._ptr, rhs._ptr, name))
 
     def udiv(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateUDiv(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateUDiv(lhs._ptr, rhs._ptr, name))
 
     def sdiv(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateSDiv(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateSDiv(lhs._ptr, rhs._ptr, name))
 
     def fdiv(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateFDiv(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateFDiv(lhs._ptr, rhs._ptr, name))
 
     def urem(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateURem(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateURem(lhs._ptr, rhs._ptr, name))
 
     def srem(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateSRem(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateSRem(lhs._ptr, rhs._ptr, name))
 
     def frem(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateFRem(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateFRem(lhs._ptr, rhs._ptr, name))
 
     def shl(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateShl(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateShl(lhs._ptr, rhs._ptr, name))
 
     def lshr(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateLShr(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateLShr(lhs._ptr, rhs._ptr, name))
 
     def ashr(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateAShr(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateAShr(lhs._ptr, rhs._ptr, name))
 
     def and_(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateAnd(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateAnd(lhs._ptr, rhs._ptr, name))
 
     def or_(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateOr(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateOr(lhs._ptr, rhs._ptr, name))
 
     def xor(self, lhs, rhs, name=""):
-        return Value(self._ptr.CreateXor(lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateXor(lhs._ptr, rhs._ptr, name))
 
     def neg(self, val, name=""):
-        return Value(self._ptr.CreateNeg(val._ptr, name))
+        return _make_value(self._ptr.CreateNeg(val._ptr, name))
 
     def not_(self, val, name=""):
-        return Value(self._ptr.CreateNot(val._ptr, name))
+        return _make_value(self._ptr.CreateNot(val._ptr, name))
 
     # memory
 
     def malloc(self, ty, name=""):
         context = api.llvm.getGlobalContext()
-        intty = api.llvm.Type.getInt32Ty(context)
-        sizeof = api.llvm.ConstantExpr.getSizeOf(ty)
-        zero = api.llvm.ConstantInt.get(intty, 0)
-        # XXX: how do I know when to insert?
-        #      assume to end of block for now
-        inst = api.llvm.CallInst.CreateMalloc(self.basic_block._ptr,
-                                         intty,
-                                         ty._ptr,
-                                         sizeof,
-                                         zero,
-                                         None,
-                                         name)
-        return Value(inst)
-
+        allocsz = api.llvm.ConstantExpr.getSizeOf(ty._ptr)
+        ity = allocsz.getType()
+        malloc = api.llvm.CallInst.CreateMalloc(self.basic_block._ptr,
+                                                ity,
+                                                ty._ptr,
+                                                allocsz,
+                                                None,
+                                                None,
+                                                "")
+        inst = self._ptr.Insert(malloc, name)
+        return _make_value(inst)
+    
     def malloc_array(self, ty, size, name=""):
-        sizeof = api.llvm.ConstantExpr.getSizeOf(ty)
-        # XXX: how do I know when to insert?
-        #      assume to end of block for now
-        inst = api.llvm.CallInst.CreateMalloc(self.basic_block._ptr,
-                                         size.type._ptr,
-                                         ty._ptr,
-                                         sizeof,
-                                         size._ptr,
-                                         None,
-                                         name)
-        return Value(inst)
+        context = api.llvm.getGlobalContext()
+        allocsz = api.llvm.ConstantExpr.getSizeOf(ty._ptr)
+        ity = allocsz.getType()
+        malloc = api.llvm.CallInst.CreateMalloc(self.basic_block._ptr,
+                                                ity,
+                                                ty._ptr,
+                                                allocsz,
+                                                size._ptr,
+                                                None,
+                                                "")
+        inst = self._ptr.Insert(malloc, name)
+        return _make_value(inst)
 
     def alloca(self, ty, name=""):
-        zero = api.llvm.ConstantInt.get(intty, 0)
-        return Value(self._ptr.CreateAlloca(ty._ptr, zero, name))
+        intty = Type.int()
+        zero = api.llvm.ConstantInt.get(intty._ptr, 0)
+        return _make_value(self._ptr.CreateAlloca(ty._ptr, zero, name))
 
     def alloca_array(self, ty, size, name=""):
-        return Value(self._ptr.CreateAlloca(ty._ptr, size._ptr, name))
+        return _make_value(self._ptr.CreateAlloca(ty._ptr, size._ptr, name))
 
     def free(self, ptr):
-        return Value(api.llvm.CallInst.CreateFree(ptr._ptr, self.basic_block._ptr))
+        free = api.llvm.CallInst.CreateFree(ptr._ptr, self.basic_block._ptr)
+        inst = self._ptr.Insert(free)
+        return _make_value(inst)
 
     def load(self, ptr, name="", align=0, volatile=False, invariant=False):
-        inst = Value(self._ptr.CreateLoad(ptr._ptr, name))
+        inst = _make_value(self._ptr.CreateLoad(ptr._ptr, name))
         if align:
             inst._ptr.setAlignment(align)
         if volatile:
@@ -1805,7 +2037,7 @@ class Builder(llvm.Wrapper):
         return inst
 
     def store(self, value, ptr, align=0, volatile=False):
-        inst = Value(self._ptr.CreateStore(value._ptr, ptr._ptr))
+        inst = _make_value(self._ptr.CreateStore(value._ptr, ptr._ptr))
         if align:
             inst._ptr.setAlignment(align)
         if volatile:
@@ -1821,118 +2053,119 @@ class Builder(llvm.Wrapper):
             ret = self._ptr.CreateGEP(ptr._ptr,
                                       llvm._extract_ptrs(indices),
                                       name)
-        return Value(ret)
+        return _make_value(ret)
 
     # casts and extensions
 
     def trunc(self, value, dest_ty, name=""):
-        return Value(self._ptr.CreateTrunc(value._ptr, dest_ty._ptr, name))
+        return _make_value(self._ptr.CreateTrunc(value._ptr, dest_ty._ptr, name))
 
     def zext(self, value, dest_ty, name=""):
-        return Value(self._ptr.CreateZext(value._ptr, dest_ty._ptr, name))
+        return _make_value(self._ptr.CreateZExt(value._ptr, dest_ty._ptr, name))
 
     def sext(self, value, dest_ty, name=""):
-        return Value(self._ptr.CreateSext(value._ptr, dest_ty._ptr, name))
+        return _make_value(self._ptr.CreateSExt(value._ptr, dest_ty._ptr, name))
 
     def fptoui(self, value, dest_ty, name=""):
-        return Value(self._ptr.CreateFPToUI(value._ptr, dest_ty._ptr, name))
+        return _make_value(self._ptr.CreateFPToUI(value._ptr, dest_ty._ptr, name))
 
     def fptosi(self, value, dest_ty, name=""):
-        return Value(self._ptr.CreateFPToSI(value._ptr, dest_ty._ptr, name))
+        return _make_value(self._ptr.CreateFPToSI(value._ptr, dest_ty._ptr, name))
 
     def uitofp(self, value, dest_ty, name=""):
-        return Value(self._ptr.CreateUIToFP(value._ptr, dest_ty._ptr, name))
+        return _make_value(self._ptr.CreateUIToFP(value._ptr, dest_ty._ptr, name))
 
     def sitofp(self, value, dest_ty, name=""):
-        return Value(self._ptr.CreateSIToFP(value._ptr, dest_ty._ptr, name))
+        return _make_value(self._ptr.CreateSIToFP(value._ptr, dest_ty._ptr, name))
 
     def fptrunc(self, value, dest_ty, name=""):
-        return Value(self._ptr.CreateFPTrunc(value._ptr, dest_ty._ptr, name))
+        return _make_value(self._ptr.CreateFPTrunc(value._ptr, dest_ty._ptr, name))
 
     def fpext(self, value, dest_ty, name=""):
-        return Value(self._ptr.CreateFPExt(value._ptr, dest_ty._ptr, name))
+        return _make_value(self._ptr.CreateFPExt(value._ptr, dest_ty._ptr, name))
 
     def ptrtoint(self, value, dest_ty, name=""):
-        return Value(self._ptr.CreatePtrToInt(value._ptr, dest_ty._ptr, name))
+        return _make_value(self._ptr.CreatePtrToInt(value._ptr, dest_ty._ptr, name))
 
     def inttoptr(self, value, dest_ty, name=""):
-        return Value(self._ptr.CreateIntToPtr(value._ptr, dest_ty._ptr, name))
+        return _make_value(self._ptr.CreateIntToPtr(value._ptr, dest_ty._ptr, name))
 
     def bitcast(self, value, dest_ty, name=""):
-        return Value(self._ptr.CreateBitCast(value._ptr, dest_ty._ptr, name))
+        return _make_value(self._ptr.CreateBitCast(value._ptr, dest_ty._ptr, name))
 
     # comparisons
 
     def icmp(self, ipred, lhs, rhs, name=""):
-        return Value(self._ptr.CreateICmp(ipred, lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateICmp(ipred, lhs._ptr, rhs._ptr, name))
 
     def fcmp(self, rpred, lhs, rhs, name=""):
-        return Value(self._ptr.CreateFCmp(rpred, lhs._ptr, rhs._ptr, name))
+        return _make_value(self._ptr.CreateFCmp(rpred, lhs._ptr, rhs._ptr, name))
 
     # misc
 
     def extract_value(self, retval, idx, name=""):
-        return Value(self._ptr.CreateExtractValue(retval._ptr, [idx], name))
+        return _make_value(self._ptr.CreateExtractValue(retval._ptr, [idx], name))
 
     # obsolete synonym for extract_value
     getresult = extract_value
 
     def insert_value(self, retval, rhs, idx, name=""):
-        return Value(self._ptr.CreateInsertValue(retval._ptr,
+        return _make_value(self._ptr.CreateInsertValue(retval._ptr,
                                                 rhs._ptr,
                                                 [idx],
                                                 name))
 
     def phi(self, ty, name=""):
-        return Value(self._ptr.CreatePHI(ty._ptr, 2, name))
+        return _make_value(self._ptr.CreatePHI(ty._ptr, 2, name))
 
     def call(self, fn, args, name=""):
         err_template = 'Argument type mismatch: expected %s but got %s'
+
         for i, (t, v) in enumerate(zip(fn.type.pointee.args, args)):
             if  t != v.type:
                 raise TypeError(err_template % (t, v.type))
         arg_ptrs = llvm._extract_ptrs(args)
-        return Value(self._ptr.CreateCall(fn._ptr, arg_ptrs, name))
+        return _make_value(self._ptr.CreateCall(fn._ptr, arg_ptrs, name))
 
     def select(self, cond, then_value, else_value, name=""):
-        return Value(self._ptr.CreateSelect(cond._ptr, then_value._ptr,
+        return _make_value(self._ptr.CreateSelect(cond._ptr, then_value._ptr,
                                             else_value._ptr, name))
 
     def vaarg(self, list_val, ty, name=""):
-        return Value(self._ptr.CreateVAArg(list_val._ptr, ty._ptr, name))
+        return _make_value(self._ptr.CreateVAArg(list_val._ptr, ty._ptr, name))
 
     def extract_element(self, vec_val, idx_val, name=""):
-        return Value(self._ptr.CreateExtractElement(vec_val._ptr,
-                                                    idx_val_.ptr,
-                                                    name))
+        return _make_value(self._ptr.CreateExtractElement(vec_val._ptr,
+                                                          idx_val._ptr,
+                                                          name))
 
 
     def insert_element(self, vec_val, elt_val, idx_val, name=""):
-        return Value(self._ptr.CreateExtractElement(vec_val._ptr,
-                                                    elt_val._ptr,
-                                                    idx_val_.ptr,
-                                                    name))
+        return _make_value(self._ptr.CreateInsertElement(vec_val._ptr,
+                                                          elt_val._ptr,
+                                                          idx_val._ptr,
+                                                          name))
 
     def shuffle_vector(self, vecA, vecB, mask, name=""):
-        return Value(self._ptr.CreateShuffleVector(vecA._ptr,
-                                                   vecB._ptr,
-                                                   mask._ptr,
-                                                   name))
+        return _make_value(self._ptr.CreateShuffleVector(vecA._ptr,
+                                                         vecB._ptr,
+                                                         mask._ptr,
+                                                         name))
     # atomics
 
     def atomic_cmpxchg(self, ptr, old, new, ordering, crossthread=True):
-        return Value(self._ptr.CreateAtomicCmpXchg(ptr._ptr,
+        return _make_value(self._ptr.CreateAtomicCmpXchg(ptr._ptr,
                                                    old._ptr,
                                                    new._ptr,
-                                                   ordering,
+                                                   _atomic_orderings[ordering],
                                                    _sync_scope(crossthread)))
 
     def atomic_rmw(self, op, ptr, val, ordering, crossthread=True):
         op_dict = dict((k.lower(), v)
-                       for k, v in vars(api.llvm.AtomicRMWInst.BinOp))
+                       for k, v in vars(api.llvm.AtomicRMWInst.BinOp).items())
         op = op_dict[op]
-        return Value(self._ptr.CreateAtomicRMW(op, ptr._ptr, val._ptr,
-                                               ordering,
+        return _make_value(self._ptr.CreateAtomicRMW(op, ptr._ptr, val._ptr,
+                                               _atomic_orderings[ordering],
                                                _sync_scope(crossthread)))
 
     def atomic_xchg(self, *args, **kwargs):
@@ -1970,21 +2203,22 @@ class Builder(llvm.Wrapper):
     
     def atomic_load(self, ptr, ordering, align=1, crossthread=True,
                     volatile=False, name=""):
-        inst = self._ptr.load(ptr, align=align, volatile=volatile, name=name)
-        inst._ptr.setAtomic(ordering, _sync_scope(crossthread))
+        inst = self.load(ptr, align=align, volatile=volatile, name=name)
+        inst._ptr.setAtomic(_atomic_orderings[ordering],
+                            _sync_scope(crossthread))
         return inst
 
     def atomic_store(self, value, ptr, ordering, align=1, crossthread=True,
                      volatile=False):
-        inst = self._ptr.store(ptr, value, align=align, volatile=volatile,
-                               name=name)
-        inst._ptr.setAtomic(ordering, _sync_scope(crossthread))
+        inst = self.store(value, ptr, align=align, volatile=volatile)
+        inst._ptr.setAtomic(_atomic_orderings[ordering],
+                            _sync_scope(crossthread))
         return inst
 
 
     def fence(self, ordering, crossthread=True):
-        return Value(self._ptr.CreateFence(ordering,
-                                           _sync_scope(crossthread)))
+        return _make_value(self._ptr.CreateFence(_atomic_orderings[ordering],
+                                                 _sync_scope(crossthread)))
 
 def _sync_scope(crossthread):
     if crossthread:
@@ -2000,12 +2234,13 @@ def load_library_permanently(filename):
     path of the .so file) using LLVM. Symbols from these are available
     from the execution engine thereafter."""
     with contextlib.closing(StringIO()) as errmsg:
-        failed = api.llvm.sys.LoadLibraryPermanently(filename, errmsg)
+        failed = api.llvm.sys.DynamicLibrary.LoadPermanentLibrary(filename,
+                                                                  errmsg)
         if failed:
             raise llvm.LLVMException(errmsg.getvalue())
 
 def inline_function(call):
-    info = api.llvm.InlineFunctionInfo()
+    info = api.llvm.InlineFunctionInfo.new()
     return api.llvm.InlineFunction(call._ptr, info)
 
 def parse_environment_options(progname, envname):

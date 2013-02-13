@@ -26,8 +26,8 @@ class GenericValue:
 
     valueIntWidth = _accessor('ValueIntWidth', cast(Unsigned, int))
 
-    toSignedInt = _accessor('ToSignedInt', cast(UnsignedLongLong, int))
-    toUnsignedInt = _accessor('ToUnsignedInt', cast(LongLong, int))
+    toSignedInt = _accessor('ToSignedInt', cast(LongLong, int))
+    toUnsignedInt = _accessor('ToUnsignedInt', cast(UnsignedLongLong, int))
 
     toFloat = _accessor('ToFloat', cast(Double, float), ptr(Type))
 

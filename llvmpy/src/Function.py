@@ -1,6 +1,6 @@
 from binding import *
 from namespace import llvm
-from Value import GlobalValue, Constant, Function, Argument
+from Value import GlobalValue, Constant, Function, Argument, Value
 from BasicBlock import BasicBlock
 from Attributes import Attributes
 from Type import Type
@@ -11,7 +11,7 @@ from CallingConv import CallingConv
 @Function
 class Function:
     _include_ = 'llvm/Function.h'
-    _downcast_  = GlobalValue, Constant
+    _downcast_  = GlobalValue, Constant, Value
 
     getReturnType = Method(ptr(Type))
     getFunctionType = Method(ptr(FunctionType))

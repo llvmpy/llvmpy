@@ -146,25 +146,27 @@ class Type:
 
 @IntegerType
 class IntegerType:
-    pass
+    _downcast_ = Type
 
 
 @CompositeType
 class CompositeType:
-    pass
+    _downcast_ = Type
 
 @SequentialType
 class SequentialType:
-    pass
+    _downcast_ = Type
 
 @ArrayType
 class ArrayType:
+    _downcast_ = Type
     getNumElements = Method(cast(Uint64, int))
     get = StaticMethod(ptr(ArrayType), ptr(Type), cast(int, Uint64))
     isValidElementType = StaticMethod(cast(Bool, bool), ptr(Type))
 
 @PointerType
 class PointerType:
+    _downcast_ = Type
     getAddressSpace = Method(cast(Unsigned, int))
     get = StaticMethod(ptr(PointerType), ptr(Type), cast(int, Unsigned))
     getUnqual = StaticMethod(ptr(PointerType), ptr(Type))
@@ -172,6 +174,7 @@ class PointerType:
 
 @VectorType
 class VectorType:
+    _downcast_ = Type
     getNumElements = Method(cast(Unsigned, int))
     getBitWidth = Method(cast(Unsigned, int))
     get = StaticMethod(ptr(VectorType), ptr(Type), cast(int, Unsigned))
@@ -184,6 +187,7 @@ class VectorType:
 
 @StructType
 class StructType:
+    _downcast_ = Type
     isPacked = Method(cast(Bool, bool))
     isLiteral = Method(cast(Bool, bool))
     isOpaque = Method(cast(Bool, bool))
@@ -203,10 +207,12 @@ class StructType:
                           cast(str, StringRef),
                           ).require_only(1)
 
-    get = StaticMethod(ptr(StructType),
-                       ref(LLVMContext),
-                       cast(bool, Bool), # is packed
-                       ).require_only(1)
+    get = CustomStaticMethod('StructType_get',
+                             PyObjectPtr,           # StructType*
+                             ref(LLVMContext),
+                             PyObjectPtr,           # ArrayRef <Type*> elements
+                             cast(bool, Bool),      # is packed
+                             ).require_only(2)
 
 
     isValidElementType = StaticMethod(cast(Bool, bool), ptr(Type))

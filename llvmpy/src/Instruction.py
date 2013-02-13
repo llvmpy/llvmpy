@@ -1,6 +1,6 @@
 from binding import *
 from namespace import llvm
-from Value import Value, MDNode, User, BasicBlock, Function
+from Value import Value, MDNode, User, BasicBlock, Function, ConstantInt
 
 
 Instruction = llvm.Class(User)
@@ -66,13 +66,14 @@ SynchronizationScope = llvm.Enum('SynchronizationScope',
 from ADT.StringRef import StringRef
 from CallingConv import CallingConv
 from Attributes import Attributes
-from Constant import ConstantInt
 from Type import Type
 
 
 
 @Instruction
 class Instruction:
+    _downcast_ = Value, User
+
     removeFromParent = Method()
     eraseFromParent = Method()
     eraseFromParent.disowning = True
@@ -133,6 +134,7 @@ class BinaryOperator:
 @CallInst
 class CallInst:
     _downcast_ = Value, Instruction
+    
     getCallingConv = Method(CallingConv.ID)
     setCallingConv = Method(Void, CallingConv.ID)
     getParamAlignment = Method(cast(Unsigned, int), cast(int, Unsigned))

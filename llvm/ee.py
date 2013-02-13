@@ -38,8 +38,8 @@ import contextlib
 
 import llvm
 from llvm import core
-from llvmpy import api
-
+from llvm.passes import TargetData, TargetTransformInfo
+from llvmpy import api, extra
 #===----------------------------------------------------------------------===
 # Enumerations
 #===----------------------------------------------------------------------===
@@ -63,20 +63,20 @@ class GenericValue(llvm.Wrapper):
 
     @staticmethod
     def int(ty, intval):
-        ptr = api.llvm.CreateInt(ty._ptr, intval, False)
+        ptr = api.llvm.GenericValue.CreateInt(ty._ptr, int(intval), False)
         return GenericValue(ptr)
 
     @staticmethod
     def int_signed(ty, intval):
-        ptr = api.llvm.CreateInt(ty._ptr, intval, True)
+        ptr = api.llvm.GenericValue.CreateInt(ty._ptr, int(intval), True)
         return GenericValue(ptr)
 
     @staticmethod
     def real(ty, floatval):
         if str(ty) == 'float':
-            ptr = api.llvm.CreateFloat(floatval)
+            ptr = api.llvm.GenericValue.CreateFloat(float(floatval))
         elif str(ty) == 'double':
-            ptr = api.llvm.CreateDouble(floatval)
+            ptr = api.llvm.GenericValue.CreateDouble(float(floatval))
         else:
             raise Exception('Unreachable')
         return GenericValue(ptr)
@@ -91,7 +91,7 @@ class GenericValue(llvm.Wrapper):
         `addr` is an integer representing an address.
 
         '''
-        ptr = api.llvm.CreatePointer(addr)
+        ptr = api.llvm.GenericValue.CreatePointer(int(addr))
         return GenericValue(ptr)
 
     def as_int(self):
@@ -101,7 +101,7 @@ class GenericValue(llvm.Wrapper):
         return self._ptr.toSignedInt()
 
     def as_real(self, ty):
-        return self._ptr.toFloat()
+        return self._ptr.toFloat(ty._ptr)
 
     def as_pointer(self):
         return self._ptr.toPointer()
@@ -113,7 +113,7 @@ class GenericValue(llvm.Wrapper):
 class EngineBuilder(llvm.Wrapper):
     @staticmethod
     def new(module):
-        ptr = api.llvm.EngineBuilder.new(module)
+        ptr = api.llvm.EngineBuilder.new(module._ptr)
         return EngineBuilder(ptr)
 
     def force_jit(self):
@@ -158,10 +158,10 @@ class EngineBuilder(llvm.Wrapper):
         '''
         if args:
             triple, march, mcpu, mattrs = args
-            ptr = self._ptr.select_target(triple, march, mcpu,
+            ptr = self._ptr.selectTarget(triple, march, mcpu,
                                           mattrs.split(','))
         else:
-            ptr = self._ptr.select_target()
+            ptr = self._ptr.selectTarget()
         return TargetMachine(ptr)
 
 
@@ -182,7 +182,8 @@ class ExecutionEngine(llvm.Wrapper):
         self._ptr.DisableLazyCompilation(disabled)
 
     def run_function(self, fn, args):
-        return self._ptr.runFunction(fn._ptr, map(lambda x: x._ptr, args))
+        ptr = self._ptr.runFunction(fn._ptr, map(lambda x: x._ptr, args))
+        return GenericValue(ptr)
 
     def get_pointer_to_function(self, fn):
         return self._ptr.getPointerToFunction(fn._ptr)
@@ -195,13 +196,13 @@ class ExecutionEngine(llvm.Wrapper):
         self._ptr.addGlobalMapping(gvar._ptr, addr)
 
     def run_static_ctors(self):
-        self._ptr.runStaticConstructorDestructors(False)
+        self._ptr.runStaticConstructorsDestructors(False)
 
     def run_static_dtors(self):
-        self._ptr.runStaticConstructorDestructors(True)
+        self._ptr.runStaticConstructorsDestructors(True)
 
     def free_machine_code_for(self, fn):
-        self.freeMachineCodeForFunction(fn._ptr)
+        self._ptr.freeMachineCodeForFunction(fn._ptr)
 
     def add_module(self, module):
         self._ptr.addModule(module._ptr)
@@ -222,17 +223,17 @@ def print_registered_targets():
     '''
     Note: print directly to stdout
     '''
-    llvm.TargetRegistry.printRegisteredTargetsForVersion()
+    api.llvm.TargetRegistry.printRegisteredTargetsForVersion()
 
 def get_host_cpu_name():
     '''return the string name of the host CPU
     '''
-    return llvm.sys.getHostCPUName()
+    return api.llvm.sys.getHostCPUName()
 
 def get_default_triple():
     '''return the target triple of the host in str-rep
     '''
-    return llvm.sys.getDefaultTargetTriple()
+    return api.llvm.sys.getDefaultTargetTriple()
 
 
 class TargetMachine(llvm.Wrapper):
@@ -243,20 +244,20 @@ class TargetMachine(llvm.Wrapper):
             triple = get_default_triple()
         if not cpu:
             cpu = get_host_cpu_name()
-        with contextlib.closing(StringIO) as error:
+        with contextlib.closing(StringIO()) as error:
             target = api.llvm.TargetRegistry.lookupTarget(triple, error)
             if not target:
                 raise llvm.LLVMException(error)
             if not target.hasTargetMachine():
                 raise llvm.LLVMException(target, "No target machine.")
-            target_options = api.llvm.TargetOptions()
+            target_options = api.llvm.TargetOptions.new()
             tm = target.createTargetMachine(triple, cpu, features,
                                             target_options,
                                             api.llvm.Reloc.Model.Default,
                                             cm, opt)
             if not tm:
                 raise llvm.LLVMException("Cannot create target machine")
-            return TargetMachine(ptr)
+            return TargetMachine(tm)
 
     @staticmethod
     def lookup(arch, cpu='', features='', opt=2, cm=CM_DEFAULT):
@@ -272,24 +273,25 @@ class TargetMachine(llvm.Wrapper):
             use: `llvm-as < /dev/null | llc -march=xyz -mattr=help`
             '''
         triple = api.llvm.Triple.new()
-        with contextlib.closing(StringIO) as error:
-            target = api.llvm.TargetMachine.lookupTarget(arch, triple, error)
+        with contextlib.closing(StringIO()) as error:
+            target = api.llvm.TargetRegistry.lookupTarget(arch, triple, error)
             if not target:
                 raise llvm.LLVMException(error)
             if not target.hasTargetMachine():
                 raise llvm.LLVMException(target, "No target machine.")
-            target_options = api.llvm.TargetOptions()
+            target_options = api.llvm.TargetOptions.new()
             tm = target.createTargetMachine(str(triple), cpu, features,
                                             target_options,
                                             api.llvm.Reloc.Model.Default,
                                             cm, opt)
             if not tm:
                 raise llvm.LLVMException("Cannot create target machine")
-            return TargetMachine(ptr)
+            return TargetMachine(tm)
 
     def _emit_file(self, module, cgft):
         pm = api.llvm.PassManager.new()
-        os = api.extra.make_raw_ostream_for_printing()
+        os = extra.make_raw_ostream_for_printing()
+        pm.add(api.llvm.DataLayout.new(str(self.target_data)))
         failed = self._ptr.addPassesToEmitFile(pm, os, cgft)
         pm.run(module)
         return os.str()
@@ -298,19 +300,19 @@ class TargetMachine(llvm.Wrapper):
         '''returns byte string of the module as assembly code of the target machine
         '''
         CGFT = api.llvm.TargetMachine.CodeGenFileType
-        return self._emit_file(module, CGFT.CGFT_AssemblyFile)
+        return self._emit_file(module._ptr, CGFT.CGFT_AssemblyFile)
 
     def emit_object(self, module):
         '''returns byte string of the module as native code of the target machine
         '''
         CGFT = api.llvm.TargetMachine.CodeGenFileType
-        return self._emit_file(module, CGFT.CGFT_ObjectFile)
+        return self._emit_file(module._ptr, CGFT.CGFT_ObjectFile)
 
     @property
     def target_data(self):
         '''get target data of this machine
         '''
-        return TargetData(self._ptr.getDataLayout)
+        return TargetData(self._ptr.getDataLayout())
 
     @property
     def target_name(self):

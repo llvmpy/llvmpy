@@ -10,6 +10,7 @@ from Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
 
 @MDNode
 class MDNode:
+    _downcast_ = Value
     replaceOperandWith = Method(Void, cast(int, Unsigned), ptr(Value))
     getOperand = Method(ptr(Value), cast(int, Unsigned))
     getNumOperands = Method(cast(Unsigned, int))
@@ -24,6 +25,7 @@ class MDNode:
 
 @MDString
 class MDString:
+    _downcast_ = Value
     get = StaticMethod(ptr(MDString), ref(LLVMContext), cast(str, StringRef))
     getString = Method(cast(StringRef, str))
     getLength = Method(cast(int, Unsigned))

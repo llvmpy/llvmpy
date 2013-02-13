@@ -21,8 +21,6 @@ def _build_test_module(datatype, constants):
     bb_entry = func_subject.append_basic_block('entry')
     builder = Builder.new(bb_entry)
 
-
-
     for k in constants:
         builder.call(func_subject.args[0], [k])
 

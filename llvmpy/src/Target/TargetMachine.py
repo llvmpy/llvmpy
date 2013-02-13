@@ -9,7 +9,7 @@ from src.Support.CodeGen import CodeModel, TLSModel, CodeGenOpt, Reloc
 from src.GlobalValue import GlobalValue
 from src.DataLayout import DataLayout
 from src.TargetTransformInfo import (ScalarTargetTransformInfo,
-                                   VectorTargetTransformInfo)
+                                     VectorTargetTransformInfo)
 from src.PassManager import PassManagerBase
 from src.Support.FormattedStream import formatted_raw_ostream
 
@@ -40,9 +40,9 @@ class TargetMachine:
 
     getDataLayout = Method(const(ownedptr(DataLayout)))
     getScalarTargetTransformInfo = Method(const(
-                                         ownedptr(ScalarTargetTransformInfo)))
+                                          ownedptr(ScalarTargetTransformInfo)))
     getVectorTargetTransformInfo = Method(const(
-                                         ownedptr(VectorTargetTransformInfo)))
+                                          ownedptr(VectorTargetTransformInfo)))
 
     addPassesToEmitFile = Method(cast(bool, Bool),
                                  ref(PassManagerBase),

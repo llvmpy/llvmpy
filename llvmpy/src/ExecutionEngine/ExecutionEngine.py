@@ -41,7 +41,7 @@ class ExecutionEngine:
     @CustomPythonMethod
     def removeModule(self, module):
         if self._removeModule(module):
-            capsule.obtain_ownership(module._ptr)
+            capsule.obtain_ownership(module._capsule)
             return True
         return False
 

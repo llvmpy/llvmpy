@@ -22,3 +22,5 @@ class BasicBlock:
     removePredecessor |= Method(Void, ptr(BasicBlock))
 
     getInstList = CustomMethod('BasicBlock_getInstList', PyObjectPtr)
+
+    eraseFromParent = Method()

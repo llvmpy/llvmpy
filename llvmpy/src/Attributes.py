@@ -20,7 +20,7 @@ class Attributes:
 
     delete = Destructor()
 
-    get = Method(Attributes, ref(LLVMContext), ref(AttrBuilder))
+    get = StaticMethod(Attributes, ref(LLVMContext), ref(AttrBuilder))
 
 
 @AttrBuilder

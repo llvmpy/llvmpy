@@ -1,11 +1,15 @@
 from binding import *
 from src.namespace import llvm
-from src.Module import Module
-from src.Instruction import CallInst
 
 llvm.includes.add('llvm/Transforms/Utils/Cloning.h')
 
-@llvm.Class()
+InlineFunctionInfo = llvm.Class()
+
+
+from src.Module import Module
+from src.Instruction import CallInst
+
+@InlineFunctionInfo
 class InlineFunctionInfo:
     new = Constructor()
     delete = Destructor()

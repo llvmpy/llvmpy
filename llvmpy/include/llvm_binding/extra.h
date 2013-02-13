@@ -137,12 +137,19 @@ PyObject* make_small_vector_from_unsigned(PyObject* self, PyObject* args)
     return pycapsule_new(SV, "llvm::SmallVector<unsigned,8>");
 }
 
+static
+PyObject* get_llvm_version(PyObject* self, PyObject* args)
+{
+    return Py_BuildValue("(ii)", LLVM_VERSION_MAJOR, LLVM_VERSION_MINOR);
+}
+
 static PyMethodDef extra_methodtable[] = {
     #define method(func) { #func, (PyCFunction)func, METH_VARARGS, NULL }
     method( make_raw_ostream_for_printing ),
     method( make_small_vector_from_types ),
     method( make_small_vector_from_values ),
     method( make_small_vector_from_unsigned ),
+    method( get_llvm_version ),
     #undef method
     { NULL }
 };
@@ -185,7 +192,8 @@ struct extract {
 
     template<class VecTy>
     static
-    bool from_py_sequence(VecTy& vec, PyObject* seq, const char *capsuleName)
+    bool from_py_sequence(VecTy& vec, PyObject* seq, const char *capsuleName,
+                          bool accept_null=false)
     {
         Py_ssize_t N = PySequence_Size(seq);
         for (Py_ssize_t i = 0; i < N; ++i) {
@@ -193,15 +201,23 @@ struct extract {
             if (!item) {
                 return false;
             }
-            auto_pyobject capsule = PyObject_GetAttrString(*item, "_ptr");
-            if (!capsule) {
-                return false;
+            if (accept_null and Py_None == *item) {
+                vec.push_back(NULL);
+            } else {
+                auto_pyobject capsule = PyObject_GetAttrString(*item, "_ptr");
+                if (!capsule) {
+                    return false;
+                }
+                void* ptr = PyCapsule_GetPointer(*capsule, capsuleName);
+                if (!ptr) {
+                    return false;
+                }
+                ElemTy* res = typecast<ElemTy>::from(ptr);
+                if (!res) {
+                    return false;
+                }
+                vec.push_back(res);
             }
-            void* ptr = PyCapsule_GetPointer(*capsule, capsuleName);
-            if (!ptr) {
-                return false;
-            }
-            vec.push_back(static_cast<ElemTy*>(ptr));
         }
         return true;
     }
@@ -610,6 +626,18 @@ PyObject* StructType_setBody(llvm::StructType* Self,
 }
 
 static
+PyObject* StructType_get(llvm::LLVMContext& Cxt,
+                         PyObject* Elems,
+                         bool isPacked=false)
+{
+    using namespace llvm;
+    std::vector<Type*> elements;
+    extract<Type>::from_py_sequence(elements, Elems, "llvm::Type");
+    StructType *sty = StructType::get(Cxt, elements, isPacked);
+    return pycapsule_new(sty, "llvm::Type", "llvm::StructType");
+}
+
+static
 PyObject* Module_list_globals(llvm::Module* Mod)
 {
     return iplist_to_pylist(Mod->getGlobalList(),
@@ -656,7 +684,7 @@ PyObject* ConstantArray_get(llvm::ArrayType* Ty, PyObject* Consts)
 
     std::vector<Constant*> vec_consts;
     bool ok = extract<Constant>::from_py_sequence(vec_consts, Consts,
-                                                   "llvm::Value");
+                                                  "llvm::Value");
     if (not ok) return NULL;
     Constant* ary = ConstantArray::get(Ty, vec_consts);
     return pycapsule_new(ary, "llvm::Value", "llvm::Constant");
@@ -724,7 +752,9 @@ static
 PyObject* MDNode_get(llvm::LLVMContext &Cxt, PyObject* Vals)
 {
     std::vector<llvm::Value*> vals;
-    bool ok = extract<llvm::Value>::from_py_sequence(vals, Vals, "llvm::Value");
+    bool accept_null = true;
+    bool ok = extract<llvm::Value>::from_py_sequence(vals, Vals, "llvm::Value",
+                                                     accept_null);
     if (not ok) return NULL;
     llvm::MDNode* md = llvm::MDNode::get(Cxt, vals);
     return pycapsule_new(md, "llvm::Value", "llvm::MDNode");
@@ -750,7 +780,7 @@ PyObject* IRBuilder_CreateAggregateRet(llvm::IRBuilder<>* builder,
     if (not ok) return NULL;
     Value** ptr_values = &vec_values[0];
     ReturnInst* inst = builder->CreateAggregateRet(ptr_values, N);
-    return pycapsule_new(inst, "llvm::Value", "llvm:ReturnInst");
+    return pycapsule_new(inst, "llvm::Value", "llvm::ReturnInst");
 }
 
 static

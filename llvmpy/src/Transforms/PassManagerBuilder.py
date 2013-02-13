@@ -1,10 +1,13 @@
 from binding import *
 from ..namespace import llvm
-from ..PassManager import PassManagerBase, FunctionPassManager
-from ..Target.TargetLibraryInfo import TargetLibraryInfo
-from ..Pass import Pass
 
-@llvm.Class()
+PassManagerBuilder = llvm.Class()
+
+from src.PassManager import PassManagerBase, FunctionPassManager
+from src.Target.TargetLibraryInfo import TargetLibraryInfo
+from src.Pass import Pass
+
+@PassManagerBuilder
 class PassManagerBuilder:
     _include_ = 'llvm/Transforms/IPO/PassManagerBuilder.h'
     

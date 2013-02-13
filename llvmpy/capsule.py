@@ -196,4 +196,8 @@ def downcast(obj, cls):
     old = unwrap(obj)
     new = caster(old)
     used_to_own = has_ownership(old)
-    return wrap(new, owned=not used_to_own)
+    res = wrap(new, owned=not used_to_own)
+    if not res:
+        raise ValueError("Downcast failed")
+    return res
+

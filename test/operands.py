@@ -49,6 +49,7 @@ class TestOperands(unittest.TestCase):
 
         i1 = test_func.basic_blocks[0].instructions[0]
         i2 = test_func.basic_blocks[0].instructions[1]
+
         logging.debug("Testing User.operand_count ..")
 
         self.assertEqual(i1.operand_count, 3)
@@ -61,6 +62,7 @@ class TestOperands(unittest.TestCase):
         self.assert_(i1.operands[1] is test_func.args[1])
         self.assert_(i2.operands[0] is i1)
         self.assert_(i2.operands[1] is test_func.args[2])
+
         self.assertEqual(len(i1.operands), 3)
         self.assertEqual(len(i2.operands), 2)
 
