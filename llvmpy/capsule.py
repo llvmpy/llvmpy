@@ -19,13 +19,14 @@ def set_debug(enabled):
 
 def _capsule_weakref_dtor(item):
     addr = item.pointer
+    name = item.name
     _addr2refct[addr] -= 1
     refct = _addr2refct[addr]
     assert refct >= 0, "RefCt drop below 0"
     if refct == 0:
-        dtor = _addr2dtor.pop(addr, None)
+        dtor = _addr2dtor.pop((name, addr), None)
         if dtor is not None:
-            logger.debug('Destroy %s %s', item.name, hex(item.pointer))
+            logger.debug('Destroy %s %s', name, hex(addr))
             dtor(item.capsule)
 
 class Capsule(object):
@@ -92,26 +93,28 @@ _cache = defaultdict(WeakValueDictionary)
 def release_ownership(old):
     logger.debug('Release %s', old)
     addr = Capsule.getPointer(old)
-
-    if _addr2dtor.get(addr) is None:
+    name = Capsule.getName(old)
+    if _addr2dtor.get((name, addr)) is None:
         clsname = Capsule.getClassName(old)
         if not _pyclasses[clsname]._has_dtor():
             return
         # Guard duplicated release
         raise Exception("Already released")
-    _addr2dtor[addr] = None
+    _addr2dtor[(name, addr)] = None
 
 
 def obtain_ownership(cap):
     cls = cap.get_class()
     if cls._has_dtor():
         addr = cap.pointer
+        name = cap.name
         assert _addr2dtor[addr] is None
-        _addr2dtor[addr] = cls._delete_
+        _addr2dtor[(name, addr)] = cls._delete_
 
 def has_ownership(cap):
     addr = Capsule.getPointer(cap)
-    return _addr2dtor.get(addr) is not None
+    name = Capsule.getName(cap)
+    return _addr2dtor.get((name, addr)) is not None
 
 def wrap(cap, owned=False):
     '''Wrap a PyCapsule with the corresponding Wrapper class.
@@ -125,11 +128,12 @@ def wrap(cap, owned=False):
     cap = Capsule(cap)
     cls = cap.get_class()
     addr = cap.pointer
+    name = cap.name
     try: # lookup cached object
         return _cache[cls][addr]
     except KeyError:
         if not owned and cls._has_dtor():
-            _addr2dtor[addr] = cls._delete_
+            _addr2dtor[(name, addr)] = cls._delete_
         obj = cap.instantiate()
         _cache[cls][addr] = obj    # cache it
     return obj

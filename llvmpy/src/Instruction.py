@@ -120,16 +120,17 @@ class Instruction:
 
 @AtomicCmpXchgInst
 class AtomicCmpXchgInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @AtomicRMWInst
 class AtomicRMWInst:
+    _downcast_ = Value, Instruction
     BinOp = Enum('Xchg', 'Add', 'Sub', 'And', 'Nand', 'Or', 'Xor', 'Max', 'Min',
                  'UMax', 'UMin', 'FIRST_BINOP', 'LAST_BINOP', 'BAD_BINOP')
 
 @BinaryOperator
 class BinaryOperator:
-    pass
+    _downcast_ = Value, Instruction
 
 @CallInst
 class CallInst:
@@ -159,6 +160,7 @@ class CallInst:
 
 @CmpInst
 class CmpInst:
+    _downcast_ = Value, Instruction
     Predicate = Enum('FCMP_FALSE', 'FCMP_OEQ', 'FCMP_OGT', 'FCMP_OGE',
                      'FCMP_OLT', 'FCMP_OLE', 'FCMP_ONE', 'FCMP_ORD', 'FCMP_UNO',
                      'FCMP_UEQ', 'FCMP_UGT', 'FCMP_UGE', 'FCMP_ULT', 'FCMP_ULE',
@@ -175,30 +177,31 @@ class CmpInst:
 
 @ExtractElementInst
 class ExtractElementInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @FenceInst
 class FenceInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @GetElementPtrInst
 class GetElementPtrInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @InsertElementInst
 class InsertElementInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @InsertValueInst
 class InsertValueInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @LandingPadInst
 class LandingPadInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @PHINode
 class PHINode:
+    _downcast_ = Value, Instruction
     getNumIncomingValues = Method(cast(Unsigned, int))
     getIncomingValue = Method(ptr(Value), cast(int, Unsigned))
     setIncomingValue = Method(Void, cast(int, Unsigned), ptr(Value))
@@ -210,15 +213,15 @@ class PHINode:
 
 @SelectInst
 class SelectInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @ShuffleVectorInst
 class ShuffleVectorInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @StoreInst
 class StoreInst:
-    _downcast_ = Instruction
+    _downcast_ = Value, Instruction
     isVolatile = Method(cast(Bool, bool))
     isSimple = Method(cast(Bool, bool))
     isUnordered = Method(cast(Bool, bool))
@@ -237,38 +240,40 @@ class StoreInst:
 
 @TerminatorInst
 class TerminatorInst:
+    _downcast_ = Value, Instruction
     getNumSuccessors = Method(cast(Unsigned, int))
     getSuccessor = Method(ptr(BasicBlock), cast(int, Unsigned))
     setSuccessor = Method(Void, cast(int, Unsigned), ptr(BasicBlock))
 
 @UnaryInstruction
 class UnaryInstruction:
-    pass
+    _downcast_ = Value, Instruction
 
 #call
 
 @IntrinsicInst
 class IntrinsicInst:
-    pass
+    _include_ = 'llvm/IntrinsicInst.h'
+    _downcast_ = Value, Instruction
 
 #compare
 
 @FCmpInst
 class FCmpInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @ICmpInst
 class ICmpInst:
-    pass
+    _downcast_ = Value, Instruction
 
 # terminator
 @BranchInst
 class BranchInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @IndirectBrInst
 class IndirectBrInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @InvokeInst
 class InvokeInst:
@@ -284,14 +289,16 @@ class InvokeInst:
 
 @ResumeInst
 class ResumeInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @ReturnInst
 class ReturnInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @SwitchInst
 class SwitchInst:
+    _downcast_ = Value, Instruction
+    
     getCondition = Method(ptr(Value))
     setCondition = Method(Void, ptr(Value))
     getDefaultDest = Method(ptr(BasicBlock))
@@ -302,20 +309,20 @@ class SwitchInst:
 
 @UnreachableInst
 class UnreachableInst:
-    pass
+    _downcast_ = Value, Instruction
 
 # unary
 @AllocaInst
 class AllocaInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @CastInst
 class CastInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @ExtractValueInst
 class ExtractValueInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @LoadInst
 class LoadInst:
@@ -338,46 +345,46 @@ class LoadInst:
 
 @VAArgInst
 class VAArgInst:
-    pass
+    _downcast_ = Value, Instruction
 
 # intrinsic
 @DbgInfoIntrinsic
 class DbgInfoIntrinsic:
-    pass
+    _downcast_ = Value, Instruction
 
 @MemIntrinsic
 class MemIntrinsic:
-    pass
+    _downcast_ = Value, Instruction
 
 @VACopyInst
 class VACopyInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @VAEndInst
 class VAEndInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @VAStartInst
 class VAStartInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @BitCastInst
 class BitCastInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @FPExtInst
 class FPExtInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @FPToSIInst
 class FPToSIInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @FPToUIInst
 class FPToUIInst:
-    pass
+    _downcast_ = Value, Instruction
 
 @FPTruncInst
 class FPTruncInst:
-    pass
+    _downcast_ = Value, Instruction
 

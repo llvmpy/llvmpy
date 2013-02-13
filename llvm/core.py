@@ -475,28 +475,31 @@ class Module(llvm.Wrapper):
 
     def add_function(self, ty, name):
         """Add a function of given type with given name."""
-        fn = self.get_function_named(name)
-        if fn is not None:
-            raise llvm.LLVMException("Duplicated function %s" % name)
-        return self.get_or_insert_function(ty, name)
+        return Function.new(self, ty, name)
+#        fn = self.get_function_named(name)
+#        if fn is not None:
+#            raise llvm.LLVMException("Duplicated function %s" % name)
+#        return self.get_or_insert_function(ty, name)
 
     def get_function_named(self, name):
         """Return a Function object representing function with given name."""
-        fn = self._ptr.getFunction(name)
-        if fn is not None:
-            return _make_value(fn)
+        return Function.get(self, name)
+#        fn = self._ptr.getFunction(name)
+#        if fn is not None:
+#            return _make_value(fn)
 
     def get_or_insert_function(self, ty, name):
         """Like get_function_named(), but does add_function() first, if
            function is not present."""
-        constant = self._ptr.getOrInsertFunction(name, ty._ptr)
-        try:
-            fn = constant._downcast(api.llvm.Function)
-        except ValueError:
-            # bitcasted to function type
-            return _make_value(constant)
-        else:
-            return _make_value(fn)
+        return Function.get_or_insert(self, ty, name)
+#        constant = self._ptr.getOrInsertFunction(name, ty._ptr)
+#        try:
+#            fn = constant._downcast(api.llvm.Function)
+#        except ValueError:
+#            # bitcasted to function type
+#            return _make_value(constant)
+#        else:
+#            return _make_value(fn)
 
     @property
     def functions(self):
@@ -615,6 +618,10 @@ class Type(llvm.Wrapper):
     def __init__(self, ptr):
         ptr = ptr._downcast(type(self)._type_)
         super(Type, self).__init__(ptr)
+
+    @property
+    def kind(self):
+        return self._ptr.getTypeID()
 
     @staticmethod
     def int(bits=32):
@@ -828,7 +835,6 @@ class FunctionType(Type):
 
             Same as len(obj.args), but faster."""
         return self._ptr.getNumParams()
-
 
 
 class StructType(Type):
@@ -1385,15 +1391,32 @@ class Function(GlobalValue):
 
     @staticmethod
     def new(module, func_ty, name):
-        return module.add_function(func_ty, name)
+        try:
+            fn = Function.get(module, name)
+        except llvm.LLVMException:
+            return Function.get_or_insert(module, func_ty, name)
+        else:
+            raise llvm.LLVMException("Duplicated function %s" % name)
+
 
     @staticmethod
     def get_or_insert(module, func_ty, name):
-        return module.get_or_insert_function(func_ty, name)
+        constant = module._ptr.getOrInsertFunction(name, func_ty._ptr)
+        try:
+            fn = constant._downcast(api.llvm.Function)
+        except ValueError:
+            # bitcasted to function type
+            return _make_value(constant)
+        else:
+            return _make_value(fn)
 
     @staticmethod
     def get(module, name):
-        return module.get_function_named(name)
+        fn = module._ptr.getFunction(name)
+        if fn is None:
+            raise llvm.LLVMException("no function named `%s`" % name)
+        else:
+            return _make_value(fn)
 
     @staticmethod
     def intrinsic(module, intrinsic_id, types):
@@ -1449,6 +1472,10 @@ class Function(GlobalValue):
     def entry_basic_block(self):
         assert self.basic_block_count
         return _make_value(self._ptr.getEntryBlock())
+
+    def get_entry_basic_block(self):
+        "Deprecated. Use entry_basic_block instead"
+        return self.entry_basic_block
 
     def append_basic_block(self, name):
         context = api.llvm.getGlobalContext()
@@ -1857,6 +1884,7 @@ class Builder(llvm.Wrapper):
         """Position the builder at the end of the given block.
 
         Next instruction inserted will be last one in the block."""
+
         self._ptr.SetInsertPoint(bblk._ptr)
 
     def position_before(self, instr):
@@ -2111,9 +2139,9 @@ class Builder(llvm.Wrapper):
 
     def insert_value(self, retval, rhs, idx, name=""):
         return _make_value(self._ptr.CreateInsertValue(retval._ptr,
-                                                rhs._ptr,
-                                                [idx],
-                                                name))
+                                                       rhs._ptr,
+                                                       [idx],
+                                                       name))
 
     def phi(self, ty, name=""):
         return _make_value(self._ptr.CreatePHI(ty._ptr, 2, name))

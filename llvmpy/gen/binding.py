@@ -329,7 +329,7 @@ class Class(SubModule, _Type):
         fmt = 'PyCapsule_GetPointer(%(val)s, "%(name)s")'
         name = self.capsule_name
         raw = writer.declare('void*', fmt % locals())
-        writer.die_if_false(raw)
+        writer.die_if_false(raw, verbose=name)
         ptrty = ptr(self).fullname
         ty = self.fullname
         fmt = 'typecast< %(ty)s >::from(%(raw)s)'

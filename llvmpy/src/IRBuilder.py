@@ -294,7 +294,7 @@ class IRBuilder:
     _CreateInsertValue.realname = 'CreateInsertValue'
 
     @CustomPythonMethod
-    def CreateInsertValue(self, args):
+    def CreateInsertValue(self, *args):
         from llvmpy import extra
         args = list(args)
         valuelist = args[2]

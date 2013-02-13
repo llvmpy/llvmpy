@@ -208,8 +208,10 @@ class CppCodeWriter(CodeWriterBase):
             self.return_null()
         return ret
 
-    def die_if_false(self, val):
+    def die_if_false(self, val, verbose=None):
         with self.block('if(!%(val)s)' % locals()):
+            if verbose:
+                self.println('puts("Error: %s");' % verbose)
             self.return_null()
 
     def raises(self, exccls, msg):
