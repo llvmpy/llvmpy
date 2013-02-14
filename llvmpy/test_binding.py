@@ -323,6 +323,11 @@ def test_constants():
     aryconst = llvm.ConstantArray.get(ary_int32x4, [intconst] * 4)
     assert str(aryconst.getAggregateElement(0)) == str(intconst)
 
+    bignum = 4415104608
+    int64ty = llvm.Type.getInt64Ty(context)
+    const_bignum = llvm.ConstantInt.get(int64ty, 4415104608)
+    assert str(bignum) in str(const_bignum)
+
 def test_intrinsic():
     context = llvm.getGlobalContext()
     m = llvm.Module.new("modname", context)

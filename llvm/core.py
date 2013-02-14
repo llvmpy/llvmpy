@@ -2041,8 +2041,7 @@ class Builder(llvm.Wrapper):
 
     def alloca(self, ty, name=""):
         intty = Type.int()
-        zero = api.llvm.ConstantInt.get(intty._ptr, 0)
-        return _make_value(self._ptr.CreateAlloca(ty._ptr, zero, name))
+        return _make_value(self._ptr.CreateAlloca(ty._ptr, None, name))
 
     def alloca_array(self, ty, size, name=""):
         return _make_value(self._ptr.CreateAlloca(ty._ptr, size._ptr, name))

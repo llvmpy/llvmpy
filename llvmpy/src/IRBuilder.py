@@ -288,9 +288,12 @@ class IRBuilder:
         args[1] = extra.make_small_vector_from_unsigned(*valuelist)
         return self._CreateExtractValue(*args)
 
-    _CreateInsertValue = Method(ptr(Value), ptr(Value), ptr(Value),
-                                ref(SmallVector_Unsigned), cast(str, StringRef))
-    _CreateInsertValue.require_only(3)
+    _CreateInsertValue = Method(ptr(Value),
+                                ptr(Value), # Agg
+                                ptr(Value), # Val
+                                ref(SmallVector_Unsigned), # ArrayRef<unsigned>
+                                cast(str, StringRef), # name
+                                ).require_only(3)
     _CreateInsertValue.realname = 'CreateInsertValue'
 
     @CustomPythonMethod
@@ -298,7 +301,7 @@ class IRBuilder:
         from llvmpy import extra
         args = list(args)
         valuelist = args[2]
-        args[1] = extra.make_small_vector_from_unsigned(*valuelist)
+        args[2] = extra.make_small_vector_from_unsigned(*valuelist)
         return self._CreateInsertValue(*args)
 
     CreateLandingPad = Method(ptr(LandingPadInst), ptr(Type), ptr(Value),

@@ -76,7 +76,7 @@ class ConstantInt:
     
     get = StaticMethod(ptr(ConstantInt),
                        ptr(IntegerType),
-                       cast(int, Unsigned),
+                       cast(int, Uint64),
                        cast(bool, Bool),
                        ).require_only(2)
     isValueValidForType = StaticMethod(cast(Bool, bool),
