@@ -14,7 +14,14 @@ class Wrapper(object):
 
     @property
     def _ptr(self):
-        return self.__ptr
+        try:
+            return self.__ptr
+        except AttributeError:
+            raise AttributeError("_ptr resource has been removed")
+
+    @_ptr.deleter
+    def _ptr(self):
+        del self.__ptr
 
 
 def _extract_ptrs(objs):

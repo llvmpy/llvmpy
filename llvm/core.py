@@ -926,7 +926,6 @@ class VectorType(Type):
 class Value(llvm.Wrapper):
     _type_ = api.llvm.Value
 
-
     def __init__(self, builder, ptr):
         assert builder is _ValueFactory
 
@@ -1596,6 +1595,7 @@ class NamedMetaData(llvm.Wrapper):
         return mod.get_named_metadata(name)
 
     def delete(self):
+        _ValueFactory.delete(self._ptr)
         self._ptr.eraseFromParent()
     
     @property
@@ -1822,13 +1822,14 @@ class _ValueFactory(object):
     def build(cls, ptr):
         # try to look in the cache
         addr = ptr._capsule.pointer
+        id = ptr.getValueID()
+        key = id, addr
         try:
-            obj = cls.cache[addr]
+            obj = cls.cache[key]
             return obj
         except KeyError:
             pass
         # find class by value id
-        id = ptr.getValueID()
         ctorcls = cls.class_for_valueid.get(id)
         if not ctorcls:
             if id > VALUE_INSTRUCTION: # "generic" instruction
@@ -1837,12 +1838,12 @@ class _ValueFactory(object):
                 ctorcls = Value
         # cache the obj
         obj = ctorcls(_ValueFactory, ptr)
-        cls.cache[addr] = obj
+        cls.cache[key] = obj
         return obj
 
     @classmethod
     def delete(cls, ptr):
-        del cls.cache[ptr._capsule.pointer]
+        del cls.cache[(ptr.getValueID(), ptr._capsule.pointer)]
 
 def _make_value(ptr):
     return _ValueFactory.build(ptr)
@@ -1851,12 +1852,14 @@ def _make_value(ptr):
 # Builder
 #===----------------------------------------------------------------------===
 
-_atomic_orderings = { 'unordered' : api.llvm.AtomicOrdering.Unordered,
+_atomic_orderings = {
+    'unordered' : api.llvm.AtomicOrdering.Unordered,
     'monotonic' : api.llvm.AtomicOrdering.Monotonic,
     'acquire'   : api.llvm.AtomicOrdering.Acquire,
     'release'   : api.llvm.AtomicOrdering.Release,
     'acq_rel'   : api.llvm.AtomicOrdering.AcquireRelease,
-    'seq_cst'   : api.llvm.AtomicOrdering.SequentiallyConsistent}
+    'seq_cst'   : api.llvm.AtomicOrdering.SequentiallyConsistent
+}
 
 class Builder(llvm.Wrapper):
 
