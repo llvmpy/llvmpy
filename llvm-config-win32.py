@@ -1,24 +1,43 @@
+import re
 import sys
-import os
+from distutils.spawn import find_executable
+from os.path import abspath, dirname, isfile, join
+from subprocess import Popen, PIPE
 
 
-def find_path_of(filename, envvar='PATH'):
-    """Finds the path from $PATH where the file exists, returns None if not found."""
-    pathlist = os.getenv(envvar).split(os.pathsep)
-    for path in pathlist:
-        if os.path.exists(os.path.join(path, filename)):
-            return os.path.abspath(path)
-    return None
+def find_llvm_tblgen():
+    path = find_executable('llvm-tblgen')
+    if path is None:
+        sys.exit('Error: could not locate llvm-tblgen')
+    return path
 
 
-if sys.argv[1] == '--version':
-    cmd = 'llvm-tblgen --version'
-    # Hardcoded extraction, only tested on llvm 3.1
-    result = os.popen(cmd).read().split('\n')[1].strip().split(' ')[2]
-    print(result)
-elif sys.argv[1] == '--libs':
+def find_llvm_prefix():
+    return abspath(dirname(dirname(find_llvm_tblgen())))
+
+
+def ensure_file(path):
+    if not isfile(path):
+        sys.exit('Error: no file: %r' % path)
+
+
+def get_llvm_version():
+    args = [find_llvm_tblgen(), '--version']
+    p = Popen(args, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = p.communicate()
+    if stderr:
+        raise Exception("%r stderr is:\n%s" % (args, stderr.decode()))
+    out = stdout.decode().strip()
+    pat = re.compile(r'llvm\s+version\s+(\d+\.\d+\S*)', re.I)
+    m = pat.search(out)
+    if m is None:
+        sys.exit('Error: could not parse version in:' + out)
+    return m.group(1)
+
+
+def libs_options():
     # NOTE: instead of actually looking at the components requested,
-    #       we just spit out a bunch of libs
+    #       we just print out a bunch of libs
     for lib in """
 LLVMAnalysis
 LLVMAsmParser
@@ -55,32 +74,45 @@ Advapi32
 Shell32
 """.split():
         print('-l%s' % lib)
-    llvmbin = find_path_of('llvm-tblgen.exe')
-    if os.path.exists(os.path.join(llvmbin, '../lib/LLVMPTXCodeGen.lib')):
+
+    if isfile(join(find_llvm_prefix(), 'lib', 'LLVMPTXCodeGen.lib')):
         print('-lLLVMPTXAsmPrinter')
         print('-lLLVMPTXCodeGen')
         print('-lLLVMPTXDesc')
         print('-lLLVMPTXInfo')
-    elif os.path.exists(os.path.join(llvmbin, '../lib/LLVMNVPTXCodeGen.lib')):
+
+    elif isfile(join(find_llvm_prefix(), 'lib', 'LLVMNVPTXCodeGen.lib')):
         print('-lLLVMNVPTXAsmPrinter')
         print('-lLLVMNVPTXCodeGen')
         print('-lLLVMNVPTXDesc')
         print('-lLLVMNVPTXInfo')
-elif sys.argv[1] == '--includedir':
-    llvmbin = find_path_of('llvm-tblgen.exe')
-    if llvmbin is None:
-        raise RuntimeError('Could not find LLVM')
-    incdir = os.path.abspath(os.path.join(llvmbin, '../include'))
-    if not os.path.exists(os.path.join(incdir, 'llvm/BasicBlock.h')):
-        raise RuntimeError('Could not find LLVM include dir')
-    print(incdir)
-elif sys.argv[1] == '--libdir':
-    llvmbin = find_path_of('llvm-tblgen.exe')
-    if llvmbin is None:
-        raise RuntimeError('Could not find LLVM')
-    libdir = os.path.abspath(os.path.join(llvmbin, '../lib'))
-    if not os.path.exists(os.path.join(libdir, 'LLVMCore.lib')):
-        raise RuntimeError('Could not find LLVM lib dir')
-    print(libdir)
-else:
-    raise RuntimeError('Unrecognized llvm-config command %s' % sys.argv[1])
+
+
+def main():
+    try:
+        option = sys.argv[1]
+    except IndexError:
+        sys.exit('Error: option missing')
+
+    if option == '--version':
+        print(get_llvm_version())
+
+    elif option == '--libs':
+        libs_options()
+
+    elif option == '--includedir':
+        incdir = join(find_llvm_prefix(), 'include')
+        ensure_file(join(incdir, 'llvm' , 'BasicBlock.h'))
+        print(incdir)
+
+    elif option == '--libdir':
+        libdir = join(find_llvm_prefix(), 'lib')
+        ensure_file(join(libdir, 'LLVMCore.lib'))
+        print(libdir)
+
+    else:
+        sys.exit('Unrecognized llvm-config option %r' % option)
+
+
+if __name__ == '__main__':
+    main()

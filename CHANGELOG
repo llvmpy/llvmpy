@@ -1,3 +1,8 @@
+2013-02-XX   0.11.0:
+--------------------
+  * fix Python 3 support on Windows
+
+
 2013-02-01   0.10.2:
 --------------------
   * change default to link dynamically to LLVM use:
