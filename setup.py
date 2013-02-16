@@ -24,17 +24,18 @@ llvm_config = os.environ.get('LLVM_CONFIG_PATH', default_llvm_config)
 def run_llvm_config(extra_args):
     args = llvm_config.split()
     args.extend(extra_args)
-    p = Popen(args, stdout=PIPE, stderr=PIPE)
+    try:
+        p = Popen(args, stdout=PIPE, stderr=PIPE)
+    except OSError:
+        sys.exit("Error: could invoke %r\n"
+                 "Try setting LLVM_CONFIG_PATH=/path/to/llvm-config" % args)
     stdout, stderr = p.communicate()
     if stderr:
-        raise Exception("%r:\n%s" % (args, stderr.decode()))
+        raise Exception("%r stderr is:\n%s" % (args, stderr.decode()))
     return stdout.decode().strip()
 
 llvm_version = run_llvm_config(['--version'])
 print('LLVM version = %r' % llvm_version)
-if not llvm_version:
-    sys.exit("Error: could invoke llvm-config --version\n"
-             "Try setting LLVM_CONFIG_PATH=/path/to/llvm-config")
 
 def get_libs_and_objs(components):
     parts = run_llvm_config(['--libs'] + components).split()
