@@ -30,9 +30,10 @@ def run_llvm_config(extra_args):
         raise Exception("%r:\n%s" % (args, stderr.decode()))
     return stdout.decode().strip()
 
-
-if run_llvm_config(['--version']) == '':
-    sys.exit("Cannot invoke llvm-config.\n"
+llvm_version = run_llvm_config(['--version'])
+print('LLVM version = %r' % llvm_version)
+if not llvm_version:
+    sys.exit("Error: could invoke llvm-config --version\n"
              "Try setting LLVM_CONFIG_PATH=/path/to/llvm-config")
 
 def get_libs_and_objs(components):
@@ -49,10 +50,6 @@ def get_libs_and_objs(components):
 def get_enabled_components():
     return run_llvm_config(['--components']).split()
 
-def get_llvm_version():
-    return run_llvm_config(['--version'])
-
-
 def auto_intrinsic_gen(incdir):
     # let's do auto intrinsic generation
     print("Generate intrinsic IDs")
@@ -66,8 +63,7 @@ incdir = run_llvm_config(['--includedir'])
 libdir = run_llvm_config(['--libdir'])
 ldflags = run_llvm_config(['--ldflags'])
 
-llvm_version = get_llvm_version()
-print('LLVM version = %r' % llvm_version)
+
 
 auto_intrinsic_gen(incdir)
 
