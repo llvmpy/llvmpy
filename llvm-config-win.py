@@ -95,7 +95,7 @@ Shell32
 
     elif option == '--libdir':
         libdir = join(find_llvm_prefix(), 'lib')
-        path = join(libdir, ' LLVMCore.lib')
+        path = join(libdir, 'LLVMCore.lib')
         if not isfile(path):
             sys.exit('Error: no file: %r' % path)
         print(libdir)
