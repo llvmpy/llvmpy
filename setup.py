@@ -158,18 +158,15 @@ kwds = dict(
 
 def run_2to3():
     import lib2to3.refactor
-    from distutils.command.build_py import build_py_2to3 as build_py
+    from distutils.command.build_py import build_py_2to3
+
     print("Installing 2to3 fixers")
-    # need to convert sources to Py3 on installation
     fixes = lib2to3.refactor.get_fixers_from_package("lib2to3.fixes")
-    #fixes = [fix for fix in fixes
-    #          if fix.split('fix_')[-1] not in ('next',)
-    #]
+    kwds["cmdclass"]['build_py'] = build_py_2to3
 
-    kwds["cmdclass"].update(dict(build_py=build_py))
-
-if sys.version_info[0] >= 3:
+if sys.version_info[0] == 3:
     run_2to3()
+
 
 kwds['long_description'] = open('README.rst').read()
 
