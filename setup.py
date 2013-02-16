@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+from subprocess import Popen, PIPE
 from distutils.core import setup, Extension
 
 import versioneer
@@ -19,9 +20,16 @@ else:
 
 llvm_config = os.environ.get('LLVM_CONFIG_PATH', default_llvm_config)
 
-def run_llvm_config(args):
-    cmd = llvm_config + ' ' + ' '.join(args)
-    return os.popen(cmd).read().rstrip()
+
+def run_llvm_config(extra_args):
+    args = llvm_config.split()
+    args.extend(extra_args)
+    p = Popen(args, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = p.communicate()
+    if stderr:
+        raise Exception("%r:\n%s" % (args, stderr.decode()))
+    return stdout.decode().strip()
+
 
 if run_llvm_config(['--version']) == '':
     sys.exit("Cannot invoke llvm-config.\n"
@@ -59,7 +67,7 @@ libdir = run_llvm_config(['--libdir'])
 ldflags = run_llvm_config(['--ldflags'])
 
 llvm_version = get_llvm_version()
-print('LLVM version = %s' % llvm_version)
+print('LLVM version = %r' % llvm_version)
 
 auto_intrinsic_gen(incdir)
 
