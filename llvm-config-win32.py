@@ -26,7 +26,7 @@ def get_llvm_version():
     p = Popen(args, stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate()
     if stderr:
-        raise Exception("%r stderr is:\n%s" % (args, stderr.decode()))
+        sys.exit("Error: %r stderr is:\n%s" % (args, stderr.decode()))
     out = stdout.decode().strip()
     pat = re.compile(r'llvm\s+version\s+(\d+\.\d+\S*)', re.I)
     m = pat.search(out)
@@ -111,7 +111,7 @@ def main():
         print(libdir)
 
     else:
-        sys.exit('Unrecognized llvm-config option %r' % option)
+        sys.exit('Error: Unrecognized llvm-config option %r' % option)
 
 
 if __name__ == '__main__':
