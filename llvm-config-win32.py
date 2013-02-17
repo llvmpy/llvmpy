@@ -110,6 +110,9 @@ def main():
         ensure_file(join(libdir, 'LLVMCore.lib'))
         print(libdir)
 
+    elif option in ('--ldflags', '--components'):
+        pass
+
     else:
         sys.exit('Error: Unrecognized llvm-config option %r' % option)
 
