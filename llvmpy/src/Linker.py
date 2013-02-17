@@ -41,11 +41,18 @@ class Linker:
                                 PyObjectPtr, # errmsg
                                 )
 
-    LinkModules = CustomStaticMethod('Linker_LinkModules',
+    _LinkModules = CustomStaticMethod('Linker_LinkModules',
                                      PyObjectPtr, # boolean
                                      ptr(Module),
                                      ptr(Module),
                                      LinkerMode,
                                      PyObjectPtr, # errsg
                                      )
+
+    @CustomPythonStaticMethod
+    def LinkModules(module, other, mode, errmsg):
+        failed = Linker._LinkModules(module, other, mode, errmsg)
+        if not failed and mode != Linker.LinkerMode.PreserveSource:
+            capsule.release_ownership(other._ptr)
+        return failed
 
