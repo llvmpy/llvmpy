@@ -1153,6 +1153,10 @@ class PointerCasting(OperatorMixin):
 
         if _is_pointer(ty):
             return self._temp(self.parent.builder.bitcast(self.value, ty))
+
+        if _is_int(ty):
+            return self._temp(self.parent.builder.ptrtoint(self.value, ty))
+
         raise CastError(self.type, ty)
 
 
