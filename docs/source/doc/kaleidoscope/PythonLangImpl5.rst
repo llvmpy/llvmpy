@@ -217,7 +217,8 @@ Kaleidoscope looks something like this:
       br i1 %ifcond, label %then, label %else 
 
    then:       ; preds = %entry 
-      %calltmp1 = call double @bar() 
+      %calltmp = call double @foo() 
+      br label %ifcont 
 
    else:       ; preds = %entry 
       %calltmp1 = call double @bar() 
