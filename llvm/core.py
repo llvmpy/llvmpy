@@ -2192,6 +2192,10 @@ class Builder(object):
             if  t != v.type:
                 raise TypeError(err_template % (t, v.type))
         arg_ptrs = unpack_values(args)
+
+        if (isinstance(fn, Function) and \
+            fn.module is not self.basic_block.function.module):
+            raise ValueError("Intermodule function call")
         return _make_value(
             _core.LLVMBuildCall(self.ptr, fn.ptr, arg_ptrs, name))
 
