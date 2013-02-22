@@ -1508,7 +1508,13 @@ class Function(GlobalValue):
         # Note: LLVM has a bug in preverifier that will always abort
         #       the process upon failure.
         actions = api.llvm.VerifierFailureAction
-        return api.llvm.verifyFunction(self._ptr, actions.PrintMessageAction)
+        broken = api.llvm.verifyFunction(self._ptr,
+                                         actions.ReturnStatusAction)
+        if broken:
+            # If broken, then re-run to print the message
+            api.llvm.verifyFunction(self._ptr, actions.PrintMessageAction)
+            raise llvm.LLVMException("Function %s failed verification" %
+                                     self.name)
 
 #===----------------------------------------------------------------------===
 # InlineAsm
