@@ -1,4 +1,5 @@
 #include <Python.h>
+#include <capsulethunk.h>
 #include <llvm_binding/capsule_context.h>
 
 static
@@ -53,12 +54,13 @@ CapsuleContext* getContext(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_TypeError, "PyCapsule has no context.");
         return NULL;
     }
-    return (CapsuleContext*)context;
+    return static_cast<CapsuleContext*>(context);
 }
 
 static
 PyObject* getClassName(PyObject* self, PyObject* args) {
     CapsuleContext* context = getContext(self, args);
+    //Assert(context->_magic == 0xdead);
     if (!context) {
         return NULL;
     } else {

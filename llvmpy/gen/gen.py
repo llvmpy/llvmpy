@@ -40,6 +40,8 @@ populate_submodules(module, submodule_%(ns)s);
 def populate_headers(println):
     includes = [
                 'cstring',
+                'Python.h',
+                'capsulethunk.h',
                 'llvm_binding/conversion.h',
                 'llvm_binding/binding.h',
                 'llvm_binding/capsule_context.h',

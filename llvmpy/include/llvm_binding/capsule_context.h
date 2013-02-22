@@ -3,16 +3,27 @@
 
 #include <iostream>
 #include <ctime>
-
-typedef PyObject* Destructor_Fn;
+#include "capsulethunk.h"
 
 struct CapsuleContext {
+    //const unsigned _magic;
     const char*     className;
     
     CapsuleContext(const char* cn)
     : className(cn)
     { }
 };
+
+static
+void pycapsule_dtor_free_context(PyObject *pycap)
+{
+    void * context = PyCapsule_GetContext(pycap);
+    Assert(context);
+    CapsuleContext* cc = static_cast<CapsuleContext*>(context);
+    //Assert(cc->_magic == 0xdead);
+    delete cc;
+}
+
 
 
 static
@@ -26,15 +37,16 @@ PyObject* pycapsule_new(void* ptr,
     if (!ptr) {
         Py_RETURN_NONE;
     }
-    PyObject* cap = PyCapsule_New(ptr, basename, NULL);
+    PyObject* cap = PyCapsule_New(ptr, basename, pycapsule_dtor_free_context);
     if (!cap) {
         PyErr_SetString(PyExc_TypeError, "Error creating new PyCapsule");
         return NULL;
     }
     CapsuleContext* context = new CapsuleContext(classname);
-    if (PyCapsule_SetContext(cap, context)) {
+    if (0 != PyCapsule_SetContext(cap, context)) {
         return NULL;
     }
+    //Assert(context->_magic == 0xdead);
     return cap;
 }
 
