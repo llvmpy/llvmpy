@@ -917,7 +917,7 @@ class VectorType(Type):
     
     @property
     def element(self):
-        return self._ptr.getVectorElementType()
+        return Type(self._ptr.getVectorElementType())
 
     @property
     def count(self):
