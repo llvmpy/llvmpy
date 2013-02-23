@@ -98,6 +98,6 @@ class ExecutionEngine:
     @CustomPythonMethod
     def runFunction(self, fn, args):
         from llvmpy import capsule
-        unwrapped = map(capsule.unwrap, args)
+        unwrapped = list(map(capsule.unwrap, args))
         return self._runFunction(fn, tuple(unwrapped))
 

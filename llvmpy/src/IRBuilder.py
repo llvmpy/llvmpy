@@ -1,18 +1,18 @@
 from binding import *
-from namespace import llvm
-from LLVMContext import LLVMContext
-from BasicBlock import BasicBlock
-from Instruction import Instruction
-from Instruction import ReturnInst, CallInst, BranchInst, SwitchInst
-from Instruction import IndirectBrInst, InvokeInst, ResumeInst, PHINode
-from Instruction import UnreachableInst, AllocaInst, LoadInst, StoreInst
-from Instruction import FenceInst, AtomicCmpXchgInst, AtomicRMWInst, CmpInst
-from Instruction import LandingPadInst, VAArgInst
-from Instruction import AtomicOrdering, SynchronizationScope
-from ADT.SmallVector import SmallVector_Value, SmallVector_Unsigned
-from ADT.StringRef import StringRef
-from Value import Value, MDNode
-from Type import Type, IntegerType
+from .namespace import llvm
+from .LLVMContext import LLVMContext
+from .BasicBlock import BasicBlock
+from .Instruction import Instruction
+from .Instruction import ReturnInst, CallInst, BranchInst, SwitchInst
+from .Instruction import IndirectBrInst, InvokeInst, ResumeInst, PHINode
+from .Instruction import UnreachableInst, AllocaInst, LoadInst, StoreInst
+from .Instruction import FenceInst, AtomicCmpXchgInst, AtomicRMWInst, CmpInst
+from .Instruction import LandingPadInst, VAArgInst
+from .Instruction import AtomicOrdering, SynchronizationScope
+from .ADT.SmallVector import SmallVector_Value, SmallVector_Unsigned
+from .ADT.StringRef import StringRef
+from .Value import Value, MDNode
+from .Type import Type, IntegerType
 
 IRBuilder = llvm.Class()
 

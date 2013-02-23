@@ -1,8 +1,8 @@
 from binding import *
-from namespace import llvm
-from Value import GlobalValue
-from Module import Module
-from ADT.StringRef import StringRef
+from .namespace import llvm
+from .Value import GlobalValue
+from .Module import Module
+from .ADT.StringRef import StringRef
 
 @GlobalValue
 class GlobalValue:

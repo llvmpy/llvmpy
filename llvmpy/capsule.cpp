@@ -1,4 +1,5 @@
 #include <Python.h>
+#include <python3adapt.h>
 #include <capsulethunk.h>
 #include <llvm_binding/capsule_context.h>
 

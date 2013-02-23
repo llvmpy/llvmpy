@@ -497,11 +497,9 @@ PyObject* llvm_WriteBitcodeToFile(const llvm::Module *M, PyObject* FObj)
     llvm::WriteBitcodeToFile(M, rso);
     rso.flush();
     StringRef ref = rso.str();
-    PyObject* buf = PyString_FromStringAndSize(ref.data(), ref.size());
-    if (-1 == PyFile_WriteObject(buf, FObj, Py_PRINT_RAW)){
-        return NULL;
-    }
-    Py_RETURN_NONE;
+    PyObject* buf = PyBytes_FromStringAndSize(ref.data(), ref.size());
+    puts(PyString_AsString(PyObject_Str(PyObject_Type(buf))));
+    return PyObject_CallMethod(FObj, "write", "O", buf);
 }
 
 static

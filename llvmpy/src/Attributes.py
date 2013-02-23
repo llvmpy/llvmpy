@@ -1,6 +1,6 @@
 from binding import *
-from namespace import llvm
-from LLVMContext import LLVMContext
+from .namespace import llvm
+from .LLVMContext import LLVMContext
 
 llvm.includes.add('llvm/Attributes.h')
 

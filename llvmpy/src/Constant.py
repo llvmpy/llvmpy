@@ -1,14 +1,14 @@
 from binding import *
-from namespace import llvm
-from Value import Value
-from Value import Constant, UndefValue, ConstantInt, ConstantFP, ConstantArray
-from Value import ConstantStruct, ConstantVector, ConstantVector
-from Value import ConstantDataSequential, ConstantDataArray, ConstantExpr
-from LLVMContext import LLVMContext
-from ADT.StringRef import StringRef
-from ADT.SmallVector import SmallVector_Value, SmallVector_Unsigned
-from Type import Type, IntegerType, ArrayType, StructType
-from Instruction import CmpInst
+from .namespace import llvm
+from .Value import Value
+from .Value import Constant, UndefValue, ConstantInt, ConstantFP, ConstantArray
+from .Value import ConstantStruct, ConstantVector, ConstantVector
+from .Value import ConstantDataSequential, ConstantDataArray, ConstantExpr
+from .LLVMContext import LLVMContext
+from .ADT.StringRef import StringRef
+from .ADT.SmallVector import SmallVector_Value, SmallVector_Unsigned
+from .Type import Type, IntegerType, ArrayType, StructType
+from .Instruction import CmpInst
 
 @Constant
 class Constant:

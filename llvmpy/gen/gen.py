@@ -41,6 +41,7 @@ def populate_headers(println):
     includes = [
                 'cstring',
                 'Python.h',
+                'python3adapt.h',
                 'capsulethunk.h',
                 'llvm_binding/conversion.h',
                 'llvm_binding/binding.h',

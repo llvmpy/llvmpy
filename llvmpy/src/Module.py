@@ -1,18 +1,18 @@
 from binding import *
-from namespace import llvm
+from .namespace import llvm
 
 Module = llvm.Class()
 
-from LLVMContext import LLVMContext
-from ADT.StringRef import StringRef
-from Constant import Constant
-from GlobalVariable import GlobalVariable
-from Function import Function
-from DerivedTypes import FunctionType
-from Support.raw_ostream import raw_ostream
-from Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
-from Type import Type, StructType
-from Metadata import NamedMDNode
+from .LLVMContext import LLVMContext
+from .ADT.StringRef import StringRef
+from .Constant import Constant
+from .GlobalVariable import GlobalVariable
+from .Function import Function
+from .DerivedTypes import FunctionType
+from .Support.raw_ostream import raw_ostream
+from .Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
+from .Type import Type, StructType
+from .Metadata import NamedMDNode
 
 @Module
 class Module:

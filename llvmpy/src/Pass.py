@@ -1,14 +1,14 @@
 from binding import *
-from namespace import llvm
+from .namespace import llvm
 
 Pass = llvm.Class()
 ModulePass = llvm.Class(Pass)
 FunctionPass = llvm.Class(Pass)
 ImmutablePass = llvm.Class(ModulePass)
 
-from ADT.StringRef import StringRef
-from Module import Module
-from Value import Function
+from .ADT.StringRef import StringRef
+from .Module import Module
+from .Value import Function
 
 @Pass
 class Pass:

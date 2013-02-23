@@ -1,9 +1,9 @@
 from binding import *
-from namespace import llvm
-from Value import Function, BasicBlock
-from Instruction import Instruction, TerminatorInst
-from LLVMContext import LLVMContext
-from ADT.StringRef import StringRef
+from .namespace import llvm
+from .Value import Function, BasicBlock
+from .Instruction import Instruction, TerminatorInst
+from .LLVMContext import LLVMContext
+from .ADT.StringRef import StringRef
 
 @BasicBlock
 class BasicBlock:

@@ -1,12 +1,12 @@
 from binding import *
-from namespace import llvm
-from Value import Value, MDNode, MDString
-from LLVMContext import LLVMContext
-from ADT.StringRef import StringRef
-from Module import Module
-from Function import Function
-from Support.raw_ostream import raw_ostream
-from Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
+from .namespace import llvm
+from .Value import Value, MDNode, MDString
+from .LLVMContext import LLVMContext
+from .ADT.StringRef import StringRef
+from .Module import Module
+from .Function import Function
+from .Support.raw_ostream import raw_ostream
+from .Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
 
 @MDNode
 class MDNode:

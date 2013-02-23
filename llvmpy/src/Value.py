@@ -1,5 +1,5 @@
 from binding import *
-from namespace import llvm
+from .namespace import llvm
 
 # forward declarations
 Value = llvm.Class()
@@ -21,11 +21,11 @@ ConstantDataSequential = llvm.Class(Constant)
 ConstantDataArray = llvm.Class(ConstantDataSequential)
 ConstantExpr = llvm.Class(Constant)
 
-from Support.raw_ostream import raw_ostream
-from Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
-from Type import Type
-from LLVMContext import LLVMContext
-from ADT.StringRef import StringRef
+from .Support.raw_ostream import raw_ostream
+from .Assembly.AssemblyAnnotationWriter import AssemblyAnnotationWriter
+from .Type import Type
+from .LLVMContext import LLVMContext
+from .ADT.StringRef import StringRef
 
 
 @Value

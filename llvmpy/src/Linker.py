@@ -1,8 +1,8 @@
 from binding import *
-from namespace import llvm
-from ADT.StringRef import StringRef
-from Module import Module
-from LLVMContext import LLVMContext
+from .namespace import llvm
+from .ADT.StringRef import StringRef
+from .Module import Module
+from .LLVMContext import LLVMContext
 
 llvm.includes.add('llvm/Linker.h')
 

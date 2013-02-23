@@ -1,9 +1,10 @@
-from StringIO import StringIO
+from io import BytesIO, StringIO
 
 from llvmpy.api import llvm
 from llvmpy import extra
 from llvmpy import _capsule
 import llvmpy.capsule
+import collections
 llvmpy.capsule.set_debug(True)
 
 
@@ -14,19 +15,19 @@ def test_basic_jit_use():
     context = llvm.getGlobalContext()
 
     m = llvm.Module.new("modname", context)
-    print m.getModuleIdentifier()
+    print(m.getModuleIdentifier())
     m.setModuleIdentifier('modname2')
-    print m.getModuleIdentifier()
-    print 'endianness', m.getEndianness()
+    print(m.getModuleIdentifier())
+    print('endianness', m.getEndianness())
     assert m.getEndianness() == llvm.Module.Endianness.AnyEndianness
-    print 'pointer-size', m.getPointerSize()
+    print('pointer-size', m.getPointerSize())
     assert m.getPointerSize() == llvm.Module.PointerSize.AnyPointerSize
     m.dump()
 
 
     os = extra.make_raw_ostream_for_printing()
     m.print_(os, None)
-    print os.str()
+    print(os.str())
 
 
     int1ty = llvm.Type.getInt1Ty(context)
@@ -40,11 +41,11 @@ def test_basic_jit_use():
     types = [llvm.Type.getIntNTy(context, 8), llvm.Type.getIntNTy(context, 32)]
     fnty = llvm.FunctionType.get(llvm.Type.getIntNTy(context, 8), types, False)
 
-    print fnty
+    print(fnty)
 
     const = m.getOrInsertFunction("foo", fnty)
     fn = const._downcast(llvm.Function)
-    print fn
+    print(fn)
     assert fn.hasName()
     assert 'foo' == fn.getName()
     fn.setName('bar')
@@ -63,7 +64,7 @@ def test_basic_jit_use():
     assert len(fn_uselist) == 0
 
     builder = llvm.IRBuilder.new(context)
-    print builder
+    print(builder)
 
     bb = llvm.BasicBlock.Create(context, "entry", fn, None)
     assert bb.empty()
@@ -72,19 +73,19 @@ def test_basic_jit_use():
     assert bb.getTerminator() is None
 
     arg0, arg1 = fn.getArgumentList()
-    print arg0, arg1
+    print(arg0, arg1)
 
     extended = builder.CreateZExt(arg0, arg1.getType())
     result = builder.CreateAdd(extended, arg1)
     ret = builder.CreateTrunc(result, fn.getReturnType())
     builder.CreateRet(ret)
 
-    print arg0.list_use()
+    print(arg0.list_use())
 
-    print fn
+    print(fn)
 
     errio = StringIO()
-    print m
+    print(m)
 
     # verifier
     action = llvm.VerifierFailureAction.ReturnStatusAction
@@ -92,7 +93,7 @@ def test_basic_jit_use():
     corrupted = llvm.verifyFunction(fn, action)
     assert not corrupted
     corrupted = llvm.verifyModule(m, action, errio)
-    print corrupted
+    print(corrupted)
     assert not corrupted, errio.getvalue()
 
     # build pass manager
@@ -114,13 +115,13 @@ def test_basic_jit_use():
     
     pm.run(m)
 
-    print m
+    print(m)
 
     # build engine
 
     ee = llvm.ExecutionEngine.createJIT(m, errio)
-    print ee, errio.getvalue()
-    print ee.getDataLayout().getStringRepresentation()
+    print(ee, errio.getvalue())
+    print(ee.getDataLayout().getStringRepresentation())
 
     datalayout_str = 'e-p:64:64:64-S128-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f16:16:16-f32:32:32-f64:64:64-f128:128:128-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64'
 
@@ -149,7 +150,7 @@ def test_basic_jit_use():
     assert 44 == gvR.toUnsignedInt()
 
     # write bitcode
-    bc_buffer = StringIO()
+    bc_buffer = BytesIO()
     llvm.WriteBitcodeToFile(m, bc_buffer)
     bc = bc_buffer.getvalue()
     bc_buffer.close()
@@ -187,7 +188,7 @@ def test_engine_builder():
     builder.SetInsertPoint(bb)
     builder.CreateRet(fn.getArgumentList()[0])
 
-    print fn
+    print(fn)
 
     eb = llvm.EngineBuilder.new(m)
     eb2 = eb.setEngineKind(llvm.EngineKind.Kind.JIT)
@@ -196,13 +197,13 @@ def test_engine_builder():
 
     tm = eb.selectTarget()
 
-    print 'target triple:', tm.getTargetTriple()
-    print 'target cpu:', tm.getTargetCPU()
-    print 'target feature string:', tm.getTargetFeatureString()
+    print('target triple:', tm.getTargetTriple())
+    print('target cpu:', tm.getTargetCPU())
+    print('target feature string:', tm.getTargetFeatureString())
 
     target = tm.getTarget()
-    print 'target name:', target.getName()
-    print 'target short description:', target.getShortDescription()
+    print('target name:', target.getName())
+    print('target short description:', target.getShortDescription())
 
     assert target.hasJIT()
     assert target.hasTargetMachine()
@@ -218,7 +219,7 @@ def test_engine_builder():
     triple_32variant = triple.get32BitArchVariant()
     assert triple_32variant.isArch32Bit()
 
-    print tm.getDataLayout()
+    print(tm.getDataLayout())
 
     pm = llvm.PassManager.new()
     pm.add(llvm.DataLayout.new(str(tm.getDataLayout())))
@@ -240,7 +241,7 @@ def test_engine_builder():
     formatted.flush()
     raw.flush()
     asm = raw.str()
-    print asm
+    print(asm)
     assert 'foo' in asm
 
 
@@ -301,7 +302,7 @@ def test_globalvariable():
     gvar2 = m.getNamedGlobal('apple')
     assert gvar2 is gvar
 
-    print m.list_globals()
+    print(m.list_globals())
 
 
 def test_sequentialtypes():
@@ -345,9 +346,9 @@ def test_passregistry():
 
     passinfo = passreg.getPassInfo("dce")
     dcepass = passinfo.createPass()
-    print dcepass.getPassName()
+    print(dcepass.getPassName())
 
-    print passreg.enumerate()
+    print(passreg.enumerate())
 
 def test_targetregistry():
     llvm.TargetRegistry.printRegisteredTargetsForVersion()
@@ -356,15 +357,15 @@ def test_targetregistry():
     target = llvm.TargetRegistry.getClosestTargetForJIT(errmsg)
     errmsg.close()
 
-    print target.getName()
-    print target.getShortDescription()
+    print(target.getName())
+    print(target.getShortDescription())
     assert target.hasJIT()
     assert target.hasTargetMachine()
 
     next = target.getNext()
     if next:
-        print next.getName()
-        print next.getShortDescription()
+        print(next.getName())
+        print(next.getShortDescription())
 
     triple = llvm.sys.getDefaultTargetTriple()
     cpu = llvm.sys.getHostCPUName()
@@ -375,9 +376,9 @@ def test_targetregistry():
     tm = target.createTargetMachine(triple, cpu, "", targetoptions)
 
 def main():
-    for name, value in globals().items():
-        if name.startswith('test_') and callable(value):
-            print name.center(80, '-')
+    for name, value in list(globals().items()):
+        if name.startswith('test_') and isinstance(value, collections.Callable):
+            print(name.center(80, '-'))
             value()
 
 

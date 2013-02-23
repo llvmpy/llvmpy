@@ -32,7 +32,7 @@ def _capsule_weakref_dtor(item):
 class Capsule(object):
     "Wraps PyCapsule so that we can build weakref of it."
 
-    from _capsule import check, getClassName, getName, getPointer
+    from ._capsule import check, getClassName, getName, getPointer
     
     def __init__(self, capsule):
         assert Capsule.valid(capsule)
@@ -74,6 +74,9 @@ class Capsule(object):
             return True
         else:
             return False
+
+    def __hash__(self):
+        return super(Capsule, self).__hash__()
 
     def __ne__(self, other):
         return not (self == other)
@@ -122,7 +125,7 @@ def wrap(cap, owned=False):
     '''
     if not Capsule.valid(cap):
         if isinstance(cap, list):
-            return map(wrap, cap)
+            return list(map(wrap, cap))
         return cap     # bypass if cap is not a PyCapsule and not a list
 
     cap = Capsule(cap)
@@ -170,6 +173,9 @@ class Wrapper(object):
     def _ptr(self):
         return self._capsule.capsule
 
+    def __hash__(self):
+        return super(Wrapper, self).__hash__()
+
     def __eq__(self, other):
         return self._capsule == other._capsule
 
@@ -184,7 +190,7 @@ class Wrapper(object):
         return hasattr(cls, '_delete_')
 
 def downcast(obj, cls):
-    import _api
+    from . import _api
     if type(obj) is cls:
         return obj
     fromty = obj._llvm_type_

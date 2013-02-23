@@ -1,7 +1,7 @@
 from binding import *
-from namespace import llvm
-from Value import Argument, Value
-from Attributes import Attributes
+from .namespace import llvm
+from .Value import Argument, Value
+from .Attributes import Attributes
 
 @Argument
 class Argument:

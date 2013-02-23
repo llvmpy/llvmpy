@@ -1,8 +1,8 @@
 from binding import *
-from namespace import llvm
-from Pass import Pass
-from Module import Module
-from Value import Function
+from .namespace import llvm
+from .Pass import Pass
+from .Module import Module
+from .Value import Function
 
 PassManagerBase = llvm.Class()
 PassManager = llvm.Class(PassManagerBase)

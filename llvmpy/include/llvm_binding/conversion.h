@@ -5,6 +5,29 @@
 // python object unwrapper
 
 static
+int py_bytes_to(PyObject *bytesobj, llvm::StringRef &strref){
+    // type check
+    if (!PyBytes_Check(bytesobj)) {
+        // raises TypeError
+        PyErr_SetString(PyExc_TypeError, "Expecting a str");
+        return 0;
+    }
+    // get len and buffer
+    const Py_ssize_t len = PyBytes_Size(bytesobj);
+    const char * buf = PyBytes_AsString(bytesobj);
+    if (!buf) {
+        // raises TypeError
+        return 0;
+    }
+    // set output
+    strref = llvm::StringRef(buf, len);
+    // success
+    return 1;
+}
+
+
+
+static
 int py_str_to(PyObject *strobj, llvm::StringRef &strref){
     // type check
     if (!PyString_Check(strobj)) {

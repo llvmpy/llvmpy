@@ -1,8 +1,8 @@
 from binding import *
-from namespace import llvm
+from .namespace import llvm
 
-from Module import Module
-from Function import Function
+from .Module import Module
+from .Function import Function
 
 
 Intrinsic = llvm.Namespace('Intrinsic')

@@ -1,8 +1,8 @@
 from binding import *
-from namespace import llvm
-from LLVMContext import LLVMContext
-from Support.raw_ostream import raw_ostream
-from ADT.StringRef import StringRef
+from .namespace import llvm
+from .LLVMContext import LLVMContext
+from .Support.raw_ostream import raw_ostream
+from .ADT.StringRef import StringRef
 
 Type = llvm.Class()
 IntegerType = llvm.Class(Type)

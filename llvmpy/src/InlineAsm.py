@@ -1,8 +1,8 @@
 from binding import *
-from namespace import llvm
-from Value import Value
-from DerivedTypes import FunctionType
-from ADT.StringRef import StringRef
+from .namespace import llvm
+from .Value import Value
+from .DerivedTypes import FunctionType
+from .ADT.StringRef import StringRef
 
 llvm.includes.add('llvm/InlineAsm.h')
 

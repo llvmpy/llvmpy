@@ -1,12 +1,12 @@
 from binding import *
-from namespace import llvm
-from Value import GlobalValue, Constant, Function, Argument, Value
-from BasicBlock import BasicBlock
-from Attributes import Attributes
-from Type import Type
-from DerivedTypes import FunctionType
-from LLVMContext import LLVMContext
-from CallingConv import CallingConv
+from .namespace import llvm
+from .Value import GlobalValue, Constant, Function, Argument, Value
+from .BasicBlock import BasicBlock
+from .Attributes import Attributes
+from .Type import Type
+from .DerivedTypes import FunctionType
+from .LLVMContext import LLVMContext
+from .CallingConv import CallingConv
 
 @Function
 class Function:

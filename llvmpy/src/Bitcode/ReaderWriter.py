@@ -9,7 +9,7 @@ llvm.includes.add('llvm/Bitcode/ReaderWriter.h')
 ParseBitCodeFile = llvm.CustomFunction('ParseBitCodeFile',
                                        'llvm_ParseBitCodeFile',
                                        PyObjectPtr,    # returns Module*
-                                       cast(str, StringRef),
+                                       cast(bytes, StringRef),
                                        ref(LLVMContext),
                                        PyObjectPtr,         # file-like object
                                        ).require_only(2)

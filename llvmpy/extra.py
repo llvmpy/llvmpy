@@ -11,7 +11,7 @@ from llvmpy import _api
 def _wrapper(func):
     "Wrap the re-exported functions"
     def _core(*args):
-        unwrapped = map(capsule.unwrap, args)
+        unwrapped = list(map(capsule.unwrap, args))
         ret = func(*unwrapped)
         return capsule.wrap(ret)
     return _core

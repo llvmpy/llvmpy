@@ -1,16 +1,16 @@
 from binding import *
-from namespace import llvm
-from Pass import ImmutablePass
+from .namespace import llvm
+from .Pass import ImmutablePass
 
 DataLayout = llvm.Class(ImmutablePass)
 StructLayout = llvm.Class()
 
-from LLVMContext import LLVMContext
-from ADT.StringRef import StringRef
-from Module import Module
-from Type import Type, IntegerType, StructType
-from ADT.SmallVector import SmallVector_Value
-from GlobalVariable import GlobalVariable
+from .LLVMContext import LLVMContext
+from .ADT.StringRef import StringRef
+from .Module import Module
+from .Type import Type, IntegerType, StructType
+from .ADT.SmallVector import SmallVector_Value
+from .GlobalVariable import GlobalVariable
 
 
 @DataLayout

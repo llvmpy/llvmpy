@@ -259,7 +259,7 @@ class PyCodeWriter(CodeWriterBase):
 
     def unwrap_many(self, args):
         unwrapped = self.new_symbol('unwrapped')
-        self.println('%(unwrapped)s = map(capsule.unwrap, %(args)s)' % locals())
+        self.println('%(unwrapped)s = list(map(capsule.unwrap, %(args)s))' % locals())
         return unwrapped
 
     def unwrap(self, val):

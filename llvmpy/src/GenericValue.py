@@ -1,6 +1,6 @@
 from binding import *
-from namespace import llvm
-from Type import Type
+from .namespace import llvm
+from .Type import Type
 
 GenericValue = llvm.Class()
 

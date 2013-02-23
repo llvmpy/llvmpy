@@ -1,6 +1,6 @@
 from binding import *
-from namespace import llvm
-from Value import Value, MDNode, User, BasicBlock, Function, ConstantInt
+from .namespace import llvm
+from .Value import Value, MDNode, User, BasicBlock, Function, ConstantInt
 
 
 Instruction = llvm.Class(User)
@@ -63,10 +63,10 @@ SynchronizationScope = llvm.Enum('SynchronizationScope',
 
 
 
-from ADT.StringRef import StringRef
-from CallingConv import CallingConv
-from Attributes import Attributes
-from Type import Type
+from .ADT.StringRef import StringRef
+from .CallingConv import CallingConv
+from .Attributes import Attributes
+from .Type import Type
 
 
 
