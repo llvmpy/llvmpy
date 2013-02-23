@@ -1,5 +1,5 @@
 A More Complicated Function
-====================
+===========================
 
 .. code-block:: python
 
