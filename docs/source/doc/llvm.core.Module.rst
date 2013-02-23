@@ -15,7 +15,8 @@ Modules are created using the static method ``Module.new``:
 
    #!/usr/bin/env python
    
-   from llvm import \* from llvm.core import \*
+   from llvm import *
+   from llvm.core import *
    
    # create a module
    my_module = Module.new('my_module')
