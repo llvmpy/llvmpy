@@ -21,3 +21,10 @@ Properties
 [read-only]
 
 The width of the integer type, in number of bits.
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.IntegerType
+   :members:
+   :undoc-members:

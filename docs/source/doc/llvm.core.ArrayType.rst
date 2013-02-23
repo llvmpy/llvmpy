@@ -28,3 +28,10 @@ A ``Type`` object representing the type of the element of the array.
 [read-only]
 
 The number of elements in the array.
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.ArrayType
+   :members:
+   :undoc-members:

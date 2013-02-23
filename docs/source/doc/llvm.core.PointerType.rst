@@ -29,3 +29,10 @@ The address space of the pointer.
 
 A `Type <llvm.core.Type.html>`_ object representing the type of the
 value pointed to.
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.PointerType
+   :members:
+   :undoc-members:

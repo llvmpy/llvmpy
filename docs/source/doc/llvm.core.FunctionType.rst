@@ -46,3 +46,10 @@ the function. Used like this:
    Type.int(), Type.int() ] ) for arg in func_type.args: assert arg.kind
    == TYPE_INTEGER assert arg == Type.int() assert func_type.arg_count
    == len(func_type.args)
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.FunctionType
+   :members:
+   :undoc-members:

@@ -37,3 +37,10 @@ The list of operands (values, of type
 
 The number of operands that this value referes to. Same as
 ``len(uses.operands)`` but faster if you just want the count.
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.User
+   :members:
+   :undoc-members:

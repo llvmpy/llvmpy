@@ -40,3 +40,10 @@ class, or by using the static method ``GlobalVariable.new``.
    # list all global variables in a module
    for gv in module_obj.global_variables: print gv.name, "of type",
    gv.type
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.GlobalVariable
+   :members:
+   :undoc-members:

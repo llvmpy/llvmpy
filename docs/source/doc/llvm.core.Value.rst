@@ -63,3 +63,10 @@ representation.
 ``Value`` objects can be compared for equality. Internally, this
 converts both arguments into their LLVM assembly representations and
 compares the resultant strings.
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.Value
+   :members:
+   :undoc-members:

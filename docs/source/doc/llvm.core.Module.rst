@@ -20,3 +20,10 @@ Modules are created using the static method ``Module.new``:
    
    # create a module
    my_module = Module.new('my_module')
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.Module
+   :members:
+   :undoc-members:

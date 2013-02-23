@@ -354,3 +354,9 @@ some examples:
    
    assert isinstance(k1, ConstantInt) assert isinstance(k2, ConstantArray)
    
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.Constant
+   :members:
+   :undoc-members:
