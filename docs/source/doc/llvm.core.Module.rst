@@ -4,10 +4,12 @@
 | title: Module (llvm.core)   |
 +-----------------------------+
 
+llvm.core.Module
+================
+
 Modules are top-level container objects. You need to create a module
 object first, before you can add global variables, aliases or functions.
 Modules are created using the static method ``Module.new``:
-
 
 .. code-block:: python
 

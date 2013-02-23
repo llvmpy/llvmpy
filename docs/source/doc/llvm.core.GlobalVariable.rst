@@ -4,6 +4,9 @@
 | title: GlobalVariable (llvm.core)   |
 +-------------------------------------+
 
+llvm.core.GlobalVariable
+========================
+
 Global variables (``llvm.core.GlobalVariable``) are subclasses of
 `llvm.core.GlobalValue <llvm.core.GlobalValue.html>`_ and represent
 module-level variables. These can have optional initializers and can be

@@ -4,6 +4,9 @@
 | title: Constant (llvm.core)   |
 +-------------------------------+
 
+llvm.core.Constant
+==================
+
 ``Constant``-s represents constants that appear within the code. The
 values of such objects are known at creation time. Constants can be
 created from Python constants. A constant expression is also a constant
