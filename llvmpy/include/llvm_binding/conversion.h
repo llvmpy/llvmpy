@@ -9,7 +9,7 @@ int py_bytes_to(PyObject *bytesobj, llvm::StringRef &strref){
     // type check
     if (!PyBytes_Check(bytesobj)) {
         // raises TypeError
-        PyErr_SetString(PyExc_TypeError, "Expecting a str");
+        PyErr_SetString(PyExc_TypeError, "Expecting a bytes");
         return 0;
     }
     // get len and buffer

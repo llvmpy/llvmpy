@@ -477,9 +477,13 @@ PyObject* llvm_ParseBitCodeFile(llvm::StringRef Buf, llvm::LLVMContext& Ctx,
     if (FObj) {
         std::string ErrStr;
         M = ParseBitcodeFile(MB, Ctx, &ErrStr);
-        if (-1 == PyFile_WriteString(ErrStr.c_str(), FObj)) {
+        auto_pyobject buf = PyBytes_FromString(ErrStr.c_str());
+        if (NULL == PyObject_CallMethod(FObj, "write", "O", *buf)){
             return NULL;
         }
+//        if (-1 == PyFile_WriteString(ErrStr.c_str(), FObj)) {
+//            return NULL;
+//        }
     } else {
         M = ParseBitcodeFile(MB, Ctx);
     }
@@ -497,9 +501,8 @@ PyObject* llvm_WriteBitcodeToFile(const llvm::Module *M, PyObject* FObj)
     llvm::WriteBitcodeToFile(M, rso);
     rso.flush();
     StringRef ref = rso.str();
-    PyObject* buf = PyBytes_FromStringAndSize(ref.data(), ref.size());
-    puts(PyString_AsString(PyObject_Str(PyObject_Type(buf))));
-    return PyObject_CallMethod(FObj, "write", "O", buf);
+    auto_pyobject buf = PyBytes_FromStringAndSize(ref.data(), ref.size());
+    return PyObject_CallMethod(FObj, "write", "O", *buf);
 }
 
 static
