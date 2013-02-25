@@ -156,7 +156,7 @@ def test_basic_jit_use():
     bc_buffer.close()
 
     # read bitcode
-    errbuf = StringIO()
+    errbuf = BytesIO()
     m2 = llvm.ParseBitCodeFile(bc, context, errbuf)
     if not m2:
         raise Exception(errbuf.getvalue())
