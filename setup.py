@@ -27,7 +27,7 @@ def run_llvm_config(extra_args):
     try:
         p = Popen(args, stdout=PIPE, stderr=PIPE)
     except OSError:
-        sys.exit("Error: could invoke %r\n"
+        sys.exit("Error: could not invoke %r\n"
                  "Try setting LLVM_CONFIG_PATH=/path/to/llvm-config" % args)
     stdout, stderr = p.communicate()
     if stderr:
