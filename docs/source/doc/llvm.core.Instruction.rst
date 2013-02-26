@@ -240,3 +240,10 @@ Properties
 
 The predicate of the compare instruction, one of the ``ICMP_*`` or
 ``FCMP_*`` constants.
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.Instruction
+   :members:
+   :undoc-members:

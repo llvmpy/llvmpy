@@ -95,3 +95,9 @@ A power-of-2 integer indicating the boundary to align to.
 
     The module object to which this global belongs to.
 
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.GlobalValue
+   :members:
+   :undoc-members:

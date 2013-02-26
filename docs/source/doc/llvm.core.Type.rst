@@ -126,3 +126,10 @@ Example:
 
    assert Type.int().kind == TYPE_INTEGER assert
    Type.void().kind == TYPE_VOID
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.Type
+   :members:
+   :undoc-members:

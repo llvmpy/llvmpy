@@ -11,12 +11,22 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys, os, glob
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+#sys.path.insert(0, os.path.abspath('../..'))
+
+# Support sphinx.ext.autodoc to extract docstrings from modules without installing
+# complete package.
+# The python modules depend on _core, so we must build entire package first though.
+built_lib = glob.glob('../../build/lib.*/')
+if not built_lib:
+    print "WARNING: To build complete documentation you must build package first"
+else:
+    # lib dir has platform suffix
+    sys.path.insert(0, os.path.abspath(built_lib[0]))
 
 # -- General configuration -----------------------------------------------------
 

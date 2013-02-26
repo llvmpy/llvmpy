@@ -149,3 +149,10 @@ function bodies.
 
 Verifies the function. See `LLVM
 docs <http://llvm.org/docs/Passes.html#verify>`_.
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.Function
+   :members:
+   :undoc-members:

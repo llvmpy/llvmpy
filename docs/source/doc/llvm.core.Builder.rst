@@ -409,3 +409,10 @@ positioned.
 ~~~~~~~~~
 
 Deprecated. Same as ``basic_block``
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.Builder
+   :members:
+   :undoc-members:
