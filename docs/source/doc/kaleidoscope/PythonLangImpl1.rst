@@ -6,7 +6,7 @@ Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
 Introduction
-=========
+============
 
 Welcome to the "Implementing a language with LLVM" tutorial. This
 tutorial runs through the implementation of a simple language, showing

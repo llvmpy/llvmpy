@@ -56,3 +56,10 @@ Add an attribute ``attr`` to the argument, from the set listed above.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Remove the attribute ``attr`` of the argument.
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.Argument
+   :members:
+   :undoc-members:

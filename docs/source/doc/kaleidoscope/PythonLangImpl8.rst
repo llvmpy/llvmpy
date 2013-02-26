@@ -1,6 +1,6 @@
-*************************************************
+***************************************************
 Chapter 8: Conclusion and other useful LLVM tidbits
-*************************************************
+***************************************************
 
 Written by Chris Lattner
 
@@ -106,7 +106,7 @@ generating LLVM IR. These are some of the more subtle things that may not be obv
 but are very useful if you want to take advantage of LLVM's capabilities.
 
 Properties of the LLVM IR
-========================
+=========================
 
 We have a couple common questions about code in the LLVM IR form - let's 
 just get these out of the way right now, shall we?
@@ -164,7 +164,7 @@ This can make sense for specialized domains such as an in-kernel language.
 --------------
 
 Safety Guarantees
-----------------
+-----------------
 
 Many of the languages above are also "safe" languages: it is 
 impossible for a program written in Java to corrupt its address space and 
@@ -236,7 +236,7 @@ you desire in your front-end, on the language-specific AST.
 --------------
 
 Tips and Tricks
-==============
+===============
 
 There is a variety of useful tips and tricks that you come to 
 know after working on/with LLVM that aren't obvious at first glance. 

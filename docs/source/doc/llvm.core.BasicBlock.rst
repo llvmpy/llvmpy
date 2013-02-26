@@ -42,3 +42,10 @@ The parent function of this basicblock.
 ~~~~~~~~~~~~~~~~
 
 A list of instructions in this basicblock.
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.BasicBlock
+   :members:
+   :undoc-members:

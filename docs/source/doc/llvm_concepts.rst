@@ -28,6 +28,7 @@ follow these steps:
 -  add a *basic block* to the function
 -  using a helper object called an *instruction builder*, add two
    instructions into the basic block: 
+
     - an instruction to add the two
       arguments and store the result into a temporary variable 
     - a return

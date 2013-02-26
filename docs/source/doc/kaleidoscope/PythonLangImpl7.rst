@@ -295,7 +295,7 @@ variables is a useful thing regardless of whether you will be mutating
 them. Here's a motivating example that shows how we could use these:
 
 
-.. code-block:: 
+.. code-block:: none
 
    # Define ':' for sequencing: as a low-precedence operator that ignores operands 
    # and just returns the RHS. 
@@ -352,7 +352,7 @@ function that ensures that the allocas are created in the entry block of
 the function:
 
 
-.. code-block:: 
+.. code-block:: python
 
    # Creates an alloca instruction in the entry block of the function. This is used 
    # for mutable variables. 
@@ -475,7 +475,7 @@ It is interesting to see what the code looks like before and after the
 mem2reg optimization runs. For example, this is the before/after code
 for our recursive fib function. Before the optimization:
 
-.. code-block:: 
+.. code-block:: llvm
    
    define double @fib(double %x) { 
    entry: 
@@ -515,7 +515,7 @@ still just make the PHI.
 
 Here is the code after the mem2reg pass runs:
 
-.. code-block:: 
+.. code-block:: llvm
    
    define double @fib(double %x) { 
    entry: 
@@ -651,7 +651,7 @@ Now that we have an assignment operator, we can mutate loop variables
 and arguments. For example, we can now run code like this:
 
 
-.. code-block::
+.. code-block:: none
 
    # Function to print a double. 
    extern printd(x)

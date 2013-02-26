@@ -29,3 +29,10 @@ element of the vector.
 [read-only]
 
 The number of elements in the vector.
+
+
+Automatically Generated Documentation
+-------------------------------------
+.. autoclass:: llvm.core.VectorType
+   :members:
+   :undoc-members:
