@@ -124,8 +124,8 @@ int py_int_to(PyObject *intobj, unsigned & val){
 static
 int py_int_to(PyObject *intobj, unsigned long long & val){
     if (!PyInt_Check(intobj) and !PyLong_Check(intobj)) {
-        // raise TypeError
-        PyErr_SetString(PyExc_TypeError, "Expecting an int 2");
+        // raise TypeError;
+        PyErr_SetString(PyExc_TypeError, "Expecting an int");
         return 0;
     }
     val = PyInt_AsUnsignedLongLongMask(intobj);

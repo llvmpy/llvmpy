@@ -134,7 +134,7 @@ class BinaryOperator:
 
 @CallInst
 class CallInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
     
     getCallingConv = Method(CallingConv.ID)
     setCallingConv = Method(Void, CallingConv.ID)
@@ -277,7 +277,7 @@ class IndirectBrInst:
 
 @InvokeInst
 class InvokeInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
     getCallingConv = Method(CallingConv.ID)
     setCallingConv = Method(Void, CallingConv.ID)
     getParamAlignment = Method(cast(Unsigned, int), cast(int, Unsigned))

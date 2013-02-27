@@ -1729,7 +1729,7 @@ class CallOrInvokeInstruction(Instruction):
             return _make_value(function)
 
     def _set_called_function(self, function):
-        self._ptr.setCalledFunction(function)
+        self._ptr.setCalledFunction(function._ptr)
 
     called_function = property(_get_called_function, _set_called_function)
 
