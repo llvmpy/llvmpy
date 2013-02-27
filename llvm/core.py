@@ -29,6 +29,14 @@
 #
 
 from io import BytesIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    try:
+        from cStringIO import StringIO
+    except ImportError:
+        from io import StringIO
+
 import contextlib, weakref
 
 import llvm
@@ -468,7 +476,7 @@ class Module(llvm.Wrapper):
 
     @property
     def global_variables(self):
-        return map(_make_value, self._ptr.list_globals())
+        return list(map(_make_value, self._ptr.list_globals()))
 
     def add_function(self, ty, name):
         """Add a function of given type with given name."""
@@ -501,7 +509,7 @@ class Module(llvm.Wrapper):
     @property
     def functions(self):
         """All functions in this module."""
-        return map(_make_value, self._ptr.list_functions())
+        return list(map(_make_value, self._ptr.list_functions()))
 
     def verify(self):
         """Verify module.
@@ -585,10 +593,11 @@ class Module(llvm.Wrapper):
         ret = False
         if fileobj is None:
             ret = True
-            fileobj = BytesIO()
+            fileobj = StringIO()
         from llvm.ee import TargetMachine
         tm = TargetMachine.new()
-        fileobj.write(tm.emit_assembly(self))
+        asm = tm.emit_assembly(self)
+        fileobj.write(asm)
         if ret:
             return fileobj.getvalue()
 
@@ -983,7 +992,7 @@ class Value(llvm.Wrapper):
     
     @property
     def uses(self):
-        return map(_make_value, self._ptr.list_use())
+        return list(map(_make_value, self._ptr.list_use()))
 
 class User(Value):
     _type_ = api.llvm.User
@@ -1458,7 +1467,7 @@ class Function(GlobalValue):
     @property
     def args(self):
         args = self._ptr.getArgumentList()
-        return map(_make_value, args)
+        return list(map(_make_value, args))
 
     @property
     def basic_block_count(self):
@@ -1480,7 +1489,7 @@ class Function(GlobalValue):
 
     @property
     def basic_blocks(self):
-        return map(_make_value, self._ptr.getBasicBlockList())
+        return list(map(_make_value, self._ptr.getBasicBlockList()))
     
     def viewCFG(self):
         return self._ptr.viewCFG()
@@ -1782,7 +1791,7 @@ class BasicBlock(Value):
 
     @property
     def instructions(self):
-        return map(_make_value, self._ptr.getInstList())
+        return list(map(_make_value, self._ptr.getInstList()))
 
 #===----------------------------------------------------------------------===
 # Value factory method

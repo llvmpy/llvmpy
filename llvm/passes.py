@@ -147,7 +147,6 @@ class PassManager(llvm.Wrapper):
         if not a_pass:
             assert pass_name not in PASSES, "Registered but not found?"
             raise llvm.LLVMException('Invalid pass name "%s"' % pass_name)
-        print a_pass
         self._ptr.add(a_pass)
 
     def run(self, module):

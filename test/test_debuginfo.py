@@ -122,7 +122,7 @@ def debug_in_gdb(lfunc):
 
     # Now let's compile and run!
     retval = ee.run_function(lfunc, [arg1])
-    print retval.as_real(float_type)
+    print(retval.as_real(float_type))
 
 
 if __name__ == '__main__':

@@ -179,7 +179,7 @@ class ExecutionEngine(llvm.Wrapper):
         self._ptr.DisableLazyCompilation(disabled)
 
     def run_function(self, fn, args):
-        ptr = self._ptr.runFunction(fn._ptr, map(lambda x: x._ptr, args))
+        ptr = self._ptr.runFunction(fn._ptr, list(map(lambda x: x._ptr, args)))
         return GenericValue(ptr)
 
     def get_pointer_to_function(self, fn):

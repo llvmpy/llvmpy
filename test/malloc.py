@@ -10,7 +10,7 @@ def test():
     alloc = b.malloc_array(Type.int(), Constant.int(Type.int(), 10), 'hee')
     inst = b.free(alloc)
     b.ret_void()
-    print m
+    print(m)
 
 if __name__ == '__main__':
     test()

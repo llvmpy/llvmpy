@@ -11,7 +11,11 @@ import tempfile
 import contextlib
 
 BITS = tuple.__itemsize__ * 8
-from io import BytesIO
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 
 import llvm
@@ -118,7 +122,8 @@ class TestAttr(TestCase):
                 ret void
             }
         """
-        return Module.from_assembly(BytesIO(test_module))
+        buf = StringIO(test_module)
+        return Module.from_assembly(buf)
 
     def test_align(self):
         m = self.make_module()
@@ -250,7 +255,7 @@ entry:
 }
 """
     def test_operands(self):
-        m = Module.from_assembly(BytesIO(self.test_module))
+        m = Module.from_assembly(StringIO(self.test_module))
 
         test_func = m.get_function_named("test_func")
         prod = m.get_function_named("prod")
@@ -312,7 +317,7 @@ entry:
 }
 """
     def test_passes(self):
-        m = Module.from_assembly(BytesIO(self.asm))
+        m = Module.from_assembly(StringIO(self.asm))
 
         fn_test1 = m.get_function_named('test1')
         fn_test2 = m.get_function_named('test2')
@@ -360,7 +365,7 @@ entry:
         self.assertNotEqual(str(fn_test1).strip(), original_test1.strip())
 
     def test_passes_with_pmb(self):
-        m = Module.from_assembly(BytesIO(self.asm))
+        m = Module.from_assembly(StringIO(self.asm))
 
         fn_test1 = m.get_function_named('test1')
         fn_test2 = m.get_function_named('test2')
@@ -626,7 +631,7 @@ class TestTargetMachines(TestCase):
         self.assertTrue(tm.target_data)
         self.assertTrue(tm.target_short_description)
         self.assertTrue(tm.triple)
-        self.assertIn('foo', tm.emit_assembly(m).decode('utf-8'))
+        self.assertIn('foo', tm.emit_assembly(m))
         self.assertTrue(le.get_host_cpu_name())
 
     def test_ptx(self):
@@ -636,13 +641,13 @@ class TestTargetMachines(TestCase):
             arch = 'nvptx64'
         else:
             return # skip this test
-        print arch
+        print(arch)
         m, func = self._build_module()
         func.calling_convention = lc.CC_PTX_KERNEL # set calling conv
         ptxtm = le.TargetMachine.lookup(arch=arch, cpu='sm_20')
         self.assertTrue(ptxtm.triple)
         self.assertTrue(ptxtm.cpu)
-        ptxasm = ptxtm.emit_assembly(m).decode('utf-8')
+        ptxasm = ptxtm.emit_assembly(m)
         self.assertIn('foo', ptxasm)
         if lc.HAS_NVPTX:
             self.assertIn('.address_size 64', ptxasm)
@@ -936,31 +941,31 @@ class TestCPUSupport(TestCase):
     def test_cpu_support2(self):
         features = 'sse3', 'sse41', 'sse42', 'avx'
         mattrs = ','.join(map(lambda s: '-%s' % s, features))
-        print 'disable mattrs', mattrs
+        print('disable mattrs', mattrs)
         self._template(mattrs)
 
     def test_cpu_support3(self):
         features = 'sse41', 'sse42', 'avx'
         mattrs = ','.join(map(lambda s: '-%s' % s, features))
-        print 'disable mattrs', mattrs
+        print('disable mattrs', mattrs)
         self._template(mattrs)
 
     def test_cpu_support4(self):
         features = 'sse42', 'avx'
         mattrs = ','.join(map(lambda s: '-%s' % s, features))
-        print 'disable mattrs', mattrs
+        print('disable mattrs', mattrs)
         self._template(mattrs)
 
     def test_cpu_support5(self):
         features = 'avx',
         mattrs = ','.join(map(lambda s: '-%s' % s, features))
-        print 'disable mattrs', mattrs
+        print('disable mattrs', mattrs)
         self._template(mattrs)
 
     def test_cpu_support6(self):
         features = []
         mattrs = ','.join(map(lambda s: '-%s' % s, features))
-        print 'disable mattrs', mattrs
+        print('disable mattrs', mattrs)
         self._template(mattrs)
 
 tests.append(TestCPUSupport)
@@ -1235,4 +1240,4 @@ def run(verbosity=1):
 
 
 if __name__ == '__main__':
-    run()
+    unittest.main()

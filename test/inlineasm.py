@@ -20,7 +20,7 @@ class TestInlineAsm(TestCase):
         inlineasm = InlineAsm.get(iaty,  "bswap $0", "=r,r")
         self.assertIn('asm "bswap $0", "=r,r"', str(inlineasm))
         builder.ret(builder.call(inlineasm, [fn.args[0]]))
-        print fn
+        print(fn)
 
 if __name__ == '__main__':
     unittest.main()
