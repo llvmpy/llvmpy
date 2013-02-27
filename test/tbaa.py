@@ -29,7 +29,7 @@ class TestTBAABuilder(TestCase):
 
 
         bldr.ret_void()
-        print mod
+        print(mod)
 
 if __name__ == '__main__':
     unittest.main()

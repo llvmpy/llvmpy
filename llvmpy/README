@@ -1,0 +1,5 @@
+# README
+
+This is a reimplementation of the LLVM binding, aiming to provide a more familiar interface to the C++ API whenever possible.
+
+The implementation uses a custom DSL in python to describe the interface (under binding directory). The DSL serves as input to *gen.py* for generation of the .cpp and .py files for the actual binding.

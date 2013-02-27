@@ -10,13 +10,12 @@ import subprocess
 import tempfile
 import contextlib
 
-is_py3k = bool(sys.version_info[0] == 3)
 BITS = tuple.__itemsize__ * 8
 
-if is_py3k:
+try:
+    from StringIO import StringIO
+except ImportError:
     from io import StringIO
-else:
-    from cStringIO import StringIO
 
 
 import llvm
@@ -26,6 +25,7 @@ from llvm.ee import EngineBuilder
 import llvm.core as lc
 import llvm.passes as lp
 import llvm.ee as le
+import llvmpy
 
 
 tests = []
@@ -117,13 +117,13 @@ tests.append(TestAsm)
 class TestAttr(TestCase):
     def make_module(self):
         test_module = """
-            define i32 @sum(i32, i32) {
+            define void @sum(i32*, i32*) {
             entry:
-                %2 = add i32 %0, %1
-                ret i32 %2
+                ret void
             }
         """
-        return Module.from_assembly(StringIO(test_module))
+        buf = StringIO(test_module)
+        return Module.from_assembly(buf)
 
     def test_align(self):
         m = self.make_module()
@@ -394,6 +394,9 @@ entry:
         self.assertFalse(pmb.disable_unroll_loops)
         self.assertFalse(pmb.disable_simplify_lib_calls)
 
+        pmb.disable_unit_at_a_time = True
+        self.assertTrue(pmb.disable_unit_at_a_time)
+
         # Do function pass
         fpm = lp.FunctionPassManager.new(m)
         pmb.populate(fpm)
@@ -437,29 +440,18 @@ class TestEngineBuilder(TestCase):
 
     def test_enginebuilder_basic(self):
         module = self.make_test_module()
+        self.assertTrue(llvmpy.capsule.has_ownership(module._ptr._ptr))
         ee = EngineBuilder.new(module).create()
-
-        with self.assertRaises(llvm.LLVMException):
-            # Ensure the module is owned.
-            llvm._util.check_is_unowned(module)
-
+        self.assertFalse(llvmpy.capsule.has_ownership(module._ptr._ptr))
         self.run_foo(ee, module)
 
 
     def test_enginebuilder_with_tm(self):
         tm = le.TargetMachine.new()
         module = self.make_test_module()
+        self.assertTrue(llvmpy.capsule.has_ownership(module._ptr._ptr))
         ee = EngineBuilder.new(module).create(tm)
-
-        with self.assertRaises(llvm.LLVMException):
-            # Ensure the targetmachine is owned.
-            llvm._util.check_is_unowned(tm)
-
-
-        with self.assertRaises(llvm.LLVMException):
-            # Ensure the module is owned.
-            llvm._util.check_is_unowned(module)
-
+        self.assertFalse(llvmpy.capsule.has_ownership(module._ptr._ptr))
         self.run_foo(ee, module)
 
     def test_enginebuilder_force_jit(self):
@@ -467,12 +459,12 @@ class TestEngineBuilder(TestCase):
         ee = EngineBuilder.new(module).force_jit().create()
 
         self.run_foo(ee, module)
-
-    def test_enginebuilder_force_interpreter(self):
-        module = self.make_test_module()
-        ee = EngineBuilder.new(module).force_interpreter().create()
-
-        self.run_foo(ee, module)
+#
+#    def test_enginebuilder_force_interpreter(self):
+#        module = self.make_test_module()
+#        ee = EngineBuilder.new(module).force_interpreter().create()
+#
+#        self.run_foo(ee, module)
 
     def test_enginebuilder_opt(self):
         module = self.make_test_module()
@@ -549,6 +541,7 @@ class TestObjCache(TestCase):
         gv3 = None
 
         gv1.delete()
+
         gv4 = GlobalVariable.new(m1, t, "gv")
 
         self.assert_(gv1 is not gv4)
@@ -588,7 +581,7 @@ class TestObjCache(TestCase):
         self.assert_(b1 is b2)
 
         # Testing basic block aliasing 2
-        b3 = f1.get_entry_basic_block()
+        b3 = f1.entry_basic_block
         self.assert_(b1 is b3)
 
         # Testing basic block aliasing 3
@@ -638,7 +631,7 @@ class TestTargetMachines(TestCase):
         self.assertTrue(tm.target_data)
         self.assertTrue(tm.target_short_description)
         self.assertTrue(tm.triple)
-        self.assertIn('foo', tm.emit_assembly(m).decode('utf-8'))
+        self.assertIn('foo', tm.emit_assembly(m))
         self.assertTrue(le.get_host_cpu_name())
 
     def test_ptx(self):
@@ -648,16 +641,17 @@ class TestTargetMachines(TestCase):
             arch = 'nvptx64'
         else:
             return # skip this test
+        print(arch)
         m, func = self._build_module()
         func.calling_convention = lc.CC_PTX_KERNEL # set calling conv
-        ptxtm = le.TargetMachine.lookup(arch=arch, cpu='compute_20')
+        ptxtm = le.TargetMachine.lookup(arch=arch, cpu='sm_20')
         self.assertTrue(ptxtm.triple)
         self.assertTrue(ptxtm.cpu)
-        ptxasm = ptxtm.emit_assembly(m).decode('utf-8')
+        ptxasm = ptxtm.emit_assembly(m)
         self.assertIn('foo', ptxasm)
         if lc.HAS_NVPTX:
             self.assertIn('.address_size 64', ptxasm)
-        self.assertIn('compute_20', ptxasm)
+        self.assertIn('sm_20', ptxasm)
 
     def _build_module(self):
         m = Module.new('TestTargetMachines')
@@ -947,31 +941,31 @@ class TestCPUSupport(TestCase):
     def test_cpu_support2(self):
         features = 'sse3', 'sse41', 'sse42', 'avx'
         mattrs = ','.join(map(lambda s: '-%s' % s, features))
-        print 'disable mattrs', mattrs
+        print('disable mattrs', mattrs)
         self._template(mattrs)
 
     def test_cpu_support3(self):
         features = 'sse41', 'sse42', 'avx'
         mattrs = ','.join(map(lambda s: '-%s' % s, features))
-        print 'disable mattrs', mattrs
+        print('disable mattrs', mattrs)
         self._template(mattrs)
 
     def test_cpu_support4(self):
         features = 'sse42', 'avx'
         mattrs = ','.join(map(lambda s: '-%s' % s, features))
-        print 'disable mattrs', mattrs
+        print('disable mattrs', mattrs)
         self._template(mattrs)
 
     def test_cpu_support5(self):
         features = 'avx',
         mattrs = ','.join(map(lambda s: '-%s' % s, features))
-        print 'disable mattrs', mattrs
+        print('disable mattrs', mattrs)
         self._template(mattrs)
 
     def test_cpu_support6(self):
         features = []
         mattrs = ','.join(map(lambda s: '-%s' % s, features))
-        print 'disable mattrs', mattrs
+        print('disable mattrs', mattrs)
         self._template(mattrs)
 
 tests.append(TestCPUSupport)
@@ -1246,4 +1240,4 @@ def run(verbosity=1):
 
 
 if __name__ == '__main__':
-    run()
+    unittest.main()

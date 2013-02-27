@@ -28,44 +28,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-"""Execution Engine and related classes.
+"Execution Engine and related classes."
 
-"""
+from io import BytesIO
+import contextlib
 
-import llvm                 # top-level, for common stuff
-import llvm.core as core    # module, function etc.
-import llvm._core as _core  # C wrappers
-import llvm._util as _util  # utility functions
-import logging
-import os
-
-logger = logging.getLogger(__name__)
-
-
-# re-export TargetData for backward compatibility.
-from llvm.passes import TargetData
-
-def _detect_avx_support():
-    '''FIXME: This is a workaround for AVX support.
-    '''
-    disable_avx_detect = int(os.environ.get('LLVMPY_DISABLE_AVX_DETECT', 0))
-    if disable_avx_detect:
-        return False # enable AVX if user disable AVX detect
-    force_disable_avx = int(os.environ.get('LLVMPY_FORCE_DISABLE_AVX', 0))
-    if force_disable_avx:
-        return True # force disable AVX
-    # auto-detect avx
-    try:
-        for line in open('/proc/cpuinfo'):
-            if line.lstrip().startswith('flags') and 'avx' in line.split():
-                # enable AVX if flags contain AVX
-                return False
-    except IOError:
-        pass # disable AVX if no /proc/cpuinfo is found
-    return True # disable AVX if flags does not have AVX
-
-FORCE_DISABLE_AVX = _detect_avx_support()
-
+import llvm
+from llvm import core
+from llvm.passes import TargetData, TargetTransformInfo
+from llvmpy import api, extra
 #===----------------------------------------------------------------------===
 # Enumerations
 #===----------------------------------------------------------------------===
@@ -74,39 +45,41 @@ BO_BIG_ENDIAN       = 0
 BO_LITTLE_ENDIAN    = 1
 
 # CodeModel
-CM_DEFAULT = 0
-CM_JITDEFAULT = 1
-CM_SMALL = 2
-CM_KERNEL = 3
-CM_MEDIUM = 4
-CM_LARGE = 5
+CM_DEFAULT      = api.llvm.CodeModel.Model.Default
+CM_JITDEFAULT   = api.llvm.CodeModel.Model.JITDefault
+CM_SMALL        = api.llvm.CodeModel.Model.Small
+CM_KERNEL       = api.llvm.CodeModel.Model.Kernel
+CM_MEDIUM       = api.llvm.CodeModel.Model.Medium
+CM_LARGE        = api.llvm.CodeModel.Model.Large
 
 #===----------------------------------------------------------------------===
 # Generic value
 #===----------------------------------------------------------------------===
 
-class GenericValue(object):
+class GenericValue(llvm.Wrapper):
 
     @staticmethod
     def int(ty, intval):
-        core.check_is_type(ty)
-        ptr = _core.LLVMCreateGenericValueOfInt(ty.ptr, intval, 0)
+        ptr = api.llvm.GenericValue.CreateInt(ty._ptr, int(intval), False)
         return GenericValue(ptr)
 
     @staticmethod
     def int_signed(ty, intval):
-        core.check_is_type(ty)
-        ptr = _core.LLVMCreateGenericValueOfInt(ty.ptr, intval, 1)
+        ptr = api.llvm.GenericValue.CreateInt(ty._ptr, int(intval), True)
         return GenericValue(ptr)
 
     @staticmethod
     def real(ty, floatval):
-        core.check_is_type(ty)   # only float or double
-        ptr = _core.LLVMCreateGenericValueOfFloat(ty.ptr, floatval)
+        if str(ty) == 'float':
+            ptr = api.llvm.GenericValue.CreateFloat(float(floatval))
+        elif str(ty) == 'double':
+            ptr = api.llvm.GenericValue.CreateDouble(float(floatval))
+        else:
+            raise Exception('Unreachable')
         return GenericValue(ptr)
 
     @staticmethod
-    def pointer(*args):
+    def pointer(addr):
         '''
         One argument version takes (addr).
         Two argument version takes (ty, addr). [Deprecated]
@@ -114,79 +87,46 @@ class GenericValue(object):
         `ty` is unused.
         `addr` is an integer representing an address.
 
-        TODO: remove two argument version.
         '''
-        if len(args)==2:
-            logger.warning("Deprecated: Two argument version of "
-                           "GenericValue.pointer() is deprecated.")
-            addr = args[1]
-        elif len(args)!=1:
-            raise TypeError("pointer() takes 1 or 2 arguments.")
-        else:
-            addr = args[0]
-        ptr = _core.LLVMCreateGenericValueOfPointer(addr)
+        ptr = api.llvm.GenericValue.CreatePointer(int(addr))
         return GenericValue(ptr)
 
-    def __init__(self, ptr):
-        self.ptr = ptr
-
-    def __del__(self):
-        _core.LLVMDisposeGenericValue(self.ptr)
-
     def as_int(self):
-        return _core.LLVMGenericValueToInt(self.ptr, 0)
+        return self._ptr.toUnsignedInt()
 
     def as_int_signed(self):
-        return _core.LLVMGenericValueToInt(self.ptr, 1)
+        return self._ptr.toSignedInt()
 
     def as_real(self, ty):
-        core.check_is_type(ty)   # only float or double
-        return _core.LLVMGenericValueToFloat(ty.ptr, self.ptr)
+        return self._ptr.toFloat(ty._ptr)
 
     def as_pointer(self):
-        return _core.LLVMGenericValueToPointer(self.ptr)
-
-
-# helper functions for generic value objects
-def check_is_generic_value(obj): _util.check_gen(obj, GenericValue)
-def _unpack_generic_values(objlist):
-    return _util.unpack_gen(objlist, check_is_generic_value)
-
+        return self._ptr.toPointer()
 
 #===----------------------------------------------------------------------===
 # Engine builder
 #===----------------------------------------------------------------------===
 
-class EngineBuilder(object):
+class EngineBuilder(llvm.Wrapper):
     @staticmethod
     def new(module):
-        core.check_is_module(module)
-        _util.check_is_unowned(module)
-        obj = _core.LLVMCreateEngineBuilder(module.ptr)
-        return EngineBuilder(obj, module)
-
-    def __init__(self, ptr, module):
-        self.ptr = ptr
-        self._module = module
-        self.__has_mattrs = False
-
-    def __del__(self):
-        _core.LLVMDisposeEngineBuilder(self.ptr)
+        ptr = api.llvm.EngineBuilder.new(module._ptr)
+        return EngineBuilder(ptr)
 
     def force_jit(self):
-        _core.LLVMEngineBuilderForceJIT(self.ptr)
+        self._ptr.setEngineKind(api.llvm.EngineKind.Kind.JIT)
         return self
 
     def force_interpreter(self):
-        _core.LLVMEngineBuilderForceInterpreter(self.ptr)
+        self._ptr.setEngineKind(api.llvm.EngineKind.Kind.Interpreter)
         return self
 
     def opt(self, level):
         '''
         level valid [0, 1, 2, 3] -- [None, Less, Default, Aggressive]
         '''
-        assert level in range(4)
-        _core.LLVMEngineBuilderSetOptLevel(self.ptr, level)
+        assert 0 <= level <= 3
+        self._ptr.setOptLevel = level
         return self
 
     def mattrs(self, string):
@@ -194,45 +134,39 @@ class EngineBuilder(object):
 
         e.g: +sse,-3dnow
         '''
-        self.__has_mattrs = True
-        if FORCE_DISABLE_AVX:
-            if 'avx' not in map(lambda x: x.strip(), string.split(',')):
-                # User did not override
-                string += ',-avx'
-        _core.LLVMEngineBuilderSetMAttrs(self.ptr, string.replace(',', ' '))
+        self._ptr.setMAttrs(string.split(','))
         return self
 
     def create(self, tm=None):
         '''
         tm --- Optional. Provide a TargetMachine.  Ownership is transfered
-               to the returned execution engine.
+        to the returned execution engine.
         '''
-        if not self.__has_mattrs and FORCE_DISABLE_AVX:
-            self.mattrs('-avx')
-
-        if tm:
-            _util.check_is_unowned(tm)
-            ret = _core.LLVMEngineBuilderCreateTM(self.ptr, tm.ptr)
+        if tm is not None:
+            engine = self._ptr.create(tm._ptr)
         else:
-            ret = _core.LLVMEngineBuilderCreate(self.ptr)
-        if isinstance(ret, str):
-            raise llvm.LLVMException(ret)
-        engine = ExecutionEngine(ret, self._module)
-        if tm:
-            tm._own(owner=llvm.DummyOwner)
-        return engine
+            engine = self._ptr.create()
+        return ExecutionEngine(engine)
 
-    def select_target(self):
+    def select_target(self, *args):
         '''get the corresponding target machine
+            
+        Accept no arguments or (triple, march, mcpu, mattrs)
         '''
-        ptr = _core.LLVMTargetMachineFromEngineBuilder(self.ptr)
+        if args:
+            triple, march, mcpu, mattrs = args
+            ptr = self._ptr.selectTarget(triple, march, mcpu,
+                                          mattrs.split(','))
+        else:
+            ptr = self._ptr.selectTarget()
         return TargetMachine(ptr)
+
 
 #===----------------------------------------------------------------------===
 # Execution engine
 #===----------------------------------------------------------------------===
 
-class ExecutionEngine(object):
+class ExecutionEngine(llvm.Wrapper):
 
     @staticmethod
     def new(module, force_interpreter=False):
@@ -241,65 +175,42 @@ class ExecutionEngine(object):
             eb.force_interpreter()
         return eb.create()
 
-    def __init__(self, ptr, module):
-        self.ptr = ptr
-        module._own(self)
-
-    def __del__(self):
-        _core.LLVMDisposeExecutionEngine(self.ptr)
-
     def disable_lazy_compilation(self, disabled=True):
-        _core.LLVMExecutionEngineDisableLazyCompilation(self.ptr,
-                                                        int(bool(disabled)))
+        self._ptr.DisableLazyCompilation(disabled)
 
     def run_function(self, fn, args):
-        core.check_is_function(fn)
-        ptrs = _unpack_generic_values(args)
-        gvptr = _core.LLVMRunFunction2(self.ptr, fn.ptr, ptrs)
-        return GenericValue(gvptr)
+        ptr = self._ptr.runFunction(fn._ptr, list(map(lambda x: x._ptr, args)))
+        return GenericValue(ptr)
 
     def get_pointer_to_function(self, fn):
-        core.check_is_function(fn)
-        return _core.LLVMGetPointerToFunction(self.ptr,fn.ptr)
+        return self._ptr.getPointerToFunction(fn._ptr)
 
     def get_pointer_to_global(self, val):
-        core.check_is_global_value(val)
-        return _core.LLVMGetPointerToGlobal(self.ptr, val.ptr)
+        return self._ptr.getPointerToGlobal(val._ptr)
 
     def add_global_mapping(self, gvar, addr):
         assert addr >= 0, "Address cannot not be negative"
-        _core.LLVMAddGlobalMapping(self.ptr, gvar.ptr, addr)
+        self._ptr.addGlobalMapping(gvar._ptr, addr)
 
     def run_static_ctors(self):
-        _core.LLVMRunStaticConstructors(self.ptr)
+        self._ptr.runStaticConstructorsDestructors(False)
 
     def run_static_dtors(self):
-        _core.LLVMRunStaticDestructors(self.ptr)
+        self._ptr.runStaticConstructorsDestructors(True)
 
     def free_machine_code_for(self, fn):
-        core.check_is_function(fn)
-        _core.LLVMFreeMachineCodeForFunction(self.ptr, fn.ptr)
+        self._ptr.freeMachineCodeForFunction(fn._ptr)
 
     def add_module(self, module):
-        core.check_is_module(module)
-        _core.LLVMAddModule(self.ptr, module.ptr)
-        module._own(self)
+        self._ptr.addModule(module._ptr)
 
     def remove_module(self, module):
-        core.check_is_module(module)
-        if module.owner != self:
-            raise llvm.LLVMException("module is not owned by self")
-        ret = _core.LLVMRemoveModule2(self.ptr, module.ptr)
-        if isinstance(ret, str):
-            raise llvm.LLVMException(ret)
-        return core.Module(ret)
+        return self._ptr.removeModule(module._ptr)
 
     @property
     def target_data(self):
-        td = TargetData(_core.LLVMGetExecutionEngineTargetData(self.ptr))
-        td._own(self)
-        return td
-
+        ptr = self._ptr.getDataLayout()
+        return TargetData(ptr)
 
 #===----------------------------------------------------------------------===
 # Target machine
@@ -309,84 +220,114 @@ def print_registered_targets():
     '''
     Note: print directly to stdout
     '''
-    _core.LLVMPrintRegisteredTargetsForVersion()
+    api.llvm.TargetRegistry.printRegisteredTargetsForVersion()
 
 def get_host_cpu_name():
     '''return the string name of the host CPU
     '''
-    return _core.LLVMGetHostCPUName()
+    return api.llvm.sys.getHostCPUName()
 
 def get_default_triple():
     '''return the target triple of the host in str-rep
     '''
-    return _core.LLVMDefaultTargetTriple()
+    return api.llvm.sys.getDefaultTargetTriple()
 
 
-class TargetMachine(llvm.Ownable):
+class TargetMachine(llvm.Wrapper):
 
     @staticmethod
     def new(triple='', cpu='', features='', opt=2, cm=CM_DEFAULT):
-        if not triple and not cpu:
+        if not triple:
             triple = get_default_triple()
+        if not cpu:
             cpu = get_host_cpu_name()
-        ptr = _core.LLVMCreateTargetMachine(triple, cpu, features, opt, cm)
-        return TargetMachine(ptr)
+        with contextlib.closing(BytesIO()) as error:
+            target = api.llvm.TargetRegistry.lookupTarget(triple, error)
+            if not target:
+                raise llvm.LLVMException(error)
+            if not target.hasTargetMachine():
+                raise llvm.LLVMException(target, "No target machine.")
+            target_options = api.llvm.TargetOptions.new()
+            tm = target.createTargetMachine(triple, cpu, features,
+                                            target_options,
+                                            api.llvm.Reloc.Model.Default,
+                                            cm, opt)
+            if not tm:
+                raise llvm.LLVMException("Cannot create target machine")
+            return TargetMachine(tm)
 
     @staticmethod
     def lookup(arch, cpu='', features='', opt=2, cm=CM_DEFAULT):
         '''create a targetmachine given an architecture name
 
-        For a list of architectures,
+            For a list of architectures,
             use: `llc -help`
 
-        For a list of available CPUs,
+            For a list of available CPUs,
             use: `llvm-as < /dev/null | llc -march=xyz -mcpu=help`
 
-        For a list of available attributes (features),
+            For a list of available attributes (features),
             use: `llvm-as < /dev/null | llc -march=xyz -mattr=help`
-        '''
-        ptr = _core.LLVMTargetMachineLookup(arch, cpu, features, opt, cm)
-        return TargetMachine(ptr)
+            '''
+        triple = api.llvm.Triple.new()
+        with contextlib.closing(BytesIO()) as error:
+            target = api.llvm.TargetRegistry.lookupTarget(arch, triple, error)
+            if not target:
+                raise llvm.LLVMException(error)
+            if not target.hasTargetMachine():
+                raise llvm.LLVMException(target, "No target machine.")
+            target_options = api.llvm.TargetOptions.new()
+            tm = target.createTargetMachine(str(triple), cpu, features,
+                                            target_options,
+                                            api.llvm.Reloc.Model.Default,
+                                            cm, opt)
+            if not tm:
+                raise llvm.LLVMException("Cannot create target machine")
+            return TargetMachine(tm)
 
-    def __init__(self, ptr):
-        llvm.Ownable.__init__(self, ptr, _core.LLVMDisposeTargetMachine)
+    def _emit_file(self, module, cgft):
+        pm = api.llvm.PassManager.new()
+        os = extra.make_raw_ostream_for_printing()
+        pm.add(api.llvm.DataLayout.new(str(self.target_data)))
+        failed = self._ptr.addPassesToEmitFile(pm, os, cgft)
+        pm.run(module)
+        return os.str()
 
     def emit_assembly(self, module):
         '''returns byte string of the module as assembly code of the target machine
         '''
-        return _core.LLVMTargetMachineEmitFile(self.ptr, module.ptr, True)
+        CGFT = api.llvm.TargetMachine.CodeGenFileType
+        return self._emit_file(module._ptr, CGFT.CGFT_AssemblyFile)
 
     def emit_object(self, module):
         '''returns byte string of the module as native code of the target machine
         '''
-        return _core.LLVMTargetMachineEmitFile(self.ptr, module.ptr, False)
+        CGFT = api.llvm.TargetMachine.CodeGenFileType
+        return self._emit_file(module._ptr, CGFT.CGFT_ObjectFile)
 
     @property
     def target_data(self):
         '''get target data of this machine
         '''
-        ptr = _core.LLVMTargetMachineGetTargetData(self.ptr)
-        td = TargetData(ptr)
-        td._own(self)
-        return td
+        return TargetData(self._ptr.getDataLayout())
 
     @property
     def target_name(self):
-        return _core.LLVMTargetMachineGetTargetName(self.ptr)
+        return self._ptr.getTarget().getName()
 
     @property
     def target_short_description(self):
-        return _core.LLVMTargetMachineGetTargetShortDescription(self.ptr)
+        return self._ptr.getTarget().getShortDescription()
 
     @property
     def triple(self):
-        return _core.LLVMTargetMachineGetTriple(self.ptr)
+        return self._ptr.getTargetTriple()
 
     @property
     def cpu(self):
-        return _core.LLVMTargetMachineGetCPU(self.ptr)
-
+        return self._ptr.getTargetCPU()
+    
     @property
     def feature_string(self):
-        return _core.LLVMTargetMachineGetFS(self.ptr)
+        return self._ptr.getTargetFeatureString()
 
