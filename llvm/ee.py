@@ -30,10 +30,7 @@
 
 "Execution Engine and related classes."
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from io import BytesIO
 import contextlib
 
 import llvm
@@ -244,7 +241,7 @@ class TargetMachine(llvm.Wrapper):
             triple = get_default_triple()
         if not cpu:
             cpu = get_host_cpu_name()
-        with contextlib.closing(StringIO()) as error:
+        with contextlib.closing(BytesIO()) as error:
             target = api.llvm.TargetRegistry.lookupTarget(triple, error)
             if not target:
                 raise llvm.LLVMException(error)
@@ -273,7 +270,7 @@ class TargetMachine(llvm.Wrapper):
             use: `llvm-as < /dev/null | llc -march=xyz -mattr=help`
             '''
         triple = api.llvm.Triple.new()
-        with contextlib.closing(StringIO()) as error:
+        with contextlib.closing(BytesIO()) as error:
             target = api.llvm.TargetRegistry.lookupTarget(arch, triple, error)
             if not target:
                 raise llvm.LLVMException(error)

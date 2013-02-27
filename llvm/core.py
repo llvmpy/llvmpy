@@ -28,10 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from io import BytesIO
 import contextlib, weakref
 
 import llvm
@@ -337,7 +334,7 @@ class Module(llvm.Wrapper):
             bc = fileobj_or_str
         else:
             bc = fileobj_or_str.read()
-        errbuf = StringIO()
+        errbuf = BytesIO()
         context = api.llvm.getGlobalContext()
         m = api.llvm.ParseBitCodeFile(bc, context, errbuf)
         if not m:
@@ -359,7 +356,7 @@ class Module(llvm.Wrapper):
             ir = fileobj_or_str
         else:
             ir = fileobj_or_str.read()
-        errbuf = StringIO()
+        errbuf = BytesIO()
         context = api.llvm.getGlobalContext()
         m = api.llvm.ParseAssemblyString(ir, None, api.llvm.SMDiagnostic.new(),
                                          context)
@@ -432,7 +429,7 @@ class Module(llvm.Wrapper):
         enum_mode = api.llvm.Linker.LinkerMode
         mode = enum_mode.PreserveSource if preserve else enum_mode.DestroySource
 
-        with contextlib.closing(StringIO()) as errmsg:
+        with contextlib.closing(BytesIO()) as errmsg:
             failed = api.llvm.Linker.LinkModules(self._ptr,
                                                  other._ptr,
                                                  mode,
@@ -512,7 +509,7 @@ class Module(llvm.Wrapper):
             Checks module for errors. Raises `llvm.LLVMException' on any
             error."""
         action = api.llvm.VerifierFailureAction.ReturnStatusAction
-        errio = StringIO()
+        errio = BytesIO()
         broken = api.llvm.verifyModule(self._ptr, action, errio)
         if broken:
             raise llvm.LLVMException(errio.getvalue())
@@ -530,7 +527,7 @@ class Module(llvm.Wrapper):
         ret = False
         if fileobj is None:
             ret = True
-            fileobj = StringIO
+            fileobj = BytesIO
         api.llvm.WriteBitcodeToFile(self._ptr, fileobj)
         if ret:
             return fileobj.getvalue()
@@ -571,7 +568,7 @@ class Module(llvm.Wrapper):
         ret = False
         if fileobj is None:
             ret = True
-            fileobj = StringIO()
+            fileobj = BytesIO()
         from llvm.ee import TargetMachine
         tm = TargetMachine.new()
         fileobj.write(tm.emit_object(self))
@@ -588,7 +585,7 @@ class Module(llvm.Wrapper):
         ret = False
         if fileobj is None:
             ret = True
-            fileobj = StringIO()
+            fileobj = BytesIO()
         from llvm.ee import TargetMachine
         tm = TargetMachine.new()
         fileobj.write(tm.emit_assembly(self))
@@ -2269,7 +2266,7 @@ def load_library_permanently(filename):
     Load the given shared library (filename argument specifies the full
     path of the .so file) using LLVM. Symbols from these are available
     from the execution engine thereafter."""
-    with contextlib.closing(StringIO()) as errmsg:
+    with contextlib.closing(BytesIO()) as errmsg:
         failed = api.llvm.sys.DynamicLibrary.LoadPermanentLibrary(filename,
                                                                   errmsg)
         if failed:

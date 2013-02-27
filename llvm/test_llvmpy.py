@@ -10,13 +10,8 @@ import subprocess
 import tempfile
 import contextlib
 
-is_py3k = bool(sys.version_info[0] == 3)
 BITS = tuple.__itemsize__ * 8
-
-if is_py3k:
-    from io import StringIO
-else:
-    from cStringIO import StringIO
+from io import BytesIO
 
 
 import llvm
@@ -123,7 +118,7 @@ class TestAttr(TestCase):
                 ret void
             }
         """
-        return Module.from_assembly(StringIO(test_module))
+        return Module.from_assembly(BytesIO(test_module))
 
     def test_align(self):
         m = self.make_module()
@@ -255,7 +250,7 @@ entry:
 }
 """
     def test_operands(self):
-        m = Module.from_assembly(StringIO(self.test_module))
+        m = Module.from_assembly(BytesIO(self.test_module))
 
         test_func = m.get_function_named("test_func")
         prod = m.get_function_named("prod")
@@ -317,7 +312,7 @@ entry:
 }
 """
     def test_passes(self):
-        m = Module.from_assembly(StringIO(self.asm))
+        m = Module.from_assembly(BytesIO(self.asm))
 
         fn_test1 = m.get_function_named('test1')
         fn_test2 = m.get_function_named('test2')
@@ -365,7 +360,7 @@ entry:
         self.assertNotEqual(str(fn_test1).strip(), original_test1.strip())
 
     def test_passes_with_pmb(self):
-        m = Module.from_assembly(StringIO(self.asm))
+        m = Module.from_assembly(BytesIO(self.asm))
 
         fn_test1 = m.get_function_named('test1')
         fn_test2 = m.get_function_named('test2')
