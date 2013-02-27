@@ -97,7 +97,7 @@ def determine_to_use_dynlink(libdir, llvm_version):
 
 
 dynlink = determine_to_use_dynlink(libdir, llvm_version)
-
+ptx_support = ''
 
 if dynlink:
     print('Using dynamic linking')
@@ -120,12 +120,13 @@ else:
     if (nvptx_components & enabled_components) == nvptx_components:
         print("Using NVPTX")
         extra_components.extend(nvptx_components)
+        ptx_support = 'NVPTX'
     elif (ptx_components & enabled_components) == ptx_components:
         print("Using PTX")
         extra_components.extend(ptx_components)
+        ptx_support = 'PTX'
     else:
         print("No CUDA support")
-        macros.append(('LLVM_DISABLE_PTX', None))
 
     libs_core, objs_core = get_libs_and_objs(
         ['core', 'analysis', 'scalaropts', 'executionengine',
@@ -136,14 +137,17 @@ else:
 
 if sys.platform == 'win32':
     # If no PTX lib got added, disable PTX in the build
-    if 'LLVMPTXCodeGen' not in libs_core:
-        macros.append(('LLVM_DISABLE_PTX', None))
+    if 'LLVMPTXCodeGen' in libs_core:
+        ptx_support = 'ptx'
 else:
     macros.append(('_GNU_SOURCE', None))
 
 # auto generate bindings
+os.environ['LLVMPY_PTX_SUPPORT'] = ptx_support
+os.environ['LLVMPY_LLVM_VERSION'] = llvm_version
 check_call([sys.executable, 'llvmpy/build.py'])
 
+# generate shared objects
 extra_link_args = ldflags.split()
 kwds = dict(
     ext_modules = [

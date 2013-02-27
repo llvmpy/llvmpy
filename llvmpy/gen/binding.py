@@ -838,3 +838,17 @@ class Attr(object):
         writer.println()
 
 
+#
+# Pick-up environ var
+#
+PTX_SUPPORT = os.environ['LLVMPY_PTX_SUPPORT']
+
+def _parse_llvm_version(ver):
+    import re
+    m = re.compile(r'(\d+)\.(\d+)').match(ver)
+    assert m
+    major, minor = m.groups()
+    return int(major), int(minor)
+
+LLVM_VERSION = _parse_llvm_version(os.environ['LLVMPY_LLVM_VERSION'])
+
