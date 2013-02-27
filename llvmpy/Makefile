@@ -10,8 +10,7 @@ api.cpp api/__init__.py: src/*.py include/llvm_binding/*.h gen/gen.py gen/bindin
 	
 clean: cleantemp
 	rm -f _api.so _capsule.so
-	rm -rf api	
-	py_clean
+	rm -rf api
 	
 cleantemp:
 	rm -f api.cpp
