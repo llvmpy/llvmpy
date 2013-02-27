@@ -1,6 +1,6 @@
 import os
 import sys
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, check_call
 from distutils.core import setup, Extension
 
 import versioneer
@@ -141,22 +141,30 @@ if sys.platform == 'win32':
 else:
     macros.append(('_GNU_SOURCE', None))
 
+# auto generate bindings
+check_call([sys.executable, 'llvmpy/build.py'])
+
 extra_link_args = ldflags.split()
 kwds = dict(
     ext_modules = [
         Extension(
-            name='llvm._core',
-            sources=['llvm/_core.cpp', 'llvm/wrap.cpp', 'llvm/extra.cpp'],
+            name='llvmpy._api',
+            sources=['llvmpy/api.cpp'],
             define_macros = macros,
-            include_dirs = ['/usr/include', incdir],
+            include_dirs = [incdir, 'llvmpy/include'],
             library_dirs = [libdir],
             libraries = libs_core,
             extra_objects = objs_core,
             extra_link_args = extra_link_args),
 
-        Extension(name='llvm._dwarf',
-                  sources=['llvm/_dwarf.cpp'],
-                  include_dirs=[incdir])
+        Extension(
+            name='llvmpy._capsule',
+            sources=['llvmpy/capsule.cpp'],
+            include_dirs=['llvmpy/include'],
+        )
+#        Extension(name='llvm._dwarf',
+#                  sources=['llvm/_dwarf.cpp'],
+#                  include_dirs=[incdir])
         ],
     cmdclass = versioneer.get_cmdclass(),
 )
@@ -173,12 +181,17 @@ setup(
     name = 'llvmpy',
     version=versioneer.get_version(),
     description = 'Python bindings for LLVM',
-    author = 'R Mahadevan',
+    author = 'R Mahadevan, Siu Kwan Lam',
     maintainer = 'Continuum Analytics, Inc.',
     maintainer_email = 'llvmpy@continuum.io',
     url = 'http://www.llvmpy.org/',
-    packages = ['llvm', 'llvm_cbuilder', 'llpython'],
-    py_modules = ['llvm.core'],
+    packages = ['llvm', 'llvm_cbuilder', 'llpython',
+                'llvmpy.api', 'llvmpy.api.llvm'],
+    py_modules = ['llvmpy',
+                  'llvmpy._capsule',
+                  'llvmpy._api',
+                  'llvmpy.capsule',
+                  'llvmpy.extra'],
     license = "BSD",
     classifiers = [
         "Intended Audience :: Developers",
