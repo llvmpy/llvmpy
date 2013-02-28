@@ -964,9 +964,13 @@ class TestCPUSupport(TestCase):
 
     def test_cpu_support6(self):
         features = []
-        mattrs = ','.join(map(lambda s: '-%s' % s, features))
-        print('disable mattrs', mattrs)
-        self._template(mattrs)
+        from llvm.workaround.avx_support import detect_avx_support
+        if not detect_avx_support():
+            print 'Skipping: no AVX'
+        else:
+            mattrs = ','.join(map(lambda s: '-%s' % s, features))
+            print('disable mattrs', mattrs)
+            self._template(mattrs)
 
 tests.append(TestCPUSupport)
 
