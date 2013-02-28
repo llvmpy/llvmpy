@@ -174,9 +174,9 @@ kwds = dict(
 )
 
 
-if sys.version_info[0] == 3:
-    from distutils.command.build_py import build_py_2to3
-    kwds["cmdclass"]['build_py'] = build_py_2to3
+#if sys.version_info[0] == 3:
+#    from distutils.command.build_py import build_py_2to3
+#    kwds["cmdclass"]['build_py'] = build_py_2to3
 
 
 kwds['long_description'] = open('README.rst').read()
