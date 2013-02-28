@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import contextlib
 
+is_py3k = sys.version_info[0] >= 3
 BITS = tuple.__itemsize__ * 8
 
 try:
@@ -711,7 +712,10 @@ class TestNative(TestCase):
 
         src = os.path.join(self.tmpdir, 'llvmasm.s')
         with open(src, 'wb') as fout:
-            fout.write(output)
+            if is_py3k:
+                fout.write(output.encode('utf-8'))
+            else:
+                fout.write(output)
 
         self._compile(src)
 
@@ -725,7 +729,11 @@ class TestNative(TestCase):
 
         src = os.path.join(self.tmpdir, 'llvmobj.o')
         with open(src, 'wb') as fout:
-            fout.write(output)
+            if is_py3k:
+                fout.write(output.encode('utf-8'))
+            else:
+                fout.write(output)
+
 
         self._compile(src)
 
@@ -965,7 +973,7 @@ class TestCPUSupport(TestCase):
         features = []
         from llvm.workaround.avx_support import detect_avx_support
         if not detect_avx_support():
-            print 'Skipping: no AVX'
+            print('Skipping: no AVX')
         else:
             mattrs = ','.join(map(lambda s: '-%s' % s, features))
             print('disable mattrs', mattrs)
