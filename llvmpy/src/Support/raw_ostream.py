@@ -15,4 +15,6 @@ class raw_svector_ostream:
     _base_ = raw_ostream
 
     str = Method(cast(str, StringRef))
+    bytes = Method(cast(bytes, StringRef))
+    bytes.realname = 'str'
 

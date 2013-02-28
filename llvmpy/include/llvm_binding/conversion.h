@@ -209,6 +209,12 @@ static
 PyObject* py_str_from(const std::string &str){
     return PyString_FromStringAndSize(str.c_str(), str.size());
 }
+
+
+static
+PyObject* py_bytes_from(const std::string &str){
+    return PyBytes_FromStringAndSize(str.c_str(), str.size());
+}
 //
 //static
 //PyObject* py_str_from(const llvm::StringRef *str){

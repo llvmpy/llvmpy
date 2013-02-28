@@ -291,7 +291,13 @@ class TargetMachine(llvm.Wrapper):
         pm.add(api.llvm.DataLayout.new(str(self.target_data)))
         failed = self._ptr.addPassesToEmitFile(pm, os, cgft)
         pm.run(module)
-        return os.str()
+
+
+        CGFT = api.llvm.TargetMachine.CodeGenFileType
+        if cgft == CGFT.CGFT_ObjectFile:
+            return os.bytes()
+        else:
+            return os.str()
 
     def emit_assembly(self, module):
         '''returns byte string of the module as assembly code of the target machine

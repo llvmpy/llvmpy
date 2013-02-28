@@ -729,11 +729,7 @@ class TestNative(TestCase):
 
         src = os.path.join(self.tmpdir, 'llvmobj.o')
         with open(src, 'wb') as fout:
-            if is_py3k:
-                fout.write(output.encode('utf-8'))
-            else:
-                fout.write(output)
-
+            fout.write(output)
 
         self._compile(src)
 
