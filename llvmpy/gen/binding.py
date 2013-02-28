@@ -841,7 +841,7 @@ class Attr(object):
 #
 # Pick-up environ var
 #
-PTX_SUPPORT = os.environ['LLVMPY_PTX_SUPPORT']
+PTX_SUPPORT = os.environ.get('LLVMPY_PTX_SUPPORT', '')
 
 def _parse_llvm_version(ver):
     import re
