@@ -12,7 +12,7 @@
 
 static
 void do_assert(int cond, const char * msg, const char *file, unsigned line){
-    if (not cond) {
+    if (!cond) {
         fprintf(stderr, "Assertion failed %s:%d\n%s\n", file, line, msg);
         exit(1);
     }

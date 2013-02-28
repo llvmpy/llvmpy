@@ -586,7 +586,7 @@ PyObject* Linker_LinkInModule(llvm::Linker* Linker,
 {
     std::string errmsg;
     bool failed = Linker->LinkInModule(Mod, &errmsg);
-    if (not failed) {
+    if (! failed) {
         Py_RETURN_FALSE;
     } else {
         if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
@@ -604,7 +604,7 @@ PyObject* Linker_LinkModules(llvm::Module* Dest,
 {
     std::string errmsg;
     bool failed = llvm::Linker::LinkModules(Dest, Src, Mode, &errmsg);
-    if (not failed) {
+    if (! failed) {
         Py_RETURN_FALSE;
     } else {
         if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
@@ -686,7 +686,7 @@ PyObject* ConstantArray_get(llvm::ArrayType* Ty, PyObject* Consts)
     std::vector<Constant*> vec_consts;
     bool ok = extract<Constant>::from_py_sequence(vec_consts, Consts,
                                                   "llvm::Value");
-    if (not ok) return NULL;
+    if (! ok) return NULL;
     Constant* ary = ConstantArray::get(Ty, vec_consts);
     return pycapsule_new(ary, "llvm::Value", "llvm::Constant");
 }
@@ -699,7 +699,7 @@ PyObject* ConstantStruct_get(llvm::StructType* Ty, PyObject* Elems)
     std::vector<Constant*> vec_consts;
     bool ok = extract<Constant>::from_py_sequence(vec_consts, Elems,
                                                   "llvm::Value");
-    if (not ok) return NULL;
+    if (! ok) return NULL;
     Constant* ary = ConstantStruct::get(Ty, vec_consts);
     return pycapsule_new(ary, "llvm::Value", "llvm::Constant");
 }
@@ -713,7 +713,7 @@ PyObject* ConstantStruct_getAnon(PyObject* Elems,
     std::vector<Constant*> vec_consts;
     bool ok = extract<Constant>::from_py_sequence(vec_consts, Elems,
                                                   "llvm::Value");
-    if (not ok) return NULL;
+    if (! ok) return NULL;
     Constant* ary = ConstantStruct::getAnon(vec_consts, isPacked);
     return pycapsule_new(ary, "llvm::Value", "llvm::Constant");
 }
@@ -726,7 +726,7 @@ PyObject* ConstantVector_get(PyObject* Elems)
     std::vector<Constant*> vec_consts;
     bool ok = extract<Constant>::from_py_sequence(vec_consts, Elems,
                                                   "llvm::Value");
-    if (not ok) return NULL;
+    if (! ok) return NULL;
     Constant* ary = ConstantVector::get(vec_consts);
     return pycapsule_new(ary, "llvm::Value", "llvm::Constant");
 }
@@ -756,7 +756,7 @@ PyObject* MDNode_get(llvm::LLVMContext &Cxt, PyObject* Vals)
     bool accept_null = true;
     bool ok = extract<llvm::Value>::from_py_sequence(vals, Vals, "llvm::Value",
                                                      accept_null);
-    if (not ok) return NULL;
+    if (! ok) return NULL;
     llvm::MDNode* md = llvm::MDNode::get(Cxt, vals);
     return pycapsule_new(md, "llvm::Value", "llvm::MDNode");
 }
@@ -778,7 +778,7 @@ PyObject* IRBuilder_CreateAggregateRet(llvm::IRBuilder<>* builder,
     using namespace llvm;
     std::vector<Value*> vec_values;
     bool ok = extract<Value>::from_py_sequence(vec_values, Vals, "llvm::Value");
-    if (not ok) return NULL;
+    if (! ok) return NULL;
     Value** ptr_values = &vec_values[0];
     ReturnInst* inst = builder->CreateAggregateRet(ptr_values, N);
     return pycapsule_new(inst, "llvm::Value", "llvm::ReturnInst");
