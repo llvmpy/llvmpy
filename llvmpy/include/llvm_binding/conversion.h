@@ -207,14 +207,13 @@ int py_bool_to(PyObject *boolobj, bool & val){
 
 static
 PyObject* py_str_from(const std::string &str){
-    puts(str.c_str());
-    return PyString_FromStringAndSize(str.c_str(), str.size());
+    return PyString_FromStringAndSize(str.data(), str.size());
 }
 
 
 static
 PyObject* py_bytes_from(const std::string &str){
-    return PyBytes_FromStringAndSize(str.c_str(), str.size());
+    return PyBytes_FromStringAndSize(str.data(), str.size());
 }
 //
 //static
