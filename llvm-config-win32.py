@@ -68,6 +68,7 @@ LLVMX86AsmParser
 LLVMX86AsmPrinter
 LLVMX86CodeGen
 LLVMX86Desc
+LLVMX86Disassembler
 LLVMX86Info
 LLVMX86Utils
 Advapi32
