@@ -30,7 +30,7 @@ class DataLayout:
     isLittleEndian = Method(cast(Bool, bool))
     isBigEndian = Method(cast(Bool, bool))
 
-    getStringRepresentation = Method(cast(StringRef, str))
+    getStringRepresentation = Method(cast(StdString, str))
 
     @CustomPythonMethod
     def __str__(self):

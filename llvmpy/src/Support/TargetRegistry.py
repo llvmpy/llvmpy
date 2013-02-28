@@ -16,8 +16,8 @@ from src.Support.CodeGen import Reloc, CodeModel, CodeGenOpt
 class Target:
     getNext = Method(const(ptr(Target)))
 
-    getName = Method(cast(StringRef, str))
-    getShortDescription = Method(cast(StringRef, str))
+    getName = Method(cast(StdString, str))
+    getShortDescription = Method(cast(StdString, str))
 
     def _has():
         return Method(cast(Bool, bool))

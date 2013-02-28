@@ -15,7 +15,7 @@ class Pass:
     _include_ = 'llvm/Pass.h'
 
     delete = Destructor()
-    getPassName = Method(cast(StringRef, str))
+    getPassName = Method(cast(StdString, str))
     dump = Method()
 
 @ModulePass
