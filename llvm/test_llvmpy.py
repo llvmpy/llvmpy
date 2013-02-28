@@ -923,7 +923,6 @@ class TestCPUSupport(TestCase):
     def _template(self, mattrs):
         mod, func = self._build_test_module()
         ee = self._build_engine(mod, mattrs=mattrs)
-
         arg = le.GenericValue.real(Type.double(), 1.234)
         retval = ee.run_function(func, [arg])
 
@@ -987,7 +986,12 @@ class TestIntrinsicBasic(TestCase):
 
     def _template(self, mod, func, pyfunc):
         float = func.type.pointee.return_type
-        ee = le.ExecutionEngine.new(mod)
+
+        from llvm.workaround.avx_support import detect_avx_support
+        if not detect_avx_support():
+            ee = le.EngineBuilder.new(mod).mattrs("-avx").create()
+        else:
+            ee = le.EngineBuilder.new(mod).create()
         arg = le.GenericValue.real(float, 1.234)
         retval = ee.run_function(func, [arg])
         golden = pyfunc(1.234)
