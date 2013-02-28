@@ -135,10 +135,10 @@ int py_int_to(PyObject *intobj, unsigned long long & val){
 }
 
 static
-int py_int_to(PyObject *intobj, size_t & val){
+int py_int_to(PyObject *intobj, unsigned long & val){
     unsigned long long ull;
     if (py_int_to(intobj, ull)) {
-        val = (size_t)ull;
+        val = (unsigned long)ull;
         return 1;
     } else {
         return 0;
