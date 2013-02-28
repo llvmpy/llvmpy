@@ -1152,7 +1152,13 @@ class TestIntrinsic(TestCase):
 #   declare float @llvm.cos.f32(float) nounwind readnone
 
         # let's run the function
-        ee = le.ExecutionEngine.new(mod)
+
+        from llvm.workaround.avx_support import detect_avx_support
+        if not detect_avx_support():
+            ee = le.EngineBuilder.new(mod).mattrs("-avx").create()
+        else:
+            ee = le.EngineBuilder.new(mod).create()
+
         arg = le.GenericValue.real(Type.float(), 1.234)
         retval = ee.run_function(mysin, [arg])
 
