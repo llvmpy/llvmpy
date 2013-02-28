@@ -207,6 +207,7 @@ int py_bool_to(PyObject *boolobj, bool & val){
 
 static
 PyObject* py_str_from(const std::string &str){
+    puts(str.c_str());
     return PyString_FromStringAndSize(str.c_str(), str.size());
 }
 
