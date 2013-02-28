@@ -90,7 +90,7 @@ int py_str_to(PyObject *strobj, const char* &strref){
 
 static
 int py_int_to(PyObject *intobj, int64_t & val){
-    if (!PyInt_Check(intobj) and !PyLong_Check(intobj)) {
+    if (!PyInt_Check(intobj) && !PyLong_Check(intobj)) {
         // raise TypeError
         PyErr_SetString(PyExc_TypeError, "Expecting an int");
         return 0;
@@ -111,7 +111,7 @@ int py_int_to(PyObject *intobj, int64_t & val){
 
 static
 int py_int_to(PyObject *intobj, unsigned & val){
-    if (!PyInt_Check(intobj) and !PyLong_Check(intobj)) {
+    if (!PyInt_Check(intobj) && !PyLong_Check(intobj)) {
         // raise TypeError
         PyErr_SetString(PyExc_TypeError, "Expecting an int");
         return 0;
@@ -123,7 +123,7 @@ int py_int_to(PyObject *intobj, unsigned & val){
 
 static
 int py_int_to(PyObject *intobj, unsigned long long & val){
-    if (!PyInt_Check(intobj) and !PyLong_Check(intobj)) {
+    if (!PyInt_Check(intobj) && !PyLong_Check(intobj)) {
         // raise TypeError;
         PyErr_SetString(PyExc_TypeError, "Expecting an int");
         return 0;
@@ -148,7 +148,7 @@ int py_int_to(PyObject *intobj, unsigned long & val){
 
 static
 int py_int_to(PyObject *intobj, void* & val){
-    if (!PyInt_Check(intobj) and !PyLong_Check(intobj)) {
+    if (!PyInt_Check(intobj) && !PyLong_Check(intobj)) {
         // raise TypeError
         PyErr_SetString(PyExc_TypeError, "Expecting an int");
         return 0;

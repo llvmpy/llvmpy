@@ -201,7 +201,7 @@ struct extract {
             if (!item) {
                 return false;
             }
-            if (accept_null and Py_None == *item) {
+            if (accept_null && Py_None == *item) {
                 vec.push_back(NULL);
             } else {
                 auto_pyobject capsule = PyObject_GetAttrString(*item, "_ptr");
