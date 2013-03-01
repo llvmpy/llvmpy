@@ -52,6 +52,12 @@ CM_KERNEL       = api.llvm.CodeModel.Model.Kernel
 CM_MEDIUM       = api.llvm.CodeModel.Model.Medium
 CM_LARGE        = api.llvm.CodeModel.Model.Large
 
+# Reloc
+RELOC_DEFAULT        = api.llvm.Reloc.Model.Default
+RELOC_STATIC         = api.llvm.Reloc.Model.Static
+RELOC_PIC            = api.llvm.Reloc.Model.PIC_
+RELOC_DYNAMIC_NO_PIC = api.llvm.Reloc.Model.DynamicNoPIC
+
 #===----------------------------------------------------------------------===
 # Generic value
 #===----------------------------------------------------------------------===
@@ -236,7 +242,8 @@ def get_default_triple():
 class TargetMachine(llvm.Wrapper):
 
     @staticmethod
-    def new(triple='', cpu='', features='', opt=2, cm=CM_DEFAULT):
+    def new(triple='', cpu='', features='', opt=2, cm=CM_DEFAULT,
+            reloc=RELOC_DEFAULT):
         if not triple:
             triple = get_default_triple()
         if not cpu:
@@ -250,14 +257,14 @@ class TargetMachine(llvm.Wrapper):
             target_options = api.llvm.TargetOptions.new()
             tm = target.createTargetMachine(triple, cpu, features,
                                             target_options,
-                                            api.llvm.Reloc.Model.Default,
-                                            cm, opt)
+                                            reloc, cm, opt)
             if not tm:
                 raise llvm.LLVMException("Cannot create target machine")
             return TargetMachine(tm)
 
     @staticmethod
-    def lookup(arch, cpu='', features='', opt=2, cm=CM_DEFAULT):
+    def lookup(arch, cpu='', features='', opt=2, cm=CM_DEFAULT,
+               reloc=RELOC_DEFAULT):
         '''create a targetmachine given an architecture name
 
             For a list of architectures,
@@ -279,8 +286,7 @@ class TargetMachine(llvm.Wrapper):
             target_options = api.llvm.TargetOptions.new()
             tm = target.createTargetMachine(str(triple), cpu, features,
                                             target_options,
-                                            api.llvm.Reloc.Model.Default,
-                                            cm, opt)
+                                            reloc, cm, opt)
             if not tm:
                 raise llvm.LLVMException("Cannot create target machine")
             return TargetMachine(tm)
