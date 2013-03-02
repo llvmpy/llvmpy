@@ -988,6 +988,9 @@ class IntegerValue(OperatorMixin):
         else:
             return self._temp(self.parent.builder.sdiv(self.value, rhs.value))
 
+    __truediv__ = __div__
+    __floordiv__ = __div__
+
     def __mod__(self, rhs):
         if self.unsigned:
             return self._temp(self.parent.builder.urem(self.value, rhs.value))
@@ -1081,6 +1084,8 @@ class RealValue(OperatorMixin):
 
     def __div__(self, rhs):
         return self._temp(self.parent.builder.fdiv(self.value, rhs.value))
+
+    __truediv__ = __div__
 
     def __mod__(self, rhs):
         return self._temp(self.parent.builder.frem(self.value, rhs.value))
