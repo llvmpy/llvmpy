@@ -10,15 +10,15 @@ http://www.llvmpy.org
 Versions
 --------
 
-This package has been tested with LLVM 3.1 and 3.2, Python 2.7 and Python 3.2.
-Other Python versions should work.
+This package has been tested with LLVM 3.2, Python 2.6, 2.7 and 3.3.
+Other Python versions may work.
 
 Quickstart
 ----------
 
-1. Get 3.1 or 3.2 version of LLVM, build it.  Make sure ``--enable-pic`` is 
-   passed to LLVM's ``configure``.  
-   
+1. Get 3.2 version of LLVM, build it.  Make sure ``--enable-pic`` is 
+   passed to LLVM's ``configure``.
+
    For LLVM 3.2, make sure that environment variable ``REQUIRES_RTTI=1`` is 
    defined when running ``make``.  Otherwise, you may see "undefined symbol:
    _ZTIN4llvm24PassRegistrationListenerE".  Please refer to 
