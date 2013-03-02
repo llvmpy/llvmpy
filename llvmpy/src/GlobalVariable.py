@@ -11,7 +11,7 @@ from .Value import Constant
 
 @GlobalVariable
 class GlobalVariable:
-    ThreadLocalMode = Enum('''NotThreadLocal, GeneralDynamicTLSModel, 
+    ThreadLocalMode = Enum('''NotThreadLocal, GeneralDynamicTLSModel,
                               LocalDynamicTLSModel, InitialExecTLSModel,
                               LocalExecTLSModel
                            ''')
@@ -46,4 +46,3 @@ class GlobalVariable:
 #    setExternallyinitialized = Method(Void, cast(bool, Bool))
 
 
-    

@@ -80,7 +80,7 @@ static
 }
 '''
             println(fmt % locals())
-    
+
             fn.generate_cpp(println)
 
         println('static')

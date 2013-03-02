@@ -34,10 +34,10 @@ class Value:
     ValueTy = Enum('''
         ArgumentVal, BasicBlockVal, FunctionVal, GlobalAliasVal,
         GlobalVariableVal, UndefValueVal, BlockAddressVal, ConstantExprVal,
-        ConstantAggregateZeroVal, ConstantDataArrayVal, ConstantDataVectorVal, 
-        ConstantIntVal, ConstantFPVal, ConstantArrayVal, ConstantStructVal, 
-        ConstantVectorVal, ConstantPointerNullVal, MDNodeVal, MDStringVal, 
-        InlineAsmVal, PseudoSourceValueVal, FixedStackPseudoSourceValueVal, 
+        ConstantAggregateZeroVal, ConstantDataArrayVal, ConstantDataVectorVal,
+        ConstantIntVal, ConstantFPVal, ConstantArrayVal, ConstantStructVal,
+        ConstantVectorVal, ConstantPointerNullVal, MDNodeVal, MDStringVal,
+        InlineAsmVal, PseudoSourceValueVal, FixedStackPseudoSourceValueVal,
         InstructionVal, ConstantFirstVal, ConstantLastVal
         ''')
 

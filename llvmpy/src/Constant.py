@@ -73,7 +73,7 @@ class UndefValue:
 @ConstantInt
 class ConstantInt:
     _downcast_ = Constant, Value
-    
+
     get = StaticMethod(ptr(ConstantInt),
                        ptr(IntegerType),
                        cast(int, Uint64),
@@ -89,7 +89,7 @@ class ConstantInt:
 @ConstantFP
 class ConstantFP:
     _downcast_ = Constant, Value
-    
+
     get = StaticMethod(ptr(Constant), ptr(Type), cast(float, Double))
     getNegativeZero = StaticMethod(ptr(ConstantFP), ptr(Type))
     getInfinity = StaticMethod(ptr(ConstantFP), ptr(Type), cast(bool, Bool))
@@ -103,7 +103,7 @@ class ConstantFP:
 @ConstantArray
 class ConstantArray:
     _downcast_ = Constant, Value
-    
+
     get = CustomStaticMethod('ConstantArray_get',
                              PyObjectPtr, # ptr(Constant),
                              ptr(ArrayType),
@@ -114,7 +114,7 @@ class ConstantArray:
 @ConstantStruct
 class ConstantStruct:
     _downcast_ = Constant, Value
-    
+
     get = CustomStaticMethod('ConstantStruct_get',
                              PyObjectPtr, # ptr(Constant)
                              ptr(StructType),
@@ -130,7 +130,7 @@ class ConstantStruct:
 @ConstantVector
 class ConstantVector:
     _downcast_ = Constant, Value
-    
+
     get = CustomStaticMethod('ConstantVector_get',
                              PyObjectPtr, # ptr(Constant)
                              PyObjectPtr, # constants
@@ -145,7 +145,7 @@ class ConstantDataSequential:
 @ConstantDataArray
 class ConstantDataArray:
     _downcast_ = Constant, Value
-    
+
     getString = StaticMethod(ptr(Constant),
                              ref(LLVMContext),
                              cast(str, StringRef),
@@ -178,7 +178,7 @@ def _factory_const_type():
 @ConstantExpr
 class ConstantExpr:
     _downcast_ = Constant, Value
-    
+
     getAlignOf = _factory(ptr(Type))
     getSizeOf = _factory(ptr(Type))
     getOffsetOf = _factory(ptr(Type), ptr(Constant))

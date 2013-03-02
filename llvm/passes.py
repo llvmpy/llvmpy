@@ -77,7 +77,7 @@ class PassManagerBuilder(llvm.Wrapper):
     @vectorize.setter
     def vectorize(self, enable):
         self._ptr.Vectorize = enable
-    
+
 
     @property
     def loop_vectorize(self):
@@ -200,7 +200,7 @@ class Pass(llvm.Wrapper):
         try:
             return self.__name
         except AttributeError:
-            return 
+            return
 
     @property
     def description(self):

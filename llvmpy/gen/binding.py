@@ -344,7 +344,7 @@ class Class(SubModule, _Type):
 
 class Enum(object):
     format = 'O'
-    
+
     def __init__(self, *value_names):
         self.parent = None
         if len(value_names) == 1:
@@ -507,7 +507,7 @@ class Method(object):
     def is_return_ownedptr(self):
         retty = self.signatures[0][0]
         return isinstance(retty, ownedptr)
-    
+
     def process_ownedptr_args(self, writer, unwrapped):
         argtys = self.signatures[0][1:]
         for i, ty in enumerate(argtys):
@@ -525,7 +525,7 @@ class CustomMethod(Method):
         ret = writer.call(self.methodname, retty.fullname, *args)
         writer.return_value(retty.wrap(writer, ret))
 
-        
+
 class StaticMethod(Method):
 
     def compile_cpp_body(self, writer, retty, argtys):
@@ -544,7 +544,7 @@ class StaticMethod(Method):
         with decl as varargs:
             unwrapped = writer.unwrap_many(varargs)
             self.process_ownedptr_args(writer, unwrapped)
-            
+
             func = '.'.join([self.parent.py_name, self.name])
             ret = writer.call('_api.%s' % func, varargs=unwrapped)
             wrapped = writer.wrap(ret, self.is_return_ownedptr())

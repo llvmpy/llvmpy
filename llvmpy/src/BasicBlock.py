@@ -14,7 +14,7 @@ class BasicBlock:
 
     getParent = Method(ptr(Function))
     getTerminator = Method(ptr(TerminatorInst))
-    
+
     empty = Method(cast(Bool, bool))
     dropAllReferences = Method()
     isLandingPad = Method(cast(Bool, bool))

@@ -12,4 +12,4 @@ class Argument:
     addAttr = Method(Void, ref(Attributes))
     removeAttr = Method(Void, ref(Attributes))
     getParamAlignment = Method(cast(Unsigned, int))
-    
+

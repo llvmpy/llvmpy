@@ -10,7 +10,7 @@ from src.Pass import Pass
 @PassManagerBuilder
 class PassManagerBuilder:
     _include_ = 'llvm/Transforms/IPO/PassManagerBuilder.h'
-    
+
     new = Constructor()
     delete = Destructor()
 

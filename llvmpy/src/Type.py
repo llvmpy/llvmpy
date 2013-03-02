@@ -201,7 +201,7 @@ class StructType:
                            ).require_only(1)
     getNumElements = Method(cast(Unsigned, int))
     getElementType = Method(ptr(Type), cast(int, Unsigned))
-    
+
     create = StaticMethod(ptr(StructType),
                           ref(LLVMContext),
                           cast(str, StringRef),

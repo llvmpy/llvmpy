@@ -388,7 +388,7 @@ class Module(llvm.Wrapper):
             return str(self) == str(rhs)
         else:
             return False
-    
+
     def __ne__(self, rhs):
         return not (self == rhs)
 
@@ -429,7 +429,7 @@ class Module(llvm.Wrapper):
 
         The `other' module is no longer valid after this method is
         invoked, all refs to it should be dropped.
-        
+
         In the future, this API might be replaced with a full-fledged
         Linker class.
         """
@@ -560,7 +560,7 @@ class Module(llvm.Wrapper):
         pm = PassManager.new()._ptr
         formatted
         failed = tm.addPassesToEmitFile(pm, fileobj, cgft, False)
-        
+
         if failed:
             raise llvm.LLVMException("Failed to write native object file")
         if ret:
@@ -664,7 +664,7 @@ class Type(llvm.Wrapper):
         context = api.llvm.getGlobalContext()
         ptr = api.llvm.Type.getFP128Ty(context)
         return Type(ptr)
-    
+
     @staticmethod
     def ppc_fp128():
         """Create a 128-bit floating point type (two 64-bits)."""
@@ -920,7 +920,7 @@ class PointerType(Type):
 
 class VectorType(Type):
     _type_ = api.llvm.VectorType
-    
+
     @property
     def element(self):
         return Type(self._ptr.getVectorElementType())
@@ -989,7 +989,7 @@ class Value(llvm.Wrapper):
     @property
     def use_count(self):
         return self._ptr.getNumUses()
-    
+
     @property
     def uses(self):
         return list(map(_make_value, self._ptr.list_use()))
@@ -1263,7 +1263,7 @@ class GlobalValue(Constant):
 
     def _set_linkage(self, value):
         self._ptr.setLinkage(value)
-    
+
     linkage = property(_get_linkage, _set_linkage)
 
     def _get_section(self):
@@ -1287,7 +1287,7 @@ class GlobalValue(Constant):
 
     def _set_alignment(self, value):
         return self._ptr.setAlignment(value)
-    
+
     alignment = property(_get_alignment, _set_alignment)
 
     @property
@@ -1490,7 +1490,7 @@ class Function(GlobalValue):
     @property
     def basic_blocks(self):
         return list(map(_make_value, self._ptr.getBasicBlockList()))
-    
+
     def viewCFG(self):
         return self._ptr.viewCFG()
 
@@ -1510,7 +1510,7 @@ class Function(GlobalValue):
     def verify(self):
         # Although we're just asking LLVM to return the success or
         # failure, it appears to print result to stderr and abort.
-        
+
         # Note: LLVM has a bug in preverifier that will always abort
         #       the process upon failure.
         actions = api.llvm.VerifierFailureAction
@@ -1528,7 +1528,7 @@ class Function(GlobalValue):
 
 class InlineAsm(Value):
     _type_ = api.llvm.InlineAsm
-    
+
     @staticmethod
     def get(functype, asm, constrains, side_effect=False,
             align_stack=False, dialect=api.llvm.InlineAsm.AsmDialect.AD_ATT):
@@ -1609,7 +1609,7 @@ class NamedMetaData(llvm.Wrapper):
     def delete(self):
         _ValueFactory.delete(self._ptr)
         self._ptr.eraseFromParent()
-    
+
     @property
     def name(self):
         return self._ptr.getName()
@@ -1639,7 +1639,7 @@ class Instruction(User):
     @property
     def is_binary_op(self):
         return self._ptr.isBinaryOp()
-    
+
     @property
     def is_shift(self):
         return self._ptr.isShift()
@@ -1663,7 +1663,7 @@ class Instruction(User):
     @property
     def is_commutative(self):
         return self._ptr.isCommutative()
-    
+
     @property
     def is_volatile(self):
         """True if this is a volatile load or store."""
@@ -1925,7 +1925,7 @@ class Builder(llvm.Wrapper):
     def ret_void(self):
         self._guard_terminators()
         return _make_value(self._ptr.CreateRetVoid())
-    
+
     def ret(self, value):
         self._guard_terminators()
         return _make_value(self._ptr.CreateRet(value._ptr))
@@ -2039,7 +2039,7 @@ class Builder(llvm.Wrapper):
                                                 "")
         inst = self._ptr.Insert(malloc, name)
         return _make_value(inst)
-    
+
     def malloc_array(self, ty, size, name=""):
         context = api.llvm.getGlobalContext()
         allocsz = api.llvm.ConstantExpr.getSizeOf(ty._ptr)
@@ -2242,7 +2242,7 @@ class Builder(llvm.Wrapper):
 
     def atomic_umin(self, *args, **kwargs):
         return self.atomic_rmw('umin', *args, **kwargs)
-    
+
     def atomic_load(self, ptr, ordering, align=1, crossthread=True,
                     volatile=False, name=""):
         inst = self.load(ptr, align=align, volatile=volatile, name=name)

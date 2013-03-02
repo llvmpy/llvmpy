@@ -33,7 +33,7 @@ class Capsule(object):
     "Wraps PyCapsule so that we can build weakref of it."
 
     from ._capsule import check, getClassName, getName, getPointer
-    
+
     def __init__(self, capsule):
         assert Capsule.valid(capsule)
         self.capsule = capsule

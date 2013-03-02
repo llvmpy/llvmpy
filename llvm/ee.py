@@ -156,7 +156,7 @@ class EngineBuilder(llvm.Wrapper):
 
     def select_target(self, *args):
         '''get the corresponding target machine
-            
+
         Accept no arguments or (triple, march, mcpu, mattrs)
         '''
         if args:
@@ -338,7 +338,7 @@ class TargetMachine(llvm.Wrapper):
     @property
     def cpu(self):
         return self._ptr.getTargetCPU()
-    
+
     @property
     def feature_string(self):
         return self._ptr.getTargetFeatureString()

@@ -18,7 +18,7 @@ class ExecutionEngine:
                  'llvm/ExecutionEngine/JIT.h') # force linking of jit
 
     delete = Destructor()
-    
+
     create = CustomStaticMethod('ExecutionEngine_create',
                                 ptr(ExecutionEngine),
                                 ownedptr(Module), cast(bool, Bool),

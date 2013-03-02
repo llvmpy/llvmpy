@@ -85,7 +85,7 @@ class Instruction:
     insertBefore = Method(Void, ptr(Instruction))
     insertAfter = Method(Void, ptr(Instruction))
     moveBefore = Method(Void, ptr(Instruction))
-    
+
     isTerminator = Method(cast(Bool, bool))
     isBinaryOp = Method(cast(Bool, bool))
     isShift = Method(cast(Bool, bool))
@@ -135,7 +135,7 @@ class BinaryOperator:
 @CallInst
 class CallInst:
     _downcast_ = Value, User, Instruction
-    
+
     getCallingConv = Method(CallingConv.ID)
     setCallingConv = Method(Void, CallingConv.ID)
     getParamAlignment = Method(cast(Unsigned, int), cast(int, Unsigned))
@@ -298,7 +298,7 @@ class ReturnInst:
 @SwitchInst
 class SwitchInst:
     _downcast_ = Value, Instruction
-    
+
     getCondition = Method(ptr(Value))
     setCondition = Method(Void, ptr(Value))
     getDefaultDest = Method(ptr(BasicBlock))

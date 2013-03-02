@@ -112,7 +112,7 @@ def test_basic_jit_use():
     fpm.doInitialization()
     fpm.run(fn)
     fpm.doFinalization()
-    
+
     pm.run(m)
 
     print(m)

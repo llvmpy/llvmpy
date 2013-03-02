@@ -94,7 +94,7 @@ class IRBuilder:
                cast(bool, Bool)]
         op = Method(*sig).require_only(2)
         return op
-    
+
     CreateUDiv = _binop_is_exact()
     CreateSDiv = _binop_is_exact()
     CreateLShr = _binop_is_exact()
