@@ -9,6 +9,7 @@ import unittest
 import subprocess
 import tempfile
 import contextlib
+from distutils.spawn import find_executable
 
 is_py3k = sys.version_info[0] >= 3
 BITS = tuple.__itemsize__ * 8
@@ -30,7 +31,6 @@ import llvmpy
 
 
 tests = []
-
 
 # ---------------------------------------------------------------------------
 
@@ -674,6 +674,7 @@ tests.append(TestTargetMachines)
 # ---------------------------------------------------------------------------
 
 class TestNative(TestCase):
+
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
 
@@ -694,8 +695,12 @@ class TestNative(TestCase):
         return m
 
     def _compile(self, src):
+        cc = find_executable('cc')
+        if not cc:
+            return
+
         dst = os.path.join(self.tmpdir, 'llvmobj.out')
-        s = subprocess.call(['cc', '-o', dst, src])
+        s = subprocess.call([cc, '-o', dst, src])
         if s != 0:
             raise Exception("Cannot compile")
 
