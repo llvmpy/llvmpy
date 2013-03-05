@@ -4,19 +4,19 @@
 '''
 # ______________________________________________________________________
 # Module imports
-
+from __future__ import absolute_import
 import opcode
 import types
 import logging
 
 import llvm.core as lc
 
-import opcode_util
-import bytetype
-from bytecode_visitor import BytecodeFlowVisitor
-from byte_flow import BytecodeFlowBuilder
-from byte_control import ControlFlowBuilder
-from phi_injector import PhiInjector, synthetic_opname
+from . import opcode_util
+from . import bytetype
+from .bytecode_visitor import BytecodeFlowVisitor
+from .byte_flow import BytecodeFlowBuilder
+from .byte_control import ControlFlowBuilder
+from .phi_injector import PhiInjector, synthetic_opname
 
 # ______________________________________________________________________
 # Module data
