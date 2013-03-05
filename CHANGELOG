@@ -1,4 +1,9 @@
-2013-02-XX   0.11.0:
+2013-03-05   0.11.1:
+--------------------
+  * fix test when cc is not available
+
+
+2013-03-01   0.11.0:
 --------------------
   * fix Python 3 support on Windows
   * New llvm binding
