@@ -20,5 +20,5 @@ install:
   - export LLVMPY_DYNLINK=1
   - python setup.py install -q
 
-script: python -c "import llvm; llvm.test()"
+script: cd ~; python -c "import sys;import llvm;sys.exit(0 if llvm.test() == 0 else 1)"
 
