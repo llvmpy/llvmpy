@@ -25,7 +25,7 @@
 #define PyFile_Check(x) (1)
 
 #if (PY_VERSION_HEX < 0x03030000)
-#define PyString_AsString(x) PyBytes_AsString(PyUnicode_AsUTF8String(x))
+#define PyString_AsString _PyUnicode_AsString
 #else
 #define PyString_AsString PyUnicode_AsUTF8
 #endif
