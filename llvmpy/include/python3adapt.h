@@ -9,13 +9,10 @@
 #define PyBytes_FromStringAndSize   PyString_FromStringAndSize
 #define PyBytes_FromString          PyString_FromString
 
-#endif
-
-#if (PY_VERSION_HEX >= 0x03000000)
+#else
 
 #define PyString_Check PyUnicode_Check
 #define PyString_Size PyUnicode_GET_SIZE
-#define PyString_AsString PyUnicode_AsUTF8
 #define PyString_FromStringAndSize PyUnicode_FromStringAndSize
 #define PyString_FromString PyUnicode_FromString
 
@@ -27,6 +24,12 @@
 
 #define PyFile_Check(x) (1)
 
+#if (PY_VERSION_HEX < 0x03030000)
+#define PyString_AsString(x) PyBytes_AsString(PyUnicode_AsUTF8String(x))
+#else
+#define PyString_AsString PyUnicode_AsUTF8
 #endif
+
+#endif  // (PY_VERSION_HEX < 0x03000000)
 
 #endif  //PYTHON3ADAPT_H
