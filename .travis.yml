@@ -1,0 +1,24 @@
+language: python
+
+python:
+  - "2.6"
+  - "2.7"
+  - "3.2"
+  - "3.3"
+
+branches:
+  only:
+    - master
+
+install:
+  - wget "http://repo.continuum.io/pkgs/free/linux-64/llvm-3.2-0.tar.bz2"
+  - tar -xjf llvm-3.2-0.tar.bz2
+  - PATH+=":`pwd`/bin"
+  - export LD_LIBRARY_PATH="`pwd`/lib"
+  - export LLVM_CONFIG_PATH="`pwd`/bin/llvm-config"
+  - $LLVM_CONFIG_PATH --cflags # test llvm-config
+  - export LLVMPY_DYNLINK=1
+  - python setup.py install -q
+
+script: cd ~; python -c "import sys;import llvm;sys.exit(0 if llvm.test() == 0 else 1)"
+

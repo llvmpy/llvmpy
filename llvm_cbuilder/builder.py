@@ -14,7 +14,9 @@ from . import shortnames as types
 ###
 
 class FunctionAlreadyExists(NameError):
-    pass
+
+    def __init__(self, func):
+        self.func = func
 
 def _is_int(ty):
     return isinstance(ty, lc.IntegerType)
@@ -830,7 +832,7 @@ class CDefinition(object):
         try:
             func = self.define(module)
         except FunctionAlreadyExists as e:
-            (func,) = e
+            func = e.func
         return func
 
     def __getattr__(self, attr):

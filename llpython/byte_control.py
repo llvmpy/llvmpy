@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 # ______________________________________________________________________
-
+from __future__ import absolute_import
 import opcode
-import opcode_util
+from . import opcode_util
 import pprint
 
-from bytecode_visitor import BasicBlockVisitor, BenignBytecodeVisitorMixin
-from control_flow import ControlFlowGraph
+from .bytecode_visitor import BasicBlockVisitor, BenignBytecodeVisitorMixin
+from .control_flow import ControlFlowGraph
 
 # ______________________________________________________________________
 

@@ -34,9 +34,11 @@ class LLVMException(Exception):
 def test(verbosity=1):
     """test(verbosity=1) -> TextTestResult
 
-        Run self-test, and return unittest.runner.TextTestResult object.
+        Run self-test, and return the number of failures + errors
         """
     from llvm.test_llvmpy import run
 
-    return run(verbosity=verbosity)
+    result = run(verbosity=verbosity)
+
+    return len(result.failures) + len(result.errors)
 
