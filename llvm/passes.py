@@ -336,7 +336,7 @@ def build_pass_managers(tm, opt=2, loop_vectorize=False, vectorize=False,
         pmb.populate(pm)
 
     if fpm:
-        fpm.add(tm.target_data)
+        fpm.add(tm.target_data.clone())
         fpm.add(TargetLibraryInfo.new(tm.triple))
         if llvm.version >= (3, 2):
             fpm.add(TargetTransformInfo.new(tm))
