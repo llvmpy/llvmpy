@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # ______________________________________________________________________
-
+from __future__ import absolute_import
 import sys
 import os.path
 import imp
@@ -10,9 +10,8 @@ import types
 import llvm.core as lc
 import llvm.ee as le
 
-import bytetype
-import byte_translator
-from pyaddfunc import pyaddfunc
+from . import bytetype, byte_translator
+from .pyaddfunc import pyaddfunc
 
 LLVM_TO_INT_PARSE_STR_MAP = {
     8 : 'b',

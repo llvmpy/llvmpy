@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 # ______________________________________________________________________
-
+from __future__ import absolute_import
 import itertools
 
 import opcode
-from opcode_util import itercode
+from .opcode_util import itercode
 
 # ______________________________________________________________________
 

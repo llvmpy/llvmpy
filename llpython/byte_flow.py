@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 # ______________________________________________________________________
-
+from __future__ import absolute_import
 import dis
 import opcode
 
-from bytecode_visitor import BasicBlockVisitor
-import opcode_util
+from .bytecode_visitor import BasicBlockVisitor
+from . import opcode_util
 
 # ______________________________________________________________________
 
