@@ -999,22 +999,22 @@ class IntegerValue(OperatorMixin):
         else:
             return self._temp(self.parent.builder.srem(self.value, rhs.value))
 
-    def __ilshift__(self, rhs):
+    def __lshift__(self, rhs):
         return self._temp(self.parent.builder.shl(self.value, rhs.value))
 
-    def __irshift__(self, rhs):
+    def __rshift__(self, rhs):
         if self.unsigned:
             return self._temp(self.self.parent.builder.lshr(self.value, rhs.value))
         else:
             return self._temp(self.parent.builder.ashr(self.value, rhs.value))
 
-    def __iand__(self, rhs):
+    def __and__(self, rhs):
         return self._temp(self.parent.builder.and_(self.value, rhs.value))
 
-    def __ior__(self, rhs):
+    def __or__(self, rhs):
         return self._temp(self.parent.builder.or_(self.value, rhs.value))
 
-    def __ixor__(self, rhs):
+    def __xor__(self, rhs):
         return self._temp(self.parent.builder.xor(self.value, rhs.value))
 
     def __lt__(self, rhs):
