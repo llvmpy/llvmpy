@@ -132,7 +132,7 @@ class EngineBuilder(llvm.Wrapper):
         level valid [0, 1, 2, 3] -- [None, Less, Default, Aggressive]
         '''
         assert 0 <= level <= 3
-        self._ptr.setOptLevel = level
+        self._ptr.setOptLevel(level)
         return self
 
     def mattrs(self, string):
