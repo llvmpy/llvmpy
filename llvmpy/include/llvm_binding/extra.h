@@ -401,24 +401,20 @@ PyObject* ExecutionEngine_RunFunction(llvm::ExecutionEngine* EE,
     return pycapsule_new(new GenericValue(ret), GVN);
 }
 
-static
-PyObject* EngineBuilder_setErrorStr(llvm::EngineBuilder* eb, PyObject* fileobj)
-{
-    
-    if (!PyFile_Check(fileobj)) {
-        PyErr_SetString(PyExc_TypeError, "Expecting a file object.");
-        return NULL;
-    }
-
-    std::string buffer;
-    eb->setErrorStr(&buffer);
-
-    if (-1 == PyFile_WriteString(buffer.c_str(), fileobj)) {
-        return NULL;
-    }
-
-    return pycapsule_new(eb, "llvm::EngineBuilder");
-}
+// FIXME
+//static
+//PyObject* EngineBuilder_setErrorStr(llvm::EngineBuilder* eb, PyObject* fileobj)
+//{
+//
+//    std::string buffer;
+//    eb->setErrorStr(&buffer);
+//
+//    if (-1 == PyFile_WriteString(buffer.c_str(), fileobj)) {
+//        return NULL;
+//    }
+//
+//    return pycapsule_new(eb, "llvm::EngineBuilder");
+//}
 
 static
 PyObject* EngineBuilder_setMAttrs(llvm::EngineBuilder* eb,

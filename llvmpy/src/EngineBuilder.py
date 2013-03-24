@@ -23,9 +23,9 @@ class EngineBuilder:
 
     setEngineKind = _setter(Kind)
     setJITMemoryManager = _setter(ptr(JITMemoryManager))
-
-    setErrorStr = CustomMethod('EngineBuilder_setErrorStr',
-                                PyObjectPtr, PyObjectPtr)
+# FIXME
+#    setErrorStr = CustomMethod('EngineBuilder_setErrorStr',
+#                                PyObjectPtr, PyObjectPtr)
 
     setOptLevel = _setter(CodeGenOpt.Level)
     #setTargetOptions =
