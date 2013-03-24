@@ -24,3 +24,7 @@ class BasicBlock:
     getInstList = CustomMethod('BasicBlock_getInstList', PyObjectPtr)
 
     eraseFromParent = Method()
+
+    splitBasicBlock = Method(ptr(BasicBlock), ptr(Instruction),
+                             cast(str, StringRef)).require_only(1)
+
