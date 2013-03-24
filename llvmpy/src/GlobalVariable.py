@@ -7,10 +7,11 @@ GlobalVariable = llvm.Class(GlobalValue)
 from .Module import Module
 from .Type import Type
 from .ADT.StringRef import StringRef
-from .Value import Constant
+from .Value import Value, User, Constant
 
 @GlobalVariable
 class GlobalVariable:
+    _downcast_ = Value, User
     ThreadLocalMode = Enum('''NotThreadLocal, GeneralDynamicTLSModel,
                               LocalDynamicTLSModel, InitialExecTLSModel,
                               LocalExecTLSModel

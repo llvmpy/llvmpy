@@ -110,6 +110,9 @@ class Instruction:
 
     clone = Method(ptr(Instruction))
 
+    getNextNode = Method(ptr(Instruction))
+    getPrevNode = Method(ptr(Instruction))
+
 # LLVM 3.3
 #    hasUnsafeAlgebra = Method(cast(Bool, bool))
 #    hasNoNans = Method(cast(Bool, bool))
@@ -120,17 +123,17 @@ class Instruction:
 
 @AtomicCmpXchgInst
 class AtomicCmpXchgInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @AtomicRMWInst
 class AtomicRMWInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
     BinOp = Enum('Xchg', 'Add', 'Sub', 'And', 'Nand', 'Or', 'Xor', 'Max', 'Min',
                  'UMax', 'UMin', 'FIRST_BINOP', 'LAST_BINOP', 'BAD_BINOP')
 
 @BinaryOperator
 class BinaryOperator:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @CallInst
 class CallInst:
@@ -160,7 +163,7 @@ class CallInst:
 
 @CmpInst
 class CmpInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
     Predicate = Enum('FCMP_FALSE', 'FCMP_OEQ', 'FCMP_OGT', 'FCMP_OGE',
                      'FCMP_OLT', 'FCMP_OLE', 'FCMP_ONE', 'FCMP_ORD', 'FCMP_UNO',
                      'FCMP_UEQ', 'FCMP_UGT', 'FCMP_UGE', 'FCMP_ULT', 'FCMP_ULE',
@@ -177,31 +180,31 @@ class CmpInst:
 
 @ExtractElementInst
 class ExtractElementInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @FenceInst
 class FenceInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @GetElementPtrInst
 class GetElementPtrInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @InsertElementInst
 class InsertElementInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @InsertValueInst
 class InsertValueInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @LandingPadInst
 class LandingPadInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @PHINode
 class PHINode:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
     getNumIncomingValues = Method(cast(Unsigned, int))
     getIncomingValue = Method(ptr(Value), cast(int, Unsigned))
     setIncomingValue = Method(Void, cast(int, Unsigned), ptr(Value))
@@ -213,15 +216,15 @@ class PHINode:
 
 @SelectInst
 class SelectInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @ShuffleVectorInst
 class ShuffleVectorInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @StoreInst
 class StoreInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
     isVolatile = Method(cast(Bool, bool))
     isSimple = Method(cast(Bool, bool))
     isUnordered = Method(cast(Bool, bool))
@@ -240,40 +243,40 @@ class StoreInst:
 
 @TerminatorInst
 class TerminatorInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
     getNumSuccessors = Method(cast(Unsigned, int))
     getSuccessor = Method(ptr(BasicBlock), cast(int, Unsigned))
     setSuccessor = Method(Void, cast(int, Unsigned), ptr(BasicBlock))
 
 @UnaryInstruction
 class UnaryInstruction:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 #call
 
 @IntrinsicInst
 class IntrinsicInst:
     _include_ = 'llvm/IntrinsicInst.h'
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 #compare
 
 @FCmpInst
 class FCmpInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @ICmpInst
 class ICmpInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 # terminator
 @BranchInst
 class BranchInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @IndirectBrInst
 class IndirectBrInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @InvokeInst
 class InvokeInst:
@@ -289,15 +292,17 @@ class InvokeInst:
 
 @ResumeInst
 class ResumeInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @ReturnInst
 class ReturnInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction, TerminatorInst
+    getReturnValue = Method(ptr(Value))
+    getNumSuccessors = Method(cast(Unsigned, int))
 
 @SwitchInst
 class SwitchInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
     getCondition = Method(ptr(Value))
     setCondition = Method(Void, ptr(Value))
@@ -309,24 +314,29 @@ class SwitchInst:
 
 @UnreachableInst
 class UnreachableInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 # unary
 @AllocaInst
 class AllocaInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
+    isArrayAllocation = Method(cast(Bool, bool))
+    isStaticAlloca = Method(cast(Bool, bool))
+    getArraySize = Method(ptr(Value))
+    getAllocatedType = Method(ptr(Type))
+
 
 @CastInst
 class CastInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @ExtractValueInst
 class ExtractValueInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @LoadInst
 class LoadInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
     isVolatile = Method(cast(Bool, bool))
     isSimple = Method(cast(Bool, bool))
     isUnordered = Method(cast(Bool, bool))
@@ -341,50 +351,52 @@ class LoadInst:
                        AtomicOrdering,
                        SynchronizationScope).require_only(1)
 
+    getPointerOperand = Method(ptr(Value))
+
     classof = StaticMethod(cast(Bool, bool), ptr(Value))
 
 @VAArgInst
 class VAArgInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 # intrinsic
 @DbgInfoIntrinsic
 class DbgInfoIntrinsic:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @MemIntrinsic
 class MemIntrinsic:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @VACopyInst
 class VACopyInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @VAEndInst
 class VAEndInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @VAStartInst
 class VAStartInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @BitCastInst
 class BitCastInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @FPExtInst
 class FPExtInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @FPToSIInst
 class FPToSIInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @FPToUIInst
 class FPToUIInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 
 @FPTruncInst
 class FPTruncInst:
-    _downcast_ = Value, Instruction
+    _downcast_ = Value, User, Instruction
 

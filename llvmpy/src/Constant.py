@@ -1,6 +1,6 @@
 from binding import *
 from .namespace import llvm
-from .Value import Value
+from .Value import Value, User
 from .Value import Constant, UndefValue, ConstantInt, ConstantFP, ConstantArray
 from .Value import ConstantStruct, ConstantVector, ConstantVector
 from .Value import ConstantDataSequential, ConstantDataArray, ConstantExpr
@@ -12,7 +12,7 @@ from .Instruction import CmpInst
 
 @Constant
 class Constant:
-    _downcast_ = Value
+    _downcast_ = Value, User
 
     isNullValue = Method(cast(bool, Bool))
     isAllOnesValue = Method(cast(bool, Bool))
@@ -72,7 +72,7 @@ class UndefValue:
 
 @ConstantInt
 class ConstantInt:
-    _downcast_ = Constant, Value
+    _downcast_ = Constant, User, Value
 
     get = StaticMethod(ptr(ConstantInt),
                        ptr(IntegerType),
@@ -88,7 +88,7 @@ class ConstantInt:
 
 @ConstantFP
 class ConstantFP:
-    _downcast_ = Constant, Value
+    _downcast_ = Constant, User, Value
 
     get = StaticMethod(ptr(Constant), ptr(Type), cast(float, Double))
     getNegativeZero = StaticMethod(ptr(ConstantFP), ptr(Type))
@@ -102,7 +102,7 @@ class ConstantFP:
 
 @ConstantArray
 class ConstantArray:
-    _downcast_ = Constant, Value
+    _downcast_ = Constant, User, Value
 
     get = CustomStaticMethod('ConstantArray_get',
                              PyObjectPtr, # ptr(Constant),
@@ -113,7 +113,7 @@ class ConstantArray:
 
 @ConstantStruct
 class ConstantStruct:
-    _downcast_ = Constant, Value
+    _downcast_ = Constant, User, Value
 
     get = CustomStaticMethod('ConstantStruct_get',
                              PyObjectPtr, # ptr(Constant)
@@ -129,7 +129,7 @@ class ConstantStruct:
 
 @ConstantVector
 class ConstantVector:
-    _downcast_ = Constant, Value
+    _downcast_ = Constant, User, Value
 
     get = CustomStaticMethod('ConstantVector_get',
                              PyObjectPtr, # ptr(Constant)
@@ -139,12 +139,12 @@ class ConstantVector:
 
 @ConstantDataSequential
 class ConstantDataSequential:
-    _downcast_ = Constant, Value
+    _downcast_ = Constant, User, Value
 
 
 @ConstantDataArray
 class ConstantDataArray:
-    _downcast_ = Constant, Value
+    _downcast_ = Constant, User, Value
 
     getString = StaticMethod(ptr(Constant),
                              ref(LLVMContext),
@@ -177,7 +177,7 @@ def _factory_const_type():
 
 @ConstantExpr
 class ConstantExpr:
-    _downcast_ = Constant, Value
+    _downcast_ = Constant, User, Value
 
     getAlignOf = _factory(ptr(Type))
     getSizeOf = _factory(ptr(Type))
