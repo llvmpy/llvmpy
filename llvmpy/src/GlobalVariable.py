@@ -11,7 +11,7 @@ from .Value import Value, User, Constant
 
 @GlobalVariable
 class GlobalVariable:
-    _downcast_ = Value, User
+    _downcast_ = Value, User, Constant
     ThreadLocalMode = Enum('''NotThreadLocal, GeneralDynamicTLSModel,
                               LocalDynamicTLSModel, InitialExecTLSModel,
                               LocalExecTLSModel
