@@ -161,6 +161,10 @@ class CallInst:
 
     CreateFree = StaticMethod(ptr(Instruction), ptr(Value), ptr(BasicBlock))
 
+    getNumArgOperands = Method(cast(Unsigned, int))
+    getArgOperand = Method(ptr(Value), cast(int, Unsigned))
+    setArgOperand = Method(Void, cast(int, Unsigned), ptr(Value))
+
 @CmpInst
 class CmpInst:
     _downcast_ = Value, User, Instruction
@@ -238,6 +242,10 @@ class StoreInst:
     setAtomic = Method(Void,
                        AtomicOrdering,
                        SynchronizationScope).require_only(1)
+
+    getValueOperand = Method(ptr(Value))
+    getPointerOperand = Method(ptr(Value))
+    getPointerAddressSpace = Method(cast(Unsigned, int))
 
     classof = StaticMethod(cast(Bool, bool), ptr(Value))
 
