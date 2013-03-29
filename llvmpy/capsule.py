@@ -76,7 +76,7 @@ class Capsule(object):
             return False
 
     def __hash__(self):
-        return super(Capsule, self).__hash__()
+        return hash((self.pointer, self.name))
 
     def __ne__(self, other):
         return not (self == other)
@@ -174,13 +174,13 @@ class Wrapper(object):
         return self._capsule.capsule
 
     def __hash__(self):
-        return super(Wrapper, self).__hash__()
+        return hash(self._capsule)
 
     def __eq__(self, other):
         return self._capsule == other._capsule
 
     def __ne__(self, other):
-        return self._capsule != other._capsule
+        return not(self == other)
 
     def _downcast(self, newcls):
         return downcast(self, newcls)
