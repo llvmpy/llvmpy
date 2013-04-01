@@ -71,3 +71,5 @@ class Value:
         return os.str()
 
     getValueID = Method(cast(Unsigned, int))
+
+    mutateType = Method(Void, ptr(Type))
