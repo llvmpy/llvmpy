@@ -214,6 +214,8 @@ class StructType:
                              cast(bool, Bool),      # is packed
                              ).require_only(2)
 
+    isLayoutIdentical = Method(cast(Bool, bool), # identical?
+                               ptr(StructType))  # other
 
     isValidElementType = StaticMethod(cast(Bool, bool), ptr(Type))
 

@@ -895,6 +895,10 @@ class StructType(Type):
     def is_opaque(self):
         return self._ptr.isOpaque()
 
+    def is_layout_identical(self, other):
+        return self._ptr.isLayoutIdentical(other._ptr)
+
+
 class ArrayType(Type):
     """Represents an array type."""
     _type_ = api.llvm.ArrayType

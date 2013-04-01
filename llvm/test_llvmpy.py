@@ -1245,6 +1245,18 @@ class TestNamedMetaData(TestCase):
 
 tests.append(TestNamedMetaData)
 
+
+# ---------------------------------------------------------------------------
+
+class TestStruct(TestCase):
+    def test_struct_identical(self):
+        m = Module.new('test_struct_identical')
+        ta = Type.struct([Type.int(32), Type.float()], name='ta')
+        tb = Type.struct([Type.int(32), Type.float()])
+        self.assertTrue(ta.is_layout_identical(tb))
+
+tests.append(TestStruct)
+
 # ---------------------------------------------------------------------------
 
 def run(verbosity=1):
