@@ -16,30 +16,36 @@ Other Python versions may work.
 Quickstart
 ----------
 
-1. Get and extract LLVM 3.2 source tarball from `llvm.org <http://llvm.org/releases/download.html#3.2>`_.
+1. Get and extract LLVM 3.2 source tarball from
+   `llvm.org <http://llvm.org/releases/download.html#3.2>`_.  Then, ``cd`` into
+   the extracted directory.
 
-2. Run ``./configure --enable-optimized`` in the extracted directory.
+2. Run ``./configure --enable-optimized --prefix=LLVM_INSTALL_PATH``.
 
     **Note**: Without the ``--enable-optimized`` flag, debug build will be
     selected.  Unless you are developing LLVM or llvmpy, it is recommended
     that the flag is used to reduce build time and binary size.
+    
+    **Note**: Use prefix to select the installation path.  It is recommended
+    to separate your custom build from the default system package.  Please
+    replace ``LLVM_INSTALL_PATH`` with your own path.
 
 3. Run ``REQUIRES_RTTI=1 make`` to build.
 
     **Note**: With LLVM 3.2, the default build configuration has C++ RTTI 
     disabled.  However, llvmpy requires RTTI.
 
-2. Get llvm-py and install it::
+4. Get llvm-py and install it::
 
    $ git clone git@github.com:llvmpy/llvmpy.git
    $ cd llvmpy
-   $ python setup.py install
+   $ LLVM_CONFIG_PATH=LLVM_INSTALL_PATH/bin/llvm-config python setup.py install
 
    Run the tests::
 
    $ python -c "import llvm; llvm.test()"
 
-3. See documentation at 'http://www.llvmpy.org' and examples
+5. See documentation at 'http://www.llvmpy.org' and examples
    under 'test'.
    
 Common Build Problems
