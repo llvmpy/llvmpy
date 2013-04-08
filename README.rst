@@ -20,9 +20,9 @@ Quickstart
 
 2. Run ``./configure --enable-optimized`` in the extracted directory.
 
-   **Note**: Without the ``--enable-optimized`` flag, debug build will be 
-   selected.  Unless you are developing LLVM or llvmpy, it is recommended
-   that the flag is used to reduce build time and binary size.
+    **Note**: Without the ``--enable-optimized`` flag, debug build will be
+    selected.  Unless you are developing LLVM or llvmpy, it is recommended
+    that the flag is used to reduce build time and binary size.
 
 3. Run ``REQUIRES_RTTI=1 make`` to build.
 
