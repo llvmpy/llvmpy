@@ -16,7 +16,7 @@ Other Python versions may work.
 Quickstart
 ----------
 
-1. Get and extract LLVM 3.2 source tarball.
+1. Get and extract LLVM 3.2 source tarball from `llvm.org <http://llvm.org/releases/download.html#3.2>`_.
 
 2. Run ``./configure --enable-optimized`` in the extracted directory.
 
