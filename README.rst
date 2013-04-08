@@ -16,13 +16,18 @@ Other Python versions may work.
 Quickstart
 ----------
 
-1. Get 3.2 version of LLVM, build it.  Make sure ``--enable-pic`` is 
-   passed to LLVM's ``configure``.
+1. Get and extract LLVM 3.2 source tarball.
 
-   For LLVM 3.2, make sure that environment variable ``REQUIRES_RTTI=1`` is 
-   defined when running ``make``.  Otherwise, you may see "undefined symbol:
-   _ZTIN4llvm24PassRegistrationListenerE".  Please refer to 
-   http://llvm.org/docs/Packaging.html#c-features for details.
+2. Run ``./configure --enable-optimized`` in the extracted directory.
+
+   **Note**: Without the ``--enable-optimized`` flag, debug build will be 
+   selected.  Unless you are developing LLVM or llvmpy, it is recommended
+   that the flag is used to reduce build time and binary size.
+
+3. Run ``REQUIRES_RTTI=1 make`` to build.
+
+    **Note**: With LLVM 3.2, the default build configuration has C++ RTTI 
+    disabled.  However, llvmpy requires RTTI.
 
 2. Get llvm-py and install it::
 
@@ -36,6 +41,14 @@ Quickstart
 
 3. See documentation at 'http://www.llvmpy.org' and examples
    under 'test'.
+   
+Common Build Problems
+---------------------
+
+1. If llvmpy cannot be imported due to "undefined symbol:
+   _ZTIN4llvm24PassRegistrationListenerE", it is because RTTI is not enabled
+   when building LLVM.  "_ZTIN4llvm24PassRegistrationListenerE" is the typeinfo
+   of PassRegistrationListener class.
 
 LICENSE
 -------
