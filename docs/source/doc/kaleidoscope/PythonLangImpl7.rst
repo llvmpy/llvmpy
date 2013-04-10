@@ -121,8 +121,8 @@ to talk about how LLVM represents stack variables.
 In LLVM, all memory accesses are explicit with load/store instructions,
 and it is carefully designed not to have (or need) an "address-of"
 operator. Notice how the type of the @G/@H global variables is actually
-"i32\ *" even though the variable is defined as "i32". What this means
-is that @G defines* space* for an i32 in the global data area, but its
+"i32\*" even though the variable is defined as "i32". What this means
+is that @G defines *space* for an i32 in the global data area, but its
 *name* actually refers to the address for that space. Stack variables
 work the same way, except that instead of being declared with global
 variable definitions, they are declared with the `LLVM alloca
@@ -133,11 +133,11 @@ instruction <http://www.llvm.org/docs/LangRef.html#i_alloca>`_:
 
    define i32 @example() { 
    entry: 
-         %X = alloca i32          ; type of %X is i32 *. 
+         %X = alloca i32                ; type of %X is i32* 
          ... 
-         %tmp = load i32* %X      ; load the stack value %X from the stack. 
-         %tmp2 = add i32 %tmp, 1  ; increment it store i32 %tmp2,
-         i32* %X                  ; store it back 
+         %tmp = load i32* %X            ; load the stack value %X from the stack 
+         %tmp2 = add i32 %tmp, 1        ; increment it 
+         store i32 %tmp2, i32* %X       ; store it back 
          ...
 
 
