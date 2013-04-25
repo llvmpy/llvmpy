@@ -38,7 +38,7 @@ supported, for a variety of reasons.
 Versions
 --------
 
-llvmpy 0.9 requires version 3.1 of LLVM. It may not work with
+llvmpy 0.11.2 uses LLVM 3.2 (or at least 3.1). It may not work with
 previous versions.
 
 llvmpy has been built and tested with Python 2.7 and 3.2. It should work with
@@ -65,22 +65,6 @@ It does not matter which compiler LLVM itself was built with (``g++``,
 ``llvm-g++`` or any other); llvmpy can be built with any compiler. It
 has been tried only with gcc/g++ though.
 
-
-LLVM and ``--enable-pic``
--------------------------
-
-The result of an LLVM build is a set of static libraries and object
-files. The llvmpy contains an extension package that is built into a
-shared object (\_core.so) which links to these static libraries and
-object files. It is therefore required that the LLVM libraries and
-object files be built with the ``-fPIC`` option (generate position
-independent code). Be sure to use the ``--enable-pic`` option while
-configuring LLVM (default is no PIC), like this:
-
-.. code-block:: bash
-  
-   $ ~/llvm ./configure --enable-pic --enable-optimized
-
 llvm-config
 -----------
 
@@ -98,13 +82,34 @@ is different from that of 'root', so even if ``llvm-config`` is in your
 Steps
 -----
 
-Get 3.1 version of LLVM, build it. Make sure '--enable-pic' is passed to
-LLVM's 'configure'.
+1. Get and extract LLVM 3.2 source tarball from
+   `llvm.org <http://llvm.org/releases/download.html#3.2>`_.  Then, ``cd`` into
+   the extracted directory.
 
-Get llvmpy and install it:
+2. Run ``./configure --enable-optimized --prefix=LLVM_INSTALL_PATH``.
 
+    **Note**: Without the ``--enable-optimized`` flag, debug build will be
+    selected.  Unless you are developing LLVM or llvmpy, it is recommended
+    that the flag is used to reduce build time and binary size.
+    
+    **Note**: Use prefix to select the installation path.  It is recommended
+    to separate your custom build from the default system package.  Please
+    replace ``LLVM_INSTALL_PATH`` with your own path.
 
-.. code-block:: bash
+3. Run ``REQUIRES_RTTI=1 make`` to build.
 
-   $ git clone git@github.com:numba/llvmpy.git
-   $ cd llvmpy $ python setup.py install
+    **Note**: With LLVM 3.2, the default build configuration has C++ RTTI 
+    disabled.  However, llvmpy requires RTTI.
+
+4. Get llvm-py and install it::
+
+   $ git clone git@github.com:llvmpy/llvmpy.git
+   $ cd llvmpy
+   $ LLVM_CONFIG_PATH=LLVM_INSTALL_PATH/bin/llvm-config python setup.py install
+
+   Run the tests::
+
+   $ python -c "import llvm; llvm.test()"
+
+5. See documentation at 'http://www.llvmpy.org' and examples
+   under 'test'.
