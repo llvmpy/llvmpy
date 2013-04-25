@@ -730,7 +730,7 @@ class Type(llvm.Wrapper):
         otherwise, creates a literal type."""
         context = api.llvm.getGlobalContext()
         is_packed = True
-        ptr = api.llvm.StructType.create(context)
+        ptr = api.llvm.StructType.create(context, name)
         ptr.setBody(llvm._extract_ptrs(element_tys), is_packed)
         return StructType(ptr)
 
