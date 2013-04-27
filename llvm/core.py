@@ -1688,6 +1688,12 @@ class Instruction(User):
 
     def set_metadata(self, kind, metadata):
         self._ptr.setMetadata(kind, metadata._ptr)
+        
+    def has_metadata(self):
+        return self._ptr.hasMetadata()
+
+    def get_metadata(self, kind):
+        return self._ptr.getMetadata(kind)
 
     @property
     def opcode(self):
