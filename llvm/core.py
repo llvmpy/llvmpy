@@ -1688,7 +1688,7 @@ class Instruction(User):
 
     def set_metadata(self, kind, metadata):
         self._ptr.setMetadata(kind, metadata._ptr)
-        
+
     def has_metadata(self):
         return self._ptr.hasMetadata()
 
