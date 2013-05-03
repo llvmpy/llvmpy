@@ -1,7 +1,10 @@
+import os
 from binding import *
 from ..namespace import llvm, default
 
 llvm.includes.add('llvm/Support/TargetSelect.h')
+
+
 
 InitializeNativeTarget = llvm.Function('InitializeNativeTarget')
 InitializeNativeTargetAsmPrinter = llvm.Function(
@@ -11,20 +14,15 @@ InitializeNativeTargetAsmParser = llvm.Function(
 InitializeNativeTargetDisassembler = llvm.Function(
                     'InitializeNativeTargetDisassembler', cast(Bool, bool))
 
-
 #InitializeAllTargets = llvm.Function('InitializeAllTargets')
 #InitializeAllTargetInfos = llvm.Function('InitializeAllTargetInfos')
 #InitializeAllTargetMCs = llvm.Function('InitializeAllTargetMCs')
 #InitializeAllAsmPrinters = llvm.Function('InitializeAllAsmPrinters')
 
-if PTX_SUPPORT == 'PTX':
-    LLVMInitializePTXTarget = default.Function('LLVMInitializePTXTarget')
-    LLVMInitializePTXTargetInfo = default.Function('LLVMInitializePTXTargetInfo')
-    LLVMInitializePTXTargetMC = default.Function('LLVMInitializePTXTargetMC')
-    LLVMInitializePTXAsmPrinter = default.Function('LLVMInitializePTXAsmPrinter')
+for target in TARGETS_BUILT:
+    decls = 'Target', 'TargetInfo', 'TargetMC', 'AsmPrinter'
+    for k in map(lambda x: 'LLVMInitialize%s%s' % (target, x), decls):
+        if k == 'LLVMInitializeCppBackendAsmPrinter':
+            continue
+        globals()[k] = default.Function(k)
 
-if PTX_SUPPORT == 'NVPTX':
-    LLVMInitializeNVPTXTarget = default.Function('LLVMInitializeNVPTXTarget')
-    LLVMInitializeNVPTXTargetInfo = default.Function('LLVMInitializeNVPTXTargetInfo')
-    LLVMInitializeNVPTXTargetMC = default.Function('LLVMInitializeNVPTXTargetMC')
-    LLVMInitializeNVPTXAsmPrinter = default.Function('LLVMInitializeNVPTXAsmPrinter')

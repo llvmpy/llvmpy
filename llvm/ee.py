@@ -222,6 +222,24 @@ class ExecutionEngine(llvm.Wrapper):
 # Target machine
 #===----------------------------------------------------------------------===
 
+def initialize_target(target, noraise=False):
+    """Initialize target by name.
+    It is safe to initialize the same target multiple times.
+    """
+    prefix = 'LLVMInitialize'
+    postfixes = ['Target', 'TargetInfo', 'TargetMC', 'AsmPrinter']
+    try:
+        for postfix in postfixes:
+            getattr(api, '%s%s%s' % (prefix, target, postfix))()
+    except AttributeError:
+        if noraise:
+            return False
+        else:
+            raise
+    else:
+        return True
+
+
 def print_registered_targets():
     '''
     Note: print directly to stdout

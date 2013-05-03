@@ -841,7 +841,8 @@ class Attr(object):
 #
 # Pick-up environ var
 #
-PTX_SUPPORT = os.environ.get('LLVMPY_PTX_SUPPORT', '')
+
+TARGETS_BUILT = os.environ.get('LLVM_TARGETS_BUILT', '').split()
 
 def _parse_llvm_version(ver):
     import re

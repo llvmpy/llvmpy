@@ -636,12 +636,13 @@ class TestTargetMachines(TestCase):
         self.assertTrue(le.get_host_cpu_name())
 
     def test_ptx(self):
-        if lc.HAS_PTX:
+        if le.initialize_target('PTX', noraise=True):
             arch = 'ptx64'
-        elif lc.HAS_NVPTX:
+        elif le.initialize_target('NVPTX', noraise=True):
             arch = 'nvptx64'
         else:
             return # skip this test
+
         print(arch)
         m, func = self._build_module()
         func.calling_convention = lc.CC_PTX_KERNEL # set calling conv
@@ -650,7 +651,7 @@ class TestTargetMachines(TestCase):
         self.assertTrue(ptxtm.cpu)
         ptxasm = ptxtm.emit_assembly(m)
         self.assertIn('foo', ptxasm)
-        if lc.HAS_NVPTX:
+        if arch == 'nvptx64':
             self.assertIn('.address_size 64', ptxasm)
         self.assertIn('sm_20', ptxasm)
 

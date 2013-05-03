@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 from subprocess import Popen, PIPE, check_call
@@ -36,6 +37,11 @@ def run_llvm_config(extra_args):
 
 llvm_version = run_llvm_config(['--version'])
 print('LLVM version = %r' % llvm_version)
+
+targets_built = run_llvm_config(['--targets-built'])
+include_targets = set(os.environ.get('LLVMPY_TARGETS', '').split())
+targets_built = ' '.join(set(targets_built.split()) & include_targets)
+print('LLVM targets = %s' % targets_built)
 
 def get_libs_and_objs(components):
     parts = run_llvm_config(['--libs'] + components).split()
@@ -97,36 +103,20 @@ def determine_to_use_dynlink(libdir, llvm_version):
 
 
 dynlink = determine_to_use_dynlink(libdir, llvm_version)
-ptx_support = ''
+
 
 if dynlink:
     print('Using dynamic linking')
     libs_core = ['LLVM-%s' % llvm_version]
     objs_core = []
 else:
+    extra_components = set()
+    for tm in map(lambda s: s.lower(), targets_built.split()):
+        postfixes = ['', 'asmprinter', 'codegen', 'desc', 'info']
+        for postfix in postfixes:
+            extra_components.add(tm + postfix)
     enabled_components = set(get_enabled_components())
-    ptx_components = set(['ptx',
-                          'ptxasmprinter',
-                          'ptxcodegen',
-                          'ptxdesc',
-                          'ptxinfo'])
-    nvptx_components = set(['nvptx',
-                            'nvptxasmprinter',
-                            'nvptxcodegen',
-                            'nvptxdesc',
-                            'nvptxinfo'])
-
-    extra_components = []
-    if (nvptx_components & enabled_components) == nvptx_components:
-        print("Using NVPTX")
-        extra_components.extend(nvptx_components)
-        ptx_support = 'NVPTX'
-    elif (ptx_components & enabled_components) == ptx_components:
-        print("Using PTX")
-        extra_components.extend(ptx_components)
-        ptx_support = 'PTX'
-    else:
-        print("No CUDA support")
+    extra_components = list(extra_components & enabled_components)
 
     libs_core, objs_core = get_libs_and_objs(
         ['core', 'analysis', 'scalaropts', 'executionengine',
@@ -136,15 +126,13 @@ else:
         + extra_components)
 
 if sys.platform == 'win32':
-    # If no PTX lib got added, disable PTX in the build
-    if 'LLVMPTXCodeGen' in libs_core:
-        ptx_support = 'ptx'
+    pass
 else:
     macros.append(('_GNU_SOURCE', None))
 
 # auto generate bindings
-os.environ['LLVMPY_PTX_SUPPORT'] = ptx_support
 os.environ['LLVMPY_LLVM_VERSION'] = llvm_version
+os.environ['LLVM_TARGETS_BUILT'] = targets_built
 check_call([sys.executable, 'llvmpy/build.py'])
 
 # generate shared objects

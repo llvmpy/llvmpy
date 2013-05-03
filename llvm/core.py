@@ -2305,28 +2305,3 @@ if api.llvm.InitializeNativeTargetAsmPrinter():
     # should user trigger the initialization?
     raise llvm.LLVMException("No native asm printer!?")
 
-#===----------------------------------------------------------------------===
-# Initialization
-#===----------------------------------------------------------------------===
-
-HAS_PTX = HAS_NVPTX = False
-
-if True: # use PTX?
-    try:
-        api.LLVMInitializePTXTarget()
-        api.LLVMInitializePTXTargetInfo()
-        api.LLVMInitializePTXTargetMC()
-        api.LLVMInitializePTXAsmPrinter()
-        HAS_PTX = True
-    except AttributeError:
-        try:
-            api.LLVMInitializeNVPTXTarget()
-            api.LLVMInitializeNVPTXTargetInfo()
-            api.LLVMInitializeNVPTXTargetMC()
-            api.LLVMInitializeNVPTXAsmPrinter()
-            HAS_NVPTX = True
-        except AttributeError:
-            pass
-
-
-
