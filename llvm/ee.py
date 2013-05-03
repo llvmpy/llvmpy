@@ -298,7 +298,7 @@ class TargetMachine(llvm.Wrapper):
         with contextlib.closing(BytesIO()) as error:
             target = api.llvm.TargetRegistry.lookupTarget(arch, triple, error)
             if not target:
-                raise llvm.LLVMException(error)
+                raise llvm.LLVMException(error.getvalue())
             if not target.hasTargetMachine():
                 raise llvm.LLVMException(target, "No target machine.")
             target_options = api.llvm.TargetOptions.new()
