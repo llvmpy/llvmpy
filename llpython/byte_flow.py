@@ -118,7 +118,7 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
         assert arg is None
         return self._op(i, op, loop_i + loop_arg + 3)
 
-    #op_BUILD_CLASS = _op
+    op_BUILD_CLASS = _op
     op_BUILD_LIST = _op
     op_BUILD_MAP = _op
     op_BUILD_SLICE = _op
@@ -147,7 +147,15 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     #op_EXTENDED_ARG = _op
     op_FOR_ITER = _op
     op_GET_ITER = _op
-    op_IMPORT_FROM = _op
+
+    def op_IMPORT_FROM (self, i, op, arg):
+        # References top of stack without popping, so we can't use the
+        # generic machinery.
+        opname = self.opmap[op][0]
+        ret_val = i, op, opname, arg, [self.stack[-1]]
+        self.stack.append(ret_val)
+        return ret_val
+
     op_IMPORT_NAME = _op
     op_IMPORT_STAR = _op
     op_INPLACE_ADD = _op
