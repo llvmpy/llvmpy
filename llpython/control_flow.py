@@ -101,15 +101,25 @@ class ControlFlowGraph (object):
                 if hasattr(self, 'reaching_definitions'):
                     del self.reaching_definitions
 
-    def idom (self, block):
-        '''Compute the immediate dominator (idom) of the given block
-        key.  Returns None if the block has no in edges.
+    def get_a_dom (self, block):
+        '''Find an immediate predecessor of the given block such that
+        the predecessor is either the only entry point, or the
+        precessor is not in its own dominance set (a non-loop
+        predecessor).  Returns None if the given block has no
+        predecessor.
 
-        Note that in the case where there are multiple immediate
-        dominators (a join after a non-loop branch), this returns one
-        of the predecessors, but is not guaranteed to reliably select
-        one over the others (depends on the ordering of the set type
-        iterator).'''
+        Note that in the case where there are multiple dominators (a
+        join after a non-loop branch), this returns one of the
+        predecessors, but is not guaranteed to reliably select one
+        over the others (depends on the ordering of the set type
+        iterator).
+
+        Note: Previously, this method's documentation erroneously
+        identified the return value as being the immediate dominator
+        of the input block.  Instead, it attempts to find a "nearby"
+        dominator.  Normally, the immediate dominator of a join is the
+        least upperbound of the closed immediate dominance
+        relationship over its two entrants.'''
         preds = self.blocks_in[block]
         npreds = len(preds)
         if npreds == 0:
@@ -143,7 +153,7 @@ class ControlFlowGraph (object):
             ret_val = {}
             for pred in preds:
                 ret_val[pred] = self.block_writes_to_writer_map(pred)
-                crnt = self.idom(pred)
+                crnt = self.get_a_dom(pred)
                 while crnt != None:
                     crnt_writer_map = self.block_writes_to_writer_map(crnt)
                     # This order of update favors the first definitions
@@ -151,7 +161,7 @@ class ControlFlowGraph (object):
                     # visits blocks in reverse execution order.
                     crnt_writer_map.update(ret_val[pred])
                     ret_val[pred] = crnt_writer_map
-                    crnt = self.idom(crnt)
+                    crnt = self.get_a_dom(crnt)
             if not has_memoized:
                 self.reaching_definitions = {}
             self.reaching_definitions[block] = ret_val
