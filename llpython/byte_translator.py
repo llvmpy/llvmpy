@@ -591,7 +591,7 @@ def llpython_into (llvm_function, **kws):
 # Main (self-test) routine
 
 def main (*args):
-    from tests import llfuncs, llfunctys
+    from .tests import llfuncs, llfunctys
     if not args:
         args = ('doslice',)
     elif 'all' in args:

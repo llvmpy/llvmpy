@@ -33,7 +33,7 @@ class ControlFlowBuilder (BenignBytecodeVisitorMixin, BasicBlockVisitor):
         self.block_list = list(blocks.keys())
         self.block_list.sort()
         self.cfg = ControlFlowGraph()
-        self.loop_stack = []
+        self.control_stack = []
         for block in self.block_list:
             self.cfg.add_block(block, blocks[block])
 
@@ -43,7 +43,7 @@ class ControlFlowBuilder (BenignBytecodeVisitorMixin, BasicBlockVisitor):
         self.cfg.compute_dataflow()
         self.cfg.update_for_ssa()
         ret_val = self.cfg
-        del self.loop_stack
+        del self.control_stack
         del self.cfg
         del self.block_list
         del self.blocks
@@ -70,7 +70,7 @@ class ControlFlowBuilder (BenignBytecodeVisitorMixin, BasicBlockVisitor):
         elif op in opcode.hasjrel:
             self.cfg.add_edge(block, i + arg + 3)
         elif opname == 'BREAK_LOOP':
-            loop_i, _, loop_arg = self.loop_stack[-1]
+            loop_i, _, loop_arg = self.control_stack[-1]
             self.cfg.add_edge(block, loop_i + loop_arg + 3)
         elif opname != 'RETURN_VALUE':
             self.cfg.add_edge(block, self._get_next_block(block))
@@ -87,13 +87,28 @@ class ControlFlowBuilder (BenignBytecodeVisitorMixin, BasicBlockVisitor):
         return super(ControlFlowBuilder, self).op_STORE_FAST(i, op, arg, *args,
                                                              **kws)
 
+    def op_SETUP_EXCEPT (self, i, op, arg, *args, **kws):
+        self.control_stack.append((i, op, arg))
+        return super(ControlFlowBuilder, self).op_SETUP_EXCEPT(i, op, arg,
+                                                               *args, **kws)
+
+    def op_SETUP_FINALLY (self, i, op, arg, *args, **kws):
+        self.control_stack.append((i, op, arg))
+        return super(ControlFlowBuilder, self).op_SETUP_FINALLY(i, op, arg,
+                                                                *args, **kws)
+
     def op_SETUP_LOOP (self, i, op, arg, *args, **kws):
-        self.loop_stack.append((i, op, arg))
+        self.control_stack.append((i, op, arg))
         return super(ControlFlowBuilder, self).op_SETUP_LOOP(i, op, arg, *args,
                                                              **kws)
 
+    def op_SETUP_WITH (self, i, op, arg, *args, **kws):
+        self.control_stack.append((i, op, arg))
+        return super(ControlFlowBuilder, self).op_SETUP_WITH(i, op, arg, *args,
+                                                             **kws)
+
     def op_POP_BLOCK (self, i, op, arg, *args, **kws):
-        self.loop_stack.pop()
+        self.control_stack.pop()
         return super(ControlFlowBuilder, self).op_POP_BLOCK(i, op, arg, *args,
                                                             **kws)
 
