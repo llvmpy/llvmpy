@@ -3,6 +3,15 @@ from collections import defaultdict
 import logging
 logger = logging.getLogger(__name__)
 
+def silent_logger():
+    '''
+    Silent logger for unless we have a error message.
+    '''
+    logger.setLevel(logging.ERROR)
+
+# comment out the line below to re-enable logging at DEBUG level.
+silent_logger()
+
 def set_debug(enabled):
     '''
     Side-effect: configure logger with it is not configured.
