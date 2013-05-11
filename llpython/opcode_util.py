@@ -7,10 +7,21 @@ import opcode
 # ______________________________________________________________________
 # Module data
 
-hasjump = opcode.hasjrel + opcode.hasjabs
-hascbranch = [op for op in hasjump
-              if 'IF' in opcode.opname[op]
-              or opcode.opname[op] in ('FOR_ITER', 'SETUP_LOOP')]
+# Note that opcode.hasjrel and opcode.hasjabs applies only to opcodes
+# that calculate a jump point based on the argument.  This ignores
+# jumps that use the frame stack to calculate their targets.
+
+NON_ARG_JUMP_NAMES = 'BREAK_LOOP', 'RETURN_VALUE', 'END_FINALLY'
+NON_ARG_JUMPS = [opcode.opmap[opname]
+                 for opname in NON_ARG_JUMP_NAMES
+                 if opname in opcode.opmap]
+HAS_CBRANCH_NAMES = 'FOR_ITER',
+hasjump = opcode.hasjrel + opcode.hasjabs + NON_ARG_JUMPS
+hascbranch = [op for op, opname in ((op, opcode.opname[op])
+                                    for op in hasjump)
+              if 'IF' in opname
+              or 'SETUP' in opname
+              or opname in HAS_CBRANCH_NAMES]
 
 # Since the actual opcode value may change, manage opcode abstraction
 # data by opcode name.
@@ -168,6 +179,7 @@ def itercode(code, start = 0):
             i = i + 2
             if op == opcode.EXTENDED_ARG:
                 extended_arg = oparg * 65536
+                continue
 
         delta = yield num, op, oparg
         if delta is not None:
@@ -195,15 +207,8 @@ def extendlabels(code, labels = None):
         i += 1
         if op >= dis.HAVE_ARGUMENT:
             i += 2
-            label = -1
-            if op in hasjump:
-                label = i
-            if label >= 0:
-                if label not in labels:
-                    labels.append(label)
-        elif op == opcode.opmap['BREAK_LOOP']:
-            if i not in labels:
-                labels.append(i)
+        if op in hasjump and i < n and i not in labels:
+            labels.append(i)
     return labels
 
 # ______________________________________________________________________
