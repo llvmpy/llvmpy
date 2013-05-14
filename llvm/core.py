@@ -879,7 +879,10 @@ class StructType(Type):
         self._ptr.setName(name)
 
     def _get_name(self):
-        return self._ptr.getName()
+        if self._ptr.isLiteral():
+           return ""
+        else:	
+           return self._ptr.getName()
 
     name = property(_get_name, _set_name)
 
