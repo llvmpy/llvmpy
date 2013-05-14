@@ -535,7 +535,7 @@ class Module(llvm.Wrapper):
         ret = False
         if fileobj is None:
             ret = True
-            fileobj = BytesIO
+            fileobj = BytesIO()
         api.llvm.WriteBitcodeToFile(self._ptr, fileobj)
         if ret:
             return fileobj.getvalue()
