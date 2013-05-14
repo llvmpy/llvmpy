@@ -2,6 +2,7 @@ from binding import *
 from .namespace import llvm
 from .Value import GlobalValue, Constant, Function, Argument, Value
 from .BasicBlock import BasicBlock
+from .ValueSymbolTable import ValueSymbolTable
 from .Attributes import Attributes
 from .Type import Type
 from .DerivedTypes import FunctionType
@@ -23,7 +24,7 @@ class Function:
     getCallingConv = Method(CallingConv.ID)
     setCallingConv = Method(Void, CallingConv.ID)
 
-    hasGC = Method(cast(bool, Bool))
+    hasGC = Method(cast(Bool, bool))
     getGC = Method(cast(ConstCharPtr, str))
     setGC = Method(Void, cast(str, ConstCharPtr))
 
@@ -31,6 +32,7 @@ class Function:
     getArgumentList = CustomMethod('Function_getArgumentList', PyObjectPtr)
     getBasicBlockList = CustomMethod('Function_getBasicBlockList', PyObjectPtr)
     getEntryBlock = Method(ref(BasicBlock))
+    getValueSymbolTable = Method(ref(ValueSymbolTable))
 
     copyAttributesFrom = Method(Void, ptr(GlobalValue))
 
@@ -49,6 +51,9 @@ class Function:
 
     addFnAttr = Method(Void, Attributes.AttrVal)
     removeFnAttr = Method(Void, ref(Attributes))
+    #hasFnAttribute = Method(cast(Bool, bool), Attributes.AttrVal)
+
+    Create = Method(ptr(Function))
 
     eraseFromParent = Method()
     eraseFromParent.disowning = True
