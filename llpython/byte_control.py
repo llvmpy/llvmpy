@@ -9,6 +9,29 @@ from .bytecode_visitor import BasicBlockVisitor, BenignBytecodeVisitorMixin
 from .control_flow import ControlFlowGraph
 
 # ______________________________________________________________________
+# Module data
+
+# The following opcodes branch based on the control (a.k.a. frame)
+# stack:
+RETURN_VALUE, CONTINUE_LOOP, BREAK_LOOP, END_FINALLY = (
+    opcode.opmap[opname] for opname in (
+        'RETURN_VALUE', 'CONTINUE_LOOP', 'BREAK_LOOP', 'END_FINALLY'))
+
+# The following opcodes push a new frame on the control stack:
+SETUP_EXCEPT, SETUP_FINALLY, SETUP_LOOP, SETUP_WITH = (
+    opcode.opmap.get(opname, None) for opname in (
+        'SETUP_EXCEPT', 'SETUP_FINALLY', 'SETUP_LOOP', 'SETUP_WITH'))
+
+WHY_NOT = 1
+WHY_EXCEPTION = WHY_NOT << 1
+WHY_RERAISE = WHY_EXCEPTION << 1
+WHY_RETURN = WHY_RERAISE << 1
+WHY_BREAK = WHY_RETURN << 1
+WHY_CONTINUE = WHY_BREAK << 1
+WHY_YIELD = WHY_CONTINUE << 1
+
+# ______________________________________________________________________
+# Class definition(s)
 
 class ControlFlowBuilder (BenignBytecodeVisitorMixin, BasicBlockVisitor):
     '''Visitor responsible for traversing a bytecode basic block map and
@@ -60,21 +83,77 @@ class ControlFlowBuilder (BenignBytecodeVisitorMixin, BasicBlockVisitor):
     def _get_next_block (self, block):
         return self.block_list[self.block_list.index(block) + 1]
 
+    def _generate_handler_edge (self, block, i, op, arg, why):
+        """Given a reason (corresponding to the why code in
+        Python/ceval.c), interrupt control flow, possibly using the
+        control flow (a.k.a. frame) stack to calculate the next
+        target.
+
+        Returns True if an edge was added to the CFG, False otherwise.
+        Based on the opcode the return result may mean different
+        things (for example: if why == WHY_RETURN, then the function
+        returns)."""
+        ret_val = False
+        if len(self.control_stack) > 0:
+            handlers = set((SETUP_FINALLY, SETUP_WITH))
+            if why == WHY_EXCEPTION:
+                handlers.add(SETUP_EXCEPT)
+            reverse_stack = self.control_stack[::-1]
+            target = None
+            for handler_i, handler_op, handler_arg in reverse_stack:
+                if handler_op in handlers:
+                    target = handler_i + handler_arg + 3
+                elif handler_op == SETUP_LOOP:
+                    if why == WHY_CONTINUE:
+                        if op == CONTINUE_LOOP:
+                            target = i + arg + 3
+                        else:
+                            # XXX This isn't going to be correct for
+                            # for-loops, or really long while-loops
+                            # (which use EXTENDED_ARG):
+                            target = handler_i + 3
+                    elif why == WHY_BREAK:
+                        target = handler_i + handler_arg + 3
+                if target is not None:
+                    self.cfg.add_edge(block, target)
+                    ret_val = True
+                    break
+        return ret_val
+
     def exit_block (self, block):
         assert block == self.block
         del self.block
         i, op, arg = self.blocks[block][-1]
-        opname = opcode.opname[op]
-        if op in opcode.hasjabs:
+        goto_next = False
+        if op == RETURN_VALUE:
+            self._generate_handler_edge(block, i, op, arg, WHY_RETURN)
+        elif op == CONTINUE_LOOP:
+            branched = self._generate_handler_edge(block, i, op, arg,
+                                                   WHY_CONTINUE)
+            assert branched, ("Attempted to continue outside of loop %r" %
+                              (self.blocks[block][-1],))
+        elif op == BREAK_LOOP:
+            branched = self._generate_handler_edge(block, i, op, arg,
+                                                   WHY_BREAK)
+            assert branched, ("Attempted to break outside of loop %r" %
+                              (self.blocks[block][-1],))
+        elif op == END_FINALLY:
+            # XXX Should we detect cases where return, continue, and
+            # break appear inside the try-block?  This would create
+            # more accurate control flow graphs by eliding edges we
+            # know won't be taken.
+            self._generate_handler_edge(block, i, op, arg, WHY_EXCEPTION)
+            self._generate_handler_edge(block, i, op, arg, WHY_RETURN)
+            self._generate_handler_edge(block, i, op, arg, WHY_BREAK)
+            self._generate_handler_edge(block, i, op, arg, WHY_CONTINUE)
+            goto_next = True # why == WHY_NOT
+        elif op in opcode.hasjabs:
             self.cfg.add_edge(block, arg)
         elif op in opcode.hasjrel:
             self.cfg.add_edge(block, i + arg + 3)
-        elif opname == 'BREAK_LOOP':
-            loop_i, _, loop_arg = self.control_stack[-1]
-            self.cfg.add_edge(block, loop_i + loop_arg + 3)
-        elif opname != 'RETURN_VALUE':
-            self.cfg.add_edge(block, self._get_next_block(block))
-        if op in opcode_util.hascbranch:
+        else:
+            goto_next = True
+        if op in opcode_util.hascbranch or goto_next:
             self.cfg.add_edge(block, self._get_next_block(block))
 
     def op_LOAD_FAST (self, i, op, arg, *args, **kws):
