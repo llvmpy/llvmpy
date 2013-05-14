@@ -180,6 +180,7 @@ setup(
     packages = ['llvm', 'llvm.workaround',
                 'llvm_cbuilder',
                 'llpython',
+                'llvm_array',
                 'llvmpy.api', 'llvmpy.api.llvm'],
     py_modules = ['llvmpy',
                   'llvmpy._capsule',
