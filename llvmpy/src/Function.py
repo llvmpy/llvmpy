@@ -1,6 +1,7 @@
 from binding import *
 from .namespace import llvm
 from .Value import GlobalValue, Constant, Function, Argument, Value
+from .Module import Module
 from .BasicBlock import BasicBlock
 from .ValueSymbolTable import ValueSymbolTable
 from .Attributes import Attributes
@@ -53,7 +54,11 @@ class Function:
     removeFnAttr = Method(Void, ref(Attributes))
     #hasFnAttribute = Method(cast(Bool, bool), Attributes.AttrVal)
 
-    Create = Method(ptr(Function))
+    Create = StaticMethod(ptr(Function),
+                          ptr(FunctionType),
+                          GlobalValue.LinkageTypes,
+                          cast(str, ConstCharPtr),
+                          ptr(Module)).require_only(2)
 
     eraseFromParent = Method()
     eraseFromParent.disowning = True
