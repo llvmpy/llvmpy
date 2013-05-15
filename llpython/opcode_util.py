@@ -9,9 +9,11 @@ import opcode
 
 # Note that opcode.hasjrel and opcode.hasjabs applies only to opcodes
 # that calculate a jump point based on the argument.  This ignores
-# jumps that use the frame stack to calculate their targets.
+# jumps that use the frame stack to calculate their targets, and
+# exceptions.
 
-NON_ARG_JUMP_NAMES = 'BREAK_LOOP', 'RETURN_VALUE', 'END_FINALLY'
+NON_ARG_JUMP_NAMES = ('BREAK_LOOP', 'RETURN_VALUE', 'END_FINALLY',
+                      'RAISE_VARARGS')
 NON_ARG_JUMPS = [opcode.opmap[opname]
                  for opname in NON_ARG_JUMP_NAMES
                  if opname in opcode.opmap]
@@ -118,7 +120,7 @@ OPCODE_MAP = {
     'PRINT_ITEM_TO': (2, None, 1),
     'PRINT_NEWLINE': (0, None, 1),
     'PRINT_NEWLINE_TO': (1, None, 1),
-    'RAISE_VARARGS': (None, None, None),
+    'RAISE_VARARGS': (-1, None, 1),
     'RETURN_VALUE': (1, None, 1),
     'ROT_FOUR': (None, None, None),
     'ROT_THREE': (None, None, None),
