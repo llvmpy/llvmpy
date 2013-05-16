@@ -47,144 +47,189 @@ from llvmpy import api
 #===----------------------------------------------------------------------===
 # Enumerations
 #===----------------------------------------------------------------------===
+class Enum(int):
+    '''Overload integer to print the name of the enum.
+    '''
+    def __repr__(self):
+        return '%s(%d)' % (type(self).__name__, self)
+
+    @classmethod
+    def declare(cls):
+        scope = globals()
+        for name in filter(lambda s: s.startswith(cls.prefix), dir(cls)):
+            n = getattr(cls, name)
+            typ = type(name, (cls,), {})
+            scope[name] = typ(n)
+
 
 # type id (llvm::Type::TypeID)
-TYPE_VOID       = api.llvm.Type.TypeID.VoidTyID
-TYPE_HALF       = api.llvm.Type.TypeID.HalfTyID
-TYPE_FLOAT      = api.llvm.Type.TypeID.FloatTyID
-TYPE_DOUBLE     = api.llvm.Type.TypeID.DoubleTyID
-TYPE_X86_FP80   = api.llvm.Type.TypeID.X86_FP80TyID
-TYPE_FP128      = api.llvm.Type.TypeID.FP128TyID
-TYPE_PPC_FP128  = api.llvm.Type.TypeID.PPC_FP128TyID
-TYPE_LABEL      = api.llvm.Type.TypeID.LabelTyID
-TYPE_INTEGER    = api.llvm.Type.TypeID.IntegerTyID
-TYPE_FUNCTION   = api.llvm.Type.TypeID.FunctionTyID
-TYPE_STRUCT     = api.llvm.Type.TypeID.StructTyID
-TYPE_ARRAY      = api.llvm.Type.TypeID.ArrayTyID
-TYPE_POINTER    = api.llvm.Type.TypeID.PointerTyID
-TYPE_VECTOR     = api.llvm.Type.TypeID.VectorTyID
-TYPE_METADATA   = api.llvm.Type.TypeID.MetadataTyID
-TYPE_X86_MMX    = api.llvm.Type.TypeID.X86_MMXTyID
+class TypeEnum(Enum):
+    prefix = 'TYPE_'
+    TypeID = api.llvm.Type.TypeID
+
+    TYPE_VOID       = TypeID.VoidTyID
+    TYPE_HALF       = TypeID.HalfTyID
+    TYPE_FLOAT      = TypeID.FloatTyID
+    TYPE_DOUBLE     = TypeID.DoubleTyID
+    TYPE_X86_FP80   = TypeID.X86_FP80TyID
+    TYPE_FP128      = TypeID.FP128TyID
+    TYPE_PPC_FP128  = TypeID.PPC_FP128TyID
+    TYPE_LABEL      = TypeID.LabelTyID
+    TYPE_INTEGER    = TypeID.IntegerTyID
+    TYPE_FUNCTION   = TypeID.FunctionTyID
+    TYPE_STRUCT     = TypeID.StructTyID
+    TYPE_ARRAY      = TypeID.ArrayTyID
+    TYPE_POINTER    = TypeID.PointerTyID
+    TYPE_VECTOR     = TypeID.VectorTyID
+    TYPE_METADATA   = TypeID.MetadataTyID
+    TYPE_X86_MMX    = TypeID.X86_MMXTyID
+
+TypeEnum.declare()
 
 
 # value IDs (llvm::Value::ValueTy enum)
 # According to the doxygen docs, it is not a good idea to use these enums.
 # There are more values than those declared.
-VALUE_ARGUMENT                          = api.llvm.Value.ValueTy.ArgumentVal
-VALUE_BASIC_BLOCK                       = api.llvm.Value.ValueTy.BasicBlockVal
-VALUE_FUNCTION                          = api.llvm.Value.ValueTy.FunctionVal
-VALUE_GLOBAL_ALIAS                      = api.llvm.Value.ValueTy.GlobalAliasVal
-VALUE_GLOBAL_VARIABLE                   = api.llvm.Value.ValueTy.GlobalVariableVal
-VALUE_UNDEF_VALUE                       = api.llvm.Value.ValueTy.UndefValueVal
-VALUE_BLOCK_ADDRESS                     = api.llvm.Value.ValueTy.BlockAddressVal
-VALUE_CONSTANT_EXPR                     = api.llvm.Value.ValueTy.ConstantExprVal
-VALUE_CONSTANT_AGGREGATE_ZERO           = api.llvm.Value.ValueTy.ConstantAggregateZeroVal
-VALUE_CONSTANT_DATA_ARRAY               = api.llvm.Value.ValueTy.ConstantDataArrayVal
-VALUE_CONSTANT_DATA_VECTOR              = api.llvm.Value.ValueTy.ConstantDataVectorVal
-VALUE_CONSTANT_INT                      = api.llvm.Value.ValueTy.ConstantIntVal
-VALUE_CONSTANT_FP                       = api.llvm.Value.ValueTy.ConstantFPVal
-VALUE_CONSTANT_ARRAY                    = api.llvm.Value.ValueTy.ConstantArrayVal
-VALUE_CONSTANT_STRUCT                   = api.llvm.Value.ValueTy.ConstantStructVal
-VALUE_CONSTANT_VECTOR                   = api.llvm.Value.ValueTy.ConstantVectorVal
-VALUE_CONSTANT_POINTER_NULL             = api.llvm.Value.ValueTy.ConstantPointerNullVal
-VALUE_MD_NODE                           = api.llvm.Value.ValueTy.MDNodeVal
-VALUE_MD_STRING                         = api.llvm.Value.ValueTy.MDStringVal
-VALUE_INLINE_ASM                        = api.llvm.Value.ValueTy.InlineAsmVal
-VALUE_PSEUDO_SOURCE_VALUE               = api.llvm.Value.ValueTy.PseudoSourceValueVal
-VALUE_FIXED_STACK_PSEUDO_SOURCE_VALUE   = api.llvm.Value.ValueTy.FixedStackPseudoSourceValueVal
-VALUE_INSTRUCTION                       = api.llvm.Value.ValueTy.InstructionVal
+class ValueEnum(Enum):
+    prefix = 'VALUE_'
+    ValueTy = api.llvm.Value.ValueTy
+
+    VALUE_ARGUMENT                          = ValueTy.ArgumentVal
+    VALUE_BASIC_BLOCK                       = ValueTy.BasicBlockVal
+    VALUE_FUNCTION                          = ValueTy.FunctionVal
+    VALUE_GLOBAL_ALIAS                      = ValueTy.GlobalAliasVal
+    VALUE_GLOBAL_VARIABLE                   = ValueTy.GlobalVariableVal
+    VALUE_UNDEF_VALUE                       = ValueTy.UndefValueVal
+    VALUE_BLOCK_ADDRESS                     = ValueTy.BlockAddressVal
+    VALUE_CONSTANT_EXPR                     = ValueTy.ConstantExprVal
+    VALUE_CONSTANT_AGGREGATE_ZERO           = ValueTy.ConstantAggregateZeroVal
+    VALUE_CONSTANT_DATA_ARRAY               = ValueTy.ConstantDataArrayVal
+    VALUE_CONSTANT_DATA_VECTOR              = ValueTy.ConstantDataVectorVal
+    VALUE_CONSTANT_INT                      = ValueTy.ConstantIntVal
+    VALUE_CONSTANT_FP                       = ValueTy.ConstantFPVal
+    VALUE_CONSTANT_ARRAY                    = ValueTy.ConstantArrayVal
+    VALUE_CONSTANT_STRUCT                   = ValueTy.ConstantStructVal
+    VALUE_CONSTANT_VECTOR                   = ValueTy.ConstantVectorVal
+    VALUE_CONSTANT_POINTER_NULL             = ValueTy.ConstantPointerNullVal
+    VALUE_MD_NODE                           = ValueTy.MDNodeVal
+    VALUE_MD_STRING                         = ValueTy.MDStringVal
+    VALUE_INLINE_ASM                        = ValueTy.InlineAsmVal
+    VALUE_PSEUDO_SOURCE_VALUE               = ValueTy.PseudoSourceValueVal
+    VALUE_FIXED_STACK_PSEUDO_SOURCE_VALUE   = ValueTy.FixedStackPseudoSourceValueVal
+    VALUE_INSTRUCTION                       = ValueTy.InstructionVal
+
+ValueEnum.declare()
 
 # instruction opcodes (from include/llvm/Instruction.def)
-OPCODE_RET            = 1
-OPCODE_BR             = 2
-OPCODE_SWITCH         = 3
-OPCODE_INDIRECT_BR    = 4
-OPCODE_INVOKE         = 5
-OPCODE_RESUME         = 6
-OPCODE_UNREACHABLE    = 7
-OPCODE_ADD            = 8
-OPCODE_FADD           = 9
-OPCODE_SUB            = 10
-OPCODE_FSUB           = 11
-OPCODE_MUL            = 12
-OPCODE_FMUL           = 13
-OPCODE_UDIV           = 14
-OPCODE_SDIV           = 15
-OPCODE_FDIV           = 16
-OPCODE_UREM           = 17
-OPCODE_SREM           = 18
-OPCODE_FREM           = 19
-OPCODE_SHL            = 20
-OPCODE_LSHR           = 21
-OPCODE_ASHR           = 22
-OPCODE_AND            = 23
-OPCODE_OR             = 24
-OPCODE_XOR            = 25
-OPCODE_ALLOCA         = 26
-OPCODE_LOAD           = 27
-OPCODE_STORE          = 28
-OPCODE_GETELEMENTPTR  = 29
-OPCODE_FENCE          = 30
-OPCODE_ATOMICCMPXCHG  = 31
-OPCODE_ATOMICRMW      = 32
-OPCODE_TRUNC          = 33
-OPCODE_ZEXT           = 34
-OPCODE_SEXT           = 35
-OPCODE_FPTOUI         = 36
-OPCODE_FPTOSI         = 37
-OPCODE_UITOFP         = 38
-OPCODE_SITOFP         = 39
-OPCODE_FPTRUNC        = 40
-OPCODE_FPEXT          = 41
-OPCODE_PTRTOINT       = 42
-OPCODE_INTTOPTR       = 43
-OPCODE_BITCAST        = 44
-OPCODE_ICMP           = 45
-OPCODE_FCMP           = 46
-OPCODE_PHI            = 47
-OPCODE_CALL           = 48
-OPCODE_SELECT         = 49
-OPCODE_USEROP1        = 50
-OPCODE_USEROP2        = 51
-OPCODE_VAARG          = 52
-OPCODE_EXTRACTELEMENT = 53
-OPCODE_INSERTELEMENT  = 54
-OPCODE_SHUFFLEVECTOR  = 55
-OPCODE_EXTRACTVALUE   = 56
-OPCODE_INSERTVALUE    = 57
-OPCODE_LANDINGPAD     = 58
+class OpcodeEnum(Enum):
+    prefix = 'OPCODE_'
+
+    OPCODE_RET            = 1
+    OPCODE_BR             = 2
+    OPCODE_SWITCH         = 3
+    OPCODE_INDIRECT_BR    = 4
+    OPCODE_INVOKE         = 5
+    OPCODE_RESUME         = 6
+    OPCODE_UNREACHABLE    = 7
+    OPCODE_ADD            = 8
+    OPCODE_FADD           = 9
+    OPCODE_SUB            = 10
+    OPCODE_FSUB           = 11
+    OPCODE_MUL            = 12
+    OPCODE_FMUL           = 13
+    OPCODE_UDIV           = 14
+    OPCODE_SDIV           = 15
+    OPCODE_FDIV           = 16
+    OPCODE_UREM           = 17
+    OPCODE_SREM           = 18
+    OPCODE_FREM           = 19
+    OPCODE_SHL            = 20
+    OPCODE_LSHR           = 21
+    OPCODE_ASHR           = 22
+    OPCODE_AND            = 23
+    OPCODE_OR             = 24
+    OPCODE_XOR            = 25
+    OPCODE_ALLOCA         = 26
+    OPCODE_LOAD           = 27
+    OPCODE_STORE          = 28
+    OPCODE_GETELEMENTPTR  = 29
+    OPCODE_FENCE          = 30
+    OPCODE_ATOMICCMPXCHG  = 31
+    OPCODE_ATOMICRMW      = 32
+    OPCODE_TRUNC          = 33
+    OPCODE_ZEXT           = 34
+    OPCODE_SEXT           = 35
+    OPCODE_FPTOUI         = 36
+    OPCODE_FPTOSI         = 37
+    OPCODE_UITOFP         = 38
+    OPCODE_SITOFP         = 39
+    OPCODE_FPTRUNC        = 40
+    OPCODE_FPEXT          = 41
+    OPCODE_PTRTOINT       = 42
+    OPCODE_INTTOPTR       = 43
+    OPCODE_BITCAST        = 44
+    OPCODE_ICMP           = 45
+    OPCODE_FCMP           = 46
+    OPCODE_PHI            = 47
+    OPCODE_CALL           = 48
+    OPCODE_SELECT         = 49
+    OPCODE_USEROP1        = 50
+    OPCODE_USEROP2        = 51
+    OPCODE_VAARG          = 52
+    OPCODE_EXTRACTELEMENT = 53
+    OPCODE_INSERTELEMENT  = 54
+    OPCODE_SHUFFLEVECTOR  = 55
+    OPCODE_EXTRACTVALUE   = 56
+    OPCODE_INSERTVALUE    = 57
+    OPCODE_LANDINGPAD     = 58
+
+OpcodeEnum.declare()
 
 # calling conventions
-CC_C             = api.llvm.CallingConv.ID.C
-CC_FASTCALL      = api.llvm.CallingConv.ID.Fast
-CC_COLDCALL      = api.llvm.CallingConv.ID.Cold
-CC_GHC           = api.llvm.CallingConv.ID.GHC
-CC_X86_STDCALL   = api.llvm.CallingConv.ID.X86_StdCall
-CC_X86_FASTCALL  = api.llvm.CallingConv.ID.X86_FastCall
-CC_ARM_APCS      = api.llvm.CallingConv.ID.ARM_APCS
-CC_ARM_AAPCS     = api.llvm.CallingConv.ID.ARM_AAPCS
-CC_ARM_AAPCS_VFP = api.llvm.CallingConv.ID.ARM_AAPCS_VFP
-CC_MSP430_INTR   = api.llvm.CallingConv.ID.MSP430_INTR
-CC_X86_THISCALL  = api.llvm.CallingConv.ID.X86_ThisCall
-CC_PTX_KERNEL    = api.llvm.CallingConv.ID.PTX_Kernel
-CC_PTX_DEVICE    = api.llvm.CallingConv.ID.PTX_Device
-CC_MBLAZE_INTR   = api.llvm.CallingConv.ID.MBLAZE_INTR
-CC_MBLAZE_SVOL   = api.llvm.CallingConv.ID.MBLAZE_SVOL
 
+class CCEnum(Enum):
+    prefix = 'CC_'
+
+    ID = api.llvm.CallingConv.ID
+
+    CC_C             = ID.C
+    CC_FASTCALL      = ID.Fast
+    CC_COLDCALL      = ID.Cold
+    CC_GHC           = ID.GHC
+    CC_X86_STDCALL   = ID.X86_StdCall
+    CC_X86_FASTCALL  = ID.X86_FastCall
+    CC_ARM_APCS      = ID.ARM_APCS
+    CC_ARM_AAPCS     = ID.ARM_AAPCS
+    CC_ARM_AAPCS_VFP = ID.ARM_AAPCS_VFP
+    CC_MSP430_INTR   = ID.MSP430_INTR
+    CC_X86_THISCALL  = ID.X86_ThisCall
+    CC_PTX_KERNEL    = ID.PTX_Kernel
+    CC_PTX_DEVICE    = ID.PTX_Device
+    CC_MBLAZE_INTR   = ID.MBLAZE_INTR
+    CC_MBLAZE_SVOL   = ID.MBLAZE_SVOL
+
+CCEnum.declare()
 
 # int predicates
-ICMP_EQ         = api.llvm.CmpInst.Predicate.ICMP_EQ
-ICMP_NE         = api.llvm.CmpInst.Predicate.ICMP_NE
-ICMP_UGT        = api.llvm.CmpInst.Predicate.ICMP_UGT
-ICMP_UGE        = api.llvm.CmpInst.Predicate.ICMP_UGE
-ICMP_ULT        = api.llvm.CmpInst.Predicate.ICMP_ULT
-ICMP_ULE        = api.llvm.CmpInst.Predicate.ICMP_ULE
-ICMP_SGT        = api.llvm.CmpInst.Predicate.ICMP_SGT
-ICMP_SGE        = api.llvm.CmpInst.Predicate.ICMP_SGE
-ICMP_SLT        = api.llvm.CmpInst.Predicate.ICMP_SLT
-ICMP_SLE        = api.llvm.CmpInst.Predicate.ICMP_SLE
+class ICMPEnum(Enum):
+    prefix = 'ICMP_'
+    
+    Predicate = api.llvm.CmpInst.Predicate
 
+    ICMP_EQ         = Predicate.ICMP_EQ
+    ICMP_NE         = Predicate.ICMP_NE
+    ICMP_UGT        = Predicate.ICMP_UGT
+    ICMP_UGE        = Predicate.ICMP_UGE
+    ICMP_ULT        = Predicate.ICMP_ULT
+    ICMP_ULE        = Predicate.ICMP_ULE
+    ICMP_SGT        = Predicate.ICMP_SGT
+    ICMP_SGE        = Predicate.ICMP_SGE
+    ICMP_SLT        = Predicate.ICMP_SLT
+    ICMP_SLE        = Predicate.ICMP_SLE
+
+ICMPEnum.declare()
 # same as ICMP_xx, for backward compatibility
+
 IPRED_EQ        = ICMP_EQ
 IPRED_NE        = ICMP_NE
 IPRED_UGT       = ICMP_UGT
@@ -197,24 +242,33 @@ IPRED_SLT       = ICMP_SLT
 IPRED_SLE       = ICMP_SLE
 
 # real predicates
-FCMP_FALSE      = api.llvm.CmpInst.Predicate.FCMP_FALSE
-FCMP_OEQ        = api.llvm.CmpInst.Predicate.FCMP_OEQ
-FCMP_OGT        = api.llvm.CmpInst.Predicate.FCMP_OGT
-FCMP_OGE        = api.llvm.CmpInst.Predicate.FCMP_OGE
-FCMP_OLT        = api.llvm.CmpInst.Predicate.FCMP_OLT
-FCMP_OLE        = api.llvm.CmpInst.Predicate.FCMP_OLE
-FCMP_ONE        = api.llvm.CmpInst.Predicate.FCMP_ONE
-FCMP_ORD        = api.llvm.CmpInst.Predicate.FCMP_ORD
-FCMP_UNO        = api.llvm.CmpInst.Predicate.FCMP_UNO
-FCMP_UEQ        = api.llvm.CmpInst.Predicate.FCMP_UEQ
-FCMP_UGT        = api.llvm.CmpInst.Predicate.FCMP_UGT
-FCMP_UGE        = api.llvm.CmpInst.Predicate.FCMP_UGE
-FCMP_ULT        = api.llvm.CmpInst.Predicate.FCMP_ULT
-FCMP_ULE        = api.llvm.CmpInst.Predicate.FCMP_ULE
-FCMP_UNE        = api.llvm.CmpInst.Predicate.FCMP_UNE
-FCMP_TRUE       = api.llvm.CmpInst.Predicate.FCMP_TRUE
+
+class FCMPEnum(Enum):
+    prefix = 'FCMP_'
+
+    Predicate = api.llvm.CmpInst.Predicate
+
+    FCMP_FALSE      = Predicate.FCMP_FALSE
+    FCMP_OEQ        = Predicate.FCMP_OEQ
+    FCMP_OGT        = Predicate.FCMP_OGT
+    FCMP_OGE        = Predicate.FCMP_OGE
+    FCMP_OLT        = Predicate.FCMP_OLT
+    FCMP_OLE        = Predicate.FCMP_OLE
+    FCMP_ONE        = Predicate.FCMP_ONE
+    FCMP_ORD        = Predicate.FCMP_ORD
+    FCMP_UNO        = Predicate.FCMP_UNO
+    FCMP_UEQ        = Predicate.FCMP_UEQ
+    FCMP_UGT        = Predicate.FCMP_UGT
+    FCMP_UGE        = Predicate.FCMP_UGE
+    FCMP_ULT        = Predicate.FCMP_ULT
+    FCMP_ULE        = Predicate.FCMP_ULE
+    FCMP_UNE        = Predicate.FCMP_UNE
+    FCMP_TRUE       = Predicate.FCMP_TRUE
+
+FCMPEnum.declare()
 
 # real predicates
+
 RPRED_FALSE     = FCMP_FALSE
 RPRED_OEQ       = FCMP_OEQ
 RPRED_OGT       = FCMP_OGT
@@ -233,68 +287,69 @@ RPRED_UNE       = FCMP_UNE
 RPRED_TRUE      = FCMP_TRUE
 
 # linkages (see llvm::GlobalValue::LinkageTypes)
-LINKAGE_EXTERNAL                        = \
-    api.llvm.GlobalValue.LinkageTypes.ExternalLinkage
-LINKAGE_AVAILABLE_EXTERNALLY            = \
-    api.llvm.GlobalValue.LinkageTypes.AvailableExternallyLinkage
-LINKAGE_LINKONCE_ANY                    = \
-    api.llvm.GlobalValue.LinkageTypes.LinkOnceAnyLinkage
-LINKAGE_LINKONCE_ODR                    = \
-    api.llvm.GlobalValue.LinkageTypes.LinkOnceODRLinkage
-LINKAGE_WEAK_ANY                        = \
-    api.llvm.GlobalValue.LinkageTypes.WeakAnyLinkage
-LINKAGE_WEAK_ODR                        = \
-    api.llvm.GlobalValue.LinkageTypes.WeakODRLinkage
-LINKAGE_APPENDING                       = \
-    api.llvm.GlobalValue.LinkageTypes.AppendingLinkage
-LINKAGE_INTERNAL                        = \
-    api.llvm.GlobalValue.LinkageTypes.InternalLinkage
-LINKAGE_PRIVATE                         = \
-    api.llvm.GlobalValue.LinkageTypes.PrivateLinkage
-LINKAGE_DLLIMPORT                       = \
-    api.llvm.GlobalValue.LinkageTypes.DLLImportLinkage
-LINKAGE_DLLEXPORT                       = \
-    api.llvm.GlobalValue.LinkageTypes.DLLExportLinkage
-LINKAGE_EXTERNAL_WEAK                   = \
-    api.llvm.GlobalValue.LinkageTypes.ExternalWeakLinkage
-LINKAGE_COMMON                          = \
-    api.llvm.GlobalValue.LinkageTypes.CommonLinkage
-LINKAGE_LINKER_PRIVATE                  = \
-    api.llvm.GlobalValue.LinkageTypes.LinkerPrivateLinkage
-LINKAGE_LINKER_PRIVATE_WEAK             = \
-    api.llvm.GlobalValue.LinkageTypes.LinkerPrivateWeakLinkage
+class LinkageEnum(Enum):
+    prefix = 'LINKAGE_'
+    LinkageTypes = api.llvm.GlobalValue.LinkageTypes
+
+    LINKAGE_EXTERNAL                =  LinkageTypes.ExternalLinkage
+    LINKAGE_AVAILABLE_EXTERNALLY    =  LinkageTypes.AvailableExternallyLinkage
+    LINKAGE_LINKONCE_ANY            =  LinkageTypes.LinkOnceAnyLinkage
+    LINKAGE_LINKONCE_ODR            =  LinkageTypes.LinkOnceODRLinkage
+    LINKAGE_WEAK_ANY                =  LinkageTypes.WeakAnyLinkage
+    LINKAGE_WEAK_ODR                =  LinkageTypes.WeakODRLinkage
+    LINKAGE_APPENDING               =  LinkageTypes.AppendingLinkage
+    LINKAGE_INTERNAL                =  LinkageTypes.InternalLinkage
+    LINKAGE_PRIVATE                 =  LinkageTypes.PrivateLinkage
+    LINKAGE_DLLIMPORT               =  LinkageTypes.DLLImportLinkage
+    LINKAGE_DLLEXPORT               =  LinkageTypes.DLLExportLinkage
+    LINKAGE_EXTERNAL_WEAK           =  LinkageTypes.ExternalWeakLinkage
+    LINKAGE_COMMON                  =  LinkageTypes.CommonLinkage
+    LINKAGE_LINKER_PRIVATE          =  LinkageTypes.LinkerPrivateLinkage
+    LINKAGE_LINKER_PRIVATE_WEAK     =  LinkageTypes.LinkerPrivateWeakLinkage
+
+LinkageEnum.declare()
 
 # visibility (see llvm/GlobalValue.h)
-VISIBILITY_DEFAULT   = api.llvm.GlobalValue.VisibilityTypes.DefaultVisibility
-VISIBILITY_HIDDEN    = api.llvm.GlobalValue.VisibilityTypes.HiddenVisibility
-VISIBILITY_PROTECTED = api.llvm.GlobalValue.VisibilityTypes.ProtectedVisibility
+class VisibilityEnum(Enum):
+    prefix = 'VISIBILITY_'
+
+    VISIBILITY_DEFAULT   = api.llvm.GlobalValue.VisibilityTypes.DefaultVisibility
+    VISIBILITY_HIDDEN    = api.llvm.GlobalValue.VisibilityTypes.HiddenVisibility
+    VISIBILITY_PROTECTED = api.llvm.GlobalValue.VisibilityTypes.ProtectedVisibility
+
+VisibilityEnum.declare()
 
 # parameter attributes llvm::Attributes::AttrVal (see llvm/Attributes.h)
-ATTR_NONE               = api.llvm.Attributes.AttrVal.None_
-ATTR_ZEXT               = api.llvm.Attributes.AttrVal.ZExt
-ATTR_SEXT               = api.llvm.Attributes.AttrVal.SExt
-ATTR_NO_RETURN          = api.llvm.Attributes.AttrVal.NoReturn
-ATTR_IN_REG             = api.llvm.Attributes.AttrVal.InReg
-ATTR_STRUCT_RET         = api.llvm.Attributes.AttrVal.StructRet
-ATTR_NO_UNWIND          = api.llvm.Attributes.AttrVal.NoUnwind
-ATTR_NO_ALIAS           = api.llvm.Attributes.AttrVal.NoAlias
-ATTR_BY_VAL             = api.llvm.Attributes.AttrVal.ByVal
-ATTR_NEST               = api.llvm.Attributes.AttrVal.Nest
-ATTR_READ_NONE          = api.llvm.Attributes.AttrVal.ReadNone
-ATTR_READONLY           = api.llvm.Attributes.AttrVal.ReadOnly
-ATTR_NO_INLINE          = api.llvm.Attributes.AttrVal.NoInline
-ATTR_ALWAYS_INLINE      = api.llvm.Attributes.AttrVal.AlwaysInline
-ATTR_OPTIMIZE_FOR_SIZE  = api.llvm.Attributes.AttrVal.OptimizeForSize
-ATTR_STACK_PROTECT      = api.llvm.Attributes.AttrVal.StackProtect
-ATTR_STACK_PROTECT_REQ  = api.llvm.Attributes.AttrVal.StackProtectReq
-ATTR_ALIGNMENT          = api.llvm.Attributes.AttrVal.Alignment
-ATTR_NO_CAPTURE         = api.llvm.Attributes.AttrVal.NoCapture
-ATTR_NO_REDZONE         = api.llvm.Attributes.AttrVal.NoRedZone
-ATTR_NO_IMPLICIT_FLOAT  = api.llvm.Attributes.AttrVal.NoImplicitFloat
-ATTR_NAKED              = api.llvm.Attributes.AttrVal.Naked
-ATTR_INLINE_HINT        = api.llvm.Attributes.AttrVal.InlineHint
-ATTR_STACK_ALIGNMENT    = api.llvm.Attributes.AttrVal.StackAlignment
+class AttrEnum(Enum):
+    prefix = 'ATTR_'
 
+    AttrVal = api.llvm.Attributes.AttrVal
+    ATTR_NONE               = AttrVal.None_
+    ATTR_ZEXT               = AttrVal.ZExt
+    ATTR_SEXT               = AttrVal.SExt
+    ATTR_NO_RETURN          = AttrVal.NoReturn
+    ATTR_IN_REG             = AttrVal.InReg
+    ATTR_STRUCT_RET         = AttrVal.StructRet
+    ATTR_NO_UNWIND          = AttrVal.NoUnwind
+    ATTR_NO_ALIAS           = AttrVal.NoAlias
+    ATTR_BY_VAL             = AttrVal.ByVal
+    ATTR_NEST               = AttrVal.Nest
+    ATTR_READ_NONE          = AttrVal.ReadNone
+    ATTR_READONLY           = AttrVal.ReadOnly
+    ATTR_NO_INLINE          = AttrVal.NoInline
+    ATTR_ALWAYS_INLINE      = AttrVal.AlwaysInline
+    ATTR_OPTIMIZE_FOR_SIZE  = AttrVal.OptimizeForSize
+    ATTR_STACK_PROTECT      = AttrVal.StackProtect
+    ATTR_STACK_PROTECT_REQ  = AttrVal.StackProtectReq
+    ATTR_ALIGNMENT          = AttrVal.Alignment
+    ATTR_NO_CAPTURE         = AttrVal.NoCapture
+    ATTR_NO_REDZONE         = AttrVal.NoRedZone
+    ATTR_NO_IMPLICIT_FLOAT  = AttrVal.NoImplicitFloat
+    ATTR_NAKED              = AttrVal.Naked
+    ATTR_INLINE_HINT        = AttrVal.InlineHint
+    ATTR_STACK_ALIGNMENT    = AttrVal.StackAlignment
+
+AttrEnum.declare()
 
 class Module(llvm.Wrapper):
     """A Module instance stores all the information related to an LLVM module.
@@ -1404,6 +1459,12 @@ class Argument(Value):
 
     alignment = property(_get_alignment,
                          _set_alignment)
+
+    @property
+    def attributes(self):
+        '''Returns a set of defined attributes.
+        '''
+        return set(attr for attr in self._valid_attrs if attr in self)
 
     def __contains__(self, attr):
         if attr == ATTR_BY_VAL:
