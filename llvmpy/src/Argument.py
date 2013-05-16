@@ -13,3 +13,13 @@ class Argument:
     removeAttr = Method(Void, ref(Attributes))
     getParamAlignment = Method(cast(Unsigned, int))
 
+    getArgNo = Method(cast(Unsigned, int))
+
+    hasByValAttr = Method(cast(Bool, bool))
+    hasNestAttr = Method(cast(Bool, bool))
+    hasNoAliasAttr = Method(cast(Bool, bool))
+    hasNoCaptureAttr = Method(cast(Bool, bool))
+    hasStructRetAttr = Method(cast(Bool, bool))
+
+    if LLVM_VERSION > (3, 2):
+        hasReturnedAttr = Method(cast(Bool, bool))

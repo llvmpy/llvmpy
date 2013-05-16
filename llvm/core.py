@@ -1372,6 +1372,8 @@ class GlobalVariable(GlobalValue):
 
 class Argument(Value):
     _type_ = api.llvm.Argument
+    _valid_attrs = frozenset([ATTR_BY_VAL, ATTR_NEST, ATTR_NO_ALIAS,
+                              ATTR_NO_CAPTURE, ATTR_STRUCT_RET])
 
     def add_attribute(self, attr):
         context = api.llvm.getGlobalContext()
@@ -1379,6 +1381,9 @@ class Argument(Value):
         attrbldr.addAttribute(attr)
         attrs = api.llvm.Attributes.get(context, attrbldr)
         self._ptr.addAttr(attrs)
+        if attr not in self:
+            raise ValueError("Attribute %s is not valid for arg %s" %
+                             (attr, self))
 
     def remove_attribute(self, attr):
         context = api.llvm.getGlobalContext()
@@ -1399,6 +1404,39 @@ class Argument(Value):
 
     alignment = property(_get_alignment,
                          _set_alignment)
+
+    def __contains__(self, attr):
+        if attr == ATTR_BY_VAL:
+            return self.has_by_val()
+        elif attr == ATTR_NEST:
+            return self.has_nest()
+        elif attr == ATTR_NO_ALIAS:
+            return self.has_no_alias()
+        elif attr == ATTR_NO_CAPTURE:
+            return self.has_no_capture()
+        elif attr == ATTR_STRUCT_RET:
+            return self.has_struct_ret()
+        else:
+            raise ValueError('invalid attribute for argument')
+
+    @property
+    def arg_no(self):
+        return self._ptr.getArgNo()
+
+    def has_by_val(self):
+        return self._ptr.hasByValAttr()
+
+    def has_nest(self):
+        return self._ptr.hasNestAttr()
+
+    def has_no_alias(self):
+        return self._ptr.hasNoAliasAttr()
+
+    def has_no_capture(self):
+        return self._ptr.hasNoCaptureAttr()
+
+    def has_struct_ret(self):
+        return self._ptr.hasStructRetAttr()
 
 class Function(GlobalValue):
     _type_ = api.llvm.Function
