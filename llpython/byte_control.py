@@ -76,6 +76,7 @@ class ControlFlowBuilder (BenignBytecodeVisitorMixin, BasicBlockVisitor):
     def exit_blocks (self, blocks):
         super(ControlFlowBuilder, self).exit_blocks(blocks)
         assert self.blocks == blocks
+        self.cfg.unlink_unreachables()
         self.cfg.compute_dataflow()
         self.cfg.update_for_ssa()
         ret_val = self.cfg

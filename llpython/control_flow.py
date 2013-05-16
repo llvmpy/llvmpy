@@ -31,12 +31,12 @@ class ControlFlowGraph (object):
 
     def unlink_unreachables (self):
         changed = True
-        next_blocks = self.blocks.keys()
+        next_blocks = set(self.blocks.keys())
         next_blocks.remove(0)
         while changed:
             changed = False
             blocks = next_blocks
-            next_blocks = blocks[:]
+            next_blocks = blocks.copy()
             for block in blocks:
                 if len(self.blocks_in[block]) == 0:
                     blocks_out = self.blocks_out[block]

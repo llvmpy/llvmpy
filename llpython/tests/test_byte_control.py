@@ -150,14 +150,14 @@ class TestByteControl(unittest.TestCase):
             BLOCK_0 -> BLOCK_3; // 0 -> 1
             BLOCK_0 -> BLOCK_15; // 0 -> 3
             BLOCK_3 -> BLOCK_15; // 1 -> 3
-            BLOCK_11 -> BLOCK_15; // 2 -> 3
+            // DEAD: BLOCK_11 -> BLOCK_15; // 2 -> 3
             BLOCK_15 -> BLOCK_23; // 3 -> 4, why == WHY_NOT
             BLOCK_23; // 4
         }
         (Possibly terminal blocks: 15, 23.)
         """
         cfg = byte_control.build_cfg(try_finally_0)
-        self.fail_unless_cfg_match(cfg, 5, ((0, 1), (0, 3), (1, 3), (2, 3),
+        self.fail_unless_cfg_match(cfg, 5, ((0, 1), (0, 3), (1, 3),
                                             (3, 4)))
 
     def test_try_finally_1(self):
@@ -174,7 +174,7 @@ class TestByteControl(unittest.TestCase):
             BLOCK_31 -> BLOCK_43; // 4 -> 5
             BLOCK_31 -> BLOCK_47; // 4 -> 7
             BLOCK_43 -> BLOCK_51; // 5 -> 8
-            BLOCK_44 -> BLOCK_47; // 6 -> 7
+            // DEAD: BLOCK_44 -> BLOCK_47; // 6 -> 7
             BLOCK_47 -> BLOCK_51; // 7 -> 8
             BLOCK_51 -> BLOCK_59; // 8 -> 9, why == WHY_NOT
             BLOCK_51 -> BLOCK_63; // 8 -> 11, why == WHY_BREAK, WHY_RETURN, ...
@@ -188,12 +188,12 @@ class TestByteControl(unittest.TestCase):
         if not OLD_BYTECODE_COMPILER:
             self.fail_unless_cfg_match(
                 cfg, 12, ((0, 1), (0, 11), (1, 2), (2, 3), (2, 10), (3, 4),
-                          (3, 8), (4, 5), (4, 7), (5, 8), (6, 7), (7, 8),
+                          (3, 8), (4, 5), (4, 7), (5, 8), (7, 8),
                           (8, 9), (8, 11), (9, 2), (10, 11)))
         else:
             self.fail_unless_cfg_match(
                 cfg, 13, ((0, 1), (0, 12), (1, 2), (2, 3), (2, 11), (3, 4),
-                          (3, 9), (4, 5), (4, 7), (5, 9), (6, 8), (7, 8),
+                          (3, 9), (4, 5), (4, 7), (5, 9), (7, 8),
                           (8, 9), (9, 10), (9, 12), (10, 2), (11, 12)))
 
     def test_try_finally_2(self):
@@ -209,7 +209,7 @@ class TestByteControl(unittest.TestCase):
             BLOCK_24 -> BLOCK_36; // 3 -> 4
             BLOCK_24 -> BLOCK_52; // 3 -> 6
             BLOCK_36 -> BLOCK_56; // 4 -> 7
-            BLOCK_49 -> BLOCK_52; // 5 -> 6
+            // DEAD: BLOCK_49 -> BLOCK_52; // 5 -> 6
             BLOCK_52 -> BLOCK_56; // 6 -> 7
             BLOCK_56 -> BLOCK_9; // 7 -> 1, why == WHY_CONTINUE
             BLOCK_56 -> BLOCK_64; // 7 -> 8, why == WHY_NOT
@@ -223,7 +223,7 @@ class TestByteControl(unittest.TestCase):
         if not OLD_BYTECODE_COMPILER:
             self.fail_unless_cfg_match(
                 cfg, 11, ((0, 1), (0, 10), (1, 2), (1, 9), (2, 3), (2, 7),
-                          (3, 4), (3, 6), (4, 7), (5, 6), (6, 7), (7, 1),
+                          (3, 4), (3, 6), (4, 7), (6, 7), (7, 1),
                           (7, 8), (8, 1), (9, 10)))
 
     def test_try_finally_3(self):
@@ -233,14 +233,14 @@ class TestByteControl(unittest.TestCase):
             BLOCK_0 -> BLOCK_9; // 0 -> 1
             BLOCK_0 -> BLOCK_29; // 0 -> 3
             BLOCK_9 -> BLOCK_29; // 1 -> 3
-            BLOCK_25 -> BLOCK_29; // 2 -> 3
+            // DEAD: BLOCK_25 -> BLOCK_29; // 2 -> 3
             BLOCK_29 -> BLOCK_37; // 3 -> 4, why == WHY_NOT
             BLOCK_37; // 4
         }
         (Possibly terminal blocks: 29, 37.)
         """
         cfg = byte_control.build_cfg(try_finally_3)
-        self.fail_unless_cfg_match(cfg, 5, ((0, 1), (0, 3), (1, 3), (2, 3),
+        self.fail_unless_cfg_match(cfg, 5, ((0, 1), (0, 3), (1, 3),
                                             (3, 4)))
 
     def test_try_finally_4(self):
@@ -259,10 +259,16 @@ class TestByteControl(unittest.TestCase):
         self.fail_unless_cfg_match(cfg, 4, ((0, 1), (0, 2), (1, 2), (2, 3)))
 
     def test_try_finally_5(self):
-        pass # TODO: fix ControlFlowGraph.update_for_ssa which
-             # diverges on the CFG for the following:
-        #cfg = byte_control.build_cfg(try_finally_5)
-        #self.fail_unless_cfg_match(cfg, XXX, ())
+        cfg = byte_control.build_cfg(try_finally_5)
+        if not OLD_BYTECODE_COMPILER:
+            self.fail_unless_cfg_match(
+                cfg, 26, ((0, 1), (0, 25), (1, 2), (2, 24), (2, 3), (3, 4),
+                          (3, 22), (4, 5), (4, 7), (5, 22), (7, 8),
+                          (7, 10), (8, 22), (10, 11), (10, 12),
+                          (11, 22), (12, 13), (12, 15), (13, 22),
+                          (15, 16), (15, 20), (16, 17), (16, 19), (17, 20),
+                          (19, 20), (20, 21), (20, 22), (21, 22),
+                          (22, 25), (22, 2), (22, 23), (23, 2), (24, 25)))
 
 # ______________________________________________________________________
 
