@@ -800,6 +800,9 @@ class Type(llvm.Wrapper):
     def __str__(self):
         return str(self._ptr)
 
+    def __hash__(self):
+        return hash(self._ptr)
+
     def __eq__(self, rhs):
         return self._ptr is rhs._ptr
 
@@ -900,7 +903,6 @@ class StructType(Type):
 
     def is_layout_identical(self, other):
         return self._ptr.isLayoutIdentical(other._ptr)
-
 
 class ArrayType(Type):
     """Represents an array type."""

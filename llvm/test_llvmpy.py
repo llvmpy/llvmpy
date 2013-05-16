@@ -1260,6 +1260,32 @@ tests.append(TestStruct)
 
 # ---------------------------------------------------------------------------
 
+class TestTypeHash(TestCase):
+    def test_scalar_type(self):
+        i32a = Type.int(32)
+        i32b = Type.int(32)
+        i64a = Type.int(64)
+        i64b = Type.int(64)
+        ts = set([i32a, i32b, i64a, i64b])
+        self.assertTrue(len(ts))
+        self.assertTrue(i32a in ts)
+        self.assertTrue(i64b in ts)
+
+    def test_struct_type(self):
+        ta = Type.struct([Type.int(32), Type.float()])
+        tb = Type.struct([Type.int(32), Type.float()])
+        tc = Type.struct([Type.int(32), Type.int(32), Type.float()])
+        ts = set([ta, tb, tc])
+        self.assertTrue(len(ts) == 2)
+        self.assertTrue(ta in ts)
+        self.assertTrue(tb in ts)
+        self.assertTrue(tc in ts)
+
+tests.append(TestTypeHash)
+
+
+# ---------------------------------------------------------------------------
+
 def run(verbosity=1):
     print('llvmpy is installed in: ' + os.path.dirname(__file__))
     print('llvmpy version: ' + llvm.__version__)
