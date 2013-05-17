@@ -46,4 +46,4 @@ class GlobalValue:
     eraseFromParent = Method()
     eraseFromParent.disowning = True
 
-    getParent = Method(ptr(Module))
+    getParent = Method(ownedptr(Module))
