@@ -272,10 +272,9 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
 def build_flow (func):
     '''Given a Python function, return a bytecode flow tree for that
     function.'''
-    import byte_control
+    from . import byte_control
     cfg = byte_control.build_cfg(func)
     return BytecodeFlowBuilder().visit_cfg(cfg)
-
 
 # ______________________________________________________________________
 # Main (self-test) routine

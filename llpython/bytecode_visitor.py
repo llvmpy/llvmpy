@@ -171,8 +171,8 @@ class BasicBlockVisitor (BytecodeVisitor):
         block_indices.sort()
         for block_index in block_indices:
             self.enter_block(block_index)
-            for i, op, arg in blocks[block_index]:
-                self.visit_op(i, op, arg)
+            for op_tuple in blocks[block_index]:
+                self.visit_op(*op_tuple)
             self.exit_block(block_index)
         return self.exit_blocks(blocks)
 
