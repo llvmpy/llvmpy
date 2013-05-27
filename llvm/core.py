@@ -504,7 +504,7 @@ class Module(llvm.Wrapper):
                                                  mode,
                                                  errmsg)
             if failed:
-                raise llvm.LLVMException(errmsg)
+                raise llvm.LLVMException(errmsg.getvalue())
 
     def get_type_named(self, name):
         typ = self._ptr.getTypeByName(name)
