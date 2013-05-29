@@ -98,6 +98,9 @@ def main():
     if option == '--version':
         print(get_llvm_version())
 
+    elif option == '--targets-built':
+        print('X86')  # just do X86
+
     elif option == '--libs':
         libs_options()
 
