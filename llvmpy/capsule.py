@@ -56,15 +56,15 @@ class Capsule(object):
 
     @property
     def classname(self):
-        return Capsule.getClassName(self.capsule)
+        return self.getClassName(self.capsule)
 
     @property
     def name(self):
-        return Capsule.getName(self.capsule)
+        return self.getName(self.capsule)
 
     @property
     def pointer(self):
-        return Capsule.getPointer(self.capsule)
+        return self.getPointer(self.capsule)
 
     @staticmethod
     def valid(capsule):
