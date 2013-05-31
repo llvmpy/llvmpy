@@ -4,7 +4,7 @@ from .namespace import llvm
 from .ADT.StringRef import StringRef
 from .Value import MDNode
 
-DIDescriptor = llvm.Class(MDNode)
+DIDescriptor = llvm.Class()
 DIEnumerator = llvm.Class(DIDescriptor)
 DIScope = llvm.Class(DIDescriptor)
 DIType = llvm.Class(DIScope)
@@ -29,7 +29,8 @@ return_unsigned = cast(Unsigned, int)
 
 @DIDescriptor
 class DIDescriptor:
-    pass
+    new = Constructor(ptr(MDNode))
+    delete = Destructor()
 
 @DIScope
 class DIScope:
