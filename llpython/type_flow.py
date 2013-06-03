@@ -4,6 +4,11 @@
 
 from .bytecode_visitor import BasicBlockVisitor, BenignBytecodeVisitorMixin
 
+DEBUG_SIMPLIFY = False
+
+if DEBUG_SIMPLIFY:
+    from pprint import pprint as pp
+
 # ______________________________________________________________________
 # Class definition(s)
 
@@ -19,6 +24,65 @@ class TypeFlowBuilder(BenignBytecodeVisitorMixin, BasicBlockVisitor):
 
     def get_type_eqns(self):
         return self.type_flow, self.requirements, self.locals, self.globals
+
+    def simplify(self):
+        """
+        This method isn't working as intended.  It should simplify
+        strongly connected components s.t. instead of outputing
+        several types like the following:
+
+        {0: set(['in0']),
+        3: set(['in1']),
+        ...
+        10: set([0, 3, 34, 37, 62, 65, 'in0', 'in1']),
+        ...
+        34: set([0, 3, 34, 37, 62, 65, 'in0', 'in1']),
+        37: set(['in1']),
+        ...
+        62: set([0, 3, 34, 37, 62, 65, 'in0', 'in1']),
+        65: set(['in1']),
+        ...
+        75: set([0, 3, 34, 37, 62, 65, 'in0', 'in1']),
+        ...}
+
+        It outputs the following:
+
+        {0: set(['in0']),
+        3: set(['in1']),
+        ...
+        10: set(['in0', 'in1']),
+        ...
+        34: set(['in0', 'in1']),
+        37: set(['in1']),
+        ...
+        62: set(['in0', 'in1']),
+        65: set(['in1']),
+        ...
+        75: set(['in0', 'in1']),
+        ...}
+        """
+        if not DEBUG_SIMPLIFY:
+            raise NotImplementedError("See docstring.")
+        type_flow = self.type_flow
+        changed = True
+        while changed:
+            changed = False
+            next_flow = type_flow.copy()
+            for index, types in type_flow.items():
+                if isinstance(types, set):
+                    next_types = set.union(
+                        *(type_flow.get(child_index,
+                                        set([child_index]))
+                          for child_index in types))
+                else:
+                    next_types = set([types])
+                if next_types != types:
+                    next_flow[index] = next_types
+                    changed = True
+            pp(next_flow)
+            print()
+            type_flow = next_flow
+        return type_flow
 
     def _op(self, i, op, opname, arg, args, *extras, **kws):
         self.type_flow[i] = set(args)
