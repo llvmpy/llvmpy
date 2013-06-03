@@ -1,2 +1,2 @@
-from __future__ import absolute_imports
-from .array.py import *
+from __future__ import absolute_import
+from .array import *

@@ -56,15 +56,15 @@ class Capsule(object):
 
     @property
     def classname(self):
-        return Capsule.getClassName(self.capsule)
+        return self.getClassName(self.capsule)
 
     @property
     def name(self):
-        return Capsule.getName(self.capsule)
+        return self.getName(self.capsule)
 
     @property
     def pointer(self):
-        return Capsule.getPointer(self.capsule)
+        return self.getPointer(self.capsule)
 
     @staticmethod
     def valid(capsule):
@@ -141,9 +141,10 @@ def wrap(cap, owned=False):
     cls = cap.get_class()
     addr = cap.pointer
     name = cap.name
-    try: # lookup cached object
-        return _cache[cls][addr]
-    except KeyError:
+    # lookup cached object
+    if cls in _cache and addr in _cache[cls]:
+        obj = _cache[cls][addr]
+    else:
         if not owned and cls._has_dtor():
             _addr2dtor[(name, addr)] = cls._delete_
         obj = cap.instantiate()
@@ -207,11 +208,10 @@ def downcast(obj, cls):
     logger.debug("Downcast %s to %s" , fromty, toty)
     fname = 'downcast_%s_to_%s' % (fromty, toty)
     fname = fname.replace('::', '_')
-    try:
-        caster = getattr(_api.downcast, fname)
-    except AttributeError:
+    if not hasattr(_api.downcast, fname):
         fmt = "Downcast from %s to %s is not supported"
         raise TypeError(fmt % (fromty, toty))
+    caster = getattr(_api.downcast, fname)
     old = unwrap(obj)
     new = caster(old)
     used_to_own = has_ownership(old)

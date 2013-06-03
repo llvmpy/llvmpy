@@ -55,12 +55,18 @@ class Enum(int):
 
     @classmethod
     def declare(cls):
+        declared = cls._declared_ = {}
         scope = globals()
         for name in filter(lambda s: s.startswith(cls.prefix), dir(cls)):
             n = getattr(cls, name)
             typ = type(name, (cls,), {})
-            scope[name] = typ(n)
+            obj = typ(n)
+            declared[n] = obj
+            scope[name] = obj
 
+    @classmethod
+    def get(cls, num):
+        return cls._declared_[num]
 
 # type id (llvm::Type::TypeID)
 class TypeEnum(Enum):
@@ -498,7 +504,7 @@ class Module(llvm.Wrapper):
                                                  mode,
                                                  errmsg)
             if failed:
-                raise llvm.LLVMException(errmsg)
+                raise llvm.LLVMException(errmsg.getvalue())
 
     def get_type_named(self, name):
         typ = self._ptr.getTypeByName(name)
@@ -1872,16 +1878,24 @@ class PHINode(Instruction):
 
 
 class SwitchInstruction(Instruction):
+    _type_ = api.llvm.SwitchInst
 
     def add_case(self, const, bblk):
         self._ptr.addCase(const._ptr, bblk._ptr)
 
 
 class CompareInstruction(Instruction):
+    _type_ = api.llvm.CmpInst
 
     @property
     def predicate(self):
-        return self._ptr.getPredicate()
+        n = self._ptr.getPredicate()
+        try:
+            return ICMPEnum.get(n)
+        except KeyError:
+            return FCMPEnum.get(n)
+
+
 #===----------------------------------------------------------------------===
 # Basic block
 #===----------------------------------------------------------------------===

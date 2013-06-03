@@ -167,6 +167,11 @@ class EngineBuilder(llvm.Wrapper):
             ptr = self._ptr.selectTarget()
         return TargetMachine(ptr)
 
+    def mcjit(self, enable):
+        '''Enable/disable MCJIT
+        '''
+        self._ptr.setUseMCJIT(enable)
+        return self
 
 #===----------------------------------------------------------------------===
 # Execution engine
