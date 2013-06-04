@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 # ______________________________________________________________________
 
+from collections import namedtuple
 import dis
 import opcode
-from collections import namedtuple
+import types
 
 # ______________________________________________________________________
 # Module data
@@ -192,6 +193,16 @@ def itercode(code, start = 0):
             abs_rel, dst = delta
             assert abs_rel == 'abs' or abs_rel == 'rel'
             i = dst if abs_rel == 'abs' else i + dst
+
+# ______________________________________________________________________
+
+def itercodeobjs(codeobj):
+    "Iterator that traverses code objects via the co_consts member."
+    yield codeobj
+    for const in codeobj.co_consts:
+        if isinstance(const, types.CodeType):
+            for childobj in itercodeobjs(const):
+                yield childobj
 
 # ______________________________________________________________________
 
