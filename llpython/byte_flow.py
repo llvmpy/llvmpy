@@ -10,6 +10,7 @@ from . import opcode_util
 from . import byte_control
 
 # ______________________________________________________________________
+# Class definition(s)
 
 class BytecodeFlowBuilder (BasicBlockVisitor):
     '''Transforms a CFG into a bytecode "flow tree".
@@ -116,10 +117,17 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     op_BINARY_XOR = _op
 
     def op_BREAK_LOOP (self, i, op, arg):
-        # XXX Not sure this is correct.
-        loop_i, _, loop_arg, _ = self.control_stack[-1]
-        assert arg is None
-        return self._op(i, op, loop_i + loop_arg + 3)
+        if self.opnames[op] == 'BREAK_LOOP':
+            # Break target was already computed in control flow analysis;
+            # reuse that, replacing the opcode argument.
+            blocks_out = tuple(self.cfg.blocks_out[self.block_no])
+            assert len(blocks_out) == 1
+            assert arg is None
+            arg = blocks_out[0]
+        # else: Continue target is already in the argument.  Note that
+        # the argument might not be the same as CFG destination block,
+        # since we might have a finally block to visit first.
+        return self._op(i, op, arg)
 
     op_BUILD_CLASS = _op
     op_BUILD_LIST = _op
@@ -131,7 +139,7 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     op_CALL_FUNCTION_VAR = _op
     op_CALL_FUNCTION_VAR_KW = _op
     op_COMPARE_OP = _op
-    #op_CONTINUE_LOOP = _not_implemented
+    op_CONTINUE_LOOP = op_BREAK_LOOP
     op_DELETE_ATTR = _op
     op_DELETE_FAST = _op
     op_DELETE_GLOBAL = _op
@@ -146,7 +154,11 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
         self.stack += self.stack[-arg:]
 
     #op_DUP_TOP_TWO = _not_implemented
-    #op_END_FINALLY = _not_implemented
+
+    # See the note regarding END_FINALLY in the definition of
+    # opcope_util.OPCODE_MAP.
+    op_END_FINALLY = _op
+
     op_EXEC_STMT = _op
 
     def op_EXTENDED_ARG (self, i, op, arg):
@@ -249,7 +261,20 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     op_SETUP_FINALLY = _op_SETUP
     op_SETUP_LOOP = _op_SETUP
 
-    #op_SETUP_WITH = _not_implemented
+    def op_SETUP_WITH (self, i, op, arg):
+        assert arg is not None
+        # Care has to be taken here.  SETUP_WITH pushes two things on
+        # the value stack (the exit ), and once on the handler frame.
+        ctx = self.stack.pop()
+        # We signal that the value is an exit handler by setting arg to None
+        exit_handler = i, op, self.opnames[op], None, [ctx]
+        self.stack.append(exit_handler)
+        ret_val = i, op, self.opnames[op], arg, [ctx]
+        self.control_stack.append((i, op, arg, len(self.stack)))
+        self.stack.append(ret_val)
+        self.block.append(ret_val)
+        return ret_val
+
     op_SET_ADD = op_LIST_APPEND
     op_SLICE = _op
     #op_STOP_CODE = _not_implemented

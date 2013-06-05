@@ -60,7 +60,7 @@ OPCODE_MAP = {
     'CALL_FUNCTION_VAR': OpcodeData(-3, 1, None),
     'CALL_FUNCTION_VAR_KW': OpcodeData(-4, 1, None),
     'COMPARE_OP': OpcodeData(2, 1, None),
-    'CONTINUE_LOOP': NO_OPCODE_DATA,
+    'CONTINUE_LOOP': OpcodeData(0, None, 1),
     'DELETE_ATTR': OpcodeData(1, None, 1),
     'DELETE_DEREF': NO_OPCODE_DATA,
     'DELETE_FAST': OpcodeData(0, None, 1),
@@ -74,7 +74,15 @@ OPCODE_MAP = {
     'DUP_TOP': NO_OPCODE_DATA,
     'DUP_TOPX': NO_OPCODE_DATA,
     'DUP_TOP_TWO': NO_OPCODE_DATA,
-    'END_FINALLY': NO_OPCODE_DATA,
+
+    # The data for END_FINALLY is a total fabrication; END_FINALLY may
+    # pop 1 or 3 values off the value stack, based on the type of the
+    # top of the value stack.  If, however, a value stack simulator
+    # ignores the part of the CPython evaluator loop that pushes the
+    # why code on the value stack for WHY_RETURN and WHY_CONTINUE (as
+    # this table does), this should work out fine.
+    'END_FINALLY': OpcodeData(0, 0, 1), 
+
     'EXEC_STMT': OpcodeData(3, 0, 1),
     'EXTENDED_ARG': NO_OPCODE_DATA,
     'FOR_ITER': OpcodeData(1, 1, 1),
@@ -109,7 +117,7 @@ OPCODE_MAP = {
     'LOAD_DEREF': OpcodeData(0, 1, None),
     'LOAD_FAST': OpcodeData(0, 1, None),
     'LOAD_GLOBAL': OpcodeData(0, 1, None),
-    'LOAD_LOCALS': NO_OPCODE_DATA,
+    'LOAD_LOCALS': OpcodeData(0, 1, None),
     'LOAD_NAME': OpcodeData(0, 1, None),
     'MAKE_CLOSURE': NO_OPCODE_DATA,
     'MAKE_FUNCTION': OpcodeData(-2, 1, None),
