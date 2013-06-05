@@ -110,11 +110,10 @@ def main(*args):
             with open(arg) as in_file:
                 in_source = in_file.read()
                 in_codeobj = compile(in_source, arg, 'exec')
-                flow_map = build_addr_flows_from_co(in_codeobj)
-                for codeobj, flow in flow_map.items():
+                for codeobj in itercodeobjs(in_codeobj):
                     print("_" * 70)
                     print(codeobj)
-                    pprint.pprint(flow)
+                    pprint.pprint(build_addr_flow_from_co(codeobj))
         else:
             pprint.pprint(build_addr_flow(getattr(llfuncs, arg)))
 
