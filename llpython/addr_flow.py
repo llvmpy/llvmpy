@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 
-from .byte_flow import BytecodeFlowBuilder
+from .byte_flow import BytecodeFlowBuilder, demo_flow_builder
 from .opcode_util import build_basic_blocks, itercodeobjs
 
 # ______________________________________________________________________
@@ -73,49 +73,10 @@ class AddressFlowBuilder(BytecodeFlowBuilder):
     op_SET_ADD = op_LIST_APPEND
 
 # ______________________________________________________________________
-# Function definition(s)
-
-def build_addr_flow(func):
-    from . import byte_control
-    cfg = byte_control.build_cfg(func)
-    return AddressFlowBuilder().visit_cfg(cfg)
-
-# ______________________________________________________________________
-
-def build_addr_flow_from_co(codeobj):
-    from .byte_control import ControlFlowBuilder
-    cfg = ControlFlowBuilder().visit(build_basic_blocks(codeobj),
-                                     codeobj.co_argcount)
-    return AddressFlowBuilder().visit_cfg(cfg)
-
-# ______________________________________________________________________
-
-def build_addr_flows_from_co(root_co):
-    return dict((co, build_addr_flow_from_co(co))
-                for co in itercodeobjs(root_co))
-
-# ______________________________________________________________________
 # Main (self-test) routine
 
 def main(*args):
-    import pprint
-    try:
-        from .tests import llfuncs
-    except ImportError:
-        llfuncs = object()
-    if not args:
-        args = ('pymod',)
-    for arg in args:
-        if arg.endswith('.py'):
-            with open(arg) as in_file:
-                in_source = in_file.read()
-                in_codeobj = compile(in_source, arg, 'exec')
-                for codeobj in itercodeobjs(in_codeobj):
-                    print("_" * 70)
-                    print(codeobj)
-                    pprint.pprint(build_addr_flow_from_co(codeobj))
-        else:
-            pprint.pprint(build_addr_flow(getattr(llfuncs, arg)))
+    return demo_flow_builder(AddressFlowBuilder, *args)
 
 # ______________________________________________________________________
 
