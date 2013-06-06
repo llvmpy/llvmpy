@@ -4,6 +4,8 @@
 from __future__ import absolute_import
 import dis
 import opcode
+import pprint
+import types
 
 from .bytecode_visitor import BasicBlockVisitor
 from . import opcode_util
@@ -293,7 +295,16 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     op_UNARY_NOT = _op
     op_UNARY_POSITIVE = _op
     #op_UNPACK_EX = _not_implemented
-    #op_UNPACK_SEQUENCE = _not_implemented
+
+    def op_UNPACK_SEQUENCE (self, i, op, arg):
+        seq = self.stack.pop()
+        opname = self.opnames[op]
+        while arg > 0:
+            arg -= 1
+            ret_val = i, op, opname, arg, [seq]
+            self.stack.append(ret_val)
+        return ret_val
+
     #op_WITH_CLEANUP = _not_implemented
     op_YIELD_VALUE = _op
 
@@ -308,9 +319,7 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     def build_flow_from_co(cls, code_obj):
         '''Given a Python code object, return a flow representation of
         that code object.'''
-        bbs = opcode_util.build_basic_blocks(code_obj)
-        cfg = byte_control.ControlFlowBuilder().visit(bbs,
-                                                      code_obj.co_argcount)
+        cfg = byte_control.ControlFlowBuilder.build_cfg_from_co(code_obj)
         return cls().visit_cfg(cfg)
 
     @classmethod
@@ -333,23 +342,15 @@ def build_flow(func):
 
 def demo_flow_builder(builder_cls, *args):
     import pprint
-    try:
-        from .tests import llfuncs
-    except ImportError:
-        llfuncs = object()
-    if not args:
-        args = ('pymod',)
-    for arg in args:
-        if arg.endswith('.py'):
-            with open(arg) as in_file:
-                in_source = in_file.read()
-                in_codeobj = compile(in_source, arg, 'exec')
-                for codeobj in opcode_util.itercodeobjs(in_codeobj):
-                    print("_" * 70)
-                    print(codeobj)
-                    pprint.pprint(builder_cls.build_flow_from_co(codeobj))
+    def _visit(obj):
+        print("_" * 70)
+        print(obj)
+        if type(obj) == types.FunctionType:
+            flow = builder_cls.build_flow(obj)
         else:
-            pprint.pprint(builder_cls.build_flow(getattr(llfuncs, arg)))
+            flow = builder_cls.build_flow_from_co(obj)
+        pprint.pprint(flow)
+    return opcode_util.visit_code_args(_visit, *args)
 
 # ______________________________________________________________________
 # Main (self-test) routine

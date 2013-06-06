@@ -214,6 +214,34 @@ def itercodeobjs(codeobj):
 
 # ______________________________________________________________________
 
+def visit_code_args(visitor, *args, **kws):
+    """Utility function for testing or demonstrating various code
+    analysis passes in llpython.
+
+    Takes a visitor function and a sequence of command line arguments.
+    The visitor function should be able to handle either function
+    objects or code objects."""
+    try:
+        from .tests import llfuncs
+    except ImportError:
+        llfuncs = object()
+    if not args:
+        if 'default_args' in kws:
+            args = kws['default_args']
+        else:
+            args = ('pymod',)
+    for arg in args:
+        if arg.endswith('.py'):
+            with open(arg) as in_file:
+                in_source = in_file.read()
+                in_codeobj = compile(in_source, arg, 'exec')
+                for codeobj in itercodeobjs(in_codeobj):
+                    visitor(codeobj)
+        else:
+            visitor(getattr(llfuncs, arg))
+
+# ______________________________________________________________________
+
 def extendlabels(code, labels = None):
     """Extend the set of jump target labels to account for the
     passthrough targets of conditional branches.

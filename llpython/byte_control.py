@@ -1,11 +1,14 @@
 #! /usr/bin/env python
 # ______________________________________________________________________
+# Module imports
 
 from __future__ import absolute_import
-import opcode
-from . import opcode_util
-import pprint
 
+import opcode
+import pprint
+import types
+
+from . import opcode_util
 from .bytecode_visitor import BasicBlockVisitor, BenignBytecodeVisitorMixin
 from .control_flow import ControlFlowGraph
 
@@ -251,24 +254,39 @@ class ControlFlowBuilder (BenignBytecodeVisitorMixin, BasicBlockVisitor):
         return super(ControlFlowBuilder, self).op_SETUP_WITH(i, op, arg, *args,
                                                              **kws)
 
+    # ____________________________________________________________
+    # Class convenience methods
+
+    @classmethod
+    def build_cfg_from_co(cls, co_obj):
+        return cls().visit(opcode_util.build_basic_blocks(co_obj),
+                           co_obj.co_argcount)
+
+    @classmethod
+    def build_cfg(cls, func):
+        co_obj = opcode_util.get_code_object(func)
+        return cls.build_cfg_from_co(co_obj)
+
 # ______________________________________________________________________
 
 def build_cfg (func):
     '''Given a Python function, create a bytecode flow, visit the flow
     object, and return a control flow graph.'''
-    co_obj = opcode_util.get_code_object(func)
-    return ControlFlowBuilder().visit(opcode_util.build_basic_blocks(co_obj),
-                                      co_obj.co_argcount)
+    return ControlFlowBuilder.build_cfg(func)
 
 # ______________________________________________________________________
 # Main (self-test) routine
 
 def main (*args, **kws):
-    from tests import llfuncs
-    if not args:
-        args = ('doslice',)
-    for arg in args:
-        build_cfg(getattr(llfuncs, arg)).pprint()
+    def _visit(obj):
+        print("_" * 70)
+        print(obj)
+        if type(obj) == types.FunctionType:
+            cfg = build_cfg(obj)
+        else:
+            cfg = ControlFlowBuilder.build_cfg_from_co(obj)
+        cfg.pprint()
+    return opcode_util.visit_code_args(_visit, *args, **kws)
 
 # ______________________________________________________________________
 
