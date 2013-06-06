@@ -46,9 +46,11 @@ class FlowTestMixin(object):
                         (self.valid_addrs - self.visited))
         del self.visited
         del self.valid_addrs
+        return flow
 
     def build_and_test_flow(self, func):
-        self.fail_unless_valid_flow(self.BUILDER_CLS.build_flow(func), func)
+        return self.fail_unless_valid_flow(
+            self.BUILDER_CLS.build_flow(func), func)
 
     def test_doslice(self):
         self.build_and_test_flow(llfuncs.doslice)
@@ -80,6 +82,7 @@ class FlowTestMixin(object):
 # ______________________________________________________________________
 
 class TestBytecodeFlowBuilder(unittest.TestCase, FlowTestMixin):
+
     BUILDER_CLS = byte_flow.BytecodeFlowBuilder
 
     def fail_unless_valid_instruction(self, instr):
