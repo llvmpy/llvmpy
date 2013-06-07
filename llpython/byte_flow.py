@@ -5,7 +5,7 @@ from __future__ import absolute_import
 import dis
 import opcode
 import pprint
-import types
+import inspect
 
 from .bytecode_visitor import BasicBlockVisitor
 from . import opcode_util
@@ -341,11 +341,10 @@ def build_flow(func):
 # ______________________________________________________________________
 
 def demo_flow_builder(builder_cls, *args):
-    import pprint
     def _visit(obj):
         print("_" * 70)
         print(obj)
-        if type(obj) == types.FunctionType:
+        if inspect.isfunction(obj):
             flow = builder_cls.build_flow(obj)
         else:
             flow = builder_cls.build_flow_from_co(obj)

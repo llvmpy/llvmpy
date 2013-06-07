@@ -6,7 +6,7 @@ from __future__ import absolute_import
 
 import opcode
 import pprint
-import types
+import inspect
 
 from . import opcode_util
 from .bytecode_visitor import BasicBlockVisitor, BenignBytecodeVisitorMixin
@@ -281,7 +281,7 @@ def main (*args, **kws):
     def _visit(obj):
         print("_" * 70)
         print(obj)
-        if type(obj) == types.FunctionType:
+        if inspect.isfunction(obj):
             cfg = build_cfg(obj)
         else:
             cfg = ControlFlowBuilder.build_cfg_from_co(obj)

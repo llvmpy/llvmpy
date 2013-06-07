@@ -4,7 +4,7 @@
 from collections import namedtuple
 import dis
 import opcode
-import types
+import inspect
 
 # ______________________________________________________________________
 # Module data
@@ -208,7 +208,7 @@ def itercodeobjs(codeobj):
     "Iterator that traverses code objects via the co_consts member."
     yield codeobj
     for const in codeobj.co_consts:
-        if isinstance(const, types.CodeType):
+        if inspect.iscode(const):
             for childobj in itercodeobjs(const):
                 yield childobj
 
