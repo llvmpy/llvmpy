@@ -257,8 +257,8 @@ class TypeFlowBuilder(BenignBytecodeVisitorMixin, BasicBlockVisitor):
 
 def build_type_flow(func):
     from .opcode_util import get_code_object
-    from .addr_flow import build_addr_flow
-    blocks = build_addr_flow(func)
+    from .addr_flow import AddressFlowBuilder
+    blocks = AddressFlowBuilder.build_flow(func)
     ty_builder = TypeFlowBuilder(get_code_object(func))
     ty_builder.visit(blocks)
     return ty_builder.get_type_eqns()
