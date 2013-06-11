@@ -6,6 +6,7 @@ import dis
 import opcode
 import pprint
 import inspect
+from collections import namedtuple
 
 from .bytecode_visitor import BasicBlockVisitor
 from . import opcode_util
@@ -13,6 +14,11 @@ from . import byte_control
 
 # ______________________________________________________________________
 # Class definition(s)
+
+Instr = namedtuple('Instr', ('address', 'opcode', 'opname', 'oparg',
+                             'stackargs'))
+
+# ______________________________________________________________________
 
 class BytecodeFlowBuilder (BasicBlockVisitor):
     '''Transforms a CFG into a bytecode "flow tree".
@@ -47,7 +53,7 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
             del self.stack[-pops:]
         else:
             stk_args = []
-        ret_val = (i, op, opname, arg, stk_args)
+        ret_val = Instr(i, op, opname, arg, stk_args)
         if pushes:
             self.stack.append(ret_val)
         if appends:
@@ -174,7 +180,7 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
         # References top of stack without popping, so we can't use the
         # generic machinery.
         opname = self.opmap[op][0]
-        ret_val = i, op, opname, arg, [self.stack[-1]]
+        ret_val = Instr(i, op, opname, arg, [self.stack[-1]])
         self.stack.append(ret_val)
         return ret_val
 
@@ -197,7 +203,7 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     op_JUMP_FORWARD = _op
 
     def op_JUMP_IF_FALSE (self, i, op, arg):
-        ret_val = i, op, self.opnames[op], arg, [self.stack[-1]]
+        ret_val = Instr(i, op, self.opnames[op], arg, [self.stack[-1]])
         self.block.append(ret_val)
         return ret_val
 
@@ -210,7 +216,7 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
         opcodes.'''
         elem = self.stack.pop()
         container = self.stack[-arg]
-        ret_val = i, op, self.opnames[op], arg, [container, elem]
+        ret_val = Instr(i, op, self.opnames[op], arg, [container, elem])
         self.block.append(ret_val)
         return ret_val
 
@@ -255,7 +261,7 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
 
     def _op_SETUP (self, i, op, arg):
         self.control_stack.append((i, op, arg, len(self.stack)))
-        ret_val = i, op, self.opnames[op], arg, []
+        ret_val = Instr(i, op, self.opnames[op], arg, [])
         self.block.append(ret_val)
         return ret_val
 
@@ -269,9 +275,9 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
         # the value stack (the exit ), and once on the handler frame.
         ctx = self.stack.pop()
         # We signal that the value is an exit handler by setting arg to None
-        exit_handler = i, op, self.opnames[op], None, [ctx]
+        exit_handler = Instr(i, op, self.opnames[op], None, [ctx])
         self.stack.append(exit_handler)
-        ret_val = i, op, self.opnames[op], arg, [ctx]
+        ret_val = Instr(i, op, self.opnames[op], arg, [ctx])
         self.control_stack.append((i, op, arg, len(self.stack)))
         self.stack.append(ret_val)
         self.block.append(ret_val)
@@ -301,7 +307,7 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
         opname = self.opnames[op]
         while arg > 0:
             arg -= 1
-            ret_val = i, op, opname, arg, [seq]
+            ret_val = Instr(i, op, opname, arg, [seq])
             self.stack.append(ret_val)
         return ret_val
 

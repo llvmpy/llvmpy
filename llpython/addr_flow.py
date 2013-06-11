@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 
-from .byte_flow import BytecodeFlowBuilder, demo_flow_builder
+from .byte_flow import Instr, BytecodeFlowBuilder, demo_flow_builder
 from .opcode_util import build_basic_blocks, itercodeobjs
 
 # ______________________________________________________________________
@@ -39,7 +39,7 @@ class AddressFlowBuilder(BytecodeFlowBuilder):
             del self.stack[-pops:]
         else:
             stk_args = []
-        ret_val = (i, op, opname, arg, stk_args)
+        ret_val = Instr(i, op, opname, arg, stk_args)
         if pushes:
             self.stack.append(ret_val)
         self.block.append(ret_val)
@@ -49,13 +49,13 @@ class AddressFlowBuilder(BytecodeFlowBuilder):
         # References top of stack without popping, so we can't use the
         # generic machinery.
         opname = self.opmap[op][0]
-        ret_val = i, op, opname, arg, [self.stack[-1][0]]
+        ret_val = Instr(i, op, opname, arg, [self.stack[-1][0]])
         self.stack.append(ret_val)
         self.block.append(ret_val)
         return ret_val
 
     def op_JUMP_IF_FALSE (self, i, op, arg):
-        ret_val = i, op, self.opnames[op], arg, [self.stack[-1][0]]
+        ret_val = Instr(i, op, self.opnames[op], arg, [self.stack[-1][0]])
         self.block.append(ret_val)
         return ret_val
 
@@ -66,7 +66,7 @@ class AddressFlowBuilder(BytecodeFlowBuilder):
         opcodes.'''
         elem = self.stack.pop()
         container = self.stack[-arg]
-        ret_val = i, op, self.opnames[op], arg, [container[0], elem[0]]
+        ret_val = Instr(i, op, self.opnames[op], arg, [container[0], elem[0]])
         self.block.append(ret_val)
         return ret_val
 
