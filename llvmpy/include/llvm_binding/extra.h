@@ -270,7 +270,12 @@ llvm::ExecutionEngine* ExecutionEngine_create(
     ExecutionEngine *ee = ExecutionEngine::create(M, ForceInterpreter,
                                                   &ErrorStr, OptLevel,
                                                   GVsWithCode);
-    PyFile_WriteString(ErrorStr.c_str(), errout);
+    auto_pyobject buf = PyBytes_FromString(ErrorStr.c_str());
+    if (errout && NULL == PyObject_CallMethod(errout, "write", "O", *buf)){
+        return NULL;
+    }
+
+//    PyFile_WriteString(ErrorStr.c_str(), errout);
     return ee;
 }
 
@@ -292,7 +297,11 @@ llvm::ExecutionEngine* ExecutionEngine_createJIT(
     std::string ErrorStr;
     ExecutionEngine *ee = ExecutionEngine::createJIT(M, &ErrorStr, JMM, OL,
                                                      GCsWithCode, RM, CMM);
-    PyFile_WriteString(ErrorStr.c_str(), errout);
+    auto_pyobject buf = PyBytes_FromString(ErrorStr.c_str());
+    if (errout && NULL == PyObject_CallMethod(errout, "write", "O", *buf)){
+        return NULL;
+    }
+//    PyFile_WriteString(ErrorStr.c_str(), errout);
     return ee;
 }
 
@@ -512,9 +521,13 @@ PyObject* llvm_getBitcodeTargetTriple(llvm::StringRef Buf,
     if (FObj) {
         std::string ErrStr;
         Triple = getBitcodeTargetTriple(MB, Ctx, &ErrStr);
-        if (-1 == PyFile_WriteString(ErrStr.c_str(), FObj)) {
+        auto_pyobject buf = PyBytes_FromString(ErrStr.c_str());
+        if (NULL == PyObject_CallMethod(FObj, "write", "O", *buf)){
             return NULL;
         }
+//        if (-1 == PyFile_WriteString(ErrStr.c_str(), FObj)) {
+//            return NULL;
+//        }
     } else {
         Triple = getBitcodeTargetTriple(MB, Ctx);
     }
@@ -585,9 +598,15 @@ PyObject* Linker_LinkInModule(llvm::Linker* Linker,
     if (! failed) {
         Py_RETURN_FALSE;
     } else {
-        if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
+    
+        auto_pyobject buf = PyBytes_FromString(errmsg.c_str());
+        if (NULL == PyObject_CallMethod(ErrMsg, "write", "O", *buf)){
             return NULL;
         }
+
+//        if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
+//            return NULL;
+//        }
         Py_RETURN_TRUE;
     }
 }
@@ -603,9 +622,13 @@ PyObject* Linker_LinkModules(llvm::Module* Dest,
     if (! failed) {
         Py_RETURN_FALSE;
     } else {
-        if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
+        auto_pyobject buf = PyBytes_FromString(errmsg.c_str());
+        if (NULL == PyObject_CallMethod(ErrMsg, "write", "O", *buf)){
             return NULL;
         }
+//        if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
+//            return NULL;
+//        }
         Py_RETURN_TRUE;
     }
 }
@@ -665,9 +688,14 @@ PyObject* llvm_verifyModule(const llvm::Module& Fn,
     bool failed = llvm::verifyModule(Fn, Action, &errmsg);
 
     if (failed) {
-        if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
+        auto_pyobject buf = PyBytes_FromString(errmsg.c_str());
+        if (NULL == PyObject_CallMethod(ErrMsg, "write", "O", *buf)){
             return NULL;
         }
+
+//        if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
+//            return NULL;
+//        }
         Py_RETURN_TRUE;
     } else {
         Py_RETURN_FALSE;
@@ -790,9 +818,13 @@ PyObject* DynamicLibrary_LoadLibraryPermanently(const char * Filename,
         std::string errmsg;
         failed = DynamicLibrary::LoadLibraryPermanently(Filename, &errmsg);
         if (failed) {
-            if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
+            auto_pyobject buf = PyBytes_FromString(errmsg.c_str());
+            if (NULL == PyObject_CallMethod(ErrMsg, "write", "O", *buf)){
                 return NULL;
             }
+//            if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
+//                return NULL;
+//            }
         }
     } else {
         failed = DynamicLibrary::LoadLibraryPermanently(Filename);
@@ -835,7 +867,12 @@ PyObject* TargetRegistry_lookupTarget(const std::string &Triple,
     std::string error;
     const Target* target = TargetRegistry::lookupTarget(Triple, error);
     if (!target) {
-        PyFile_WriteString(error.c_str(), Error);
+//        PyFile_WriteString(error.c_str(), Error);
+        auto_pyobject buf = PyBytes_FromString(error.c_str());
+        if (NULL == PyObject_CallMethod(Error, "write", "O", *buf)){
+            return NULL;
+        }
+
         Py_RETURN_NONE;
     } else {
         return pycapsule_new(const_cast<Target*>(target), "llvm::Target");
@@ -852,7 +889,12 @@ PyObject* TargetRegistry_lookupTarget(const std::string &Arch,
     std::string error;
     const Target* target = TargetRegistry::lookupTarget(Arch, Triple, error);
     if (!target) {
-        PyFile_WriteString(error.c_str(), Error);
+//        PyFile_WriteString(error.c_str(), Error);
+        auto_pyobject buf = PyBytes_FromString(error.c_str());
+        if (NULL == PyObject_CallMethod(Error, "write", "O", *buf)){
+            return NULL;
+        }
+
         Py_RETURN_NONE;
     } else {
         return pycapsule_new(const_cast<Target*>(target), "llvm::Target");
@@ -867,7 +909,12 @@ PyObject* TargetRegistry_getClosestTargetForJIT(PyObject* Error)
     std::string error;
     const Target* target = TargetRegistry::getClosestTargetForJIT(error);
     if (!target) {
-        PyFile_WriteString(error.c_str(), Error);
+        auto_pyobject buf = PyBytes_FromString(error.c_str());
+        if (NULL == PyObject_CallMethod(Error, "write", "O", *buf)){
+            return NULL;
+        }
+
+//        PyFile_WriteString(error.c_str(), Error);
         Py_RETURN_NONE;
     } else {
         return pycapsule_new(const_cast<Target*>(target), "llvm::Target");
