@@ -281,4 +281,11 @@ def build_basic_blocks (co_obj):
     return blocks
 
 # ______________________________________________________________________
+
+def get_nargs(co_obj):
+    flags = co_obj.co_flags
+    return (1 + co_obj.co_argcount + (1 if flags & 4 else 0) +
+            (1 if flags & 8 else 0))
+
+# ______________________________________________________________________
 # End of opcode_util.py
