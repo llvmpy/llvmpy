@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 # ______________________________________________________________________
 '''Defines a bytecode based LLVM translator for llpython code.
 '''
@@ -197,6 +198,10 @@ class LLVMTranslator (BytecodeFlowVisitor):
         if self.llvm_function is None:
             self.llvm_function = self.llvm_module.add_function(
                 self.llvm_type, self.target_function_name)
+        if self.llvm_function.args and not self.llvm_function.args[0].name:
+            for index in range(len(self.llvm_function.args)):
+                argname = self.code_obj.co_varnames[index]
+                self.llvm_function.args[index].name = argname
         self.llvm_blocks = {}
         self.llvm_definitions = {}
         self.pending_phis = {}
