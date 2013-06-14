@@ -6,20 +6,37 @@
 from __future__ import print_function, division, absolute_import
 
 import inspect
+import opcode
 
 import llvm.core as lc
 
 from . import byte_control
 from . import addr_flow
 from . import opcode_util
-from . import bytetype
+from .bytetype import l_pyobj_p, lc_int
 from .bytecode_visitor import GenericFlowVisitor
 
 # ______________________________________________________________________
 # Class definitions
 
 class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
+    '''
+    Code generator for translating from a Python code object and its
+    address flow (output by addr_flow.AddressFlowBuilder) into an LLVM
+    function.  The resulting LLVM function calls into a user-provided
+    (or undefined) API function for each interpreter byte code.
 
+    Target API function names are based on a programmable name
+    mangling scheme:
+
+    <PREFIX>OPCODE_NAME<POSTFIX>
+
+    The <PREFIX> and <POSTFIX> strings are determined by the prefix()
+    and postfix() methods.  These methods may either be overloaded, or
+    specialized at construction time using _prefix and _postfix
+    arguments.  The OPCODE_NAME is the opcode name as determined by
+    the map in opcode.opname.
+    '''
     def __init__(self, _prefix=None, _postfix=None):
         if _prefix is not None:
             if inspect.isfunction(_prefix):
@@ -42,8 +59,20 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     def postfix(self, opname, *opargs):
         return ''
 
-    def translate_cfg(self, code_obj, cfg, llvm_module=None, **kws):
+    def translate_cfg(self, code_obj, cfg, llvm_module=None,
+                      monotype = l_pyobj_p, **kws):
+        '''
+        Generate LLVM code for the given code object and it's control
+        flow graph.
+
+        If no LLVM module is given as an argument, translate_cfg()
+        creates a new module.
+
+        Returns the resulting LLVM module.
+        '''
         assert inspect.iscode(code_obj)
+        self.obj_type = monotype
+        self.null = lc.Constant.null(self.obj_type)
         self.code_obj = code_obj
         self.cfg = cfg
         self.target_function_name = kws.get(
@@ -59,11 +88,13 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
         return llvm_module
 
     def enter_flow_object(self, flow):
+        '''
+        Set up any state for dealing a new dictionary of basic blocks.
+        '''
         super(AddressFlowToLLVMPyAPICalls, self).enter_flow_object(flow)
         self.nargs = opcode_util.get_nargs(self.code_obj)
-        lltype = lc.Type.function(bytetype.l_pyobj_p,
-                                  tuple(bytetype.l_pyobj_p
-                                        for _ in range(self.nargs)))
+        lltype = lc.Type.function(
+            self.obj_type, tuple(self.obj_type for _ in range(self.nargs)))
         self.llvm_function = self.llvm_module.add_function(
             lltype, self.target_function_name)
         self.llvm_blocks = {}
@@ -72,29 +103,79 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
                 bb = self.llvm_function.append_basic_block(
                     'BLOCK_%d' % (block,))
                 self.llvm_blocks[block] = bb
+        self.symtab = {}
+        self.values = {}
 
     def exit_flow_object(self, flow):
+        '''
+        Clean up any state created while visiting the given dictionary
+        of basic blocks.
+        '''
         super(AddressFlowToLLVMPyAPICalls, self).exit_flow_object(flow)
+        del self.symtab
         del self.llvm_blocks
         del self.llvm_function
 
+    def generate_co_init(self):
+        '''
+        Initialize the code object's local variables on the stack.
+        '''
+        for name in self.code_obj.co_varnames:
+            ptr = self.builder.alloca(self.obj_type, name + '_p')
+            self.symtab[name] = ptr
+            self.builder.store(self.null, ptr)
+        for arg_index, arg in zip(range(self.nargs), self.llvm_function.args):
+            if arg_index == 0:
+                arg.name = '_globals_%x' % id(self.code_obj)
+                self.globals = arg
+            else:
+                local_index = arg_index - 1
+                name = self.code_obj.co_varnames[local_index]
+                arg.name = name
+                self.builder.store(arg, self.symtab[name])
+
     def enter_block(self, block):
+        '''
+        Set up state for generating code in a new basic block.  If
+        this is the first basic block, initialize the local variables
+        using generate_co_init().
+        '''
         ret_val = False
         if block in self.llvm_blocks:
             self.llvm_block = self.llvm_blocks[block]
             self.builder = lc.Builder.new(self.llvm_block)
+            if block == 0:
+                self.generate_co_init()
             ret_val = True
         return ret_val
 
     def exit_block(self, block):
+        '''
+        Tear down any state created for code generation in the current
+        basic block.  If the basic block isn't already terminated by a
+        control flow statement, assume it branches to the next basic
+        block.
+        '''
         # XXX Isn't this really a bug in GenericFlowVisitor.visit()?
         if block in self.llvm_blocks:
             del self.builder
             del self.llvm_block
 
     def _op(self, i, op, arg, *args, **kws):
-        return[]
-        raise NotImplementedError()
+        args = [self.values[stkarg] for stkarg in args]
+        if arg is not None:
+            args.insert(0, lc.Constant.int(lc_int, arg))
+        argtys = [arg.type for arg in args]
+        target_fnty = lc.Type.function(self.obj_type, argtys)
+        # XXX Modify the visitor!  Should be passing Instr named tuples here.
+        opname = self.opnames[op]
+        target_fnname = ''.join((self.prefix(opname, *args), opname,
+                                 self.postfix(opname, *args)))
+        target_fn = self.llvm_module.get_or_insert_function(target_fnty,
+                                                            target_fnname)
+        result = self.builder.call(target_fn, args)
+        self.values[i] = result
+        return [result]
 
     op_BINARY_ADD = _op
     op_BINARY_AND = _op
@@ -166,7 +247,13 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     op_LOAD_CLOSURE = _op
     op_LOAD_CONST = _op
     op_LOAD_DEREF = _op
-    op_LOAD_FAST = _op
+
+    def op_LOAD_FAST(self, i, op, arg, *args, **kws):
+        varname = self.code_obj.co_varnames[arg]
+        result = self.builder.load(self.symtab[varname])
+        self.values[i] = result
+        return [result]
+
     op_LOAD_GLOBAL = _op
     op_LOAD_LOCALS = _op
     op_LOAD_NAME = _op
@@ -198,7 +285,15 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     op_STOP_CODE = _op
     op_STORE_ATTR = _op
     op_STORE_DEREF = _op
-    op_STORE_FAST = _op
+
+    def op_STORE_FAST(self, i, op, arg, *args):
+        src_index, = args
+        src = self.values[src_index]
+        varname = self.code_obj.co_varnames[arg]
+        result = self.builder.store(src, self.symtab[varname])
+        self.values[i] = result
+        return [result]
+
     op_STORE_GLOBAL = _op
     op_STORE_LOCALS = _op
     op_STORE_MAP = _op
