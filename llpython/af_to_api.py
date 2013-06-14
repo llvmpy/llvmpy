@@ -59,6 +59,14 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     def postfix(self, opname, *opargs):
         return ''
 
+    def get_op_function(self, opname, *opargs, **kwds):
+        target_fn_ty = lc.Type.function(kwds.get('return_type', self.obj_type),
+                                        [arg.type for arg in opargs])
+        target_fn_name = ''.join((self.prefix(opname, *opargs), opname,
+                                  self.postfix(opname, *opargs)))
+        return self.llvm_module.get_or_insert_function(target_fn_ty,
+                                                       target_fn_name)
+
     def translate_cfg(self, code_obj, cfg, llvm_module=None,
                       monotype = l_pyobj_p, **kws):
         '''
@@ -81,6 +89,9 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
         if llvm_module is None:
             llvm_module = lc.Module.new('lmod_' + self.target_function_name)
         self.llvm_module = llvm_module
+        self.incref = self.get_op_function('INCREF', self.null)
+        self.decref = self.get_op_function('DECREF', self.null,
+                                           return_type = lc.Type.void())
         self.visit(cfg.blocks)
         del self.llvm_module
         del self.cfg
@@ -158,6 +169,12 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
         '''
         # XXX Isn't this really a bug in GenericFlowVisitor.visit()?
         if block in self.llvm_blocks:
+            bb_instrs = self.llvm_block.instructions
+            if ((len(bb_instrs) == 0) or
+                    (not bb_instrs[-1].is_terminator)):
+                out_blocks = list(self.cfg.blocks_out[block])
+                assert len(out_blocks) == 1, [str(i) for i in bb_instrs]
+                self.builder.branch(self.llvm_blocks[out_blocks[0]])
             del self.builder
             del self.llvm_block
 
@@ -165,17 +182,15 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
         args = [self.values[stkarg] for stkarg in args]
         if arg is not None:
             args.insert(0, lc.Constant.int(lc_int, arg))
-        argtys = [arg.type for arg in args]
-        target_fnty = lc.Type.function(self.obj_type, argtys)
-        # XXX Modify the visitor!  Should be passing Instr named tuples here.
-        opname = self.opnames[op]
-        target_fnname = ''.join((self.prefix(opname, *args), opname,
-                                 self.postfix(opname, *args)))
-        target_fn = self.llvm_module.get_or_insert_function(target_fnty,
-                                                            target_fnname)
+        # XXX Modify the visitor!  Should be passing Instr named
+        # tuples here, and not looking up the operation name.
+        target_fn = self.get_op_function(self.opnames[op], *args, **kws)
         result = self.builder.call(target_fn, args)
         self.values[i] = result
         return [result]
+
+    def _not_implemented(self, i, op, arg, *args, **kws):
+        raise NotImplementedError(self.opnames[op])
 
     op_BINARY_ADD = _op
     op_BINARY_AND = _op
@@ -235,12 +250,17 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     op_INPLACE_SUBTRACT = _op
     op_INPLACE_TRUE_DIVIDE = _op
     op_INPLACE_XOR = _op
-    op_JUMP_ABSOLUTE = _op
-    op_JUMP_FORWARD = _op
-    op_JUMP_IF_FALSE = _op
-    op_JUMP_IF_FALSE_OR_POP = _op
-    op_JUMP_IF_TRUE = _op
-    op_JUMP_IF_TRUE_OR_POP = _op
+
+    def op_JUMP_ABSOLUTE(self, i, op, arg, *args, **kws):
+        return [self.builder.branch(self.llvm_blocks[arg])]
+
+    def op_JUMP_FORWARD(self, i, op, arg, *args, **kws):
+        return [self.builder.branch(self.llvm_blocks[i + arg + 3])]
+
+    op_JUMP_IF_FALSE = _not_implemented
+    op_JUMP_IF_FALSE_OR_POP = _not_implemented
+    op_JUMP_IF_TRUE = _not_implemented
+    op_JUMP_IF_TRUE_OR_POP = _not_implemented
     op_LIST_APPEND = _op
     op_LOAD_ATTR = _op
     op_LOAD_BUILD_CLASS = _op
@@ -252,7 +272,7 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
         varname = self.code_obj.co_varnames[arg]
         result = self.builder.load(self.symtab[varname])
         self.values[i] = result
-        return [result]
+        return [result, self.builder.call(self.incref, [result])]
 
     op_LOAD_GLOBAL = _op
     op_LOAD_LOCALS = _op
@@ -263,16 +283,30 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     op_NOP = _op
     op_POP_BLOCK = _op
     op_POP_EXCEPT = _op
-    op_POP_JUMP_IF_FALSE = _op
-    op_POP_JUMP_IF_TRUE = _op
-    op_POP_TOP = _op
+
+    def _op_cbranch(self, i, op, arg, *args, **kws):
+        branch_taken = self.llvm_blocks[arg]
+        branch_not_taken = self.llvm_blocks[i + 3]
+        _kws = kws.copy()
+        _kws.update(return_type=lc.Type.int(1))
+        test = self._op(i, op, None, *args, **_kws)[0]
+        return [test, self.builder.cbranch(test, branch_taken,
+                                           branch_not_taken)]
+
+    op_POP_JUMP_IF_FALSE = _op_cbranch
+    op_POP_JUMP_IF_TRUE = _op_cbranch
+
+    op_POP_TOP = _not_implemented
     op_PRINT_EXPR = _op
     op_PRINT_ITEM = _op
     op_PRINT_ITEM_TO = _op
     op_PRINT_NEWLINE = _op
     op_PRINT_NEWLINE_TO = _op
     op_RAISE_VARARGS = _op
-    op_RETURN_VALUE = _op
+
+    def op_RETURN_VALUE(self, i, op, arg, *args):
+        return [self.builder.ret(self.values[args[0]])]
+
     op_ROT_FOUR = _op
     op_ROT_THREE = _op
     op_ROT_TWO = _op
