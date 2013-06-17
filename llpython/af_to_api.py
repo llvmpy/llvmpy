@@ -13,8 +13,9 @@ import llvm.core as lc
 from . import byte_control
 from . import addr_flow
 from . import opcode_util
-from .bytetype import l_pyobj_p, lc_int
+from .bytetype import lvoid, li1, lc_int, lc_long, l_pyobj_p
 from .bytecode_visitor import GenericFlowVisitor
+from .nobitey import get_string_constant
 
 # ______________________________________________________________________
 # Class definitions
@@ -37,7 +38,7 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     arguments.  The OPCODE_NAME is the opcode name as determined by
     the map in opcode.opname.
     '''
-    def __init__(self, _prefix=None, _postfix=None):
+    def __init__(self, _prefix=None, _postfix=None, **kwds):
         if _prefix is not None:
             if inspect.isfunction(_prefix):
                 __prefix = _prefix
@@ -67,8 +68,17 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
         return self.llvm_module.get_or_insert_function(target_fn_ty,
                                                        target_fn_name)
 
+    def call_op_function(self, index, opname, *opargs, **kwds):
+        target_fn = self.get_op_function(opname, *opargs, **kwds)
+        if target_fn.type.pointee.return_type != lvoid:
+            name = kwds.get('name', 'op_%d' % index)
+            result = self.builder.call(target_fn, opargs, name)
+        else:
+            result = self.builder.call(target_fn, opargs)
+        return result
+
     def translate_cfg(self, code_obj, cfg, llvm_module=None,
-                      monotype = l_pyobj_p, **kws):
+                      monotype=l_pyobj_p, **kwds):
         '''
         Generate LLVM code for the given code object and it's control
         flow graph.
@@ -83,15 +93,12 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
         self.null = lc.Constant.null(self.obj_type)
         self.code_obj = code_obj
         self.cfg = cfg
-        self.target_function_name = kws.get(
+        self.target_function_name = kwds.get(
             'target_function_name', 'co_%s_%x' % (code_obj.co_name,
                                                   id(code_obj)))
         if llvm_module is None:
             llvm_module = lc.Module.new('lmod_' + self.target_function_name)
         self.llvm_module = llvm_module
-        self.incref = self.get_op_function('INCREF', self.null)
-        self.decref = self.get_op_function('DECREF', self.null,
-                                           return_type = lc.Type.void())
         self.visit(cfg.blocks)
         del self.llvm_module
         del self.cfg
@@ -143,7 +150,15 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
                 local_index = arg_index - 1
                 name = self.code_obj.co_varnames[local_index]
                 arg.name = name
-                self.builder.store(arg, self.symtab[name])
+                self.call_op_function(
+                    None, 'STORE_FAST', arg, self.symtab[name],
+                    return_type=lvoid)
+
+    def generate_co_deinit(self, index):
+        for value in self.symtab.values():
+            self.call_op_function(index, 'DELETE_FAST',
+                                  lc.Constant.int(li1, 0), value,
+                                  return_type=lvoid)
 
     def enter_block(self, block):
         '''
@@ -178,18 +193,17 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
             del self.builder
             del self.llvm_block
 
-    def _op(self, i, op, arg, *args, **kws):
+    def _op(self, i, op, arg, *args, **kwds):
         args = [self.values[stkarg] for stkarg in args]
         if arg is not None:
             args.insert(0, lc.Constant.int(lc_int, arg))
         # XXX Modify the visitor!  Should be passing Instr named
         # tuples here, and not looking up the operation name.
-        target_fn = self.get_op_function(self.opnames[op], *args, **kws)
-        result = self.builder.call(target_fn, args)
+        result = self.call_op_function(i, self.opnames[op], *args, **kwds)
         self.values[i] = result
         return [result]
 
-    def _not_implemented(self, i, op, arg, *args, **kws):
+    def _not_implemented(self, i, op, arg, *args, **kwds):
         raise NotImplementedError(self.opnames[op])
 
     op_BINARY_ADD = _op
@@ -221,14 +235,28 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     op_CONTINUE_LOOP = _op
     op_DELETE_ATTR = _op
     op_DELETE_DEREF = _op
-    op_DELETE_FAST = _op
-    op_DELETE_GLOBAL = _op
+
+    def op_DELETE_FAST(self, i, op, arg, *args, **kwds):
+        varname = self.code_obj.co_varnames[arg]
+        result = self.call_op_function(i, 'DELETE_FAST',
+                                       lc.Constant.int(li1, 1),
+                                       self.symtab[varname], return_type=lvoid)
+        return [result]
+
+    def op_DELETE_GLOBAL(self, i, op, arg, *args, **kwds):
+        varname = get_string_constant(self.llvm_module,
+                                      self.code_obj.co_names[arg])
+        result = self.call_op_function(i, 'DELETE_GLOBAL', self.globals,
+                                       varname, return_type=lvoid)
+        self.values[i] = result
+        return [result]
+
     op_DELETE_NAME = _op
     op_DELETE_SLICE = _op
     op_DELETE_SUBSCR = _op
-    op_DUP_TOP = _op
-    op_DUP_TOPX = _op
-    op_DUP_TOP_TWO = _op
+    op_DUP_TOP = _not_implemented
+    op_DUP_TOPX = _not_implemented
+    op_DUP_TOP_TWO = _not_implemented
     op_END_FINALLY = _op
     op_EXEC_STMT = _op
     op_EXTENDED_ARG = _op
@@ -251,10 +279,10 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     op_INPLACE_TRUE_DIVIDE = _op
     op_INPLACE_XOR = _op
 
-    def op_JUMP_ABSOLUTE(self, i, op, arg, *args, **kws):
+    def op_JUMP_ABSOLUTE(self, i, op, arg, *args, **kwds):
         return [self.builder.branch(self.llvm_blocks[arg])]
 
-    def op_JUMP_FORWARD(self, i, op, arg, *args, **kws):
+    def op_JUMP_FORWARD(self, i, op, arg, *args, **kwds):
         return [self.builder.branch(self.llvm_blocks[i + arg + 3])]
 
     op_JUMP_IF_FALSE = _not_implemented
@@ -265,16 +293,40 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     op_LOAD_ATTR = _op
     op_LOAD_BUILD_CLASS = _op
     op_LOAD_CLOSURE = _op
-    op_LOAD_CONST = _op
+
+    def op_LOAD_CONST(self, i, op, arg, *args, **kwds):
+        py_val = self.code_obj.co_consts[arg]
+        if isinstance(py_val, int):
+            # XXX Add bounds check on integer values; use big int
+            # (from string?)  constructor if necessary.
+            result = self.call_op_function(i, 'LOAD_CONST_INT',
+                                           lc.Constant.int(lc_long, py_val))
+        elif isinstance(py_val, float):
+            result = self.call_op_function(i, 'LOAD_CONST_FLOAT',
+                                           lc.Constant.double(py_val))
+        elif py_val is None:
+            result = self.call_op_function(i, 'LOAD_CONST_NONE')
+        else:
+            raise NotImplementedError('Constant conversion for %r' % (py_val,))
+        self.values[i] = result
+        return [result]
+
     op_LOAD_DEREF = _op
 
-    def op_LOAD_FAST(self, i, op, arg, *args, **kws):
+    def op_LOAD_FAST(self, i, op, arg, *args, **kwds):
         varname = self.code_obj.co_varnames[arg]
-        result = self.builder.load(self.symtab[varname])
+        args = self.symtab[varname],
+        result = self.call_op_function(i, 'LOAD_FAST', *args)
         self.values[i] = result
-        return [result, self.builder.call(self.incref, [result])]
+        return [result]
 
-    op_LOAD_GLOBAL = _op
+    def op_LOAD_GLOBAL(self, i, op, arg, *args, **kwds):
+        varname = get_string_constant(self.llvm_module,
+                                      self.code_obj.co_names[arg])
+        result = self.call_op_function(i, 'LOAD_GLOBAL', self.globals, varname)
+        self.values[i] = result
+        return [result]
+
     op_LOAD_LOCALS = _op
     op_LOAD_NAME = _op
     op_MAKE_CLOSURE = _op
@@ -284,12 +336,12 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     op_POP_BLOCK = _op
     op_POP_EXCEPT = _op
 
-    def _op_cbranch(self, i, op, arg, *args, **kws):
+    def _op_cbranch(self, i, op, arg, *args, **kwds):
         branch_taken = self.llvm_blocks[arg]
         branch_not_taken = self.llvm_blocks[i + 3]
-        _kws = kws.copy()
-        _kws.update(return_type=lc.Type.int(1))
-        test = self._op(i, op, None, *args, **_kws)[0]
+        _kwds = kwds.copy()
+        _kwds.update(return_type=li1)
+        test = self._op(i, op, None, *args, **_kwds)[0]
         return [test, self.builder.cbranch(test, branch_taken,
                                            branch_not_taken)]
 
@@ -305,6 +357,7 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     op_RAISE_VARARGS = _op
 
     def op_RETURN_VALUE(self, i, op, arg, *args):
+        self.generate_co_deinit(i)
         return [self.builder.ret(self.values[args[0]])]
 
     op_ROT_FOUR = _op
@@ -324,12 +377,20 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
         src_index, = args
         src = self.values[src_index]
         varname = self.code_obj.co_varnames[arg]
-        result = self.builder.store(src, self.symtab[varname])
-        self.values[i] = result
+        dest = self.symtab[varname]
+        result = self.call_op_function(i, 'STORE_FAST', src, dest,
+                                       return_type=lvoid)
         return [result]
 
-    op_STORE_GLOBAL = _op
-    op_STORE_LOCALS = _op
+    def op_STORE_GLOBAL(self, i, op, arg, *args):
+        varname = get_string_constant(self.llvm_module,
+                                      self.code_obj.co_names[arg])
+        result = self.call_op_function(
+            i, 'STORE_GLOBAL', self.values[args[0]], self.globals, varname,
+            return_type=lvoid)
+        return [result]
+
+    op_STORE_LOCALS = _not_implemented
     op_STORE_MAP = _op
     op_STORE_NAME = _op
     op_STORE_SLICE = _op
@@ -347,14 +408,15 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
 # ______________________________________________________________________
 # Function definition(s)
 
-def demo_translator(*args, **kws):
+def demo_translator(*args, **kwds):
     def _visit(obj):
         if inspect.isfunction(obj):
             obj = opcode_util.get_code_object(obj)
         print('\n; %s\n; %r' % ('_' * 70, obj))
         cfg = byte_control.ControlFlowBuilder.build_cfg_from_co(obj)
         cfg.blocks = addr_flow.AddressFlowBuilder().visit_cfg(cfg)
-        print(AddressFlowToLLVMPyAPICalls(**kws).translate_cfg(obj, cfg))
+        print(AddressFlowToLLVMPyAPICalls(**kwds).translate_cfg(obj, cfg,
+                                                                **kwds))
     return opcode_util.visit_code_args(_visit, *args)
 
 # ______________________________________________________________________

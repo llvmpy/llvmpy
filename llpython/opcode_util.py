@@ -221,6 +221,9 @@ def visit_code_args(visitor, *args, **kws):
     Takes a visitor function and a sequence of command line arguments.
     The visitor function should be able to handle either function
     objects or code objects."""
+    def _visit_code_objs(root_obj):
+        for code_obj in itercodeobjs(root_obj):
+            visitor(code_obj)
     try:
         from .tests import llfuncs
     except ImportError:
@@ -231,12 +234,15 @@ def visit_code_args(visitor, *args, **kws):
         else:
             args = ('pymod',)
     for arg in args:
-        if arg.endswith('.py'):
+        if inspect.iscode(arg):
+            _visit_code_objs(arg)
+        elif inspect.isfunction(arg):
+            _visit_code_objs(get_code_object(arg))
+        elif arg.endswith('.py'):
             with open(arg) as in_file:
                 in_source = in_file.read()
                 in_codeobj = compile(in_source, arg, 'exec')
-                for codeobj in itercodeobjs(in_codeobj):
-                    visitor(codeobj)
+                _visit_code_objs(in_codeobj)
         else:
             visitor(getattr(llfuncs, arg))
 
