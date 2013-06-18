@@ -43,14 +43,14 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
             if inspect.isfunction(_prefix):
                 __prefix = _prefix
             else:
-                def __prefix(self, opname, *opargs):
+                def __prefix(opname, *opargs):
                     return _prefix
             self.prefix = __prefix
         if _postfix is not None:
             if inspect.isfunction(_postfix):
                 __postfix = _postfix
             else:
-                def __postfix(self, opname, *opargs):
+                def __postfix(opname, *opargs):
                     return _postfix
             self.postfix = __postfix
 
@@ -61,6 +61,7 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
         return ''
 
     def get_op_function(self, opname, *opargs, **kwds):
+        print(opname, opargs, kwds)
         target_fn_ty = lc.Type.function(kwds.get('return_type', self.obj_type),
                                         [arg.type for arg in opargs])
         target_fn_name = ''.join((self.prefix(opname, *opargs), opname,
@@ -337,7 +338,10 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     op_POP_EXCEPT = _op
 
     def _op_cbranch(self, i, op, arg, *args, **kwds):
-        branch_taken = self.llvm_blocks[arg]
+        if op in opcode.hasjabs:
+            branch_taken = self.llvm_blocks[arg]
+        else:
+            branch_taken = self.llvm_blocks[i + arg + 3]
         branch_not_taken = self.llvm_blocks[i + 3]
         _kwds = kwds.copy()
         _kwds.update(return_type=li1)
@@ -348,7 +352,10 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     op_POP_JUMP_IF_FALSE = _op_cbranch
     op_POP_JUMP_IF_TRUE = _op_cbranch
 
-    op_POP_TOP = _not_implemented
+    def op_POP_TOP(self, i, op, arg, *args):
+        return [self.call_op_function(i, 'POP_TOP', self.values[args[0]],
+                                      return_type=lvoid)]
+
     op_PRINT_EXPR = _op
     op_PRINT_ITEM = _op
     op_PRINT_ITEM_TO = _op
@@ -365,7 +372,7 @@ class AddressFlowToLLVMPyAPICalls(GenericFlowVisitor):
     op_ROT_TWO = _op
     op_SETUP_EXCEPT = _op
     op_SETUP_FINALLY = _op
-    op_SETUP_LOOP = _op
+    op_SETUP_LOOP = _op_cbranch
     op_SETUP_WITH = _op
     op_SET_ADD = _op
     op_SLICE = _op
