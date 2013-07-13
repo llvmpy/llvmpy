@@ -10,6 +10,7 @@ import opcode
 import types
 import logging
 
+from llvm import LLVMException
 import llvm.core as lc
 
 from . import opcode_util
@@ -39,6 +40,13 @@ _compare_mapping_sint = {'>':lc.ICMP_SGT,
                           '>=':lc.ICMP_SGE,
                           '<=':lc.ICMP_SLE,
                           '!=':lc.ICMP_NE}
+
+_compare_mapping_ptr = {'>':lc.ICMP_UGT,
+                        '<':lc.ICMP_ULT,
+                        '==':lc.ICMP_EQ,
+                        '>=':lc.ICMP_UGE,
+                        '<=':lc.ICMP_ULE,
+                        '!=':lc.ICMP_NE}
 
 # XXX Stolen from numba.llvm_types:
 
@@ -119,6 +127,37 @@ class LLVMCaster (object):
             else:
                 raise NotImplementedError(lkind1, lkind2)
         return ret_val
+
+# ______________________________________________________________________
+
+def _convert_const(py_val):
+    '''Convert a constant Python value into a comparable LLVM
+    constant.  Preserves Python values and data structures such as
+    lists, tuples, and None.
+    '''
+    if isinstance(py_val, list):
+        ret_val = [_convert_const(child) for child in py_val]
+    elif isinstance(py_val, tuple):
+        ret_val = tuple(_convert_const(child) for child in py_val)
+    elif isinstance(py_val, int):
+        ret_val = lc.Constant.int(bytetype.lc_int, py_val)
+    elif isinstance(py_val, float):
+        ret_val = lc.Constant.double(py_val)
+    elif py_val == None:
+        ret_val = py_val
+    else:
+        raise NotImplementedError('Constant conversion for %r' % (py_val,))
+    return ret_val
+
+# ______________________________________________________________________
+
+def get_or_insert_global_variable(llvm_module, variable_ty, variable_name):
+    try:
+        ret_val = llvm_module.get_global_variable_named(variable_name)
+        # XXX Check LLVM value is of correct type?!
+    except LLVMException:
+        ret_val = llvm_module.add_global_variable(variable_ty, variable_name)
+    return ret_val
 
 # ______________________________________________________________________
 # Class definitions
@@ -377,11 +416,12 @@ class LLVMTranslator (BytecodeFlowVisitor):
         raise NotImplementedError("LLVMTranslator.op_BUILD_SLICE")
 
     def op_BUILD_TUPLE (self, i, op, arg, *args, **kws):
-        return args
+        return [args]
 
     def op_CALL_FUNCTION (self, i, op, arg, *args, **kws):
         fn = args[0]
         args = args[1:]
+        argcount = len(args)
         fn_name = getattr(fn, '__name__', None)
         if isinstance(fn, (types.FunctionType, types.MethodType)):
             ret_val = [fn(self.builder, *args)]
@@ -420,6 +460,9 @@ class LLVMTranslator (BytecodeFlowVisitor):
                                          arg1, arg2)]
         elif arg1.type.kind in (lc.TYPE_FLOAT, lc.TYPE_DOUBLE):
             ret_val = [self.builder.fcmp(_compare_mapping_float[cmp_kind],
+                                         arg1, arg2)]
+        elif isinstance(arg1.type, lc.PointerType):
+            ret_val = [self.builder.icmp(_compare_mapping_ptr[cmp_kind],
                                          arg1, arg2)]
         else:
             raise NotImplementedError('Comparison of type %r' % (arg1.type,))
@@ -480,17 +523,7 @@ class LLVMTranslator (BytecodeFlowVisitor):
         raise NotImplementedError("LLVMTranslator.op_LOAD_ATTR")
 
     def op_LOAD_CONST (self, i, op, arg, *args, **kws):
-        py_val = self.code_obj.co_consts[arg]
-        if isinstance(py_val, int):
-            ret_val = [lc.Constant.int(bytetype.lc_int, py_val)]
-        elif isinstance(py_val, float):
-            ret_val = [lc.Constant.double(py_val)]
-        elif py_val == None:
-            ret_val = [None]
-        else:
-            raise NotImplementedError('Constant converstion for %r' %
-                                      (py_val,))
-        return ret_val
+        return [_convert_const(self.code_obj.co_consts[arg])]
 
     def op_LOAD_DEREF (self, i, op, arg, *args, **kws):
         name = self.code_obj.co_freevars[arg]
@@ -546,7 +579,15 @@ class LLVMTranslator (BytecodeFlowVisitor):
         return [self.builder.store(store_val, dest_addr)]
 
     def op_UNARY_CONVERT (self, i, op, arg, *args, **kws):
-        raise NotImplementedError("LLVMTranslator.op_UNARY_CONVERT")
+        var_ty = args[0]
+        if isinstance(var_ty, lc.Type):
+            var_name = var_ty.__name__
+            ret_val = [get_or_insert_global_variable(self.llvm_module, var_ty,
+                                                     var_name)]
+        else:
+            raise NotImplementedError("LLVMTranslator.op_UNARY_CONVERT: %r" %
+                                      (var_ty,))
+        return ret_val
 
     def op_UNARY_INVERT (self, i, op, arg, *args, **kws):
         raise NotImplementedError("LLVMTranslator.op_UNARY_INVERT")
