@@ -590,7 +590,12 @@ class LLVMTranslator (BytecodeFlowVisitor):
         return ret_val
 
     def op_UNARY_INVERT (self, i, op, arg, *args, **kws):
-        raise NotImplementedError("LLVMTranslator.op_UNARY_INVERT")
+        arg1, = args
+        if isinstance(arg1.type, lc.IntegerType):
+            ret_val = [self.builder.xor(arg1, lc.Constant.int(arg1.type, -1))]
+        else:
+            raise NotImplementedError('Invert for type %r' % (arg1.type,))
+        return ret_val
 
     def op_UNARY_NEGATIVE (self, i, op, arg, *args, **kws):
         raise NotImplementedError("LLVMTranslator.op_UNARY_NEGATIVE")
