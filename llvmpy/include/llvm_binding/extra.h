@@ -70,7 +70,7 @@ namespace extra{
 static
 PyObject* callwrite(PyObject* self, PyObject* arg)
 {
-    char meth[] = "method";
+    char meth[] = "write";
     char fmt[] = "O";
     return PyObject_CallMethod(self, meth, fmt, arg);
 }
@@ -965,7 +965,7 @@ PyObject* llvm_sys_getHostCPUFeatures(PyObject* Features)
     }
 }
 
-
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 3
 static
 PyObject* llvm_sys_isLittleEndianHost()
 {
@@ -983,3 +983,4 @@ PyObject* llvm_sys_isBigEndianHost()
     else
         Py_RETURN_FALSE;
 }
+#endif 

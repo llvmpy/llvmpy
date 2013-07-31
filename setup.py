@@ -36,6 +36,7 @@ def run_llvm_config(extra_args):
     return stdout.decode().strip()
 
 llvm_version = run_llvm_config(['--version'])
+
 print('LLVM version = %r' % llvm_version)
 
 targets_built = run_llvm_config(['--targets-built'])
@@ -62,7 +63,7 @@ def auto_intrinsic_gen(incdir):
     print("Generate intrinsic IDs")
     from tools import intrgen
 
-    if llvm_version >= (3, 3):
+    if llvm_version.startswith('3.3'):
         path = "%s/llvm/IR/Intrinsics.gen" % incdir
     else:
         path = "%s/llvm/Intrinsics.gen" % incdir
