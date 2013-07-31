@@ -70,13 +70,24 @@ class PassManagerBuilder(llvm.Wrapper):
     def size_level(self, sizelevel):
         self._ptr.SizeLevel = sizelevel
 
-    @property
-    def vectorize(self):
-        return self._ptr.Vectorize
+    if llvm.version >= (3, 3):
+        @property
+        def bbvectorize(self):
+            return self._ptr.BBVectorize
 
-    @vectorize.setter
-    def vectorize(self, enable):
-        self._ptr.Vectorize = enable
+        @bbvectorize.setter
+        def bbvectorize(self, enable):
+            self._ptr.BBVectorize = enable
+
+        vectorize = bbvectorize
+    else:
+        @property
+        def vectorize(self):
+            return self._ptr.Vectorize
+
+        @vectorize.setter
+        def vectorize(self, enable):
+            self._ptr.Vectorize = enable
 
 
     @property

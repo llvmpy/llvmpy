@@ -325,11 +325,17 @@ class VisibilityEnum(Enum):
 
 VisibilityEnum.declare()
 
-# parameter attributes llvm::Attributes::AttrVal (see llvm/Attributes.h)
+# parameter attributes
+#      LLVM 3.2 llvm::Attributes::AttrVal (see llvm/Attributes.h)
+#      LLVM 3.3 llvm::Attribute::AttrKind (see llvm/Attributes.h)
 class AttrEnum(Enum):
     prefix = 'ATTR_'
 
-    AttrVal = api.llvm.Attributes.AttrVal
+    if llvm.version >= (3, 3):
+        AttrVal = api.llvm.Attribute.AttrKind
+    else:
+        AttrVal = api.llvm.Attributes.AttrVal
+
     ATTR_NONE               = AttrVal.None_
     ATTR_ZEXT               = AttrVal.ZExt
     ATTR_SEXT               = AttrVal.SExt
@@ -1436,29 +1442,55 @@ class Argument(Value):
     _valid_attrs = frozenset([ATTR_BY_VAL, ATTR_NEST, ATTR_NO_ALIAS,
                               ATTR_NO_CAPTURE, ATTR_STRUCT_RET])
 
-    def add_attribute(self, attr):
-        context = api.llvm.getGlobalContext()
-        attrbldr = api.llvm.AttrBuilder.new()
-        attrbldr.addAttribute(attr)
-        attrs = api.llvm.Attributes.get(context, attrbldr)
-        self._ptr.addAttr(attrs)
-        if attr not in self:
-            raise ValueError("Attribute %s is not valid for arg %s" %
-                             (attr, self))
+    if llvm.version >= (3, 3):
+        def add_attribute(self, attr):
+            context = api.llvm.getGlobalContext()
+            attrbldr = api.llvm.AttrBuilder.new()
+            attrbldr.addAttribute(attr)
+            attrs = api.llvm.AttributeSet.get(context, 0, attrbldr)
+            self._ptr.addAttr(attrs)
+        
+            if attr not in self:
+                raise ValueError("Attribute %r is not valid for arg %s" %
+                                 (attr, self))
 
-    def remove_attribute(self, attr):
-        context = api.llvm.getGlobalContext()
-        attrbldr = api.llvm.AttrBuilder.new()
-        attrbldr.addAttribute(attr)
-        attrs = api.llvm.Attributes.get(context, attrbldr)
-        self._ptr.removeAttr(attrs)
+        def remove_attribute(self, attr):
+            context = api.llvm.getGlobalContext()
+            attrbldr = api.llvm.AttrBuilder.new()
+            attrbldr.addAttribute(attr)
+            attrs = api.llvm.AttributeSet.get(context, 0, attrbldr)
+            self._ptr.removeAttr(attrs)
 
-    def _set_alignment(self, align):
-        context = api.llvm.getGlobalContext()
-        attrbldr = api.llvm.AttrBuilder.new()
-        attrbldr.addAlignmentAttr(align)
-        attrs = api.llvm.Attributes.get(context, attrbldr)
-        self._ptr.addAttr(attrs)
+        def _set_alignment(self, align):
+            context = api.llvm.getGlobalContext()
+            attrbldr = api.llvm.AttrBuilder.new()
+            attrbldr.addAlignmentAttr(align)
+            attrs = api.llvm.AttributeSet.get(context, 0, attrbldr)
+            self._ptr.addAttr(attrs)
+    else:
+        def add_attribute(self, attr):
+            context = api.llvm.getGlobalContext()
+            attrbldr = api.llvm.AttrBuilder.new()
+            attrbldr.addAttribute(attr)
+            attrs = api.llvm.Attributes.get(context, attrbldr)
+            self._ptr.addAttr(attrs)
+            if attr not in self:
+                raise ValueError("Attribute %r is not valid for arg %s" %
+                                 (attr, self))
+
+        def remove_attribute(self, attr):
+            context = api.llvm.getGlobalContext()
+            attrbldr = api.llvm.AttrBuilder.new()
+            attrbldr.addAttribute(attr)
+            attrs = api.llvm.Attributes.get(context, attrbldr)
+            self._ptr.removeAttr(attrs)
+
+        def _set_alignment(self, align):
+            context = api.llvm.getGlobalContext()
+            attrbldr = api.llvm.AttrBuilder.new()
+            attrbldr.addAlignmentAttr(align)
+            attrs = api.llvm.Attributes.get(context, attrbldr)
+            self._ptr.addAttr(attrs)
 
     def _get_alignment(self):
         return self._ptr.getParamAlignment()
