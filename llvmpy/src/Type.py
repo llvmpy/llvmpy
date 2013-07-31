@@ -15,7 +15,10 @@ VectorType = llvm.Class(SequentialType)
 
 @Type
 class Type:
-    _include_ = 'llvm/Type.h'
+    if LLVM_VERSION >= (3, 3):
+        _include_ = 'llvm/IR/Type.h'
+    else:
+        _include_ = 'llvm/Type.h'
 
     TypeID = Enum('''
         VoidTyID, HalfTyID, FloatTyID, DoubleTyID,

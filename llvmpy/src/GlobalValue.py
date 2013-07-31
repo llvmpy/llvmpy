@@ -6,7 +6,10 @@ from .ADT.StringRef import StringRef
 
 @GlobalValue
 class GlobalValue:
-    _include_ = 'llvm/GlobalValue.h'
+    if LLVM_VERSION >= (3, 3):
+        _include_ = 'llvm/IR/GlobalValue.h'
+    else:
+        _include_ = 'llvm/GlobalValue.h'
 
     LinkageTypes = Enum('''
         ExternalLinkage, AvailableExternallyLinkage, LinkOnceAnyLinkage,

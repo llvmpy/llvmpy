@@ -61,7 +61,12 @@ def auto_intrinsic_gen(incdir):
     # let's do auto intrinsic generation
     print("Generate intrinsic IDs")
     from tools import intrgen
-    path = "%s/llvm/Intrinsics.gen" % incdir
+
+    if llvm_version >= (3, 3):
+        path = "%s/llvm/IR/Intrinsics.gen" % incdir
+    else:
+        path = "%s/llvm/Intrinsics.gen" % incdir
+
     with open('llvm/_intrinsic_ids.py', 'w') as fout:
         intrgen.gen(path, fout)
 

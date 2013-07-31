@@ -4,7 +4,10 @@ from .Value import Value
 from .DerivedTypes import FunctionType
 from .ADT.StringRef import StringRef
 
-llvm.includes.add('llvm/InlineAsm.h')
+if LLVM_VERSION >= (3, 3):
+    llvm.includes.add('llvm/IR/InlineAsm.h')
+else:
+    llvm.includes.add('llvm/InlineAsm.h')
 
 InlineAsm = llvm.Class(Value)
 

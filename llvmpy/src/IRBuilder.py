@@ -18,7 +18,11 @@ IRBuilder = llvm.Class()
 
 @IRBuilder
 class IRBuilder:
-    _include_ = 'llvm/IRBuilder.h'
+    if LLVM_VERSION >= (3, 3):
+        _include_ = 'llvm/IR/IRBuilder.h'
+    else:
+        _include_ = 'llvm/IRBuilder.h'
+
     _realname_ = 'IRBuilder<>'
 
     new = Constructor(ref(LLVMContext))

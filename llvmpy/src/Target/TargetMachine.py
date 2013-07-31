@@ -8,8 +8,10 @@ from src.ADT.StringRef import StringRef
 from src.Support.CodeGen import CodeModel, TLSModel, CodeGenOpt, Reloc
 from src.GlobalValue import GlobalValue
 from src.DataLayout import DataLayout
-from src.TargetTransformInfo import (ScalarTargetTransformInfo,
-                                     VectorTargetTransformInfo)
+
+if LLVM_VERSION < (3, 3):
+    from src.TargetTransformInfo import (ScalarTargetTransformInfo,
+                                         VectorTargetTransformInfo)
 from src.PassManager import PassManagerBase
 from src.Support.FormattedStream import formatted_raw_ostream
 
@@ -39,9 +41,11 @@ class TargetMachine:
     setMCUseDwarfDirectory = Method(Void, cast(bool, Bool))
 
     getDataLayout = Method(const(ownedptr(DataLayout)))
-    getScalarTargetTransformInfo = Method(const(
+
+    if LLVM_VERSION < (3, 3):
+        getScalarTargetTransformInfo = Method(const(
                                           ownedptr(ScalarTargetTransformInfo)))
-    getVectorTargetTransformInfo = Method(const(
+        getVectorTargetTransformInfo = Method(const(
                                           ownedptr(VectorTargetTransformInfo)))
 
     addPassesToEmitFile = Method(cast(bool, Bool),

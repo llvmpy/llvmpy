@@ -65,7 +65,10 @@ SynchronizationScope = llvm.Enum('SynchronizationScope',
 
 from .ADT.StringRef import StringRef
 from .CallingConv import CallingConv
-from .Attributes import Attributes
+if LLVM_VERSION >= (3, 3):
+    from .Attributes import AttributeSet, Attribute
+else:
+    from .Attributes import Attributes
 from .Type import Type
 
 
@@ -142,8 +145,12 @@ class CallInst:
     getCallingConv = Method(CallingConv.ID)
     setCallingConv = Method(Void, CallingConv.ID)
     getParamAlignment = Method(cast(Unsigned, int), cast(int, Unsigned))
-    addAttribute = Method(Void, cast(int, Unsigned), ref(Attributes))
-    removeAttribute = Method(Void, cast(int, Unsigned), ref(Attributes))
+    if LLVM_VERSION >= (3, 3):
+        addAttribute = Method(Void, cast(int, Unsigned), Attribute.AttrKind)
+        removeAttribute = Method(Void, cast(int, Unsigned), ref(Attribute))
+    else:
+        addAttribute = Method(Void, cast(int, Unsigned), ref(Attributes))
+        removeAttribute = Method(Void, cast(int, Unsigned), ref(Attributes))
     getCalledFunction = Method(ptr(Function))
     getCalledValue = Method(ptr(Value))
     setCalledFunction = Method(Void, ptr(Function))
@@ -264,7 +271,10 @@ class UnaryInstruction:
 
 @IntrinsicInst
 class IntrinsicInst:
-    _include_ = 'llvm/IntrinsicInst.h'
+    if LLVM_VERSION >= (3, 3):
+        _include_ = 'llvm/IR/IntrinsicInst.h'
+    else:
+        _include_ = 'llvm/IntrinsicInst.h'
     _downcast_ = Value, User, Instruction
 
 #compare
@@ -292,8 +302,12 @@ class InvokeInst:
     getCallingConv = Method(CallingConv.ID)
     setCallingConv = Method(Void, CallingConv.ID)
     getParamAlignment = Method(cast(Unsigned, int), cast(int, Unsigned))
-    addAttribute = Method(Void, cast(int, Unsigned), ref(Attributes))
-    removeAttribute = Method(Void, cast(int, Unsigned), ref(Attributes))
+    if LLVM_VERSION >= (3, 3):
+        addAttribute = Method(Void, cast(int, Unsigned), Attribute.AttrKind)
+        removeAttribute = Method(Void, cast(int, Unsigned), ref(Attribute))
+    else:
+        addAttribute = Method(Void, cast(int, Unsigned), ref(Attributes))
+        removeAttribute = Method(Void, cast(int, Unsigned), ref(Attributes))
     getCalledFunction = Method(ptr(Function))
     getCalledValue = Method(ptr(Value))
     setCalledFunction = Method(Void, ptr(Function))
