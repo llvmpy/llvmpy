@@ -30,6 +30,7 @@
 #include <llvm/PassRegistry.h>
 #include <llvm/Support/Host.h>
 
+#include <llvm/ExecutionEngine/MCJIT.h> // to make MCJIT working
 
 #include "auto_pyobject.h"
 

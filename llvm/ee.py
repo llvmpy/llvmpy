@@ -232,7 +232,7 @@ def initialize_target(target, noraise=False):
     It is safe to initialize the same target multiple times.
     """
     prefix = 'LLVMInitialize'
-    postfixes = ['Target', 'TargetInfo', 'TargetMC', 'AsmPrinter']
+    postfixes = ['Target', 'TargetInfo', 'TargetMC', 'AsmPrinter', 'AsmParser']
     try:
         for postfix in postfixes:
             getattr(api, '%s%s%s' % (prefix, target, postfix))()

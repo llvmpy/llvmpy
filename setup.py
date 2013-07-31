@@ -124,7 +124,7 @@ else:
     extra_components = list(extra_components & enabled_components)
 
     libs_core, objs_core = get_libs_and_objs(
-        ['core', 'analysis', 'scalaropts', 'executionengine',
+        ['core', 'analysis', 'scalaropts', 'executionengine', 'mcjit',
          'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
          'instrumentation', 'ipa', 'ipo', 'transformutils',
          'asmparser', 'linker', 'support', 'vectorize']

@@ -53,6 +53,7 @@ LLVMInterpreter
 LLVMipa
 LLVMipo
 LLVMJIT
+LLVMMCJIT
 LLVMLinker
 LLVMMC
 LLVMMCParser
@@ -71,6 +72,7 @@ LLVMX86Desc
 LLVMX86Disassembler
 LLVMX86Info
 LLVMX86Utils
+LLVMDebugInfo
 Advapi32
 Shell32
 """.split():
