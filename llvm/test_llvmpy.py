@@ -1355,6 +1355,31 @@ tests.append(TestCmp)
 
 # ---------------------------------------------------------------------------
 
+class TestMCJIT(TestCase):
+    def test_mcjit(self):
+        m = Module.new('oidfjs')
+        fnty = Type.function(Type.int(), [Type.int(), Type.int()])
+        func = m.add_function(fnty, 'foo')
+        bb = func.append_basic_block('')
+        bldr = Builder.new(bb)
+        bldr.ret(bldr.add(*func.args))
+
+        func.verify()
+
+        engine = EngineBuilder.new(m).mcjit(True).create()
+        ptr = engine.get_pointer_to_function(func)
+
+        from ctypes import c_int, CFUNCTYPE
+        callee = CFUNCTYPE(c_int, c_int, c_int)(ptr)
+        self.assertEqual(321 + 123, callee(321, 123))
+
+if llvm.version >= (3, 3):
+    # MCJIT broken in 3.2
+    # The test will segfault in OSX?
+    tests.append(TestMCJIT)
+
+# ---------------------------------------------------------------------------
+
 def run(verbosity=1):
     print('llvmpy is installed in: ' + os.path.dirname(__file__))
     print('llvmpy version: ' + llvm.__version__)

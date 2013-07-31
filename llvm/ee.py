@@ -152,7 +152,9 @@ class EngineBuilder(llvm.Wrapper):
             engine = self._ptr.create(tm._ptr)
         else:
             engine = self._ptr.create()
-        return ExecutionEngine(engine)
+        ee = ExecutionEngine(engine)
+        ee.finalize_object()                # no effect for legacy JIT
+        return ee
 
     def select_target(self, *args):
         '''get the corresponding target machine
@@ -217,6 +219,9 @@ class ExecutionEngine(llvm.Wrapper):
 
     def remove_module(self, module):
         return self._ptr.removeModule(module._ptr)
+
+    def finalize_object(self):
+        return self._ptr.finalizeObject()
 
     @property
     def target_data(self):

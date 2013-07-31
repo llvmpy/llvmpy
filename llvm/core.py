@@ -2454,4 +2454,8 @@ if api.llvm.InitializeNativeTargetAsmPrinter():
     # should this be an optional feature?
     # should user trigger the initialization?
     raise llvm.LLVMException("No native asm printer!?")
-
+if api.llvm.InitializeNativeTargetAsmParser():
+    # required by MCJIT?
+    # should this be an optional feature?
+    # should user trigger the initialization?
+    raise llvm.LLVMException("No native asm parser!?")
