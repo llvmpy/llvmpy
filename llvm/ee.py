@@ -195,6 +195,9 @@ class ExecutionEngine(llvm.Wrapper):
         ptr = self._ptr.runFunction(fn._ptr, list(map(lambda x: x._ptr, args)))
         return GenericValue(ptr)
 
+    def get_pointer_to_named_function(self, name, abort=True):
+        return self._ptr.getPointerToNamedFunction(name, abort)
+
     def get_pointer_to_function(self, fn):
         return self._ptr.getPointerToFunction(fn._ptr)
 
@@ -371,3 +374,14 @@ class TargetMachine(llvm.Wrapper):
     def feature_string(self):
         return self._ptr.getTargetFeatureString()
 
+
+
+#===----------------------------------------------------------------------===
+# Dynamic Library
+#===----------------------------------------------------------------------===
+
+def dylib_add_symbol(name, ptr):
+    api.llvm.sys.DynamicLibrary.AddSymbol(name, ptr)
+
+def dylib_address_of_symbol(name):
+    return api.llvm.sys.DynamicLibrary.SearchForAddressOfSymbol(name)
