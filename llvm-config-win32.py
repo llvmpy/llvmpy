@@ -108,7 +108,7 @@ def main():
 
     elif option == '--includedir':
         incdir = join(find_llvm_prefix(), 'include')
-        ensure_file(join(incdir, 'llvm' , 'BasicBlock.h'))
+        ensure_file(join(incdir, 'llvm' , 'Linker.h'))
         print(incdir)
 
     elif option == '--libdir':
