@@ -29,10 +29,35 @@
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/PassRegistry.h>
 #include <llvm/Support/Host.h>
+#include <llvm/Support/MemoryObject.h>
 
 #include <llvm/ExecutionEngine/MCJIT.h> // to make MCJIT working
 
 #include "auto_pyobject.h"
+
+namespace llvm {
+
+class BytesMemoryObject : public MemoryObject {
+private:
+  StringRef m_bytes;
+
+public:
+  BytesMemoryObject(StringRef bytes) {
+    m_bytes = bytes;
+  }
+
+  uint64_t getBase() const { return 0; }
+  uint64_t getExtent() const { return (uint64_t) m_bytes.size(); }
+
+  int readByte(uint64_t addr, uint8_t *byte) const {
+    if (addr >= getExtent())
+      return -1;
+    *byte = (uint8_t) m_bytes[(size_t) addr];
+    return 0;
+  }
+};
+
+}
 
 namespace extra{
     using namespace llvm;
@@ -984,3 +1009,4 @@ PyObject* llvm_sys_isBigEndianHost()
         Py_RETURN_FALSE;
 }
 #endif 
+
