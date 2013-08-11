@@ -66,3 +66,5 @@ class TargetRegistry:
                                     PyObjectPtr,          # const Target*
                                     PyObjectPtr,          # std::string &Error
                                     )
+
+    
