@@ -67,4 +67,5 @@ class TargetRegistry:
                                     PyObjectPtr,          # std::string &Error
                                     )
 
-    
+    targetsList = CustomStaticMethod('TargetRegistry_targets_list', PyObjectPtr)
+

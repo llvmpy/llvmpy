@@ -946,7 +946,6 @@ PyObject* TargetRegistry_lookupTarget(const std::string &Arch,
     }
 }
 
-
 static
 PyObject* TargetRegistry_getClosestTargetForJIT(PyObject* Error)
 {
@@ -965,6 +964,16 @@ PyObject* TargetRegistry_getClosestTargetForJIT(PyObject* Error)
         return pycapsule_new(const_cast<Target*>(target), "llvm::Target");
     }
 
+}
+
+static
+PyObject* TargetRegistry_targets_list()
+{
+    using namespace llvm;
+
+    return iterator_to_pylist_deref<TargetRegistry::iterator>(
+                  TargetRegistry::begin(), TargetRegistry::end(),
+                  "llvm::Target", "llvm::Target");
 }
 
 static
