@@ -31,7 +31,7 @@ components = ['core', 'analysis', 'scalaropts',
               'interpreter', 'bitreader',
               'bitwriter', 'instrumentation', 'ipa',
               'ipo', 'transformutils', 'asmparser',
-              'linker', 'support', 'vectorize',
+              'linker', 'support', 'vectorize', 'all-targets'
               ]
 
 nvptx = ['nvptx',

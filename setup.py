@@ -128,7 +128,7 @@ else:
         ['core', 'analysis', 'scalaropts', 'executionengine', 'mcjit',
          'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
          'instrumentation', 'ipa', 'ipo', 'transformutils',
-         'asmparser', 'linker', 'support', 'vectorize']
+         'asmparser', 'linker', 'support', 'vectorize', 'all-targets']
         + extra_components)
 
 if sys.platform == 'win32':

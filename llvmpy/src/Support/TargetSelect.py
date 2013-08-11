@@ -14,10 +14,10 @@ InitializeNativeTargetAsmParser = llvm.Function(
 InitializeNativeTargetDisassembler = llvm.Function(
                     'InitializeNativeTargetDisassembler', cast(Bool, bool))
 
-#InitializeAllTargets = llvm.Function('InitializeAllTargets')
-#InitializeAllTargetInfos = llvm.Function('InitializeAllTargetInfos')
-#InitializeAllTargetMCs = llvm.Function('InitializeAllTargetMCs')
-#InitializeAllAsmPrinters = llvm.Function('InitializeAllAsmPrinters')
+InitializeAllTargets = llvm.Function('InitializeAllTargets')
+InitializeAllTargetInfos = llvm.Function('InitializeAllTargetInfos')
+InitializeAllTargetMCs = llvm.Function('InitializeAllTargetMCs')
+InitializeAllAsmPrinters = llvm.Function('InitializeAllAsmPrinters')
 
 for target in TARGETS_BUILT:
     decls = 'Target', 'TargetInfo', 'TargetMC', 'AsmPrinter'
