@@ -151,12 +151,12 @@ class EngineBuilder(llvm.Wrapper):
         '''
         if tm is not None:
             engine = self._ptr.create(tm._ptr)
-        elif (sys.prefix.startswith('win32') and
+        elif (sys.platform.startswith('win32') and
                     getattr(self, '_use_mcjit', False)):
             # force ELF generation on MCJIT on win32
             triple = get_default_triple()
             tm = TargetMachine.new('%s-elf' % triple)
-            engine = self._ptr.create(tm)
+            engine = self._ptr.create(tm._ptr)
         else:
             engine = self._ptr.create()
         ee = ExecutionEngine(engine)
