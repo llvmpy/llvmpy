@@ -2145,11 +2145,13 @@ class Builder(llvm.Wrapper):
     def fmul(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFMul(lhs._ptr, rhs._ptr, name))
 
-    def udiv(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateUDiv(lhs._ptr, rhs._ptr, name))
+    def udiv(self, lhs, rhs, name="", exact=False):
+        return _make_value(self._ptr.CreateUDiv(lhs._ptr, rhs._ptr, name,
+                                                exact))
 
-    def sdiv(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateSDiv(lhs._ptr, rhs._ptr, name))
+    def sdiv(self, lhs, rhs, name="", exact=False):
+        return _make_value(self._ptr.CreateSDiv(lhs._ptr, rhs._ptr, name,
+                                                exact))
 
     def fdiv(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFDiv(lhs._ptr, rhs._ptr, name))
@@ -2167,11 +2169,13 @@ class Builder(llvm.Wrapper):
         return _make_value(self._ptr.CreateShl(lhs._ptr, rhs._ptr, name,
                                                nuw, nsw))
 
-    def lshr(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateLShr(lhs._ptr, rhs._ptr, name))
+    def lshr(self, lhs, rhs, name="", exact=False):
+        return _make_value(self._ptr.CreateLShr(lhs._ptr, rhs._ptr, name,
+                                                exact))
 
-    def ashr(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateAShr(lhs._ptr, rhs._ptr, name))
+    def ashr(self, lhs, rhs, name="", exact=False):
+        return _make_value(self._ptr.CreateAShr(lhs._ptr, rhs._ptr, name,
+                                                exact))
 
     def and_(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateAnd(lhs._ptr, rhs._ptr, name))
