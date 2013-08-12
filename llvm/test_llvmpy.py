@@ -1509,6 +1509,13 @@ class TestNUWNSW(TestCase):
     def test_shl_nuw_nsw(self):
         self._test_template(Builder.shl, 'shl')
 
+    def test_neg_nuw_nsw(self):
+        mod, func, bldr = self.make_module()
+        a, b = func.args
+        self.has_nsw(bldr.neg(a, nsw=True), 'sub')
+        self.has_nuw(bldr.neg(a, nuw=True), 'sub')
+
+
 tests.append(TestNUWNSW)
 
 

@@ -2186,8 +2186,8 @@ class Builder(llvm.Wrapper):
     def xor(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateXor(lhs._ptr, rhs._ptr, name))
 
-    def neg(self, val, name=""):
-        return _make_value(self._ptr.CreateNeg(val._ptr, name))
+    def neg(self, val, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateNeg(val._ptr, name, nuw, nsw))
 
     def not_(self, val, name=""):
         return _make_value(self._ptr.CreateNot(val._ptr, name))
