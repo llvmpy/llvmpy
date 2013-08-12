@@ -2124,20 +2124,23 @@ class Builder(llvm.Wrapper):
 
     # arithmethic, bitwise and logical
 
-    def add(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateAdd(lhs._ptr, rhs._ptr, name))
+    def add(self, lhs, rhs, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateAdd(lhs._ptr, rhs._ptr, name,
+                                               nuw, nsw))
 
     def fadd(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFAdd(lhs._ptr, rhs._ptr, name))
 
-    def sub(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateSub(lhs._ptr, rhs._ptr, name))
+    def sub(self, lhs, rhs, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateSub(lhs._ptr, rhs._ptr, name,
+                                               nuw, nsw))
 
     def fsub(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFSub(lhs._ptr, rhs._ptr, name))
 
-    def mul(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateMul(lhs._ptr, rhs._ptr, name))
+    def mul(self, lhs, rhs, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateMul(lhs._ptr, rhs._ptr, name,
+                                               nuw, nsw))
 
     def fmul(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFMul(lhs._ptr, rhs._ptr, name))
@@ -2160,8 +2163,9 @@ class Builder(llvm.Wrapper):
     def frem(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFRem(lhs._ptr, rhs._ptr, name))
 
-    def shl(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateShl(lhs._ptr, rhs._ptr, name))
+    def shl(self, lhs, rhs, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateShl(lhs._ptr, rhs._ptr, name,
+                                               nuw, nsw))
 
     def lshr(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateLShr(lhs._ptr, rhs._ptr, name))
