@@ -4,6 +4,8 @@ del get_versions
 
 
 from llvmpy import extra
+from llvmpy import api
+
 version = extra.get_llvm_version()
 del extra
 
@@ -41,4 +43,13 @@ def test(verbosity=1):
     result = run(verbosity=verbosity)
 
     return len(result.failures) + len(result.errors)
+
+
+def initialize_all_target_components():
+    api.llvm.InitializeAllTargets()
+    api.llvm.InitializeAllTargetInfos()
+    api.llvm.InitializeAllTargetMCs()
+    api.llvm.InitializeAllAsmPrinters()
+    api.llvm.InitializeAllDisassemblers()
+    api.llvm.InitializeAllAsmParsers()
 

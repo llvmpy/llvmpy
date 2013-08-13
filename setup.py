@@ -184,6 +184,7 @@ setup(
     maintainer_email = 'llvmpy@continuum.io',
     url = 'http://www.llvmpy.org/',
     packages = ['llvm', 'llvm.workaround',
+                'llvm.mc',
                 'llvm_cbuilder',
                 'llpython',
                 'llvm_array',
