@@ -1418,7 +1418,7 @@ if llvm.version >= (3, 3):
 
 class TestArith(TestCase):
     '''
-    Test basic arithmetic support with LLVM old-JIT
+    Test basic arithmetic support with LLVM MCJIT
     '''
     def func_template(self, ty, op):
         m = Module.new('dofjaa')
@@ -1475,7 +1475,9 @@ class TestArith(TestCase):
             return
         self.template('urem', 'frem')
 
-tests.append(TestArith)
+if llvm.version >= (3, 3):
+    # MCJIT is broken in 3.2
+    tests.append(TestArith)
 
 class TestNUWNSW(TestCase):
     def make_module(self):
