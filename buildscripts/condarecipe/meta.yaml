@@ -1,0 +1,27 @@
+package:
+  name: llvmpy
+  version: master
+  
+source:
+  git_url: git@github.com:llvmpy/llvmpy.git
+#  git_tag: 0.12.0
+
+requirements:
+  build:
+    - llvm
+    - python
+  run:
+    - llvm           [unix]
+    - python
+
+test:
+  imports:
+    - llvm
+    - llvmpy
+    - llvmpy._api
+    - llvmpy._capsule
+    - llpython
+    - llvm_array
+    - llvm_cbuilder
+
+
