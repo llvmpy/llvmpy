@@ -41,6 +41,8 @@ def load(arch):
     Creates a new module and optimizes it using the information from 
     the host machine.
     '''
+    if arch != 'x86_64':
+        arch = 'x86'
     path = os.path.join(os.path.dirname(__file__), 'llrt', 'llrt_%s.ll' % arch)
     with open(path) as fin:
         lib = lc.Module.from_assembly(fin)
