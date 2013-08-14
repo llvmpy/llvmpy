@@ -1848,6 +1848,9 @@ class Instruction(User):
     def erase_from_parent(self):
         return self._ptr.eraseFromParent()
 
+    def replace_all_uses_with(self, inst):
+        self._ptr.replaceAllUsesWith(inst)
+
 
 class CallOrInvokeInstruction(Instruction):
     _type_ = api.llvm.CallInst, api.llvm.InvokeInst
