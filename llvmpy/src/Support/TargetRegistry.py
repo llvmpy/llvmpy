@@ -46,10 +46,10 @@ class Target:
                                  ).require_only(4)
 
     createMCSubtargetInfo = Method(ptr(MCSubtargetInfo),
-                                 cast(str, StringRef), #triple
-                                 cast(str, StringRef), #cpu
-                                 cast(str, StringRef)  #features
-                                )
+                                   cast(str, StringRef), #triple
+                                   cast(str, StringRef), #cpu
+                                   cast(str, StringRef)  #features
+                                   )
 
     createMCDisassembler = Method(ptr(MCDisassembler), ref(MCSubtargetInfo))
 
