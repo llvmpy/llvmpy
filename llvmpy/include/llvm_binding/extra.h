@@ -30,7 +30,7 @@
 #include <llvm/PassRegistry.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/MemoryObject.h>
-
+#include <llvm/MC/MCDisassembler.h>
 #include <llvm/ExecutionEngine/MCJIT.h> // to make MCJIT working
 
 #include "auto_pyobject.h"
@@ -974,6 +974,22 @@ PyObject* TargetRegistry_targets_list()
     return iterator_to_pylist_deref<TargetRegistry::iterator>(
                   TargetRegistry::begin(), TargetRegistry::end(),
                   "llvm::Target", "llvm::Target");
+}
+
+static
+PyObject* MCDisassembler_getInstruction(llvm::MCDisassembler *disasm, 
+                                        llvm::MCInst &instr,
+                                        const llvm::MemoryObject &region,
+                                        uint64_t address
+                                        )
+{
+    uint64_t size;
+    llvm::MCDisassembler::DecodeStatus status;
+
+    size = 0;
+    status = disasm->getInstruction(instr, size, region, address, 
+                                    llvm::nulls(), llvm::nulls());
+    return Py_BuildValue("(i,i)", int(status), size);
 }
 
 static
