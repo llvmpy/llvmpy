@@ -17,6 +17,6 @@ clean:
 	make -C lib clean
 
 install: ir
-	make -C lib clean-test
+	cp llrt_*.ll ../llvm/llrt
 	make -C lib clean-temp
 	

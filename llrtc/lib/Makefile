@@ -1,5 +1,5 @@
 OUTPUT = llrt
-SOURCES = udivmod64.c sdivmod64.c
+SOURCES = udivmod64.c sdivmod64.c div64.c mod64.c
 TESTS = test_udivmod64.c test_sdivmod64.c
 
 CLANG = clang
