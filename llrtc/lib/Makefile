@@ -1,44 +1,66 @@
 OUTPUT = llrt
-SOURCES = udivmod64.c
+SOURCES = udivmod64.c sdivmod64.c
+TESTS = test_udivmod64.c test_sdivmod64.c
 
 CLANG = clang
+LLVM_LINK = llvm-link
 CF = -Wall -ansi
 CF_TEST = $(CF) -ftrapv
 CF_BUILD = $(CF) -O0 -emit-llvm
 OUTDIR = ..
+STRIPPER = ../tools/striptriple.py
 
 all: ir
 
-ir: $(SOURCES)
-	$(CLANG) -m32 $(CF_BUILD) -S -o $(OUTDIR)/$(OUTPUT)_x86.ll -c $(SOURCES)
-	python ../tools/striptriple.py $(OUTDIR)/$(OUTPUT)_x86.ll
-	$(CLANG) -m64 $(CF_BUILD) -S -o $(OUTDIR)/$(OUTPUT)_x86_64.ll -c $(SOURCES)
-	python ../tools/striptriple.py $(OUTDIR)/$(OUTPUT)_x86_64.ll
+ir: $(OUTDIR)/$(OUTPUT)_x86.ll $(OUTDIR)/$(OUTPUT)_x86_64.ll
 
-lib$(OUTPUT).a: $(SOURCES)
-	$(CLANG) $(CF) -o $@ -c $+
+$(OUTDIR)/$(OUTPUT)_x86.ll: $(SOURCES:.c=_x86.bc)
+	$(LLVM_LINK) -S $+ -o $@
+	python $(STRIPPER) $@
 
-build-test:  lib$(OUTPUT).a
-	for src in $(SOURCES); do \
-		$(CLANG) $(CF_TEST) -o test_$${src%.*} test_$$src -L. -lllrt; \
-	done;
+$(OUTDIR)/$(OUTPUT)_x86_64.ll: $(SOURCES:.c=_x86_64.bc)
+	$(LLVM_LINK) -S $+ -o $@
+	python $(STRIPPER) $@
 
-test: build-test
-	for src in $(SOURCES); do \
-		echo "testing $${src%.*}";				 \
-		python test_$${src%.*}.py > test_$${src%.*}.out;	 \
+build-test: $(SOURCES:.c=.o) $(TESTS:.c=.run)
+
+lib$(OUTPUT).a: $(SOURCES:.c=.o)
+	$(CLANG) -static $+ -o $@
+
+test: $(TESTS:.c=.run)
+	for src in $+; do \
+		echo "testing $${src}";				 \
+		python $${src%.*}.py > $${src%.*}.out;	 \
 	done;
 
 clean-test:
 	rm -f *.out
-	rm -f *.a
-	for src in $(SOURCES); do \
-		rm -f test_$${src%.*}	;\
-	done;
+	rm -f *.o
+	rm -f *.run
 
-clean-dist:
-	rm $(OUTDIR)/*.ll
+clean-dist: clean-temp
+	rm -f *.ll
+
+clean-temp:
+	rm -f *.bc
+	rm -f *.o
+	rm -f *.out
 
 clean: clean-test clean-dist
 
-udivmod64.c: udivmod64.h
+%.c: llrt.h
+
+%_x86.bc: %.c
+	$(CLANG) -m32 $(CF_BUILD) -c $< -o $@
+
+%_x86_64.bc: %.c
+	$(CLANG) -m64 $(CF_BUILD) -c $< -o $@
+
+%.o: %.c
+	$(CLANG) $(CF_TEST) -c $<
+
+%.run: %.c
+	$(CLANG) $(CF_TEST) -o $@ $+
+
+test_udivmod64.run: udivmod64.o
+test_sdivmod64.run: udivmod64.o sdivmod64.o

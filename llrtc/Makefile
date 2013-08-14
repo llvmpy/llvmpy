@@ -1,21 +1,22 @@
-DIRECTORIES = divmod
-
 all:
-	for mydir in $(DIRECTORIES); do \
-		make -C $$mydir; \
-	done
+	make -C lib
+
+ir:
+	make -C lib ir
 
 test:
-	for mydir in $(DIRECTORIES); do \
-		make -C $$mydir test; \
-	done
+	make -C lib test
 
 clean-test:
-	for mydir in $(DIRECTORIES); do \
-		make -C $$mydir clean-test; \
-	done
+	make -C lib clean-test
+
+clean-temp:
+	make -C lib clean-temp
 
 clean:
-	for mydir in $(DIRECTORIES); do \
-		make -C $$mydir clean; \
-	done
+	make -C lib clean
+
+install: ir
+	make -C lib clean-test
+	make -C lib clean-temp
+	

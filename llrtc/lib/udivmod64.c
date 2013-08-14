@@ -2,7 +2,7 @@
 Implements unsigned divmod using for platform missing 64-bit division and/or
 modulo functions.
 */
-#include "udivmod64.h"
+#include "llrt.h"
 
 /*
 count left zero for 64-bit words
@@ -79,6 +79,6 @@ uint64_t udivmod64(uint64_t dividend, uint64_t divisor, uint64_t *remainder)
             quotient |= 1ull << (63 - i);
         }
     }
-    *remainder = state.tmp;
+    if (remainder) *remainder = state.tmp;
     return quotient;
 }

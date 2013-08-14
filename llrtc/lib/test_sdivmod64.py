@@ -1,7 +1,7 @@
 import math
 import os
 import subprocess
-udt = os.path.join('.', 'test_udivmod64.run')
+udt = os.path.join('.', 'test_sdivmod64.run')
 
 def testcase(dividend, divisor):
     print 'divmod64(%d, %d)' % (dividend, divisor)
@@ -26,7 +26,7 @@ def testcase(dividend, divisor):
 def testsequence():
     subjects = [
         (0, 1),
-        (0, 0xffffffffffffffff),
+        (0, 0xffffffff),
         (1, 2),
         (1, 983219),
         (2, 2),
@@ -40,14 +40,17 @@ def testsequence():
         (0x1ffffffff, 2),
         (0x1ffffffff, 0xffff),
         (0xffff, 0xffffffff),
-        (0xffffffffffffffff, 0xffff),
-        (0xffffffffffffffff, 0x7fffffffffffffff),
-        (0xffffffffffffffff, 0xfffffffffffffff0),
-        (0xffffffffffffffff, 87655678587161901),
+        (0x0fffffffffffffff, 0xffff),
+        (0x7fffffffffffffff, 0x7fffffffffffffff),
+        (0x7fffffffffffffff, 0x7ffffffffffffff0),
+        (0x7fffffffffffffff, 87655678587161901),
     ]
 
     for dvd, dvr in subjects:
         testcase(dvd, dvr)
+        testcase(dvd, -dvr)
+        testcase(-dvd, dvr)
+        testcase(-dvd, -dvr)
 
 if __name__ == '__main__':
     testsequence()
