@@ -62,14 +62,14 @@ class Disassembler:
         if not sti:
             raise llvm.LLVMException("Could not create sub target info")
 
-        return Disassembler.new_from_target(target)
+        return Disassembler.new_from_target(target, sti)
 
     @staticmethod
-    def new_from_name(name):
+    def new_from_name(name, cpu='', features=''):
         name = name.strip()
         for target in api.llvm.TargetRegistry.targetsList():
             if name == target.getName():
-                sti = target.createMCSubtargetInfo(name, '', '')
+                sti = target.createMCSubtargetInfo(name, cpu, features)
                 return Disassembler.new_from_target(target, sti)
 
         raise llvm.LLVMException("failed to find target with name %s" % name)
