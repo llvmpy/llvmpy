@@ -7,14 +7,32 @@ MCSubtargetInfo = llvm.Class()
 MCDisassembler = llvm.Class()
 MCInst = llvm.Class()
 MCOperand = llvm.Class()
+MCExpr = llvm.Class()
 
 @MCSubtargetInfo
 class MCSubtargetInfo:
     pass
 
+@MCExpr
+class MCExpr:
+    _include_ = "llvm/MC/MCExpr.h"
+
 @MCOperand
 class MCOperand:
-    pass
+    _include_ = "llvm/MC/MCInst.h"
+
+    isValid = Method(cast(Bool, bool))
+    isReg = Method(cast(Bool, bool))
+    isImm = Method(cast(Bool, bool))
+    isFPImm = Method(cast(Bool, bool))
+    isExpr = Method(cast(Bool, bool))
+    isInst = Method(cast(Bool, bool))
+
+    getReg = Method(cast(Unsigned, int))
+    getImm = Method(cast(Int64, int))
+    getFPImm = Method(cast(Double, float))
+    getExpr = Method(const(ptr(MCExpr)))
+
 
 @MCInst
 class MCInst:
