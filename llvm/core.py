@@ -211,8 +211,10 @@ class CCEnum(Enum):
     CC_X86_THISCALL  = ID.X86_ThisCall
     CC_PTX_KERNEL    = ID.PTX_Kernel
     CC_PTX_DEVICE    = ID.PTX_Device
-    CC_MBLAZE_INTR   = ID.MBLAZE_INTR
-    CC_MBLAZE_SVOL   = ID.MBLAZE_SVOL
+    
+    if llvm.version <= (3, 3):
+        CC_MBLAZE_INTR   = ID.MBLAZE_INTR
+        CC_MBLAZE_SVOL   = ID.MBLAZE_SVOL
 
 CCEnum.declare()
 
