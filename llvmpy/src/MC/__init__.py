@@ -1,6 +1,6 @@
 from binding import *
 from ..namespace import llvm
-from ..BytesMemoryObject import MemoryObject
+from ..Support.StringRefMemoryObject import MemoryObject
 from ..Support.raw_ostream import raw_ostream
 
 MCSubtargetInfo = llvm.Class()

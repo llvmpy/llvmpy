@@ -93,7 +93,7 @@ class Disassembler:
     #decode some bytes into instructions. yields each instruction
     #as it is decoded.
     def decode(self, bs):
-        code = api.llvm.BytesMemoryObject.new(bs)
+        code = api.llvm.StringRefMemoryObject.new(bs, 0)
         idx = code.getBase()
 
         while(idx < code.getExtent()):
