@@ -10,7 +10,7 @@ requirements:
   build:
     - llvm
     - python
-    - chrpath        [linux]
+    #- chrpath        [linux]
   run:
     - llvm           [unix]
     - python
