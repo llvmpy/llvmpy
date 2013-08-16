@@ -1416,9 +1416,35 @@ if llvm.version >= (3, 3):
     tests.append(TestMCJIT)
 
 
+class TestLLRT(TestCase):
+    def test_llrt_divmod(self):
+        from llvm import llrt
+        m = lc.Module.new('testllrt')
+        longlong = lc.Type.int(64)
+        lfunc = m.add_function(lc.Type.function(longlong, [longlong, longlong]), 'foo')
+        bldr = lc.Builder.new(lfunc.append_basic_block(''))
+        bldr.ret(bldr.udiv(*lfunc.args))
+
+        llrt.replace_divmod64(lfunc)
+
+        rt = llrt.LLRT()
+        rt.install_symbols()
+
+        engine = le.EngineBuilder.new(m).create()
+        pointer = engine.get_pointer_to_function(lfunc)
+
+        from ctypes import CFUNCTYPE, c_uint64, c_int64
+        func = CFUNCTYPE(c_uint64, c_uint64, c_uint64)(pointer)
+        a, b = 98342, 2231
+        self.assertEqual(func(98342, 2231), 98342 // 2231)
+
+        rt.uninstall_symbols()
+
+tests.append(TestLLRT)
+
 class TestArith(TestCase):
     '''
-    Test basic arithmetic support with LLVM old-JIT
+    Test basic arithmetic support with LLVM MCJIT
     '''
     def func_template(self, ty, op):
         m = Module.new('dofjaa')
@@ -1447,10 +1473,12 @@ class TestArith(TestCase):
         inttys = [Type.int(32), Type.int(64)]
         flttys = [Type.float(), Type.double()]
 
-        for ty in inttys:
-            self.func_template(ty, iop)        
-        for ty in flttys:
-            self.func_template(ty, fop)
+        if iop:
+            for ty in inttys:
+                self.func_template(ty, iop)
+        if fop:
+            for ty in flttys:
+                self.func_template(ty, fop)
 
     def test_add(self):
         self.template('add', 'fadd')
@@ -1466,16 +1494,92 @@ class TestArith(TestCase):
             print('skipped test for div')
             print('known failure due to unresolved external symbol __udivdi3')
             return
-        self.template('udiv', 'fdiv')
+        self.template('udiv', None) # 'fdiv')
 
     def test_rem(self):
         if BITS == 32:
             print('skipped test for rem')
             print('known failure due to unresolved external symbol __umoddi3')
             return
-        self.template('urem', 'frem')
+        self.template('urem', None) # 'frem')
 
-tests.append(TestArith)
+if llvm.version >= (3, 3):
+    # MCJIT is broken in 3.2
+    tests.append(TestArith)
+
+class TestNUWNSW(TestCase):
+    def make_module(self):
+        mod = Module.new('asdfa')
+        fnty = Type.function(Type.void(), [Type.int()] * 2)
+        func = mod.add_function(fnty, 'foo')
+        bldr = Builder.new(func.append_basic_block(''))
+        return mod, func, bldr
+
+    def has_nsw(self, inst, op):
+        self.assertTrue(('%s nsw' % op) in str(inst), "NSW flag does not work")
+
+    def has_nuw(self, inst, op):
+        self.assertTrue(('%s nuw' % op) in str(inst), "NUW flag does not work")
+
+    def _test_template(self, opf, opname):
+        mod, func, bldr = self.make_module()
+        a, b = func.args
+        self.has_nsw(opf(bldr, a, b, nsw=True), opname)
+        self.has_nuw(opf(bldr, a, b, nuw=True), opname)
+
+    def test_add_nuw_nsw(self):
+        self._test_template(Builder.add, 'add')
+
+    def test_sub_nuw_nsw(self):
+        self._test_template(Builder.sub, 'sub')
+
+    def test_mul_nuw_nsw(self):
+        self._test_template(Builder.mul, 'mul')
+
+    def test_shl_nuw_nsw(self):
+        self._test_template(Builder.shl, 'shl')
+
+    def test_neg_nuw_nsw(self):
+        mod, func, bldr = self.make_module()
+        a, b = func.args
+        self.has_nsw(bldr.neg(a, nsw=True), 'sub')
+        self.has_nuw(bldr.neg(a, nuw=True), 'sub')
+
+
+tests.append(TestNUWNSW)
+
+
+class TestExact(TestCase):
+    def make_module(self):
+        mod = Module.new('asdfa')
+        fnty = Type.function(Type.void(), [Type.int()] * 2)
+        func = mod.add_function(fnty, 'foo')
+        bldr = Builder.new(func.append_basic_block(''))
+        return mod, func, bldr
+
+    def has_exact(self, inst, op):
+        self.assertTrue(('%s exact' % op) in str(inst), "exact flag does not work")
+
+    def _test_template(self, opf, opname):
+        mod, func, bldr = self.make_module()
+        a, b = func.args
+        self.has_exact(opf(bldr, a, b, exact=True), opname)
+
+    def test_udiv_exact(self):
+        self._test_template(Builder.udiv, 'udiv')
+
+    def test_sdiv_exact(self):
+        self._test_template(Builder.sdiv, 'sdiv')
+
+    def test_lshr_exact(self):
+        self._test_template(Builder.lshr, 'lshr')
+
+    def test_ashr_exact(self):
+        self._test_template(Builder.ashr, 'ashr')
+
+tests.append(TestExact)
+
+
 
 # ---------------------------------------------------------------------------
 

@@ -1848,6 +1848,9 @@ class Instruction(User):
     def erase_from_parent(self):
         return self._ptr.eraseFromParent()
 
+    def replace_all_uses_with(self, inst):
+        self._ptr.replaceAllUsesWith(inst)
+
 
 class CallOrInvokeInstruction(Instruction):
     _type_ = api.llvm.CallInst, api.llvm.InvokeInst
@@ -2124,29 +2127,34 @@ class Builder(llvm.Wrapper):
 
     # arithmethic, bitwise and logical
 
-    def add(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateAdd(lhs._ptr, rhs._ptr, name))
+    def add(self, lhs, rhs, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateAdd(lhs._ptr, rhs._ptr, name,
+                                               nuw, nsw))
 
     def fadd(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFAdd(lhs._ptr, rhs._ptr, name))
 
-    def sub(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateSub(lhs._ptr, rhs._ptr, name))
+    def sub(self, lhs, rhs, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateSub(lhs._ptr, rhs._ptr, name,
+                                               nuw, nsw))
 
     def fsub(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFSub(lhs._ptr, rhs._ptr, name))
 
-    def mul(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateMul(lhs._ptr, rhs._ptr, name))
+    def mul(self, lhs, rhs, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateMul(lhs._ptr, rhs._ptr, name,
+                                               nuw, nsw))
 
     def fmul(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFMul(lhs._ptr, rhs._ptr, name))
 
-    def udiv(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateUDiv(lhs._ptr, rhs._ptr, name))
+    def udiv(self, lhs, rhs, name="", exact=False):
+        return _make_value(self._ptr.CreateUDiv(lhs._ptr, rhs._ptr, name,
+                                                exact))
 
-    def sdiv(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateSDiv(lhs._ptr, rhs._ptr, name))
+    def sdiv(self, lhs, rhs, name="", exact=False):
+        return _make_value(self._ptr.CreateSDiv(lhs._ptr, rhs._ptr, name,
+                                                exact))
 
     def fdiv(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFDiv(lhs._ptr, rhs._ptr, name))
@@ -2160,14 +2168,17 @@ class Builder(llvm.Wrapper):
     def frem(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFRem(lhs._ptr, rhs._ptr, name))
 
-    def shl(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateShl(lhs._ptr, rhs._ptr, name))
+    def shl(self, lhs, rhs, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateShl(lhs._ptr, rhs._ptr, name,
+                                               nuw, nsw))
 
-    def lshr(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateLShr(lhs._ptr, rhs._ptr, name))
+    def lshr(self, lhs, rhs, name="", exact=False):
+        return _make_value(self._ptr.CreateLShr(lhs._ptr, rhs._ptr, name,
+                                                exact))
 
-    def ashr(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateAShr(lhs._ptr, rhs._ptr, name))
+    def ashr(self, lhs, rhs, name="", exact=False):
+        return _make_value(self._ptr.CreateAShr(lhs._ptr, rhs._ptr, name,
+                                                exact))
 
     def and_(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateAnd(lhs._ptr, rhs._ptr, name))
@@ -2178,8 +2189,8 @@ class Builder(llvm.Wrapper):
     def xor(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateXor(lhs._ptr, rhs._ptr, name))
 
-    def neg(self, val, name=""):
-        return _make_value(self._ptr.CreateNeg(val._ptr, name))
+    def neg(self, val, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateNeg(val._ptr, name, nuw, nsw))
 
     def not_(self, val, name=""):
         return _make_value(self._ptr.CreateNot(val._ptr, name))

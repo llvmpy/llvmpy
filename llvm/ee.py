@@ -30,6 +30,7 @@
 
 "Execution Engine and related classes."
 
+import sys
 from io import BytesIO
 import contextlib
 
@@ -150,6 +151,12 @@ class EngineBuilder(llvm.Wrapper):
         '''
         if tm is not None:
             engine = self._ptr.create(tm._ptr)
+        elif (sys.platform.startswith('win32') and
+                    getattr(self, '_use_mcjit', False)):
+            # force ELF generation on MCJIT on win32
+            triple = get_default_triple()
+            tm = TargetMachine.new('%s-elf' % triple)
+            engine = self._ptr.create(tm._ptr)
         else:
             engine = self._ptr.create()
         ee = ExecutionEngine(engine)
@@ -173,6 +180,7 @@ class EngineBuilder(llvm.Wrapper):
         '''Enable/disable MCJIT
         '''
         self._ptr.setUseMCJIT(enable)
+        self._use_mcjit = True
         return self
 
 #===----------------------------------------------------------------------===
@@ -282,7 +290,7 @@ class TargetMachine(llvm.Wrapper):
         with contextlib.closing(BytesIO()) as error:
             target = api.llvm.TargetRegistry.lookupTarget(triple, error)
             if not target:
-                raise llvm.LLVMException(error)
+                raise llvm.LLVMException(error.getvalue())
             if not target.hasTargetMachine():
                 raise llvm.LLVMException(target, "No target machine.")
             target_options = api.llvm.TargetOptions.new()

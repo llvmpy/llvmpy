@@ -342,14 +342,14 @@ def build_pass_managers(tm, opt=2, loop_vectorize=False, vectorize=False,
     if pm:
         pm.add(tm.target_data.clone())
         pm.add(TargetLibraryInfo.new(tm.triple))
-        if llvm.version >= (3, 2):
+        if llvm.version == (3, 2):
             pm.add(TargetTransformInfo.new(tm))
         pmb.populate(pm)
 
     if fpm:
         fpm.add(tm.target_data.clone())
         fpm.add(TargetLibraryInfo.new(tm.triple))
-        if llvm.version >= (3, 2):
+        if llvm.version == (3, 2):
             fpm.add(TargetTransformInfo.new(tm))
         pmb.populate(fpm)
         fpm.initialize()
