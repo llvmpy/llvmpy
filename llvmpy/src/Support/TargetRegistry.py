@@ -11,8 +11,10 @@ from src.ADT.StringRef import StringRef
 from src.Target.TargetMachine import TargetMachine
 from src.Target.TargetOptions import TargetOptions
 from src.Support.CodeGen import Reloc, CodeModel, CodeGenOpt
-from src.MC import MCSubtargetInfo
-from src.MC import MCDisassembler
+
+if LLVM_VERSION >= (3, 4):
+    from src.MC import MCSubtargetInfo
+    from src.MC import MCDisassembler
 
 @Target
 class Target:
@@ -45,13 +47,14 @@ class Target:
                                  CodeGenOpt.Level,  # = CodeGenOpt.Default
                                  ).require_only(4)
 
-    createMCSubtargetInfo = Method(ptr(MCSubtargetInfo),
-                                   cast(str, StringRef), #triple
-                                   cast(str, StringRef), #cpu
-                                   cast(str, StringRef)  #features
-                                   )
-
-    createMCDisassembler = Method(ptr(MCDisassembler), ref(MCSubtargetInfo))
+    if LLVM_VERSION >= (3, 4):
+        createMCSubtargetInfo = Method(ptr(MCSubtargetInfo),
+                                       cast(str, StringRef), #triple
+                                       cast(str, StringRef), #cpu
+                                       cast(str, StringRef)  #features
+                                       )
+    
+        createMCDisassembler = Method(ptr(MCDisassembler), ref(MCSubtargetInfo))
 
 
 @TargetRegistry

@@ -8,6 +8,10 @@
     #include <llvm/IR/Constants.h>
     #include <llvm/IR/Intrinsics.h>
     #include <llvm/IR/IRBuilder.h>
+    #if LLVM_VERSION_MINOR >= 4
+        #include <llvm/Support/MemoryObject.h>
+        #include <llvm/MC/MCDisassembler.h>
+    #endif
 #else
     #include <llvm/Value.h>
     #include <llvm/DerivedTypes.h>
@@ -29,8 +33,7 @@
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/PassRegistry.h>
 #include <llvm/Support/Host.h>
-#include <llvm/Support/MemoryObject.h>
-#include <llvm/MC/MCDisassembler.h>
+
 #include <llvm/ExecutionEngine/MCJIT.h> // to make MCJIT working
 
 #include "auto_pyobject.h"
@@ -952,6 +955,8 @@ PyObject* TargetRegistry_targets_list()
                   "llvm::Target", "llvm::Target");
 }
 
+
+#if LLVM_VERSION_MAJOR >= 3 and LLVM_VERSION_MINOR >= 4
 static
 PyObject* MCDisassembler_getInstruction(llvm::MCDisassembler *disasm, 
                                         llvm::MCInst &instr,
@@ -967,6 +972,7 @@ PyObject* MCDisassembler_getInstruction(llvm::MCDisassembler *disasm,
                                     llvm::nulls(), llvm::nulls());
     return Py_BuildValue("(i,i)", int(status), size);
 }
+#endif /* llvm >= 3.4 */
 
 static
 PyObject* llvm_sys_getHostCPUFeatures(PyObject* Features)

@@ -45,6 +45,10 @@ class MCInst:
 
     getOperand = Method(const(ref(MCOperand)), cast(int, Unsigned))
 
+@MCAsmInfo
+class MCAsmInfo:
+    _include_ = "llvm/MC/MCAsmInfo.h"
+
 @MCDisassembler
 class MCDisassembler:
     _include_ = "llvm/MC/MCDisassembler.h"
@@ -56,10 +60,5 @@ class MCDisassembler:
                                   ref(MCInst),
                                   ref(MemoryObject),
                                   cast(int, Uint64)
+                                  )
 
-
-)
-
-@MCAsmInfo
-class MCAsmInfo:
-    _include_ = "llvm/MC/MCAsmInfo.h"

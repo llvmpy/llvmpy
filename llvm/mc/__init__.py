@@ -1,7 +1,10 @@
+import llvm
+if llvm.version < (3, 4):
+    raise Exception("mc is not supported for llvm version less than 3.4")
+
 from io import BytesIO
 import contextlib
 
-import llvm
 from llvmpy import api
 from llvmpy.api.llvm import MCDisassembler
 
