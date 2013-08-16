@@ -8,6 +8,7 @@ MCDisassembler = llvm.Class()
 MCInst = llvm.Class()
 MCOperand = llvm.Class()
 MCExpr = llvm.Class()
+MCAsmInfo = llvm.Class()
 
 @MCSubtargetInfo
 class MCSubtargetInfo:
@@ -58,3 +59,7 @@ class MCDisassembler:
 
 
 )
+
+@MCAsmInfo
+class MCAsmInfo:
+    _include_ = "llvm/MC/MCAsmInfo.h"
