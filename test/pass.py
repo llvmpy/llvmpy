@@ -27,7 +27,7 @@ class TestPass(unittest.TestCase):
         self.assertTrue(tli.description)
         pm.add(tli)
 
-        if llvm.version >= (3, 2):
+        if llvm.version >= (3, 2) and llvm.version < (3, 3):
             tti = TargetTransformInfo.new(tm)
             self.assertFalse(tti.name)
             self.assertTrue(tti.description)
