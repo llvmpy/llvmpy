@@ -9,6 +9,10 @@ MCInst = llvm.Class()
 MCOperand = llvm.Class()
 MCExpr = llvm.Class()
 MCAsmInfo = llvm.Class()
+MCRegisterInfo = llvm.Class()
+MCInstrInfo = llvm.Class()
+MCInstrAnalysis = llvm.Class()
+MCInstPrinter = llvm.Class()
 
 @MCSubtargetInfo
 class MCSubtargetInfo:
@@ -48,6 +52,24 @@ class MCInst:
 @MCAsmInfo
 class MCAsmInfo:
     _include_ = "llvm/MC/MCAsmInfo.h"
+
+    getAssemblerDialect = Method(cast(Unsigned, int))
+
+@MCRegisterInfo
+class MCRegisterInfo:
+    _include_ = "llvm/MC/MCRegisterInfo.h"
+
+@MCInstrInfo
+class MCInstrInfo:
+    _include_ = "llvm/MC/MCInstrInfo.h"
+
+@MCInstrAnalysis
+class MCInstrAnalysis:
+    _include_ = "llvm/MC/MCInstrAnalysis.h"
+
+@MCInstPrinter
+class MCInstPrinter:
+    _include_ = "llvm/MC/MCInstPrinter.h"
 
 @MCDisassembler
 class MCDisassembler:

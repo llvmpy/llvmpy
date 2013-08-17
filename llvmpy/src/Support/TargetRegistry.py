@@ -15,6 +15,11 @@ from src.Support.CodeGen import Reloc, CodeModel, CodeGenOpt
 if LLVM_VERSION >= (3, 4):
     from src.MC import MCSubtargetInfo
     from src.MC import MCDisassembler
+    from src.MC import MCRegisterInfo
+    from src.MC import MCAsmInfo
+    from src.MC import MCInstrInfo
+    from src.MC import MCInstrAnalysis
+    from src.MC import MCInstPrinter
 
 @Target
 class Target:
@@ -56,7 +61,26 @@ class Target:
     
         createMCDisassembler = Method(ptr(MCDisassembler), ref(MCSubtargetInfo))
 
+        createMCRegInfo = Method(ptr(MCRegisterInfo),
+                                 cast(str, StringRef)        #Triple
+                                 )
 
+        createMCAsmInfo = Method(ptr(MCAsmInfo),
+                                 const(ref(MCRegisterInfo)), #MRI
+                                 cast(str, StringRef)        #Triple
+                                 )
+
+        createMCInstrInfo = Method(ptr(MCInstrInfo))
+
+        createMCInstrAnalysis = Method(ptr(MCInstrAnalysis), const(ptr(MCInstrInfo)))
+
+        createMCInstPrinter = Method(ptr(MCInstPrinter),
+                                     cast(int, Unsigned),        #SyntaxVariant
+                                     const(ref(MCAsmInfo)),      #MAI
+                                     const(ref(MCInstrInfo)),    #MII
+                                     const(ref(MCRegisterInfo)), #MRI
+                                     const(ref(MCSubtargetInfo)) #STI
+                                     )
 @TargetRegistry
 class TargetRegistry:
     printRegisteredTargetsForVersion = StaticMethod()
