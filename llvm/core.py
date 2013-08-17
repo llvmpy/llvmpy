@@ -1649,7 +1649,10 @@ class Function(GlobalValue):
         context = api.llvm.getGlobalContext()
         attrbldr = api.llvm.AttrBuilder.new()
         attrbldr.addAttribute(attr)
-        attrs = api.llvm.Attributes.get(context, attrbldr)
+        if llvm.version >= (3, 3):
+            attrs = api.llvm.Attribute.get(context, attrbldr)
+        else:
+            attrs = api.llvm.Attributes.get(context, attrbldr)
         self._ptr.removeFnAttr(attrs)
 
     def viewCFGOnly(self):
@@ -1869,21 +1872,33 @@ class CallOrInvokeInstruction(Instruction):
         context = api.llvm.getGlobalContext()
         attrbldr = api.llvm.AttrBuilder.new()
         attrbldr.addAttribute(attr)
-        attrs = api.llvm.Attributes.get(context, attrbldr)
+        if llvm.version >= (3, 3):
+            attrs = api.llvm.Attribute.get(context, attrbldr)
+        else:
+            attrs = api.llvm.Attributes.get(context, attrbldr)
+
         self._ptr.addAttribute(idx, attrs)
 
     def remove_parameter_attribute(self, idx, attr):
         context = api.llvm.getGlobalContext()
         attrbldr = api.llvm.AttrBuilder.new()
         attrbldr.addAttribute(attr)
-        attrs = api.llvm.Attributes.get(context, attrbldr)
+        if llvm.version >= (3, 3):
+            attrs = api.llvm.Attribute.get(context, attrbldr)
+        else:
+            attrs = api.llvm.Attributes.get(context, attrbldr)
+
         self._ptr.removeAttribute(idx, attrs)
 
     def set_parameter_alignment(self, idx, align):
         context = api.llvm.getGlobalContext()
         attrbldr = api.llvm.AttrBuilder.new()
         attrbldr.addAlignmentAttr(align)
-        attrs = api.llvm.Attributes.get(context, attrbldr)
+        if llvm.version >= (3, 3):
+            attrs = api.llvm.Attribute.get(context, attrbldr)
+        else:
+            attrs = api.llvm.Attributes.get(context, attrbldr)
+
         self._ptr.addAttribute(idx, attrs)
 
     def _get_called_function(self):
