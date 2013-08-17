@@ -54,6 +54,8 @@ class MCAsmInfo:
     _include_ = "llvm/MC/MCAsmInfo.h"
 
     getAssemblerDialect = Method(cast(Unsigned, int))
+    getMinInstAlignment = Method(cast(Unsigned, int))
+    isLittleEndian = Method(cast(Bool, bool))
 
 @MCRegisterInfo
 class MCRegisterInfo:
