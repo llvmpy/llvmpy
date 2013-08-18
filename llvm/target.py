@@ -214,7 +214,7 @@ class TargetMachine(llvm.Wrapper):
         @property
         def instr_analysis(self):
             if not getattr(self, '_mia', False):
-                self._mia = self.target.getMCInstrAnalysis(self.instr_info)
+                self._mia = self.target.createMCInstrAnalysis(self.instr_info)
 
             return self._mia
 
