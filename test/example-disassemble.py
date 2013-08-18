@@ -8,32 +8,8 @@ if llvm.version >= (3, 4):
 
     llvm.target.initialize_all()
 
-    def op_str(op):
-       s = []
-       if op.isValid():
-           s.append("valid")
-       else:
-           s.append("invalid")
-
-       if op.isReg():
-           s.append("+reg(%d)" % op.getReg())
-   
-       if op.isImm():
-           s.append("+imm(%d)" % op.getImm())
-
-       if op.isFPImm():
-           s.append("+fp-imm(%f)" % op.getFPImm())
-
-       if op.isExpr():
-           s.append("+expr")
-
-       if op.isInst():
-           s.append("+inst")
-
-       return " ".join(s)
-
     def print_instructions(dasm, bs):
-        for (offset, inst) in dasm.decode(bs):
+        for (offset, inst) in dasm.decode(bs, 0):
             if inst is None:
                 print("\t%r=>(bad): 0, []" % (offset))
             else:
@@ -43,7 +19,7 @@ if llvm.version >= (3, 4):
                     print("\t%r=>%r: %r" % (offset, inst, len(inst)))
     
                 for op in inst.operands():
-                    print("\t\t%s" % op_str(op))
+                    print("\t\t%s" % repr(op))
 
 
     x86 = TargetMachine.x86()
