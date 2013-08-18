@@ -14,9 +14,16 @@ MCInstrInfo = llvm.Class()
 MCInstrAnalysis = llvm.Class()
 MCInstPrinter = llvm.Class()
 
+TargetSubtargetInfo = llvm.Class(MCSubtargetInfo)
+TargetInstrInfo = llvm.Class(MCInstrInfo)
+
 @MCSubtargetInfo
 class MCSubtargetInfo:
     pass
+
+@TargetSubtargetInfo
+class TargetSubtargetInfo:
+    _include_ = 'llvm/Target/TargetSubtargetInfo.h'
 
 @MCExpr
 class MCExpr:
@@ -64,6 +71,10 @@ class MCRegisterInfo:
 @MCInstrInfo
 class MCInstrInfo:
     _include_ = "llvm/MC/MCInstrInfo.h"
+
+@TargetInstrInfo
+class TargetInstrInfo:
+    _include_ = 'llvm/Target/TargetInstrInfo.h'
 
 @MCInstrAnalysis
 class MCInstrAnalysis:
