@@ -9,17 +9,19 @@ if llvm.version >= (3, 4):
     llvm.target.initialize_all()
 
     def print_instructions(dasm, bs):
-        for (offset, inst) in dasm.decode(bs, 0):
+        print("print instructions")
+        for (addr, inst) in dasm.decode(bs, 0x4000):
             if inst is None:
-                print("\t%r=>(bad): 0, []" % (offset))
+                print("\t0x%x => (bad)" % (addr))
             else:
+                ops = ", ".join(map(lambda op: repr(op), inst.operands()))
                 if isinstance(inst, mc.BadInstr):
-                    print("\t%r=>(bad)%r: %r" % (offset, inst, len(inst)))
+                    print("\t0x%x (bad) ops = %s" % (addr, ops))
                 else:
-                    print("\t%r=>%r: %r" % (offset, inst, len(inst)))
-    
-                for op in inst.operands():
-                    print("\t\t%s" % repr(op))
+                    print("\t0x%x ops = %s" % (addr, ops))
+
+                for line in str(inst).split("\n"):
+                    print("\t%s" % (line))
 
 
     x86 = TargetMachine.x86()
