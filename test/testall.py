@@ -659,7 +659,7 @@ def do_llvm_mc():
     tm = TargetMachine.x86()
     dasm = mc.Disassembler(tm)
 
-    for (offset, instr) in dasm.decode("c3"):
+    for (offset, instr) in dasm.decode("c3", 0):
         pass
 
 def main():

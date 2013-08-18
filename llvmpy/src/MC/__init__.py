@@ -29,6 +29,9 @@ class TargetSubtargetInfo:
 class MCExpr:
     _include_ = "llvm/MC/MCExpr.h"
 
+    ExprKind = Enum('Binary', 'Constant', 'SymbolRef', 'Unary', 'Target')
+    getKind = Method(ExprKind)
+
 @MCOperand
 class MCOperand:
     _include_ = "llvm/MC/MCInst.h"
@@ -44,8 +47,7 @@ class MCOperand:
     getImm = Method(cast(Int64, int))
     getFPImm = Method(cast(Double, float))
     getExpr = Method(const(ptr(MCExpr)))
-
-
+    
 @MCInst
 class MCInst:
     _include_ = "llvm/MC/MCInst.h"
@@ -55,6 +57,8 @@ class MCInst:
     getNumOperands = Method(cast(Unsigned, int))
 
     getOperand = Method(const(ref(MCOperand)), cast(int, Unsigned))
+
+MCOperand.getInst = Method(const(ptr(MCInst)))
 
 @MCAsmInfo
 class MCAsmInfo:
@@ -67,6 +71,8 @@ class MCAsmInfo:
 @MCRegisterInfo
 class MCRegisterInfo:
     _include_ = "llvm/MC/MCRegisterInfo.h"
+
+    getName = Method(cast(ConstCharPtr, str), cast(int, Unsigned))
 
 @MCInstrInfo
 class MCInstrInfo:

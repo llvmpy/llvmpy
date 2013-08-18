@@ -8,6 +8,45 @@ import contextlib
 from llvmpy import api
 from llvmpy.api.llvm import MCDisassembler
 
+class Operand(object):
+
+    def __init__(self, mcoperand, target_machine):
+        '''
+        @mcoperand: an MCOperand object
+        @target_machine: an llvm.target.TargetMachine object
+        '''
+
+        self.op = mcoperand
+        if not self.op:
+            raise llvm.LLVMException("null MCOperand argument")
+
+        self.tm = target_machine
+
+    def __repr__(self):
+        s = "invalid"
+        if self.op.isReg():
+            s = "reg(%s)" % (self.reg_name())
+        elif self.op.isImm():
+            s = "imm(0x%02x)" % (self.op.getImm())
+        elif self.op.isFPImm():
+            s = "imm(%r)" % (self.op.getFPImm())
+        elif self.op.isExpr():
+            s = "expr(%r)" % (self.op.getExpr().getKind())
+        elif self.op.isInst():
+            s = repr(Instr(self.op.getInst()))
+
+        return s
+
+    def reg_name(self):
+        if self.op.isReg():
+            s = self.tm.reg_info.getName(self.op.getReg())
+            if s.strip() == "":
+                return "?"
+            else:
+                return s
+        else:
+            return ""
+
 class Instr(object):
 
     def __init__(self, mcinst, target_machine):
@@ -35,7 +74,7 @@ class Instr(object):
 
         l = []
         for i in range(0, amt):
-            l.append(self.mcinst.getOperand(i))
+            l.append(Operand(self.mcinst.getOperand(i), self.tm))
 
         return l
 
@@ -56,15 +95,20 @@ class Disassembler(object):
         return self.tm.asm_info
 
     def instr(self, mcinst):
-        return Instr(mcinst, self)
+        return Instr(mcinst, self.tm)
 
     def bad_instr(self, mcinst):
-        return BadInstr(mcinst, self)
+        return BadInstr(mcinst, self.tm)
 
-    #decode some bytes into instructions. yields each instruction
-    #as it is decoded.
-    def decode(self, bs):
-        code = api.llvm.StringRefMemoryObject.new(bs, 0)
+    def decode(self, bs, addr):
+        '''
+        decodes some the bytes in @bs into instructions and yields
+        each instructionas it is decoded. @addr is the base address
+        where the instruction bytes are from (not an offset into
+        @bs)
+        '''
+
+        code = api.llvm.StringRefMemoryObject.new(bs, addr)
         idx = code.getBase()
         align = self.mai.getMinInstAlignment()
 
