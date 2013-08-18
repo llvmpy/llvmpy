@@ -187,3 +187,44 @@ class TargetMachine(llvm.Wrapper):
     def feature_string(self):
         return self._ptr.getTargetFeatureString()
     
+    @property
+    def target(self):
+        return self._ptr.getTarget()
+
+    if llvm.version >= (3, 4):
+        @property
+        def reg_info(self):
+            if not getattr(self, '_mri', False):
+                self._mri = self.target.createMCRegInfo(self.triple)
+
+            return self._mri
+
+        @property
+        def subtarget_info(self):
+            return self._ptr.getSubtargetImpl()
+
+        @property
+        def asm_info(self):
+            return self._ptr.getMCAsmInfo()
+
+        @property
+        def instr_info(self):
+            return self._ptr.getInstrInfo()
+
+        @property
+        def instr_analysis(self):
+            if not getattr(self, '_mia', False):
+                self._mia = self.target.getMCInstrAnalysis(self.instr_info)
+
+            return self._mia
+
+        @property
+        def disassembler(self):
+            if not getattr(self, '_dasm', False):
+                self._dasm = self.target.createMCDisassembler(self.subtarget_info)
+
+            return self._dasm
+
+        def is_little_endian(self):
+            return self.asm_info.isLittleEndian()
+
