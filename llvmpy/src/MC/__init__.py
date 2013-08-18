@@ -2,6 +2,7 @@ from binding import *
 from ..namespace import llvm
 from ..Support.StringRefMemoryObject import MemoryObject
 from ..Support.raw_ostream import raw_ostream
+from src.ADT.StringRef import StringRef
 
 MCSubtargetInfo = llvm.Class()
 MCDisassembler = llvm.Class()
@@ -89,6 +90,12 @@ class MCInstrAnalysis:
 @MCInstPrinter
 class MCInstPrinter:
     _include_ = "llvm/MC/MCInstPrinter.h"
+
+    printInst = Method(Void,
+                       const(ptr(MCInst)),  #MI
+                       ref(raw_ostream),    #OS
+                       cast(str, StringRef) #Annot
+                       )
 
 @MCDisassembler
 class MCDisassembler:

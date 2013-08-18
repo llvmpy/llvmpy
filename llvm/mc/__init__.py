@@ -5,7 +5,7 @@ if llvm.version < (3, 4):
 from io import BytesIO
 import contextlib
 
-from llvmpy import api
+from llvmpy import api, extra
 from llvmpy.api.llvm import MCDisassembler
 
 class Operand(object):
@@ -22,7 +22,7 @@ class Operand(object):
 
         self.tm = target_machine
 
-    def __repr__(self):
+    def __str__(self):
         s = "invalid"
         if self.op.isReg():
             s = "reg(%s)" % (self.reg_name())
@@ -36,6 +36,9 @@ class Operand(object):
             s = repr(Instr(self.op.getInst()))
 
         return s
+
+    def __repr__(self):
+        return str(self)
 
     def reg_name(self):
         if self.op.isReg():
@@ -61,10 +64,16 @@ class Instr(object):
 
         self.tm = target_machine
 
+    def __str__(self):
+        os = extra.make_raw_ostream_for_printing()
+        self.tm.inst_printer.printInst(self.mcinst, os, "")
+        return str(os.str())
+
     def __repr__(self):
-        return repr(self.mcinst)
+        return str(self)
 
     def __len__(self):
+        ''' the number of operands '''
         return int(self.mcinst.size())
 
     def operands(self):
@@ -100,28 +109,29 @@ class Disassembler(object):
     def bad_instr(self, mcinst):
         return BadInstr(mcinst, self.tm)
 
-    def decode(self, bs, addr):
+    def decode(self, bs, base_addr):
         '''
         decodes some the bytes in @bs into instructions and yields
-        each instructionas it is decoded. @addr is the base address
+        each instructionas it is decoded. @base_addr is the base address
         where the instruction bytes are from (not an offset into
         @bs)
         '''
 
-        code = api.llvm.StringRefMemoryObject.new(bs, addr)
-        idx = code.getBase()
+        code = api.llvm.StringRefMemoryObject.new(bs, base_addr)
+        idx = 0
         align = self.mai.getMinInstAlignment()
 
         while(idx < code.getExtent()):
             inst = api.llvm.MCInst.new()
-            status, size = self.mdasm.getInstruction(inst, code, idx)
+            addr = code.getBase() + idx
+            status, size = self.mdasm.getInstruction(inst, code, addr)
 
             if status == MCDisassembler.DecodeStatus.Fail:
-                yield (idx, None)
+                yield (addr, None)
             elif status == MCDisassembler.DecodeStatus.SoftFail:
-                yield (idx, self.bad_instr(inst))
+                yield (addr, self.bad_instr(inst))
             else:
-                yield (idx, self.instr(inst))
+                yield (addr, self.instr(inst))
 
             if size < 1:
                idx += (align - (idx % align))

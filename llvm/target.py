@@ -225,6 +225,19 @@ class TargetMachine(llvm.Wrapper):
 
             return self._dasm
 
+        @property
+        def inst_printer(self):
+            if not getattr(self, '_mip', False):
+                self._mip = self.target.createMCInstPrinter(
+                                     self.asm_info.getAssemblerDialect(),
+                                     self.asm_info,
+                                     self.instr_info,
+                                     self.reg_info,
+                                     self.subtarget_info
+                                     )
+
+            return self._mip
+
         def is_little_endian(self):
             return self.asm_info.isLittleEndian()
 
