@@ -1037,6 +1037,9 @@ class Value(llvm.Wrapper):
     def __str__(self):
         return str(self._ptr)
 
+    def __hash__(self):
+        return hash(self._ptr)
+
     def __eq__(self, rhs):
         if isinstance(rhs, Value):
             return str(self) == str(rhs)
