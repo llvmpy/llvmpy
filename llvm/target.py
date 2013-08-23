@@ -194,27 +194,42 @@ class TargetMachine(llvm.Wrapper):
     if llvm.version >= (3, 4):
         @property
         def reg_info(self):
-            if not getattr(self, '_mri', False):
-                self._mri = self.target.createMCRegInfo(self.triple)
+            mri = self._ptr.getRegisterInfo()
+            if not mri:
+                raise llvm.LLVMException("no reg info for this machine")
 
-            return self._mri
+            return mri
 
         @property
         def subtarget_info(self):
-            return self._ptr.getSubtargetImpl()
+            sti = self._ptr.getSubtargetImpl()
+            if not sti:
+                raise llvm.LLVMException("no subtarget info for this machine")
+
+            return sti
 
         @property
         def asm_info(self):
-            return self._ptr.getMCAsmInfo()
+            ai = self._ptr.getMCAsmInfo()
+            if not ai:
+                raise llvm.LLVMException("no asm info for this machine")
+
+            return ai
 
         @property
         def instr_info(self):
-            return self._ptr.getInstrInfo()
+            ii = self._ptr.getInstrInfo()
+            if not ii:
+                raise llvm.LLVMException("no instr info for this machine")
+
+            return ii
 
         @property
         def instr_analysis(self):
             if not getattr(self, '_mia', False):
                 self._mia = self.target.createMCInstrAnalysis(self.instr_info)
+            if not self._mia:
+                raise llvm.LLVMException("no instr analysis for this machine")
 
             return self._mia
 
@@ -222,6 +237,8 @@ class TargetMachine(llvm.Wrapper):
         def disassembler(self):
             if not getattr(self, '_dasm', False):
                 self._dasm = self.target.createMCDisassembler(self.subtarget_info)
+            if not self._dasm:
+                raise llvm.LLVMException("no disassembler for this machine")
 
             return self._dasm
 
@@ -235,6 +252,8 @@ class TargetMachine(llvm.Wrapper):
                                      self.reg_info,
                                      self.subtarget_info
                                      )
+            if not self._mip:
+                raise llvm.LLVMException("no instr printer for this machine")
 
             return self._mip
 
