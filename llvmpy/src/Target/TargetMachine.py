@@ -9,7 +9,10 @@ from src.Support.CodeGen import CodeModel, TLSModel, CodeGenOpt, Reloc
 from src.GlobalValue import GlobalValue
 from src.DataLayout import DataLayout
 if LLVM_VERSION >= (3, 4):
-    from src.MC import MCAsmInfo, TargetInstrInfo, TargetSubtargetInfo
+    from src.MC import MCAsmInfo, \
+                       TargetInstrInfo, \
+                       TargetSubtargetInfo, \
+                       TargetRegisterInfo
 
 if LLVM_VERSION < (3, 3):
     from src.TargetTransformInfo import (ScalarTargetTransformInfo,
@@ -58,9 +61,11 @@ class TargetMachine:
                                  ).require_only(3)
 
     if LLVM_VERSION >= (3, 4):
-        getSubtargetImpl = Method(const(ptr(TargetSubtargetInfo)))
+        getSubtargetImpl = Method(const(ownedptr(TargetSubtargetInfo)))
 
-        getMCAsmInfo = Method(const(ptr(MCAsmInfo)))
+        getMCAsmInfo = Method(const(ownedptr(MCAsmInfo)))
 
-        getInstrInfo = Method(const(ptr(TargetInstrInfo)))
+        getInstrInfo = Method(const(ownedptr(TargetInstrInfo)))
+
+        getRegisterInfo = Method(const(ownedptr(TargetRegisterInfo)))
 
