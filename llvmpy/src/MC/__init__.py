@@ -14,9 +14,19 @@ MCRegisterInfo = llvm.Class()
 MCInstrInfo = llvm.Class()
 MCInstrAnalysis = llvm.Class()
 MCInstPrinter = llvm.Class()
+MCInstrDesc = llvm.Class()
 
 TargetSubtargetInfo = llvm.Class(MCSubtargetInfo)
 TargetInstrInfo = llvm.Class(MCInstrInfo)
+TargetRegisterInfo = llvm.Class(MCRegisterInfo)
+
+@MCInstrDesc
+class MCInstrDesc:
+   _include_ = "llvm/MC/MCInstrDesc.h"
+
+   TSFlags = Attr(getter=cast(Uint64, int), setter=cast(int, Uint64))
+   getFlags = Method(cast(Unsigned, int))
+   getOpcode = Method(cast(Unsigned, int))
 
 @MCSubtargetInfo
 class MCSubtargetInfo:
@@ -59,7 +69,9 @@ class MCInst:
 
     getOperand = Method(const(ref(MCOperand)), cast(int, Unsigned))
 
-MCOperand.getInst = Method(const(ptr(MCInst)))
+    getOpcode = Method(cast(Unsigned, int))
+
+MCOperand.getInst = Method(const(ownedptr(MCInst)))
 
 @MCAsmInfo
 class MCAsmInfo:
@@ -75,13 +87,21 @@ class MCRegisterInfo:
 
     getName = Method(cast(ConstCharPtr, str), cast(int, Unsigned))
 
+@TargetRegisterInfo
+class TargetRegisterInfo:
+    _include_ = "llvm/Target/TargetRegisterInfo.h"
+
 @MCInstrInfo
 class MCInstrInfo:
     _include_ = "llvm/MC/MCInstrInfo.h"
 
+    get = Method(const(ref(MCInstrDesc)), cast(int, Unsigned))
+
 @TargetInstrInfo
 class TargetInstrInfo:
     _include_ = 'llvm/Target/TargetInstrInfo.h'
+
+    get = Method(const(ref(MCInstrDesc)), cast(int, Unsigned))
 
 @MCInstrAnalysis
 class MCInstrAnalysis:
