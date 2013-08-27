@@ -101,8 +101,6 @@ class MCInstrInfo:
 class TargetInstrInfo:
     _include_ = 'llvm/Target/TargetInstrInfo.h'
 
-    get = Method(const(ref(MCInstrDesc)), cast(int, Unsigned))
-
 @MCInstrAnalysis
 class MCInstrAnalysis:
     _include_ = "llvm/MC/MCInstrAnalysis.h"
