@@ -6,14 +6,12 @@ def main():
   triple = "i386--"
 
   print("init start")
-  '''
   api.llvm.InitializeAllTargets()
   api.llvm.InitializeAllTargetInfos()
   api.llvm.InitializeAllTargetMCs()
   api.llvm.InitializeAllAsmParsers()
   api.llvm.InitializeAllAsmPrinters()
   api.llvm.InitializeAllDisassemblers()
-  '''
   print("init done\n")
 
   tm = llvm.target.TargetMachine.x86()
