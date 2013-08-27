@@ -202,7 +202,8 @@ class CppCodeWriter(CodeWriterBase):
 
     def pycapsule_new(self, ptr, name, clsname):
         name_soften = mangle(name)
-        ret = self.call('pycapsule_new', 'PyObject*', ptr, quote(name),
+        cast_to_base = 'cast_to_base<%s >::from(%s)' % (name, ptr)
+        ret = self.call('pycapsule_new', 'PyObject*', cast_to_base, quote(name),
                         quote(clsname))
         with self.block('if (!%(ret)s)' % locals()):
             self.return_null()

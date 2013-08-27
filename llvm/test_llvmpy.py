@@ -1411,9 +1411,10 @@ class TestMCJIT(TestCase):
         self.assertEqual(321 + 123, callee(321, 123))
 
 
-if llvm.version >= (3, 3):
-    # MCJIT broken in 3.2
-    # The test will segfault in OSX?
+if (llvm.version >= (3, 3) and
+    not (sys.platform.startswith('win32') and BITS == 64)):
+    # MCJIT broken in 3.2, the test will segfault in OSX?
+    # Compatbility problem on windows 7 64-bit?
     tests.append(TestMCJIT)
 
 

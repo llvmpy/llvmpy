@@ -333,7 +333,7 @@ class Class(SubModule, _Type):
         writer.die_if_false(raw, verbose=name)
         ptrty = ptr(self).fullname
         ty = self.fullname
-        fmt = 'typecast< %(ty)s >::from(%(raw)s)'
+        fmt = 'unwrap_as<%(ty)s, %(name)s >::from(%(raw)s)'
         casted = writer.declare(ptrty, fmt % locals())
         writer.die_if_false(casted)
         return casted
