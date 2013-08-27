@@ -87,6 +87,18 @@ class Instr(object):
 
         return l
 
+    @property
+    def instr_desc(self):
+        return self.tm.instr_info.get(self.mcinst.getOpcode())
+
+    @property
+    def flags(self):
+        return self.instr_desc.getFlags()
+
+    @property
+    def ts_flags(self):
+        return self.instr_desc.TSFlags
+
 class BadInstr(Instr):
     pass
 

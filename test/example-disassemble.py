@@ -20,6 +20,7 @@ if llvm.version >= (3, 4):
                 else:
                     print("\t0x%x ops = %s" % (addr, ops))
 
+                print("\t\tflags = 0x%x, tsflags = 0x%x" % (inst.flags, inst.ts_flags))
                 for line in str(inst).split("\n"):
                     print("\t%s" % (line))
 
