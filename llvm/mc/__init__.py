@@ -129,6 +129,9 @@ class Disassembler(object):
         @bs)
         '''
 
+        if isinstance(bs, str):
+            bs = bytes(map(lambda c: ord(c), bs))
+
         code = api.llvm.StringRefMemoryObject.new(bs, base_addr)
         idx = 0
         align = self.mai.getMinInstAlignment()
