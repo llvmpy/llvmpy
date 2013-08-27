@@ -57,7 +57,7 @@ class MCOperand:
     getReg = Method(cast(Unsigned, int))
     getImm = Method(cast(Int64, int))
     getFPImm = Method(cast(Double, float))
-    getExpr = Method(const(ptr(MCExpr)))
+    getExpr = Method(const(ownedptr(MCExpr)))
     
 @MCInst
 class MCInst:
