@@ -106,25 +106,28 @@ class Instr(object):
         return self.mcinst.getOpcode()
 
     def is_branch(self):
-        return self.tm.instr_analysis.isBranch(self.mcinst)
+        return self.instr_desc.isBranch()
 
     def is_cond_branch(self):
-        return self.tm.instr_analysis.isConditionalBranch(self.mcinst)
+        return self.instr_desc.isConditionalBranch()
 
     def is_uncond_branch(self):
-        return self.tm.instr_analysis.isUnconditionalBranch(self.mcinst)
+        return self.instr_desc.isUnconditionalBranch()
 
     def is_indirect_branch(self):
-        return self.tm.instr_analysis.isIndirectBranch(self.mcinst)
+        return self.instr_desc.isIndirectBranch()
 
     def is_call(self):
-        return self.tm.instr_analysis.isCall(self.mcinst)
+        return self.instr_desc.isCall()
 
     def is_return(self):
-        return self.tm.instr_analysis.isReturn(self.mcinst)
+        return self.instr_desc.isReturn()
 
     def is_terminator(self):
-        return self.tm.instr_analysis.isTerminator(self.mcinst)
+        return self.instr_desc.isTerminator()
+
+    def is_barrier(self):
+        return self.instr_desc.isBarrier()
 
 class BadInstr(Instr):
     pass

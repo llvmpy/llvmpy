@@ -22,11 +22,24 @@ TargetRegisterInfo = llvm.Class(MCRegisterInfo)
 
 @MCInstrDesc
 class MCInstrDesc:
-   _include_ = "llvm/MC/MCInstrDesc.h"
+    _include_ = "llvm/MC/MCInstrDesc.h"
 
-   TSFlags = Attr(getter=cast(Uint64, int), setter=cast(int, Uint64))
-   getFlags = Method(cast(Unsigned, int))
-   getOpcode = Method(cast(Unsigned, int))
+    TSFlags = Attr(getter=cast(Uint64, int), setter=cast(int, Uint64))
+    getFlags = Method(cast(Unsigned, int))
+    getOpcode = Method(cast(Unsigned, int))
+
+    def _ret_bool():
+        return Method(cast(Bool, bool))
+
+    isReturn = _ret_bool()
+    isCall = _ret_bool()
+    isBarrier = _ret_bool()
+    isBranch = _ret_bool()
+    isTerminator = _ret_bool()
+    isIndirectBranch = _ret_bool()
+    isConditionalBranch = _ret_bool()
+    isUnconditionalBranch = _ret_bool()
+
 
 @MCSubtargetInfo
 class MCSubtargetInfo:

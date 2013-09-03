@@ -16,7 +16,8 @@ if llvm.version >= (3, 4):
             'is_indirect_branch',
             'is_call',
             'is_return',
-            'is_terminator'
+            'is_terminator',
+            'is_barrier'
         ]
 
         print("print instructions")
