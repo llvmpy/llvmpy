@@ -105,6 +105,18 @@ class TargetInstrInfo:
 class MCInstrAnalysis:
     _include_ = "llvm/MC/MCInstrAnalysis.h"
 
+
+    def _take_mcinst_ret_bool():
+        return Method(cast(Bool, bool), const(ref(MCInst)))
+
+    isBranch = _take_mcinst_ret_bool()
+    isConditionalBranch = _take_mcinst_ret_bool()
+    isUnconditionalBranch = _take_mcinst_ret_bool()
+    isIndirectBranch = _take_mcinst_ret_bool()
+    isCall = _take_mcinst_ret_bool()
+    isReturn = _take_mcinst_ret_bool()
+    isTerminator = _take_mcinst_ret_bool()
+
 @MCInstPrinter
 class MCInstPrinter:
     _include_ = "llvm/MC/MCInstPrinter.h"
