@@ -91,7 +91,7 @@ class Instr(object):
 
     @property
     def instr_desc(self):
-        return self.tm.instr_info.get(self.mcinst.getOpcode())
+        return self.tm.instr_info.get(self.opcode)
 
     @property
     def flags(self):
@@ -100,6 +100,11 @@ class Instr(object):
     @property
     def ts_flags(self):
         return self.instr_desc.TSFlags
+
+    @property
+    def opcode(self):
+        return self.mcinst.getOpcode()
+
 
 class BadInstr(Instr):
     pass
