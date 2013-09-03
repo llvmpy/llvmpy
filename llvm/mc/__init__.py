@@ -126,9 +126,11 @@ class Disassembler(object):
     def decode(self, bs, base_addr):
         '''
         decodes some the bytes in @bs into instructions and yields
-        each instructionas it is decoded. @base_addr is the base address
+        each instruction as it is decoded. @base_addr is the base address
         where the instruction bytes are from (not an offset into
-        @bs)
+        @bs). yields instructions in the form of (addr, data, inst) where
+        addr is an integer, data is a bytearray and inst is an instance of
+        llvm.mc.Instr
         '''
 
         if not isinstance(bs, bytes):
@@ -146,15 +148,27 @@ class Disassembler(object):
             addr = code.getBase() + idx
             status, size = self.mdasm.getInstruction(inst, code, addr)
 
-            if status == MCDisassembler.DecodeStatus.Fail:
-                yield (addr, None)
-            elif status == MCDisassembler.DecodeStatus.SoftFail:
-                yield (addr, self.bad_instr(inst))
-            else:
-                yield (addr, self.instr(inst))
-
             if size < 1:
-               idx += (align - (idx % align))
-            else:
-               idx += size
+                size = (align - (idx % align))
 
+            amt_left = code.getExtent() - idx
+            if amt_left >= size:
+                data = code.readBytes(addr, size)
+            elif amt_left < 1:
+                break 
+            else:
+                data = code.readBytes(addr, amt_left)
+
+            if sys.version_info.major < 3:
+                data = bytearray(map(lambda b: ord(b), data))
+            else:
+                data = bytearray(data)
+
+            if status == MCDisassembler.DecodeStatus.Fail:
+                yield (addr, data, None)
+            elif status == MCDisassembler.DecodeStatus.SoftFail:
+                yield (addr, data, self.bad_instr(inst))
+            else:
+                yield (addr, data, self.instr(inst))
+
+            idx += size

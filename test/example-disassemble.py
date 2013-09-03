@@ -10,7 +10,8 @@ if llvm.version >= (3, 4):
 
     def print_instructions(dasm, bs):
         print("print instructions")
-        for (addr, inst) in dasm.decode(bs, 0x4000):
+        for (addr, data, inst) in dasm.decode(bs, 0x4000):
+
             if inst is None:
                 print("\t0x%x => (bad)" % (addr))
             else:
@@ -22,7 +23,7 @@ if llvm.version >= (3, 4):
 
                 print("\t\tflags = 0x%x, tsflags = 0x%x" % (inst.flags, inst.ts_flags))
                 for line in str(inst).split("\n"):
-                    print("\t%s" % (line))
+                    print("\t\t%-24s %s" % ("".join(map(lambda b: "%02x" % b, data))+":", line.strip()))
 
 
     x86 = TargetMachine.x86()

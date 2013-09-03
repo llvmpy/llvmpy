@@ -955,6 +955,36 @@ PyObject* TargetRegistry_targets_list()
                   "llvm::Target", "llvm::Target");
 }
 
+static
+PyObject* MemoryObject_readBytes(const llvm::MemoryObject *mobj,
+                                 uint64_t addr,
+                                 uint64_t size
+                                 )
+{
+    int status;
+    uint8_t *bytes;
+    PyObject* po;
+
+    if(size < 1)
+        goto fail;
+
+    bytes = new uint8_t[size];
+    if(bytes == NULL)
+        goto fail;
+
+    status = mobj->readBytes(addr, size, bytes);
+    if(status != 0) {
+        delete bytes;
+        goto fail;
+    }
+
+    po = PyBytes_FromStringAndSize((const char *) bytes, size);
+    delete bytes;
+
+    return po;
+fail:
+    Py_RETURN_NONE;
+}
 
 #if LLVM_VERSION_MAJOR >= 3 and LLVM_VERSION_MINOR >= 4
 static
@@ -972,6 +1002,7 @@ PyObject* MCDisassembler_getInstruction(llvm::MCDisassembler *disasm,
                                     llvm::nulls(), llvm::nulls());
     return Py_BuildValue("(i,i)", int(status), size);
 }
+
 #endif /* llvm >= 3.4 */
 
 static
