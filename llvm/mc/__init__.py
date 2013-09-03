@@ -154,7 +154,7 @@ class Disassembler(object):
         each instruction as it is decoded. @base_addr is the base address
         where the instruction bytes are from (not an offset into
         @bs). yields instructions in the form of (addr, data, inst) where
-        addr is an integer, data is a bytearray and inst is an instance of
+        addr is an integer, data is a tuple of integers and inst is an instance of
         llvm.mc.Instr
         '''
 
@@ -185,9 +185,9 @@ class Disassembler(object):
                 data = code.readBytes(addr, amt_left)
 
             if sys.version_info.major < 3:
-                data = bytearray(map(lambda b: ord(b), data))
+                data = tuple(map(lambda b: ord(b), data))
             else:
-                data = bytearray(data)
+                data = tuple(data)
 
             if status == MCDisassembler.DecodeStatus.Fail:
                 yield (addr, data, None)
