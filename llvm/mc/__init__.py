@@ -1,3 +1,5 @@
+import sys
+
 import llvm
 if llvm.version < (3, 4):
     raise Exception("mc is not supported for llvm version less than 3.4")
@@ -129,8 +131,11 @@ class Disassembler(object):
         @bs)
         '''
 
-        if isinstance(bs, str):
-            bs = bytes(map(lambda c: ord(c), bs))
+        if not isinstance(bs, bytes):
+            if sys.version_info.major < 3:
+                bs = bytes(bs)
+            else:
+                bs = bytes(map(lambda c: ord(c), bs))
 
         code = api.llvm.StringRefMemoryObject.new(bs, base_addr)
         idx = 0
