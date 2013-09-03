@@ -9,6 +9,16 @@ if llvm.version >= (3, 4):
     llvm.target.initialize_all()
 
     def print_instructions(dasm, bs):
+        branch_properties = [
+            'is_branch',
+            'is_cond_branch',
+            'is_uncond_branch',
+            'is_indirect_branch',
+            'is_call',
+            'is_return',
+            'is_terminator'
+        ]
+
         print("print instructions")
         for (addr, data, inst) in dasm.decode(bs, 0x4000):
 
@@ -24,6 +34,9 @@ if llvm.version >= (3, 4):
                 print("\t\topcode = 0x%x, flags = 0x%x, tsflags = 0x%x" % (inst.opcode, inst.flags, inst.ts_flags))
                 for line in str(inst).split("\n"):
                     print("\t\t%-24s %s" % ("".join(map(lambda b: "%02x" % b, data))+":", line.strip()))
+
+                for bp in branch_properties:
+                    print("\t\t%-22s%r" % (bp+":", getattr(inst, bp)() ))
 
 
     x86 = TargetMachine.x86()
