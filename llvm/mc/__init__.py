@@ -26,15 +26,15 @@ class Operand(object):
 
     def __str__(self):
         s = "invalid"
-        if self.op.isReg():
+        if self.is_reg():
             s = "reg(%s)" % (self.reg_name())
-        elif self.op.isImm():
+        elif self.is_imm():
             s = "imm(0x%02x)" % (self.op.getImm())
-        elif self.op.isFPImm():
+        elif self.is_fp_imm():
             s = "imm(%r)" % (self.op.getFPImm())
-        elif self.op.isExpr():
+        elif self.is_expr():
             s = "expr(%r)" % (self.op.getExpr().getKind())
-        elif self.op.isInst():
+        elif self.is_inst():
             s = repr(Instr(self.op.getInst()))
 
         return s
@@ -43,7 +43,7 @@ class Operand(object):
         return str(self)
 
     def reg_name(self):
-        if self.op.isReg():
+        if self.is_reg():
             s = self.tm.reg_info.getName(self.op.getReg())
             if s.strip() == "":
                 return "?"
@@ -51,6 +51,39 @@ class Operand(object):
                 return s
         else:
             return ""
+
+    def is_reg(self):
+        return self.op.isReg()
+
+    def is_imm(self):
+        return self.op.isImm()
+
+    def is_fp_imm(self):
+        return self.op.isFPImm()
+
+    def is_expr(self):
+        return self.op.isExpr()
+
+    def is_inst(self):
+        return self.op.isInst()
+
+    def get_imm(self):
+        if self.is_imm():
+            return self.op.getImm()
+        else:
+            return None
+
+    def get_fp_imm(self):
+        if self.is_fp_imm():
+            return self.op.getFPImm()
+        else:
+            return None
+
+    def get_inst(self):
+        if self.is_inst():
+            return Instr(self.op.getInst())
+        else:
+            return None
 
 class Instr(object):
 
