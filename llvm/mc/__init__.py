@@ -194,11 +194,10 @@ class Disassembler(object):
         llvm.mc.Instr
         '''
 
-        if not isinstance(bs, bytes):
-            if sys.version_info.major < 3:
-                bs = bytes(bs)
-            else:
-                bs = bytes(map(lambda c: ord(c), bs))
+        if isinstance(bs, str) and sys.version_info.major >= 3:
+            bs = bytes(map(lambda c: ord(c), bs))
+        elif not isinstance(bs, bytes):
+            raise TypeError("expected bs to be either 'str' or 'bytes' but got %s" % type(bs))
 
         code = api.llvm.StringRefMemoryObject.new(bs, base_addr)
         idx = 0
