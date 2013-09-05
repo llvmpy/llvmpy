@@ -8,7 +8,7 @@ if llvm.version >= (3, 4):
 
     llvm.target.initialize_all()
 
-    def print_instructions(dasm, bs):
+    def print_instructions(dasm, bs, align=None):
         branch_properties = [
             'is_branch',
             'is_cond_branch',
@@ -21,7 +21,7 @@ if llvm.version >= (3, 4):
         ]
 
         print("print instructions")
-        for (addr, data, inst) in dasm.decode(bs, 0x4000):
+        for (addr, data, inst) in dasm.decode(bs, 0x4000, align):
 
             if inst is None:
                 print("\t0x%x => (bad)" % (addr))
@@ -55,6 +55,10 @@ if llvm.version >= (3, 4):
         "\xea\x00\x00\x06",
         "\xe2\x4d\xd0\x20",
         "\xe2\x8d\xb0\x04",
-        "\xe5\x0b\x00\x20"
+        "\xe5\x0b\x00\x20",
+        "\x03\x30\x22\xe0", #bad instruction to test alignment
+        "\x73\x20\xef\xe6", #bad instruction to test alignment
+        "\x18\x00\x1b\xe5",
+        "\x10\x30\xa0\xe3"
     ]
-    print_instructions(Disassembler(arm), "".join(map(lambda s: s[::-1], code)))
+    print_instructions(Disassembler(arm), "".join(map(lambda s: s[::-1], code)), 4)
