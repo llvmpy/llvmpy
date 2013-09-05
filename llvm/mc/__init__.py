@@ -184,14 +184,21 @@ class Disassembler(object):
     def bad_instr(self, mcinst):
         return BadInstr(mcinst, self.tm)
 
-    def decode(self, bs, base_addr):
+    def decode(self, bs, base_addr, align=None):
         '''
         decodes some the bytes in @bs into instructions and yields
         each instruction as it is decoded. @base_addr is the base address
         where the instruction bytes are from (not an offset into
         @bs). yields instructions in the form of (addr, data, inst) where
         addr is an integer, data is a tuple of integers and inst is an instance of
-        llvm.mc.Instr
+        llvm.mc.Instr. @align specifies the byte alignment of instructions and 
+        is only used if an un-decodable instruction is encountered, in which
+        case the disassembler will skip the following bytes until the next
+        aligned address. if @align is unspecified, the default alignment
+        for the architecture will be used, however this may not be ideal
+        for disassembly. for example, the default alignment for ARM is 1, but you 
+        probably want it to be 4 for the purposes of disassembling ARM
+        instructions.
         '''
 
         if isinstance(bs, str) and sys.version_info.major >= 3:
@@ -201,7 +208,8 @@ class Disassembler(object):
 
         code = api.llvm.StringRefMemoryObject.new(bs, base_addr)
         idx = 0
-        align = self.mai.getMinInstAlignment()
+        if not isinstance(align, int) or align < 1:
+            align = self.mai.getMinInstAlignment()
 
         while(idx < code.getExtent()):
             inst = api.llvm.MCInst.new()
