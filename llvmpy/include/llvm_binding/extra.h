@@ -955,6 +955,7 @@ PyObject* TargetRegistry_targets_list()
                   "llvm::Target", "llvm::Target");
 }
 
+#if LLVM_VERSION_MAJOR >= 3 and LLVM_VERSION_MINOR >= 4
 static
 PyObject* MemoryObject_readBytes(const llvm::MemoryObject *mobj,
                                  uint64_t addr,
@@ -986,7 +987,6 @@ fail:
     Py_RETURN_NONE;
 }
 
-#if LLVM_VERSION_MAJOR >= 3 and LLVM_VERSION_MINOR >= 4
 static
 PyObject* MCDisassembler_getInstruction(llvm::MCDisassembler *disasm, 
                                         llvm::MCInst &instr,
