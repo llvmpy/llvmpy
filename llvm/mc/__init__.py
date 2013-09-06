@@ -186,7 +186,7 @@ class Disassembler(object):
 
     def decode(self, bs, base_addr, align=None):
         '''
-        decodes some the bytes in @bs into instructions and yields
+        decodes the bytes in @bs into instructions and yields
         each instruction as it is decoded. @base_addr is the base address
         where the instruction bytes are from (not an offset into
         @bs). yields instructions in the form of (addr, data, inst) where
