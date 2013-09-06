@@ -3,11 +3,13 @@ from collections import defaultdict
 import logging
 logger = logging.getLogger(__name__)
 
+NO_DEBUG = False
 def silent_logger():
     '''
     Silent logger for unless we have a error message.
     '''
     logger.setLevel(logging.ERROR)
+    NO_DEBUG = True
 
 # comment out the line below to re-enable logging at DEBUG level.
 silent_logger()
@@ -35,7 +37,11 @@ def _capsule_weakref_dtor(item):
     if refct == 0:
         dtor = _addr2dtor.pop((name, addr), None)
         if dtor is not None:
-            logger.debug('Destroy %s %s', name, hex(addr))
+            if not NO_DEBUG:
+                # Some globals in logger could be removed by python GC
+                # at interpreter teardown.
+                # That can cause exception raised and ignored message.
+                logger.debug('Destroy %s %s', name, hex(addr))
             dtor(item.capsule)
 
 class Capsule(object):

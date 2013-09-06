@@ -254,11 +254,11 @@ PyObject* py_float_from(const double& val) {
 // casting
 template<class Td>
 struct typecast {
-// Unused
-//    template<class Ts> static
-//    Td* from(Ts* src) {
-//        return llvm::dyn_cast<Td>(src);
-//    }
+    template<class Ts> static
+    Td* from(Ts* src) {
+        // check why this is only used in Python3
+        return llvm::dyn_cast<Td>(src);
+    }
 
     static
     Td* from(void* src) {
