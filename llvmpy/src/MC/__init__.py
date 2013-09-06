@@ -1,3 +1,5 @@
+#this file is not processed unless the llvm library is 
+#version 3.4 or higher. see llvmpy/__init__.py for details.
 from binding import *
 from ..namespace import llvm
 from ..Support.StringRefMemoryObject import MemoryObject

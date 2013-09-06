@@ -652,6 +652,9 @@ def do_llvm_target():
          tm.is_little_endian()
 
 def do_llvm_mc():
+    if llvm.version < (3, 4):
+        return
+
     from llvm import target
     from llvm import mc
 
