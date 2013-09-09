@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # ______________________________________________________________________
 '''Defines a bytecode based LLVM translator for llpython code.
