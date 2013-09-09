@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # ______________________________________________________________________
 
 def doslice (in_string, lower, upper):

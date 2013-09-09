@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # ______________________________________________________________________
 
 from .bytecode_visitor import BytecodeFlowVisitor, BenignBytecodeVisitorMixin
