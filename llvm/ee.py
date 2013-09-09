@@ -30,6 +30,7 @@
 
 "Execution Engine and related classes."
 
+import sys
 from io import BytesIO
 import contextlib
 
@@ -150,9 +151,17 @@ class EngineBuilder(llvm.Wrapper):
         '''
         if tm is not None:
             engine = self._ptr.create(tm._ptr)
+        elif (sys.platform.startswith('win32') and
+                    getattr(self, '_use_mcjit', False)):
+            # force ELF generation on MCJIT on win32
+            triple = get_default_triple()
+            tm = TargetMachine.new('%s-elf' % triple)
+            engine = self._ptr.create(tm._ptr)
         else:
             engine = self._ptr.create()
-        return ExecutionEngine(engine)
+        ee = ExecutionEngine(engine)
+        ee.finalize_object()                # no effect for legacy JIT
+        return ee
 
     def select_target(self, *args):
         '''get the corresponding target machine
@@ -171,6 +180,7 @@ class EngineBuilder(llvm.Wrapper):
         '''Enable/disable MCJIT
         '''
         self._ptr.setUseMCJIT(enable)
+        self._use_mcjit = True
         return self
 
 #===----------------------------------------------------------------------===
@@ -192,6 +202,9 @@ class ExecutionEngine(llvm.Wrapper):
     def run_function(self, fn, args):
         ptr = self._ptr.runFunction(fn._ptr, list(map(lambda x: x._ptr, args)))
         return GenericValue(ptr)
+
+    def get_pointer_to_named_function(self, name, abort=True):
+        return self._ptr.getPointerToNamedFunction(name, abort)
 
     def get_pointer_to_function(self, fn):
         return self._ptr.getPointerToFunction(fn._ptr)
@@ -218,6 +231,9 @@ class ExecutionEngine(llvm.Wrapper):
     def remove_module(self, module):
         return self._ptr.removeModule(module._ptr)
 
+    def finalize_object(self):
+        return self._ptr.finalizeObject()
+
     @property
     def target_data(self):
         ptr = self._ptr.getDataLayout()
@@ -232,7 +248,7 @@ def initialize_target(target, noraise=False):
     It is safe to initialize the same target multiple times.
     """
     prefix = 'LLVMInitialize'
-    postfixes = ['Target', 'TargetInfo', 'TargetMC', 'AsmPrinter']
+    postfixes = ['Target', 'TargetInfo', 'TargetMC', 'AsmPrinter', 'AsmParser']
     try:
         for postfix in postfixes:
             getattr(api, '%s%s%s' % (prefix, target, postfix))()
@@ -274,7 +290,7 @@ class TargetMachine(llvm.Wrapper):
         with contextlib.closing(BytesIO()) as error:
             target = api.llvm.TargetRegistry.lookupTarget(triple, error)
             if not target:
-                raise llvm.LLVMException(error)
+                raise llvm.LLVMException(error.getvalue())
             if not target.hasTargetMachine():
                 raise llvm.LLVMException(target, "No target machine.")
             target_options = api.llvm.TargetOptions.new()
@@ -366,3 +382,14 @@ class TargetMachine(llvm.Wrapper):
     def feature_string(self):
         return self._ptr.getTargetFeatureString()
 
+
+
+#===----------------------------------------------------------------------===
+# Dynamic Library
+#===----------------------------------------------------------------------===
+
+def dylib_add_symbol(name, ptr):
+    api.llvm.sys.DynamicLibrary.AddSymbol(name, ptr)
+
+def dylib_address_of_symbol(name):
+    return api.llvm.sys.DynamicLibrary.SearchForAddressOfSymbol(name)

@@ -15,7 +15,10 @@ from .GlobalVariable import GlobalVariable
 
 @DataLayout
 class DataLayout:
-    _include_ = 'llvm/DataLayout.h'
+    if LLVM_VERSION >= (3, 3):
+        _include_ = 'llvm/IR/DataLayout.h'
+    else:
+        _include_ = 'llvm/DataLayout.h'
 
     _new_string = Constructor(cast(str, StringRef))
     _new_module = Constructor(ptr(Module))

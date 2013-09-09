@@ -325,11 +325,17 @@ class VisibilityEnum(Enum):
 
 VisibilityEnum.declare()
 
-# parameter attributes llvm::Attributes::AttrVal (see llvm/Attributes.h)
+# parameter attributes
+#      LLVM 3.2 llvm::Attributes::AttrVal (see llvm/Attributes.h)
+#      LLVM 3.3 llvm::Attribute::AttrKind (see llvm/Attributes.h)
 class AttrEnum(Enum):
     prefix = 'ATTR_'
 
-    AttrVal = api.llvm.Attributes.AttrVal
+    if llvm.version >= (3, 3):
+        AttrVal = api.llvm.Attribute.AttrKind
+    else:
+        AttrVal = api.llvm.Attributes.AttrVal
+
     ATTR_NONE               = AttrVal.None_
     ATTR_ZEXT               = AttrVal.ZExt
     ATTR_SEXT               = AttrVal.SExt
@@ -1031,6 +1037,9 @@ class Value(llvm.Wrapper):
     def __str__(self):
         return str(self._ptr)
 
+    def __hash__(self):
+        return hash(self._ptr)
+
     def __eq__(self, rhs):
         if isinstance(rhs, Value):
             return str(self) == str(rhs)
@@ -1436,29 +1445,55 @@ class Argument(Value):
     _valid_attrs = frozenset([ATTR_BY_VAL, ATTR_NEST, ATTR_NO_ALIAS,
                               ATTR_NO_CAPTURE, ATTR_STRUCT_RET])
 
-    def add_attribute(self, attr):
-        context = api.llvm.getGlobalContext()
-        attrbldr = api.llvm.AttrBuilder.new()
-        attrbldr.addAttribute(attr)
-        attrs = api.llvm.Attributes.get(context, attrbldr)
-        self._ptr.addAttr(attrs)
-        if attr not in self:
-            raise ValueError("Attribute %s is not valid for arg %s" %
-                             (attr, self))
+    if llvm.version >= (3, 3):
+        def add_attribute(self, attr):
+            context = api.llvm.getGlobalContext()
+            attrbldr = api.llvm.AttrBuilder.new()
+            attrbldr.addAttribute(attr)
+            attrs = api.llvm.AttributeSet.get(context, 0, attrbldr)
+            self._ptr.addAttr(attrs)
+        
+            if attr not in self:
+                raise ValueError("Attribute %r is not valid for arg %s" %
+                                 (attr, self))
 
-    def remove_attribute(self, attr):
-        context = api.llvm.getGlobalContext()
-        attrbldr = api.llvm.AttrBuilder.new()
-        attrbldr.addAttribute(attr)
-        attrs = api.llvm.Attributes.get(context, attrbldr)
-        self._ptr.removeAttr(attrs)
+        def remove_attribute(self, attr):
+            context = api.llvm.getGlobalContext()
+            attrbldr = api.llvm.AttrBuilder.new()
+            attrbldr.addAttribute(attr)
+            attrs = api.llvm.AttributeSet.get(context, 0, attrbldr)
+            self._ptr.removeAttr(attrs)
 
-    def _set_alignment(self, align):
-        context = api.llvm.getGlobalContext()
-        attrbldr = api.llvm.AttrBuilder.new()
-        attrbldr.addAlignmentAttr(align)
-        attrs = api.llvm.Attributes.get(context, attrbldr)
-        self._ptr.addAttr(attrs)
+        def _set_alignment(self, align):
+            context = api.llvm.getGlobalContext()
+            attrbldr = api.llvm.AttrBuilder.new()
+            attrbldr.addAlignmentAttr(align)
+            attrs = api.llvm.AttributeSet.get(context, 0, attrbldr)
+            self._ptr.addAttr(attrs)
+    else:
+        def add_attribute(self, attr):
+            context = api.llvm.getGlobalContext()
+            attrbldr = api.llvm.AttrBuilder.new()
+            attrbldr.addAttribute(attr)
+            attrs = api.llvm.Attributes.get(context, attrbldr)
+            self._ptr.addAttr(attrs)
+            if attr not in self:
+                raise ValueError("Attribute %r is not valid for arg %s" %
+                                 (attr, self))
+
+        def remove_attribute(self, attr):
+            context = api.llvm.getGlobalContext()
+            attrbldr = api.llvm.AttrBuilder.new()
+            attrbldr.addAttribute(attr)
+            attrs = api.llvm.Attributes.get(context, attrbldr)
+            self._ptr.removeAttr(attrs)
+
+        def _set_alignment(self, align):
+            context = api.llvm.getGlobalContext()
+            attrbldr = api.llvm.AttrBuilder.new()
+            attrbldr.addAlignmentAttr(align)
+            attrs = api.llvm.Attributes.get(context, attrbldr)
+            self._ptr.addAttr(attrs)
 
     def _get_alignment(self):
         return self._ptr.getParamAlignment()
@@ -1816,6 +1851,9 @@ class Instruction(User):
     def erase_from_parent(self):
         return self._ptr.eraseFromParent()
 
+    def replace_all_uses_with(self, inst):
+        self._ptr.replaceAllUsesWith(inst)
+
 
 class CallOrInvokeInstruction(Instruction):
     _type_ = api.llvm.CallInst, api.llvm.InvokeInst
@@ -2092,29 +2130,34 @@ class Builder(llvm.Wrapper):
 
     # arithmethic, bitwise and logical
 
-    def add(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateAdd(lhs._ptr, rhs._ptr, name))
+    def add(self, lhs, rhs, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateAdd(lhs._ptr, rhs._ptr, name,
+                                               nuw, nsw))
 
     def fadd(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFAdd(lhs._ptr, rhs._ptr, name))
 
-    def sub(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateSub(lhs._ptr, rhs._ptr, name))
+    def sub(self, lhs, rhs, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateSub(lhs._ptr, rhs._ptr, name,
+                                               nuw, nsw))
 
     def fsub(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFSub(lhs._ptr, rhs._ptr, name))
 
-    def mul(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateMul(lhs._ptr, rhs._ptr, name))
+    def mul(self, lhs, rhs, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateMul(lhs._ptr, rhs._ptr, name,
+                                               nuw, nsw))
 
     def fmul(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFMul(lhs._ptr, rhs._ptr, name))
 
-    def udiv(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateUDiv(lhs._ptr, rhs._ptr, name))
+    def udiv(self, lhs, rhs, name="", exact=False):
+        return _make_value(self._ptr.CreateUDiv(lhs._ptr, rhs._ptr, name,
+                                                exact))
 
-    def sdiv(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateSDiv(lhs._ptr, rhs._ptr, name))
+    def sdiv(self, lhs, rhs, name="", exact=False):
+        return _make_value(self._ptr.CreateSDiv(lhs._ptr, rhs._ptr, name,
+                                                exact))
 
     def fdiv(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFDiv(lhs._ptr, rhs._ptr, name))
@@ -2128,14 +2171,17 @@ class Builder(llvm.Wrapper):
     def frem(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateFRem(lhs._ptr, rhs._ptr, name))
 
-    def shl(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateShl(lhs._ptr, rhs._ptr, name))
+    def shl(self, lhs, rhs, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateShl(lhs._ptr, rhs._ptr, name,
+                                               nuw, nsw))
 
-    def lshr(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateLShr(lhs._ptr, rhs._ptr, name))
+    def lshr(self, lhs, rhs, name="", exact=False):
+        return _make_value(self._ptr.CreateLShr(lhs._ptr, rhs._ptr, name,
+                                                exact))
 
-    def ashr(self, lhs, rhs, name=""):
-        return _make_value(self._ptr.CreateAShr(lhs._ptr, rhs._ptr, name))
+    def ashr(self, lhs, rhs, name="", exact=False):
+        return _make_value(self._ptr.CreateAShr(lhs._ptr, rhs._ptr, name,
+                                                exact))
 
     def and_(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateAnd(lhs._ptr, rhs._ptr, name))
@@ -2146,8 +2192,8 @@ class Builder(llvm.Wrapper):
     def xor(self, lhs, rhs, name=""):
         return _make_value(self._ptr.CreateXor(lhs._ptr, rhs._ptr, name))
 
-    def neg(self, val, name=""):
-        return _make_value(self._ptr.CreateNeg(val._ptr, name))
+    def neg(self, val, name="", nuw=False, nsw=False):
+        return _make_value(self._ptr.CreateNeg(val._ptr, name, nuw, nsw))
 
     def not_(self, val, name=""):
         return _make_value(self._ptr.CreateNot(val._ptr, name))
@@ -2422,4 +2468,8 @@ if api.llvm.InitializeNativeTargetAsmPrinter():
     # should this be an optional feature?
     # should user trigger the initialization?
     raise llvm.LLVMException("No native asm printer!?")
-
+if api.llvm.InitializeNativeTargetAsmParser():
+    # required by MCJIT?
+    # should this be an optional feature?
+    # should user trigger the initialization?
+    raise llvm.LLVMException("No native asm parser!?")

@@ -14,7 +14,7 @@ from src.Support.CodeGen import Reloc, CodeModel, CodeGenOpt
 
 @Target
 class Target:
-    getNext = Method(const(ptr(Target)))
+    getNext = Method(const(ownedptr(Target)))
 
     getName = Method(cast(StdString, str))
     getShortDescription = Method(cast(StdString, str))

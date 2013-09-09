@@ -101,3 +101,5 @@ class ExecutionEngine:
         unwrapped = list(map(capsule.unwrap, args))
         return self._runFunction(fn, tuple(unwrapped))
 
+    finalizeObject = Method(Void)
+

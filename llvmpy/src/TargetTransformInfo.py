@@ -2,7 +2,10 @@ from binding import *
 from src.namespace import llvm
 from src.Pass import ImmutablePass
 
-llvm.includes.add('llvm/TargetTransformInfo.h')
+if LLVM_VERSION >= (3, 3):
+    llvm.includes.add('llvm/Analysis/TargetTransformInfo.h')
+else:
+    llvm.includes.add('llvm/TargetTransformInfo.h')
 
 TargetTransformInfo = llvm.Class(ImmutablePass)
 ScalarTargetTransformInfo = llvm.Class()
@@ -11,14 +14,17 @@ VectorTargetTransformInfo = llvm.Class()
 
 @ScalarTargetTransformInfo
 class ScalarTargetTransformInfo:
-    delete = Destructor()
+    if LLVM_VERSION < (3, 3):
+        delete = Destructor()
 
 @VectorTargetTransformInfo
 class VectorTargetTransformInfo:
-    delete = Destructor()
+    if LLVM_VERSION < (3, 3):
+        delete = Destructor()
 
 @TargetTransformInfo
 class TargetTransformInfo:
-    new = Constructor(ptr(ScalarTargetTransformInfo),
-                      ptr(VectorTargetTransformInfo))
+    if LLVM_VERSION < (3, 3):
+        new = Constructor(ptr(ScalarTargetTransformInfo),
+                          ptr(VectorTargetTransformInfo))
 

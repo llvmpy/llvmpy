@@ -16,7 +16,10 @@ from .Metadata import NamedMDNode
 
 @Module
 class Module:
-    _include_ = "llvm/Module.h"
+    if LLVM_VERSION >= (3, 3):
+        _include_ = "llvm/IR/Module.h"
+    else:
+        _include_ = "llvm/Module.h"
     # Enumerators
     Endianness = Enum('AnyEndianness', 'LittleEndian', 'BigEndian')
     PointerSize = Enum('AnyPointerSize', 'Pointer32', 'Pointer64')

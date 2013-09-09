@@ -247,7 +247,8 @@ class Class(SubModule, _Type):
     def __call__(self, defn):
         assert not self._is_defined
         # process the definition in "defn"
-        self.name = defn.__name__
+        self.name = getattr(defn, '_name_', defn.__name__)
+
         for k, v in defn.__dict__.items():
             if isinstance(v, Method):
                 self.methods.append(v)
@@ -332,7 +333,7 @@ class Class(SubModule, _Type):
         writer.die_if_false(raw, verbose=name)
         ptrty = ptr(self).fullname
         ty = self.fullname
-        fmt = 'typecast< %(ty)s >::from(%(raw)s)'
+        fmt = 'unwrap_as<%(ty)s, %(name)s >::from(%(raw)s)'
         casted = writer.declare(ptrty, fmt % locals())
         writer.die_if_false(casted)
         return casted

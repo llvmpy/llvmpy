@@ -1,16 +1,27 @@
 from binding import *
 from .namespace import llvm
 from .Value import Argument, Value
-from .Attributes import Attributes
+if LLVM_VERSION >= (3, 3):
+    from .Attributes import AttributeSet, Attribute
+else:
+    from .Attributes import Attributes
 
 @Argument
 class Argument:
-    _include_ = 'llvm/Argument.h'
+    if LLVM_VERSION >= (3, 3):
+        _include_ = 'llvm/IR/Argument.h'
+    else:
+        _include_ = 'llvm/Argument.h'
 
     _downcast_ = Value
 
-    addAttr = Method(Void, ref(Attributes))
-    removeAttr = Method(Void, ref(Attributes))
+    if LLVM_VERSION >= (3, 3):
+        addAttr = Method(Void, ref(AttributeSet))
+        removeAttr = Method(Void, ref(AttributeSet))
+    else:
+        addAttr = Method(Void, ref(Attributes))
+        removeAttr = Method(Void, ref(Attributes))
+
     getParamAlignment = Method(cast(Unsigned, int))
 
     getArgNo = Method(cast(Unsigned, int))

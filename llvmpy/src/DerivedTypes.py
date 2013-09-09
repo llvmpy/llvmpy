@@ -8,7 +8,10 @@ FunctionType = llvm.Class(Type)
 
 @FunctionType
 class FunctionType:
-    _include_ = 'llvm/DerivedTypes.h'
+    if LLVM_VERSION >= (3, 3):
+        _include_ = 'llvm/IR/DerivedTypes.h'
+    else:
+        _include_ = 'llvm/DerivedTypes.h'
     _downcast_ = Type
 
     _get = StaticMethod(ptr(FunctionType), ptr(Type), cast(bool, Bool))

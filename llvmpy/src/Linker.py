@@ -10,30 +10,33 @@ Linker = llvm.Class()
 
 @Linker
 class Linker:
-    ControlFlags = Enum('Verbose, QuietWarnings, QuietErrors')
+    #ControlFlags = Enum('Verbose, QuietWarnings, QuietErrors')
     LinkerMode = Enum('DestroySource, PreserveSource')
 
-    _new_w_empty = Constructor(cast(str, StringRef),
-                               cast(str, StringRef),
-                               ref(LLVMContext),
-                               cast(int, Unsigned)).require_only(3)
+    if LLVM_VERSION >= (3, 3):
+        new = Constructor(ptr(Module))
+    else:
+        _new_w_empty = Constructor(cast(str, StringRef),
+                                   cast(str, StringRef),
+                                   ref(LLVMContext),
+                                   cast(int, Unsigned)).require_only(3)
 
-    _new_w_existing = Constructor(cast(str, StringRef),
-                                  ptr(Module),
-                                  cast(int, Unsigned)).require_only(2)
+        _new_w_existing = Constructor(cast(str, StringRef),
+                                      ptr(Module),
+                                      cast(int, Unsigned)).require_only(2)
 
-    @CustomPythonStaticMethod
-    def new(progname, module_or_name, *args):
-        if isinstance(module_or_name, Module):
-            return _new_w_existing(progname, module_or_name, *args)
-        else:
-            return _new_w_empty(progname, module_or_name, *args)
+        @CustomPythonStaticMethod
+        def new(progname, module_or_name, *args):
+            if isinstance(module_or_name, Module):
+                return _new_w_existing(progname, module_or_name, *args)
+            else:
+                return _new_w_empty(progname, module_or_name, *args)
 
     delete = Destructor()
 
     getModule = Method(ptr(Module))
-    releaseModule = Method(ptr(Module))
-    getLastError = Method(cast(ConstStdString, str))
+    #releaseModule = Method(ptr(Module))
+    #getLastError = Method(cast(ConstStdString, str))
 
     LinkInModule = CustomMethod('Linker_LinkInModule',
                                 PyObjectPtr, # boolean

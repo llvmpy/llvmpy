@@ -36,7 +36,11 @@ class PassManagerBuilder:
     DisableSimplifyLibCalls = _attr_bool()
     DisableUnitAtATime = _attr_bool()
     DisableUnrollLoops = _attr_bool()
-    Vectorize = _attr_bool()
+    if LLVM_VERSION >= (3, 3):
+        BBVectorize = _attr_bool()
+        SLPVectorize = _attr_bool()
+    else:
+        Vectorize = _attr_bool()
     LoopVectorize = _attr_bool()
 
     LibraryInfo = Attr(getter=ownedptr(TargetLibraryInfo),

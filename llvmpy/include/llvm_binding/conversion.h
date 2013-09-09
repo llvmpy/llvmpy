@@ -256,6 +256,7 @@ template<class Td>
 struct typecast {
     template<class Ts> static
     Td* from(Ts* src) {
+        // check why this is only used in Python3
         return llvm::dyn_cast<Td>(src);
     }
 
@@ -265,3 +266,24 @@ struct typecast {
     }
 };
 
+template<class Td, class Tbase>
+struct unwrap_as {
+    static
+    Td* from(void* src) {
+        Tbase* base = static_cast<Tbase*>(src);
+        return static_cast<Td*>(base);
+    }
+};
+
+template<class Td>
+struct cast_to_base {
+    template<class Ts> static
+    Td* from(Ts* src){
+        return static_cast<Td*>(src);
+    }
+    
+    template<class Ts> static
+    const Td* from(const Ts* src){
+        return static_cast<const Td*>(src);
+    }
+};

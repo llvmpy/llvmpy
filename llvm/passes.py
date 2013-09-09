@@ -70,13 +70,24 @@ class PassManagerBuilder(llvm.Wrapper):
     def size_level(self, sizelevel):
         self._ptr.SizeLevel = sizelevel
 
-    @property
-    def vectorize(self):
-        return self._ptr.Vectorize
+    if llvm.version >= (3, 3):
+        @property
+        def bbvectorize(self):
+            return self._ptr.BBVectorize
 
-    @vectorize.setter
-    def vectorize(self, enable):
-        self._ptr.Vectorize = enable
+        @bbvectorize.setter
+        def bbvectorize(self, enable):
+            self._ptr.BBVectorize = enable
+
+        vectorize = bbvectorize
+    else:
+        @property
+        def vectorize(self):
+            return self._ptr.Vectorize
+
+        @vectorize.setter
+        def vectorize(self, enable):
+            self._ptr.Vectorize = enable
 
 
     @property
@@ -331,14 +342,14 @@ def build_pass_managers(tm, opt=2, loop_vectorize=False, vectorize=False,
     if pm:
         pm.add(tm.target_data.clone())
         pm.add(TargetLibraryInfo.new(tm.triple))
-        if llvm.version >= (3, 2):
+        if llvm.version == (3, 2):
             pm.add(TargetTransformInfo.new(tm))
         pmb.populate(pm)
 
     if fpm:
         fpm.add(tm.target_data.clone())
         fpm.add(TargetLibraryInfo.new(tm.triple))
-        if llvm.version >= (3, 2):
+        if llvm.version == (3, 2):
             fpm.add(TargetTransformInfo.new(tm))
         pmb.populate(fpm)
         fpm.initialize()

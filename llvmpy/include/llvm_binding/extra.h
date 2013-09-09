@@ -1,8 +1,22 @@
 #include <Python.h>
 #include <llvm/ADT/SmallVector.h>
-#include <llvm/Value.h>
-#include <llvm/DerivedTypes.h>
-#include <llvm/Function.h>
+#if LLVM_VERSION_MAJOR >= 3 and LLVM_VERSION_MINOR >= 3
+    #include <llvm/IR/Value.h>
+    #include <llvm/IR/DerivedTypes.h>
+    #include <llvm/IR/Function.h>
+    #include <llvm/IR/Module.h>
+    #include <llvm/IR/Constants.h>
+    #include <llvm/IR/Intrinsics.h>
+    #include <llvm/IR/IRBuilder.h>
+#else
+    #include <llvm/Value.h>
+    #include <llvm/DerivedTypes.h>
+    #include <llvm/Function.h>
+    #include <llvm/Module.h>
+    #include <llvm/Constants.h>
+    #include <llvm/Intrinsics.h>
+    #include <llvm/IRBuilder.h>
+#endif
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/MemoryBuffer.h>
@@ -12,14 +26,11 @@
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/Linker.h>
-#include <llvm/Module.h>
 #include <llvm/Analysis/Verifier.h>
-#include <llvm/Constants.h>
-#include <llvm/Intrinsics.h>
-#include <llvm/IRBuilder.h>
 #include <llvm/PassRegistry.h>
 #include <llvm/Support/Host.h>
 
+#include <llvm/ExecutionEngine/MCJIT.h> // to make MCJIT working
 
 #include "auto_pyobject.h"
 
@@ -55,6 +66,15 @@ namespace extra{
     };
 
 }
+
+static
+PyObject* callwrite(PyObject* self, PyObject* arg)
+{
+    char meth[] = "write";
+    char fmt[] = "O";
+    return PyObject_CallMethod(self, meth, fmt, arg);
+}
+
 
 static
 PyObject* make_raw_ostream_for_printing(PyObject* self, PyObject* args)
@@ -271,7 +291,7 @@ llvm::ExecutionEngine* ExecutionEngine_create(
                                                   &ErrorStr, OptLevel,
                                                   GVsWithCode);
     auto_pyobject buf = PyBytes_FromString(ErrorStr.c_str());
-    if (errout && NULL == PyObject_CallMethod(errout, "write", "O", *buf)){
+    if (errout && NULL == callwrite(errout, *buf)){
         return NULL;
     }
 
@@ -298,7 +318,7 @@ llvm::ExecutionEngine* ExecutionEngine_createJIT(
     ExecutionEngine *ee = ExecutionEngine::createJIT(M, &ErrorStr, JMM, OL,
                                                      GCsWithCode, RM, CMM);
     auto_pyobject buf = PyBytes_FromString(ErrorStr.c_str());
-    if (errout && NULL == PyObject_CallMethod(errout, "write", "O", *buf)){
+    if (errout && NULL == callwrite(errout, *buf)){
         return NULL;
     }
 //    PyFile_WriteString(ErrorStr.c_str(), errout);
@@ -483,7 +503,7 @@ PyObject* llvm_ParseBitCodeFile(llvm::StringRef Buf, llvm::LLVMContext& Ctx,
         std::string ErrStr;
         M = ParseBitcodeFile(MB, Ctx, &ErrStr);
         auto_pyobject buf = PyBytes_FromString(ErrStr.c_str());
-        if (NULL == PyObject_CallMethod(FObj, "write", "O", *buf)){
+        if (NULL == callwrite(FObj, *buf)){
             return NULL;
         }
 //        if (-1 == PyFile_WriteString(ErrStr.c_str(), FObj)) {
@@ -507,7 +527,7 @@ PyObject* llvm_WriteBitcodeToFile(const llvm::Module *M, PyObject* FObj)
     rso.flush();
     StringRef ref = rso.str();
     auto_pyobject buf = PyBytes_FromStringAndSize(ref.data(), ref.size());
-    return PyObject_CallMethod(FObj, "write", "O", *buf);
+    return callwrite(FObj, *buf);
 }
 
 static
@@ -522,7 +542,7 @@ PyObject* llvm_getBitcodeTargetTriple(llvm::StringRef Buf,
         std::string ErrStr;
         Triple = getBitcodeTargetTriple(MB, Ctx, &ErrStr);
         auto_pyobject buf = PyBytes_FromString(ErrStr.c_str());
-        if (NULL == PyObject_CallMethod(FObj, "write", "O", *buf)){
+        if (NULL == callwrite(FObj, *buf)){
             return NULL;
         }
 //        if (-1 == PyFile_WriteString(ErrStr.c_str(), FObj)) {
@@ -594,19 +614,19 @@ PyObject* Linker_LinkInModule(llvm::Linker* Linker,
                                PyObject* ErrMsg)
 {
     std::string errmsg;
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 3
+    bool failed = Linker->linkInModule(Mod, &errmsg);
+#else
     bool failed = Linker->LinkInModule(Mod, &errmsg);
+#endif
     if (! failed) {
         Py_RETURN_FALSE;
     } else {
     
         auto_pyobject buf = PyBytes_FromString(errmsg.c_str());
-        if (NULL == PyObject_CallMethod(ErrMsg, "write", "O", *buf)){
+        if (NULL == callwrite(ErrMsg, *buf)){
             return NULL;
         }
-
-//        if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
-//            return NULL;
-//        }
         Py_RETURN_TRUE;
     }
 }
@@ -623,7 +643,7 @@ PyObject* Linker_LinkModules(llvm::Module* Dest,
         Py_RETURN_FALSE;
     } else {
         auto_pyobject buf = PyBytes_FromString(errmsg.c_str());
-        if (NULL == PyObject_CallMethod(ErrMsg, "write", "O", *buf)){
+        if (NULL == callwrite(ErrMsg, *buf)){
             return NULL;
         }
 //        if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
@@ -689,7 +709,7 @@ PyObject* llvm_verifyModule(const llvm::Module& Fn,
 
     if (failed) {
         auto_pyobject buf = PyBytes_FromString(errmsg.c_str());
-        if (NULL == PyObject_CallMethod(ErrMsg, "write", "O", *buf)){
+        if (NULL == callwrite(ErrMsg, *buf)){
             return NULL;
         }
 
@@ -819,7 +839,7 @@ PyObject* DynamicLibrary_LoadLibraryPermanently(const char * Filename,
         failed = DynamicLibrary::LoadLibraryPermanently(Filename, &errmsg);
         if (failed) {
             auto_pyobject buf = PyBytes_FromString(errmsg.c_str());
-            if (NULL == PyObject_CallMethod(ErrMsg, "write", "O", *buf)){
+            if (NULL == callwrite(ErrMsg, *buf)){
                 return NULL;
             }
 //            if (-1 == PyFile_WriteString(errmsg.c_str(), ErrMsg)) {
@@ -869,7 +889,7 @@ PyObject* TargetRegistry_lookupTarget(const std::string &Triple,
     if (!target) {
 //        PyFile_WriteString(error.c_str(), Error);
         auto_pyobject buf = PyBytes_FromString(error.c_str());
-        if (NULL == PyObject_CallMethod(Error, "write", "O", *buf)){
+        if (NULL == callwrite(Error, *buf)){
             return NULL;
         }
 
@@ -891,7 +911,7 @@ PyObject* TargetRegistry_lookupTarget(const std::string &Arch,
     if (!target) {
 //        PyFile_WriteString(error.c_str(), Error);
         auto_pyobject buf = PyBytes_FromString(error.c_str());
-        if (NULL == PyObject_CallMethod(Error, "write", "O", *buf)){
+        if (NULL == callwrite(Error, *buf)){
             return NULL;
         }
 
@@ -910,7 +930,7 @@ PyObject* TargetRegistry_getClosestTargetForJIT(PyObject* Error)
     const Target* target = TargetRegistry::getClosestTargetForJIT(error);
     if (!target) {
         auto_pyobject buf = PyBytes_FromString(error.c_str());
-        if (NULL == PyObject_CallMethod(Error, "write", "O", *buf)){
+        if (NULL == callwrite(Error, *buf)){
             return NULL;
         }
 
@@ -945,3 +965,22 @@ PyObject* llvm_sys_getHostCPUFeatures(PyObject* Features)
     }
 }
 
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 3
+static
+PyObject* llvm_sys_isLittleEndianHost()
+{
+    if (llvm::sys::IsLittleEndianHost)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static
+PyObject* llvm_sys_isBigEndianHost()
+{
+    if (llvm::sys::IsBigEndianHost)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+#endif 

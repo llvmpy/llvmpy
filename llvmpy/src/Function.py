@@ -4,7 +4,10 @@ from .Value import GlobalValue, Constant, Function, Argument, Value
 from .Module import Module
 from .BasicBlock import BasicBlock
 from .ValueSymbolTable import ValueSymbolTable
-from .Attributes import Attributes
+if LLVM_VERSION >= (3, 3):
+    from .Attributes import Attribute, AttributeSet
+else:
+    from .Attributes import Attributes
 from .Type import Type
 from .DerivedTypes import FunctionType
 from .LLVMContext import LLVMContext
@@ -12,7 +15,11 @@ from .CallingConv import CallingConv
 
 @Function
 class Function:
-    _include_ = 'llvm/Function.h'
+    if LLVM_VERSION >= (3, 3):
+        _include_ = 'llvm/IR/Function.h'
+    else:
+        _include_ = 'llvm/Function.h'
+        
     _downcast_  = GlobalValue, Constant, Value
 
     getReturnType = Method(ptr(Type))
@@ -48,10 +55,17 @@ class Function:
 
     deleteBody = Method()
     viewCFG = Method()
+
     viewCFGOnly = Method()
 
-    addFnAttr = Method(Void, Attributes.AttrVal)
-    removeFnAttr = Method(Void, ref(Attributes))
+    if LLVM_VERSION >= (3, 3):
+        addFnAttr = Method(Void, Attribute.AttrKind)
+        addAttributes = Method(Void, cast(int, Unsigned), ref(AttributeSet))
+        removeAttributes = Method(Void, cast(int, Unsigned), ref(AttributeSet))
+        #removeFnAttr = Method(Void, Attribute.AttrKind) # 3.4?
+    else:
+        addFnAttr = Method(Void, Attributes.AttrVal)
+        removeFnAttr = Method(Void, ref(Attributes))
     #hasFnAttribute = Method(cast(Bool, bool), Attributes.AttrVal)
 
     Create = StaticMethod(ptr(Function),

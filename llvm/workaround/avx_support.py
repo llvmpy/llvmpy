@@ -50,8 +50,7 @@ def detect_osx_like():
                                 stdout=subprocess.PIPE)
     except OSError:
         return False
-
-    features = info.stdout.read()
+    features = info.stdout.read().decode('UTF8')
     features = features.split()
     return 'AVX1.0' in features and 'OSXSAVE' in features and 'XSAVE' in features
 

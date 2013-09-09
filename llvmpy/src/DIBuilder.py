@@ -124,17 +124,31 @@ class DIBuilder:
                              ptr(MDNode),           # TemplateParms = 0
                              ).require_only(10)
 
-    createStructType = Method(DIType,
-                              ref(DIDescriptor),   # Scope
-                              stringref_arg,        # Name
-                              ref(DIFile),          # File
-                              unsigned_arg,         # LineNumber
-                              uint64_arg,           # SizeInBits
-                              uint64_arg,           # AlignInBits
-                              unsigned_arg,         # Flags
-                              ref(DIArray),         # Elements
-                              unsigned_arg,         # RunTimeLang = 0
-                              ).require_only(8)
+    if LLVM_VERSION >= (3, 3):
+        createStructType = Method(DIType,
+                                  ref(DIDescriptor),   # Scope
+                                  stringref_arg,        # Name
+                                  ref(DIFile),          # File
+                                  unsigned_arg,         # LineNumber
+                                  uint64_arg,           # SizeInBits
+                                  uint64_arg,           # AlignInBits
+                                  unsigned_arg,         # Flags
+                                  ref(DIType),          # DerivedFrom
+                                  ref(DIArray),         # Elements
+                                  unsigned_arg,         # RunTimeLang = 0
+                                  ).require_only(9)
+    else:
+        createStructType = Method(DIType,
+                                  ref(DIDescriptor),   # Scope
+                                  stringref_arg,        # Name
+                                  ref(DIFile),          # File
+                                  unsigned_arg,         # LineNumber
+                                  uint64_arg,           # SizeInBits
+                                  uint64_arg,           # AlignInBits
+                                  unsigned_arg,         # Flags
+                                  ref(DIArray),         # Elements
+                                  unsigned_arg,         # RunTimeLang = 0
+                                  ).require_only(8)
 
     createUnionType = Method(DIType,
                              ref(DIDescriptor),     # Scope
@@ -186,7 +200,7 @@ class DIBuilder:
                                 ref(DIType),      # Ty
                                 )
     
-    createTemporaryType = Method(DIType, ref(DIFile)).require_only(0)
+    #createTemporaryType = Method(DIType, ref(DIFile)).require_only(0)
 
     createForwardDecl = Method(DIType,
                                unsigned_arg,         # Tag

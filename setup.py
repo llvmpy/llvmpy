@@ -36,6 +36,7 @@ def run_llvm_config(extra_args):
     return stdout.decode().strip()
 
 llvm_version = run_llvm_config(['--version'])
+
 print('LLVM version = %r' % llvm_version)
 
 targets_built = run_llvm_config(['--targets-built'])
@@ -61,7 +62,12 @@ def auto_intrinsic_gen(incdir):
     # let's do auto intrinsic generation
     print("Generate intrinsic IDs")
     from tools import intrgen
-    path = "%s/llvm/Intrinsics.gen" % incdir
+
+    if llvm_version.startswith('3.3'):
+        path = "%s/llvm/IR/Intrinsics.gen" % incdir
+    else:
+        path = "%s/llvm/Intrinsics.gen" % incdir
+
     with open('llvm/_intrinsic_ids.py', 'w') as fout:
         intrgen.gen(path, fout)
 
@@ -119,7 +125,7 @@ else:
     extra_components = list(extra_components & enabled_components)
 
     libs_core, objs_core = get_libs_and_objs(
-        ['core', 'analysis', 'scalaropts', 'executionengine',
+        ['core', 'analysis', 'scalaropts', 'executionengine', 'mcjit',
          'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
          'instrumentation', 'ipa', 'ipo', 'transformutils',
          'asmparser', 'linker', 'support', 'vectorize']
@@ -181,7 +187,8 @@ setup(
                 'llvm_cbuilder',
                 'llpython',
                 'llvm_array',
-                'llvmpy.api', 'llvmpy.api.llvm'],
+                'llvmpy.api', 'llvmpy.api.llvm',],
+    package_data = {'llvm': ['llrt/*.ll']},
     py_modules = ['llvmpy',
                   'llvmpy._capsule',
                   'llvmpy._api',
