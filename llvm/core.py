@@ -211,7 +211,7 @@ class CCEnum(Enum):
     CC_X86_THISCALL  = ID.X86_ThisCall
     CC_PTX_KERNEL    = ID.PTX_Kernel
     CC_PTX_DEVICE    = ID.PTX_Device
-    
+
     if llvm.version <= (3, 3):
         CC_MBLAZE_INTR   = ID.MBLAZE_INTR
         CC_MBLAZE_SVOL   = ID.MBLAZE_SVOL
@@ -221,7 +221,7 @@ CCEnum.declare()
 # int predicates
 class ICMPEnum(Enum):
     prefix = 'ICMP_'
-    
+
     Predicate = api.llvm.CmpInst.Predicate
 
     ICMP_EQ         = Predicate.ICMP_EQ
@@ -953,7 +953,7 @@ class StructType(Type):
     def _get_name(self):
         if self._ptr.isLiteral():
            return ""
-        else:	
+        else:
            return self._ptr.getName()
 
     name = property(_get_name, _set_name)
@@ -1454,7 +1454,7 @@ class Argument(Value):
             attrbldr.addAttribute(attr)
             attrs = api.llvm.AttributeSet.get(context, 0, attrbldr)
             self._ptr.addAttr(attrs)
-        
+
             if attr not in self:
                 raise ValueError("Attribute %r is not valid for arg %s" %
                                  (attr, self))

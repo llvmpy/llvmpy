@@ -21,14 +21,14 @@ if LLVM_VERSION >= (3, 3):
     @Attribute
     class Attribute:
         AttrKind = Enum('''None, Alignment, AlwaysInline,
-                  ByVal, InlineHint, InReg, 
-                  MinSize, Naked, Nest, NoAlias, 
-                  NoBuiltin, NoCapture, NoDuplicate, NoImplicitFloat, 
-                  NoInline, NonLazyBind, NoRedZone, NoReturn, 
-                  NoUnwind, OptimizeForSize, ReadNone, ReadOnly, 
-                  Returned, ReturnsTwice, SExt, StackAlignment, 
-                  StackProtect, StackProtectReq, StackProtectStrong, StructRet, 
-                  SanitizeAddress, SanitizeThread, SanitizeMemory, UWTable, 
+                  ByVal, InlineHint, InReg,
+                  MinSize, Naked, Nest, NoAlias,
+                  NoBuiltin, NoCapture, NoDuplicate, NoImplicitFloat,
+                  NoInline, NonLazyBind, NoRedZone, NoReturn,
+                  NoUnwind, OptimizeForSize, ReadNone, ReadOnly,
+                  Returned, ReturnsTwice, SExt, StackAlignment,
+                  StackProtect, StackProtectReq, StackProtectStrong, StructRet,
+                  SanitizeAddress, SanitizeThread, SanitizeMemory, UWTable,
                   ZExt, EndAttrKinds''')
 
         delete = Destructor()

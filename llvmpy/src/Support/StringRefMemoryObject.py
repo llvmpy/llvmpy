@@ -16,7 +16,7 @@ if LLVM_VERSION >= (3, 4):
         readBytes = CustomMethod('MemoryObject_readBytes',
                                  PyObjectPtr,
                                  cast(int, Uint64), #address
-                                 cast(int, Uint64)  #size 
+                                 cast(int, Uint64)  #size
                                  )
         @CustomPythonMethod
         def readAll(self):

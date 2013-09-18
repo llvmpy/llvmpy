@@ -1469,7 +1469,7 @@ class TestArith(TestCase):
         cty = maptypes[ty]
         prototype = CFUNCTYPE(*[cty] * 3)
         callee = prototype(ptr)
-        callee(12, 23) 
+        callee(12, 23)
 
     def template(self, iop, fop):
         inttys = [Type.int(32), Type.int(64)]
@@ -1487,7 +1487,7 @@ class TestArith(TestCase):
 
     def test_sub(self):
         self.template('sub', 'fsub')
-        
+
     def test_mul(self):
         self.template('mul', 'fmul')
 

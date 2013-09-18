@@ -58,7 +58,7 @@ class Target:
                                        cast(str, StringRef), #cpu
                                        cast(str, StringRef)  #features
                                        )
-    
+
         createMCDisassembler = Method(ptr(MCDisassembler), ref(MCSubtargetInfo))
 
         createMCRegInfo = Method(ptr(MCRegisterInfo),

@@ -1,4 +1,4 @@
-from llvmpy.api import llvm; 
+from llvmpy.api import llvm;
 llvm.InitializeAllTargets()
 llvm.InitializeAllTargetInfos()
 llvm.InitializeAllTargetMCs()

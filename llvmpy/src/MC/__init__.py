@@ -1,4 +1,4 @@
-#this file is not processed unless the llvm library is 
+#this file is not processed unless the llvm library is
 #version 3.4 or higher. see llvmpy/__init__.py for details.
 from binding import *
 from ..namespace import llvm
@@ -73,7 +73,7 @@ class MCOperand:
     getImm = Method(cast(Int64, int))
     getFPImm = Method(cast(Double, float))
     getExpr = Method(const(ownedptr(MCExpr)))
-    
+
 @MCInst
 class MCInst:
     _include_ = "llvm/MC/MCInst.h"
@@ -148,7 +148,7 @@ class MCDisassembler:
 
     DecodeStatus = Enum('Fail', 'SoftFail', 'Success')
 
-    getInstruction = CustomMethod('MCDisassembler_getInstruction', 
+    getInstruction = CustomMethod('MCDisassembler_getInstruction',
                                   PyObjectPtr,
                                   ref(MCInst),
                                   ref(MemoryObject),

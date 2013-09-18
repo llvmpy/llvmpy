@@ -56,7 +56,7 @@ class DIBuilder:
                                    )
     else:
         createNullPtrType = Method(DIBasicType)
-    
+
 
     createBasicType = Method(DIType,
                              stringref_arg,     # Name
@@ -204,7 +204,7 @@ class DIBuilder:
     createObjectPointerType = Method(DIType,
                                 ref(DIType),      # Ty
                                 )
-    
+
     #createTemporaryType = Method(DIType, ref(DIFile)).require_only(0)
 
     createForwardDecl = Method(DIType,
@@ -250,7 +250,7 @@ class DIBuilder:
                                   bool_arg,          # isLocalToUnit
                                   ptr(Value),        # Val
                                   )
- 
+
     createLocalVariable = Method(DIVariable,
                                  unsigned_arg,      # Tag,
                                  ref(DIDescriptor), # Scope,
@@ -273,7 +273,7 @@ class DIBuilder:
                                    ref(SmallVector_Value),   # Addr,
                                    unsigned_arg,        # ArgNo=0,
                                    ).require_only(7)
- 
+
     createFunction = Method(DISubprogram,
                             ref(DIDescriptor),  # Scope
                             stringref_arg,      # Name
@@ -318,7 +318,7 @@ class DIBuilder:
                              unsigned_arg,          # LineNo
                              )
 
-    createLexicalBlockFile = Method(DILexicalBlockFile, 
+    createLexicalBlockFile = Method(DILexicalBlockFile,
                                     ref(DIDescriptor),  # Scope,
                                     ref(DIFile),        # File
                                     )
@@ -329,7 +329,7 @@ class DIBuilder:
                                 unsigned_arg,       # Line,
                                 unsigned_arg,       # Col
                                 )
- 
+
     _insertDeclare_1 = Method(ptr(Instruction),
                            ptr(Value),          # Storage,
                            ref(DIVariable),     # VarInfo

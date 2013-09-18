@@ -186,7 +186,7 @@ class TargetMachine(llvm.Wrapper):
     @property
     def feature_string(self):
         return self._ptr.getTargetFeatureString()
-    
+
     @property
     def target(self):
         return self._ptr.getTarget()

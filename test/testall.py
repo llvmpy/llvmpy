@@ -300,7 +300,7 @@ def do_function():
     f.add_attribute(ATTR_NO_RETURN)
     f.add_attribute(ATTR_ALWAYS_INLINE)
     #for some reason removeFnAttr is just gone in 3.3
-    if version <= (3, 2): 
+    if version <= (3, 2):
         f.remove_attribute(ATTR_NO_RETURN)
 
     # LLVM misbehaves:

@@ -38,7 +38,7 @@ def _replace_with(builder, inst, func):
 
 def load(arch):
     '''Load the LLRT module corresponding to the given architecture
-    Creates a new module and optimizes it using the information from 
+    Creates a new module and optimizes it using the information from
     the host machine.
     '''
     if arch != 'x86_64':

@@ -191,12 +191,12 @@ class Disassembler(object):
         where the instruction bytes are from (not an offset into
         @bs). yields instructions in the form of (addr, data, inst) where
         addr is an integer, data is a tuple of integers and inst is an instance of
-        llvm.mc.Instr. @align specifies the byte alignment of instructions and 
+        llvm.mc.Instr. @align specifies the byte alignment of instructions and
         is only used if an un-decodable instruction is encountered, in which
         case the disassembler will skip the following bytes until the next
         aligned address. if @align is unspecified, the default alignment
         for the architecture will be used, however this may not be ideal
-        for disassembly. for example, the default alignment for ARM is 1, but you 
+        for disassembly. for example, the default alignment for ARM is 1, but you
         probably want it to be 4 for the purposes of disassembling ARM
         instructions.
         '''
@@ -223,7 +223,7 @@ class Disassembler(object):
             if amt_left >= size:
                 data = code.readBytes(addr, size)
             elif amt_left < 1:
-                break 
+                break
             else:
                 data = code.readBytes(addr, amt_left)
 

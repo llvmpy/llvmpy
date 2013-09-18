@@ -19,7 +19,7 @@ class Function:
         _include_ = 'llvm/IR/Function.h'
     else:
         _include_ = 'llvm/Function.h'
-        
+
     _downcast_  = GlobalValue, Constant, Value
 
     getReturnType = Method(ptr(Type))

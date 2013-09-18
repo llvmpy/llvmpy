@@ -17,7 +17,7 @@ if LLVM_VERSION >= (3, 3):
                                          cast(Bool, bool))
 
 else:
-    
+
     isLittleEndianHost = sys.Function('isLittleEndianHost',
                                       cast(Bool, bool))
 
