@@ -33,7 +33,9 @@ class PassManagerBuilder:
         return Attr(getter=cast(Bool, bool),
                     setter=cast(bool, Bool))
 
-    DisableSimplifyLibCalls = _attr_bool()
+    if LLVM_VERSION <= (3, 3):
+        DisableSimplifyLibCalls = _attr_bool()
+
     DisableUnitAtATime = _attr_bool()
     DisableUnrollLoops = _attr_bool()
     if LLVM_VERSION >= (3, 3):

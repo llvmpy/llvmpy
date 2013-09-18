@@ -120,13 +120,14 @@ class PassManagerBuilder(llvm.Wrapper):
     def disable_unroll_loops(self, disable):
         self._ptr.DisableUnrollLoops = disable
 
-    @property
-    def disable_simplify_lib_calls(self):
-        return self._ptr.DisableSimplifyLibCalls
+    if llvm.version <= (3, 3):
+        @property
+        def disable_simplify_lib_calls(self):
+            return self._ptr.DisableSimplifyLibCalls
 
-    @disable_simplify_lib_calls.setter
-    def disable_simplify_lib_calls(self, disable):
-        self._ptr.DisableSimplifyLibCalls = disable
+        @disable_simplify_lib_calls.setter
+        def disable_simplify_lib_calls(self, disable):
+            self._ptr.DisableSimplifyLibCalls = disable
 
     def use_inliner_with_threshold(self, threshold):
         self._ptr.Inliner = api.llvm.createFunctionInliningPass(threshold)

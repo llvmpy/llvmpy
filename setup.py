@@ -63,7 +63,7 @@ def auto_intrinsic_gen(incdir):
     print("Generate intrinsic IDs")
     from tools import intrgen
 
-    if llvm_version.startswith('3.3'):
+    if llvm_version.startswith('3.3') or llvm_version.startswith('3.4'):
         path = "%s/llvm/IR/Intrinsics.gen" % incdir
     else:
         path = "%s/llvm/Intrinsics.gen" % incdir
@@ -128,7 +128,7 @@ else:
         ['core', 'analysis', 'scalaropts', 'executionengine', 'mcjit',
          'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
          'instrumentation', 'ipa', 'ipo', 'transformutils',
-         'asmparser', 'linker', 'support', 'vectorize']
+         'asmparser', 'linker', 'support', 'vectorize', 'all-targets']
         + extra_components)
 
 if sys.platform == 'win32':
@@ -184,6 +184,7 @@ setup(
     maintainer_email = 'llvmpy@continuum.io',
     url = 'http://www.llvmpy.org/',
     packages = ['llvm', 'llvm.workaround',
+                'llvm.mc',
                 'llvm_cbuilder',
                 'llpython',
                 'llvm_array',

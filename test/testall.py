@@ -266,8 +266,8 @@ def do_argument():
     ft = Type.function(tip, [tip])
     f = Function.new(m, ft, 'func')
     a = f.args[0]
-    a.add_attribute(ATTR_ZEXT)
-    a.remove_attribute(ATTR_ZEXT)
+    a.add_attribute(ATTR_NEST)
+    a.remove_attribute(ATTR_NEST)
     a.alignment = 16
     a1 = a.alignment
 
@@ -299,7 +299,9 @@ def do_function():
     g = list(f.basic_blocks)
     f.add_attribute(ATTR_NO_RETURN)
     f.add_attribute(ATTR_ALWAYS_INLINE)
-    f.remove_attribute(ATTR_NO_RETURN)
+    #for some reason removeFnAttr is just gone in 3.3
+    if version <= (3, 2): 
+        f.remove_attribute(ATTR_NO_RETURN)
 
     # LLVM misbehaves:
     #try:
@@ -331,9 +333,10 @@ def do_callorinvokeinstruction():
     i = bb.invoke(f, [Constant.int(ti, 10)], b, b)
     a = i.calling_convention
     i.calling_convention = CC_FASTCALL
-    i.add_parameter_attribute(0, ATTR_SEXT)
-    i.remove_parameter_attribute(0, ATTR_SEXT)
-    i.set_parameter_alignment(0, 8)
+    if version <= (3, 2):
+        i.add_parameter_attribute(0, ATTR_SEXT)
+        i.remove_parameter_attribute(0, ATTR_SEXT)
+        i.set_parameter_alignment(0, 8)
     #tc = i.tail_call
     #i.tail_call = 1
 
@@ -563,10 +566,10 @@ def do_executionengine():
     ee2 = ExecutionEngine.new(m3, False)
     m4 = Module.new('d')
     m5 = Module.new('e')
-    ee3 = ExecutionEngine.new(m4, False)
-    ee3.add_module(m5)
-    x = ee3.remove_module(m5)
-    isinstance(x, Module)
+    #ee3 = ExecutionEngine.new(m4, False)
+    #ee3.add_module(m5)
+    #x = ee3.remove_module(m5)
+    #isinstance(x, Module)
 
 
 def do_llvm_ee():
@@ -616,6 +619,51 @@ def do_llvm_passes():
     do_passmanager()
     do_functionpassmanager()
 
+def do_llvm_target():
+    print("  Testing module llvm.target")
+    from llvm import target
+
+    target.initialize_all()
+    target.print_registered_targets()
+    target.get_host_cpu_name()
+    target.get_default_triple()
+
+    tm = TargetMachine.new()
+    tm = TargetMachine.lookup("arm")
+    tm = TargetMachine.arm()
+    tm = TargetMachine.thumb()
+    tm = TargetMachine.x86()
+    tm = TargetMachine.x86_64()
+    tm.target_data
+    tm.target_name
+    tm.target_short_description
+    tm.triple
+    tm.cpu
+    tm.feature_string
+    tm.target
+
+    if llvm.version >= (3, 4):
+         tm.reg_info
+         tm.subtarget_info
+         tm.asm_info
+         tm.instr_info
+         tm.instr_analysis
+         tm.disassembler
+         tm.is_little_endian()
+
+def do_llvm_mc():
+    if llvm.version < (3, 4):
+        return
+
+    from llvm import target
+    from llvm import mc
+
+    target.initialize_all()
+    tm = TargetMachine.x86()
+    dasm = mc.Disassembler(tm)
+
+    for (offset, data, instr) in dasm.decode("c3", 0):
+        pass
 
 def main():
     print("Testing package llvm")
@@ -623,7 +671,8 @@ def main():
     do_llvm_core()
     do_llvm_ee()
     do_llvm_passes()
-
+    do_llvm_target()
+    do_llvm_mc()
 
 if __name__ == '__main__':
     main()

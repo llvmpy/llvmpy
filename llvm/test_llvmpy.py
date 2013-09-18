@@ -393,7 +393,8 @@ entry:
         # make sure the default is False
         self.assertFalse(pmb.disable_unit_at_a_time)
         self.assertFalse(pmb.disable_unroll_loops)
-        self.assertFalse(pmb.disable_simplify_lib_calls)
+        if llvm.version <= (3, 3):
+            self.assertFalse(pmb.disable_simplify_lib_calls)
 
         pmb.disable_unit_at_a_time = True
         self.assertTrue(pmb.disable_unit_at_a_time)

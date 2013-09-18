@@ -8,6 +8,10 @@
     #include <llvm/IR/Constants.h>
     #include <llvm/IR/Intrinsics.h>
     #include <llvm/IR/IRBuilder.h>
+    #if LLVM_VERSION_MINOR >= 4
+        #include <llvm/Support/MemoryObject.h>
+        #include <llvm/MC/MCDisassembler.h>
+    #endif
 #else
     #include <llvm/Value.h>
     #include <llvm/DerivedTypes.h>
@@ -921,7 +925,6 @@ PyObject* TargetRegistry_lookupTarget(const std::string &Arch,
     }
 }
 
-
 static
 PyObject* TargetRegistry_getClosestTargetForJIT(PyObject* Error)
 {
@@ -941,6 +944,66 @@ PyObject* TargetRegistry_getClosestTargetForJIT(PyObject* Error)
     }
 
 }
+
+static
+PyObject* TargetRegistry_targets_list()
+{
+    using namespace llvm;
+
+    return iterator_to_pylist_deref<TargetRegistry::iterator>(
+                  TargetRegistry::begin(), TargetRegistry::end(),
+                  "llvm::Target", "llvm::Target");
+}
+
+#if LLVM_VERSION_MAJOR >= 3 and LLVM_VERSION_MINOR >= 4
+static
+PyObject* MemoryObject_readBytes(const llvm::MemoryObject *mobj,
+                                 uint64_t addr,
+                                 uint64_t size
+                                 )
+{
+    int status;
+    uint8_t *bytes;
+    PyObject* po;
+
+    if(size < 1)
+        goto fail;
+
+    bytes = new uint8_t[size];
+    if(bytes == NULL)
+        goto fail;
+
+    status = mobj->readBytes(addr, size, bytes);
+    if(status != 0) {
+        delete bytes;
+        goto fail;
+    }
+
+    po = PyBytes_FromStringAndSize((const char *) bytes, size);
+    delete bytes;
+
+    return po;
+fail:
+    Py_RETURN_NONE;
+}
+
+static
+PyObject* MCDisassembler_getInstruction(llvm::MCDisassembler *disasm, 
+                                        llvm::MCInst &instr,
+                                        const llvm::MemoryObject &region,
+                                        uint64_t address
+                                        )
+{
+    uint64_t size;
+    llvm::MCDisassembler::DecodeStatus status;
+
+    size = 0;
+    status = disasm->getInstruction(instr, size, region, address, 
+                                    llvm::nulls(), llvm::nulls());
+    return Py_BuildValue("(i,i)", int(status), size);
+}
+
+#endif /* llvm >= 3.4 */
 
 static
 PyObject* llvm_sys_getHostCPUFeatures(PyObject* Features)
@@ -984,3 +1047,4 @@ PyObject* llvm_sys_isBigEndianHost()
         Py_RETURN_FALSE;
 }
 #endif 
+

@@ -4,6 +4,7 @@ del get_versions
 
 
 from llvmpy import extra
+
 version = extra.get_llvm_version()
 del extra
 

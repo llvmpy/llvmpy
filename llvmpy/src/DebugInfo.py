@@ -44,7 +44,7 @@ class DIFile:
 @DIEnumerator
 class DIEnumerator:
     getName = Method(return_stringref)
-    getEnumValue = Method(cast(Uint64, int))
+    getEnumValue = Method(cast(Uint64 if LLVM_VERSION <= (3, 3) else Int64, int))
     Verify = Method(return_bool)
 
 @DIType
