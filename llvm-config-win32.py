@@ -2,6 +2,7 @@ import re
 import sys
 from distutils.spawn import find_executable
 from os.path import abspath, dirname, isfile, join
+from os import listdir
 from subprocess import Popen, PIPE
 
 
@@ -39,57 +40,17 @@ def libs_options():
     # NOTE: instead of actually looking at the components requested,
     #       we just print out a bunch of libs
     for lib in """
-LLVMAnalysis
-LLVMAsmParser
-LLVMAsmPrinter
-LLVMBitReader
-LLVMBitWriter
-LLVMCodeGen
-LLVMCore
-LLVMExecutionEngine
-LLVMInstCombine
-LLVMInstrumentation
-LLVMInterpreter
-LLVMipa
-LLVMipo
-LLVMJIT
-LLVMMCJIT
-LLVMLinker
-LLVMMC
-LLVMMCParser
-LLVMObject
-LLVMRuntimeDyld
-LLVMScalarOpts
-LLVMSelectionDAG
-LLVMSupport
-LLVMTarget
-LLVMTransformUtils
-LLVMVectorize
-LLVMX86AsmParser
-LLVMX86AsmPrinter
-LLVMX86CodeGen
-LLVMX86Desc
-LLVMX86Disassembler
-LLVMX86Info
-LLVMX86Utils
-LLVMDebugInfo
 Advapi32
 Shell32
 """.split():
         print('-l%s' % lib)
 
-    if isfile(join(find_llvm_prefix(), 'lib', 'LLVMPTXCodeGen.lib')):
-        print('-lLLVMPTXAsmPrinter')
-        print('-lLLVMPTXCodeGen')
-        print('-lLLVMPTXDesc')
-        print('-lLLVMPTXInfo')
-
-    elif isfile(join(find_llvm_prefix(), 'lib', 'LLVMNVPTXCodeGen.lib')):
-        print('-lLLVMNVPTXAsmPrinter')
-        print('-lLLVMNVPTXCodeGen')
-        print('-lLLVMNVPTXDesc')
-        print('-lLLVMNVPTXInfo')
-
+    bpath = join(find_llvm_prefix(), 'lib')
+    for filename in listdir(bpath):
+        filepath = join(bpath, filename)
+        if isfile(filepath) and filename.endswith('.lib') and filename.startswith('LLVM'):
+            name = filename.split('.', 1)[0]
+            print('-l%s' % name)
 
 def main():
     try:
