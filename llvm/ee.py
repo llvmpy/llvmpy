@@ -40,11 +40,13 @@ from llvmpy import api, extra
 #===----------------------------------------------------------------------===
 # import items which were moved to target module
 #===----------------------------------------------------------------------===
-from llvm.target import initialize_target, \
-                        print_registered_targets, \
-                        get_host_cpu_name, \
-                        get_default_triple, \
-                        TargetMachine
+from llvm.target import (initialize_all, initialize_target,
+    print_registered_targets, get_host_cpu_name, get_default_triple,
+    TargetMachine,
+    BO_BIG_ENDIAN, BO_LITTLE_ENDIAN,
+    CM_DEFAULT, CM_JITDEFAULT, CM_SMALL, CM_KERNEL, CM_MEDIUM, CM_LARGE,
+    RELOC_DEFAULT, RELOC_STATIC, RELOC_PIC, RELOC_DYNAMIC_NO_PIC)
+
 
 #===----------------------------------------------------------------------===
 # Generic value
