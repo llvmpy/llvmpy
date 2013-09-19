@@ -1,6 +1,6 @@
 #include <Python.h>
 #include <llvm/ADT/SmallVector.h>
-#if LLVM_VERSION_MAJOR >= 3 and LLVM_VERSION_MINOR >= 3
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 3
     #include <llvm/IR/Value.h>
     #include <llvm/IR/DerivedTypes.h>
     #include <llvm/IR/Function.h>
@@ -955,7 +955,7 @@ PyObject* TargetRegistry_targets_list()
                   "llvm::Target", "llvm::Target");
 }
 
-#if LLVM_VERSION_MAJOR >= 3 and LLVM_VERSION_MINOR >= 4
+#if LLVM_VERSION_MAJOR >= 3 && LLVM_VERSION_MINOR >= 4
 static
 PyObject* MemoryObject_readBytes(const llvm::MemoryObject *mobj,
                                  uint64_t addr,
