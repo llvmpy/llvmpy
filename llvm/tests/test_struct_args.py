@@ -544,6 +544,165 @@ class TestStructMicrosoftABI(unittest.TestCase, FloatTestMixin):
         self.assertClose(arg.x * arg.y, ret.x)
         self.assertClose(arg.x / arg.y, ret.y)
 
+    #----------------------------------------------------------------------
+    # 32 bits
+
+    @skip_if_not_32bits
+    def test_one_word_register(self):
+        '''Argument is passed by memory.
+        Return value is passed by register.
+        '''
+        m = lc.Module.new('test_struct_arg')
+
+        uint8_type = lc.Type.int(8)
+        struct_type = lc.Type.struct([uint8_type])
+        struct_ptr_type = lc.Type.pointer(struct_type)
+        func_type = lc.Type.function(struct_type, [struct_ptr_type])
+        func = m.add_function(func_type, name='foo')
+
+        # pass structure by value
+        func.args[0].add_attribute(lc.ATTR_BY_VAL)
+
+        # define function body
+        builder = lc.Builder.new(func.append_basic_block(''))
+
+        arg = builder.load(func.args[0])
+        e1 = builder.extract_value(arg, 0)
+        se1 = builder.mul(e1, e1)
+        ret = builder.insert_value(lc.Constant.undef(struct_type), se1, 0)
+
+        builder.ret(ret)
+
+        del builder
+
+        # verify
+        m.verify()
+
+        print(m)
+        # use with ctypes
+        engine = le.EngineBuilder.new(m).create()
+        ptr = engine.get_pointer_to_function(func)
+
+        cfunctype = CFUNCTYPE(OneByte, OneByte)
+        cfunc = cfunctype(ptr)
+
+        arg = OneByte(x=8)
+        ret = cfunc(arg)
+        print(arg)
+        print(ret)
+
+        self.assertEqual(arg.x * arg.x, ret.x)
+
+
+    @skip_if_not_32bits
+    def test_two_floats(self):
+        '''Argument is passed by register.
+        Return in 2 registers
+        '''
+        m = lc.Module.new('test_struct_arg')
+
+        float_type = lc.Type.float()
+        struct_type = lc.Type.struct([float_type, float_type])
+        struct_ptr_type = lc.Type.pointer(struct_type)
+        abi_type = lc.Type.int(64)
+        func_type = lc.Type.function(abi_type, [struct_type])
+        func = m.add_function(func_type, name='foo')
+
+        # define function body
+        builder = lc.Builder.new(func.append_basic_block(''))
+
+        out_ptr = builder.alloca(struct_type)
+
+        arg = builder.load(func.args[0])
+        e1, e2 = [builder.extract_value(arg, i) for i in range(2)]
+        se1 = builder.fmul(e1, e2)
+        se2 = builder.fdiv(e1, e2)
+        ret = builder.insert_value(lc.Constant.undef(struct_type), se1, 0)
+        ret = builder.insert_value(ret, se2, 1)
+        builder.store(ret, out_ptr)
+
+        out_int_ptr = builder.bitcast(out_ptr, lc.Type.pointer(abi_type))
+
+        builder.ret(builder.load(out_int_ptr))
+
+        del builder
+
+        # verify
+        m.verify()
+
+        print(m)
+        # use with ctypes
+        engine = le.EngineBuilder.new(m).create()
+        ptr = engine.get_pointer_to_function(func)
+
+        cfunctype = CFUNCTYPE(TwoFloat, TwoFloat)
+        cfunc = cfunctype(ptr)
+
+        arg = TwoFloat(x=1.321321, y=6.54352)
+        ret = cfunc(arg)
+        print(arg)
+        print(ret)
+
+        self.assertClose(arg.x * arg.y, ret.x)
+        self.assertClose(arg.x / arg.y, ret.y)
+
+    @skip_if_not_32bits
+    def test_bigger_than_two_words(self):
+        '''Pass in memory.
+        '''
+        m = lc.Module.new('test_struct_arg')
+
+        double_type = lc.Type.double()
+        uint8_type = lc.Type.int(8)
+        struct_type = lc.Type.struct([double_type, double_type, uint8_type])
+        struct_ptr_type = lc.Type.pointer(struct_type)
+        func_type = lc.Type.function(lc.Type.void(),
+                                     [struct_ptr_type, struct_ptr_type])
+        func = m.add_function(func_type, name='foo')
+
+        # return value pointer
+        func.args[0].add_attribute(lc.ATTR_STRUCT_RET)
+
+        # pass structure by value
+        func.args[1].add_attribute(lc.ATTR_BY_VAL)
+
+        # define function body
+        builder = lc.Builder.new(func.append_basic_block(''))
+
+        arg = builder.load(func.args[1])
+        e1, e2, e3 = [builder.extract_value(arg, i) for i in range(3)]
+        se1 = builder.fmul(e1, e2)
+        se2 = builder.fdiv(e1, e2)
+        ret = builder.insert_value(lc.Constant.undef(struct_type), se1, 0)
+        ret = builder.insert_value(ret, se2, 1)
+        ret = builder.insert_value(ret, e3, 2)
+        builder.store(ret, func.args[0])
+        builder.ret_void()
+
+        del builder
+
+        # verify
+        m.verify()
+
+        print(m)
+        # use with ctypes
+        engine = le.EngineBuilder.new(m).create()
+        ptr = engine.get_pointer_to_function(func)
+
+        cfunctype = CFUNCTYPE(TwoDoubleOneByte, TwoDoubleOneByte)
+        cfunc = cfunctype(ptr)
+
+        arg = TwoDoubleOneByte(x=1.321321, y=6.54352, z=128)
+        ret = cfunc(arg)
+        print(arg)
+        print(ret)
+
+        self.assertClose(arg.x * arg.y, ret.x)
+        self.assertClose(arg.x / arg.y, ret.y)
+        self.assertEqual(arg.z, ret.z)
+
+
+
 if sys.platform.startswith('win32'):
     tests.append(TestStructMicrosoftABI)
 
