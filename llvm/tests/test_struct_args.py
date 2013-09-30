@@ -1,5 +1,6 @@
 from __future__ import print_function
 from . import tests
+import sys
 import unittest
 from ctypes import Structure, c_float, c_double, c_uint8, CFUNCTYPE
 from llvm import core as lc
@@ -40,12 +41,28 @@ def skip_if_not_32bits(fn):
     if POINTER_BITSIZE == 32:
         return fn
 
+def skip_if_not_system_v(cls):
+    if not sys.platform.startswith('win32'):
+        return cls
+
+def skip_if_not_win32(cls):
+    if sys.platform.startswith('win32'):
+        return cls
+
 class FloatTestMixin(object):
     def assertClose(self, got, expect):
         rel = abs(got - expect) / float(expect)
         self.assertTrue(rel < 1e-6, 'relative error = %f' % rel)
 
-class TestStructABI(unittest.TestCase, FloatTestMixin):
+@skip_if_not_system_v
+class TestStructSystemVABI(unittest.TestCase, FloatTestMixin):
+    '''
+    Non microsoft convention
+    '''
+    
+    #----------------------------------------------------------------------
+    # 64 bits
+
     @skip_if_not_64bits
     def test_bigger_than_two_words_64(self):
         m = lc.Module.new('test_struct_arg')
@@ -191,6 +208,9 @@ class TestStructABI(unittest.TestCase, FloatTestMixin):
 
         self.assertClose(arg.x * arg.y, ret.x)
         self.assertClose(arg.x / arg.y, ret.y)
+
+    #----------------------------------------------------------------------
+    # 32 bits
 
     @skip_if_not_32bits
     def test_structure_abi_32_1(self):
@@ -350,7 +370,182 @@ class TestStructABI(unittest.TestCase, FloatTestMixin):
 
         self.assertEqual(arg.x * arg.x, ret.x)
 
-tests.append(TestStructABI)
+if not sys.platform.startswith('win32'):
+    tests.append(TestStructSystemVABI)
+
+@skip_if_not_win32
+class TestStructMicrosoftABI(unittest.TestCase, FloatTestMixin):
+    '''
+    Microsoft convention
+    '''
+    
+    #----------------------------------------------------------------------
+    # 64 bits
+
+    @skip_if_not_64bits
+    def test_bigger_than_two_words_64(self):
+        m = lc.Module.new('test_struct_arg')
+
+        double_type = lc.Type.double()
+        uint8_type = lc.Type.int(8)
+        struct_type = lc.Type.struct([double_type, double_type, uint8_type])
+        struct_ptr_type = lc.Type.pointer(struct_type)
+        func_type = lc.Type.function(lc.Type.void(),
+                                     [struct_ptr_type, struct_ptr_type])
+        func = m.add_function(func_type, name='foo')
+
+        # return value pointer
+        func.args[0].add_attribute(lc.ATTR_STRUCT_RET)
+
+        # pass structure by value
+        func.args[1].add_attribute(lc.ATTR_BY_VAL)
+
+        # define function body
+        builder = lc.Builder.new(func.append_basic_block(''))
+
+        arg = builder.load(func.args[1])
+        e1, e2, e3 = [builder.extract_value(arg, i) for i in range(3)]
+        se1 = builder.fmul(e1, e2)
+        se2 = builder.fdiv(e1, e2)
+        ret = builder.insert_value(lc.Constant.undef(struct_type), se1, 0)
+        ret = builder.insert_value(ret, se2, 1)
+        ret = builder.insert_value(ret, e3, 2)
+        builder.store(ret, func.args[0])
+        builder.ret_void()
+
+        del builder
+
+        # verify
+        m.verify()
+
+        print(m)
+        # use with ctypes
+        engine = le.EngineBuilder.new(m).create()
+        ptr = engine.get_pointer_to_function(func)
+
+        cfunctype = CFUNCTYPE(TwoDoubleOneByte, TwoDoubleOneByte)
+        cfunc = cfunctype(ptr)
+
+        arg = TwoDoubleOneByte(x=1.321321, y=6.54352, z=128)
+        ret = cfunc(arg)
+        print(arg)
+        print(ret)
+
+        self.assertClose(arg.x * arg.y, ret.x)
+        self.assertClose(arg.x / arg.y, ret.y)
+        self.assertEqual(arg.z, ret.z)
+
+    @skip_if_not_64bits
+    def test_just_two_words_64(self):
+        m = lc.Module.new('test_struct_arg')
+
+        double_type = lc.Type.double()
+        struct_type = lc.Type.struct([double_type, double_type])
+        struct_ptr_type = lc.Type.pointer(struct_type)
+        func_type = lc.Type.function(lc.Type.void(),
+                                     [struct_ptr_type, struct_ptr_type])
+        func = m.add_function(func_type, name='foo')
+
+        # return value pointer
+        func.args[0].add_attribute(lc.ATTR_STRUCT_RET)
+
+        # pass structure by value
+        func.args[1].add_attribute(lc.ATTR_BY_VAL)
+
+        # define function body
+        builder = lc.Builder.new(func.append_basic_block(''))
+
+        arg = builder.load(func.args[1])
+        e1, e2 = [builder.extract_value(arg, i) for i in range(2)]
+        se1 = builder.fmul(e1, e2)
+        se2 = builder.fdiv(e1, e2)
+        ret = builder.insert_value(lc.Constant.undef(struct_type), se1, 0)
+        ret = builder.insert_value(ret, se2, 1)
+        builder.store(ret, func.args[0])
+        builder.ret_void()
+
+        del builder
+
+        # verify
+        m.verify()
+
+        print(m)
+        # use with ctypes
+        engine = le.EngineBuilder.new(m).create()
+        ptr = engine.get_pointer_to_function(func)
+
+        cfunctype = CFUNCTYPE(TwoDouble, TwoDouble)
+        cfunc = cfunctype(ptr)
+
+        arg = TwoDouble(x=1.321321, y=6.54352)
+        ret = cfunc(arg)
+        print(arg)
+        print(ret)
+
+        self.assertClose(arg.x * arg.y, ret.x)
+        self.assertClose(arg.x / arg.y, ret.y)
+
+    @skip_if_not_64bits
+    def test_two_halfwords(self):
+        '''Arguments smaller or equal to a word is packed into a word.
+        
+        Floats structure are not passed on the XMM.
+        Treat it as a i64.
+        '''
+        m = lc.Module.new('test_struct_arg')
+
+        float_type = lc.Type.float()
+        struct_type = lc.Type.struct([float_type, float_type])
+        abi_type = lc.Type.int(64)
+
+        func_type = lc.Type.function(abi_type, [abi_type])
+        func = m.add_function(func_type, name='foo')
+
+        # define function body
+        builder = lc.Builder.new(func.append_basic_block(''))
+
+        arg = func.args[0]
+
+        struct_ptr = builder.alloca(struct_type)
+        struct_int_ptr = builder.bitcast(struct_ptr, lc.Type.pointer(abi_type))
+        builder.store(arg, struct_int_ptr)
+
+        arg = builder.load(struct_ptr)
+
+        e1, e2 = [builder.extract_value(arg, i) for i in range(2)]
+        se1 = builder.fmul(e1, e2)
+        se2 = builder.fdiv(e1, e2)
+        ret = builder.insert_value(lc.Constant.undef(struct_type), se1, 0)
+        ret = builder.insert_value(ret, se2, 1)
+
+        builder.store(ret, struct_ptr)
+        ret = builder.load(struct_int_ptr)
+
+        builder.ret(ret)
+
+        del builder
+
+        # verify
+        m.verify()
+
+        print(m)
+        # use with ctypes
+        engine = le.EngineBuilder.new(m).create()
+        ptr = engine.get_pointer_to_function(func)
+
+        cfunctype = CFUNCTYPE(TwoFloat, TwoFloat)
+        cfunc = cfunctype(ptr)
+
+        arg = TwoFloat(x=1.321321, y=6.54352)
+        ret = cfunc(arg)
+        print(arg)
+        print(ret)
+
+        self.assertClose(arg.x * arg.y, ret.x)
+        self.assertClose(arg.x / arg.y, ret.y)
+
+if sys.platform.startswith('win32'):
+    tests.append(TestStructMicrosoftABI)
 
 if __name__ == "__main__":
     unittest.main()
