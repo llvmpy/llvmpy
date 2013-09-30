@@ -613,7 +613,7 @@ class TestStructMicrosoftABI(unittest.TestCase, FloatTestMixin):
 
         out_ptr = builder.alloca(struct_type)
 
-        arg = builder.load(func.args[0])
+        arg = func.args[0]
         e1, e2 = [builder.extract_value(arg, i) for i in range(2)]
         se1 = builder.fmul(e1, e2)
         se2 = builder.fdiv(e1, e2)
