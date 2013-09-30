@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import contextlib
 from distutils.spawn import find_executable
+from . import tests
 
 is_py3k = sys.version_info[0] >= 3
 BITS = tuple.__itemsize__ * 8
@@ -29,8 +30,6 @@ import llvm.passes as lp
 import llvm.ee as le
 import llvmpy
 
-
-tests = []
 
 # ---------------------------------------------------------------------------
 
@@ -1582,23 +1581,3 @@ class TestExact(TestCase):
 tests.append(TestExact)
 
 
-
-# ---------------------------------------------------------------------------
-
-def run(verbosity=1):
-    print('llvmpy is installed in: ' + os.path.dirname(__file__))
-    print('llvmpy version: ' + llvm.__version__)
-    print(sys.version)
-
-    suite = unittest.TestSuite()
-    for cls in tests:
-        suite.addTest(unittest.makeSuite(cls))
-
-    # The default stream fails in IPython qtconsole on Windows,
-    # so just using sys.stdout
-    runner = unittest.TextTestRunner(verbosity=verbosity, stream=sys.stdout)
-    return runner.run(suite)
-
-
-if __name__ == '__main__':
-    unittest.main()

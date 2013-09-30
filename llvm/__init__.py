@@ -37,7 +37,7 @@ def test(verbosity=1):
 
         Run self-test, and return the number of failures + errors
         """
-    from llvm.test_llvmpy import run
+    from llvm.tests import run
 
     result = run(verbosity=verbosity)
 
