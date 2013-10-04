@@ -2,9 +2,15 @@ from __future__ import print_function
 import sys
 import os
 import unittest
+import subprocess
 import llvm
 
 tests = []
+
+# Isolated tests
+# Tests that affect process-wide settings
+isolated_tests = []
+
 
 def run(verbosity=1):
     print('llvmpy is installed in: ' + os.path.dirname(__file__))
@@ -24,8 +30,24 @@ def run(verbosity=1):
 
     # The default stream fails in IPython qtconsole on Windows,
     # so just using sys.stdout
-    runner = unittest.TextTestRunner(verbosity=verbosity, stream=sys.stdout)
-    return runner.run(suite)
+
+    kwargs = dict(verbosity=verbosity, stream=sys.stdout)
+
+    if sys.version_info[:2] > (2, 6):
+        kwargs['buffer'] = True
+    runner = unittest.TextTestRunner(**kwargs)
+    testresult = runner.run(suite)
+
+    if testresult:
+        # Run isolated tests
+        print("run isolated tests".center(80, '-'))
+
+        for test in isolated_tests:
+            print(('testing %s' % test).center(80))
+            subprocess.check_call([sys.executable, '-m', test])
+
+    return testresult
+
 
 if __name__ == '__main__':
     unittest.main()

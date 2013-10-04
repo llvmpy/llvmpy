@@ -59,7 +59,7 @@ class TestStructSystemVABI(unittest.TestCase, FloatTestMixin):
     '''
     Non microsoft convention
     '''
-    
+
     #----------------------------------------------------------------------
     # 64 bits
 
@@ -160,7 +160,7 @@ class TestStructSystemVABI(unittest.TestCase, FloatTestMixin):
     @skip_if_not_64bits
     def test_two_halfwords(self):
         '''Arguments smaller or equal to a word is packed into a word.
-        
+
         Passing as struct { float, float } occupies two XMM registers instead
         of one.
         The output must be in XMM.
@@ -267,7 +267,7 @@ class TestStructSystemVABI(unittest.TestCase, FloatTestMixin):
         self.assertClose(arg.x / arg.y, ret.y)
         self.assertEqual(arg.z, ret.z)
 
-        
+
     @skip_if_not_32bits
     def test_structure_abi_32_2(self):
         '''x86 is simple.  Always pass structure as memory.
@@ -378,7 +378,7 @@ class TestStructMicrosoftABI(unittest.TestCase, FloatTestMixin):
     '''
     Microsoft convention
     '''
-    
+
     #----------------------------------------------------------------------
     # 64 bits
 
@@ -488,7 +488,7 @@ class TestStructMicrosoftABI(unittest.TestCase, FloatTestMixin):
     @skip_if_not_64bits
     def test_two_halfwords(self):
         '''Arguments smaller or equal to a word is packed into a word.
-        
+
         Floats structure are not passed on the XMM.
         Treat it as a i64.
         '''
@@ -603,7 +603,7 @@ class TestStructMicrosoftABI(unittest.TestCase, FloatTestMixin):
 
         float_type = lc.Type.float()
         struct_type = lc.Type.struct([float_type, float_type])
-        struct_ptr_type = lc.Type.pointer(struct_type)
+
         abi_type = lc.Type.int(64)
         func_type = lc.Type.function(abi_type, [struct_type])
         func = m.add_function(func_type, name='foo')
