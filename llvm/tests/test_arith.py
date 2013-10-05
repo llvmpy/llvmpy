@@ -2,8 +2,9 @@ import unittest
 import llvm
 from llvm.core import (Module, Type, Builder)
 from llvm.ee import EngineBuilder
-from .support import TestCase, tests, BITS
+from .support import TestCase, tests, skip_if, skip_if_not_64bits
 
+@skip_if(llvm.version < (3, 3))
 class TestArith(TestCase):
     '''
     Test basic arithmetic support with LLVM MCJIT
@@ -51,23 +52,21 @@ class TestArith(TestCase):
     def test_mul(self):
         self.template('mul', 'fmul')
 
+    @skip_if_not_64bits
     def test_div(self):
-        if BITS == 32:
-            print('skipped test for div')
-            print('known failure due to unresolved external symbol __udivdi3')
-            return
+        '''
+        known failure due to unresolved external symbol __udivdi3
+        '''
         self.template('udiv', None) # 'fdiv')
 
+    @skip_if_not_64bits
     def test_rem(self):
-        if BITS == 32:
-            print('skipped test for rem')
-            print('known failure due to unresolved external symbol __umoddi3')
-            return
+        '''
+        known failure due to unresolved external symbol __umoddi3
+        '''
         self.template('urem', None) # 'frem')
 
-if llvm.version >= (3, 3):
-    # MCJIT is broken in 3.2
-    tests.append(TestArith)
+tests.append(TestArith)
 
 if __name__ == '__main__':
     unittest.main()

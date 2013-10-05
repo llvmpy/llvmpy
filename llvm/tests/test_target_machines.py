@@ -2,7 +2,15 @@ import unittest
 import llvm.core as lc
 import llvm.ee as le
 from llvm.core import Type, Builder
-from .support import TestCase, tests
+from .support import TestCase, tests, skip_if
+
+# Check PTX backend
+if le.initialize_target('PTX', noraise=True):
+    PTX_ARCH = 'ptx64'
+elif le.initialize_target('NVPTX', noraise=True):
+    PTX_ARCH = 'nvptx64'
+else:
+    PTX_ARCH = None
 
 class TestTargetMachines(TestCase):
     '''Exercise target machines
@@ -20,14 +28,9 @@ class TestTargetMachines(TestCase):
         self.assertIn('foo', tm.emit_assembly(m))
         self.assertTrue(le.get_host_cpu_name())
 
+    @skip_if(not PTX_ARCH, msg='LLVM is not compiled with PTX enabled')
     def test_ptx(self):
-        if le.initialize_target('PTX', noraise=True):
-            arch = 'ptx64'
-        elif le.initialize_target('NVPTX', noraise=True):
-            arch = 'nvptx64'
-        else:
-            return # skip this test
-
+        arch = PTX_ARCH
         print(arch)
         m, func = self._build_module()
         func.calling_convention = lc.CC_PTX_KERNEL # set calling conv
@@ -51,9 +54,6 @@ class TestTargetMachines(TestCase):
         m.verify()
         return m, func
 
-    def _build_bad_archname(self):
-        with self.assertRaises(RuntimeError):
-            le.TargetMachine.lookup("ain't no arch name")
 
 tests.append(TestTargetMachines)
 

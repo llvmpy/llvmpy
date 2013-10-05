@@ -5,8 +5,10 @@ from llvm.core import (Module, Type, Function, Builder,
 from llvm.ee import EngineBuilder
 import llvm.core as lc
 import llvm.ee as le
-from .support import TestCase, tests
+from llvm.workaround.avx_support import detect_avx_support
+from .support import TestCase, tests, skip_if_not_intel_cpu, skip_if
 
+@skip_if_not_intel_cpu
 class TestCPUSupport(TestCase):
 
     def _build_test_module(self):
@@ -73,15 +75,12 @@ class TestCPUSupport(TestCase):
         print('disable mattrs', mattrs)
         self._template(mattrs)
 
+    @skip_if(not detect_avx_support(), msg="no AVX support")
     def test_cpu_support6(self):
         features = []
-        from llvm.workaround.avx_support import detect_avx_support
-        if not detect_avx_support():
-            print('Skipping: no AVX')
-        else:
-            mattrs = ','.join(map(lambda s: '-%s' % s, features))
-            print('disable mattrs', mattrs)
-            self._template(mattrs)
+        mattrs = ','.join(map(lambda s: '-%s' % s, features))
+        print('disable mattrs', mattrs)
+        self._template(mattrs)
 
 tests.append(TestCPUSupport)
 

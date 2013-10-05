@@ -5,11 +5,11 @@ import unittest
 import subprocess
 import llvm
 
-tests = []
+tests = []  # stores unittest.TestCase objects
 
 # Isolated tests
 # Tests that affect process-wide settings
-isolated_tests = []
+isolated_tests = []  # stores modue name
 
 
 def run(verbosity=1):
@@ -26,7 +26,8 @@ def run(verbosity=1):
 
     suite = unittest.TestSuite()
     for cls in tests:
-        suite.addTest(unittest.makeSuite(cls))
+        if cls:
+            suite.addTest(unittest.makeSuite(cls))
 
     # The default stream fails in IPython qtconsole on Windows,
     # so just using sys.stdout
@@ -44,8 +45,10 @@ def run(verbosity=1):
 
         for test in isolated_tests:
             print(('testing %s' % test).center(80))
-            subprocess.check_call([sys.executable, '-m', test])
-
+            term = subprocess.check_output([sys.executable, '-m', test],
+                                           stderr=subprocess.STDOUT)
+            print(term)
+            
     return testresult
 
 

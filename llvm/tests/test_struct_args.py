@@ -6,6 +6,9 @@ from ctypes import Structure, c_float, c_double, c_uint8, CFUNCTYPE
 from llvm import core as lc
 from llvm import ee as le
 
+from .support import (skip_if_win32, skip_if_not_win32, skip_if_not_32bits,
+                      skip_if_not_64bits, skip_if_not_intel_cpu, TestCase)
+
 class TwoDoubleOneByte(Structure):
     _fields_ = ('x', c_double), ('y', c_double), ('z', c_uint8)
 
@@ -30,32 +33,9 @@ class OneByte(Structure):
     def __repr__(self):
         return '<x=%d>' % (self.x,)
 
-TM = le.TargetMachine.new()
-POINTER_BITSIZE = TM.target_data.pointer_size * 8
-
-def skip_if_not_64bits(fn):
-    if POINTER_BITSIZE == 64:
-        return fn
-
-def skip_if_not_32bits(fn):
-    if POINTER_BITSIZE == 32:
-        return fn
-
-def skip_if_not_system_v(cls):
-    if not sys.platform.startswith('win32'):
-        return cls
-
-def skip_if_not_win32(cls):
-    if sys.platform.startswith('win32'):
-        return cls
-
-class FloatTestMixin(object):
-    def assertClose(self, got, expect):
-        rel = abs(got - expect) / float(expect)
-        self.assertTrue(rel < 1e-6, 'relative error = %f' % rel)
-
-@skip_if_not_system_v
-class TestStructSystemVABI(unittest.TestCase, FloatTestMixin):
+@skip_if_not_intel_cpu
+@skip_if_win32
+class TestStructSystemVABI(TestCase):
     '''
     Non microsoft convention
     '''
@@ -169,8 +149,6 @@ class TestStructSystemVABI(unittest.TestCase, FloatTestMixin):
 
         float_type = lc.Type.float()
         struct_type = lc.Type.vector(float_type, 2)
-        print('ABI size',
-              TM.target_data.abi_size(lc.Type.struct([float_type, float_type])))
         func_type = lc.Type.function(struct_type, [struct_type])
         func = m.add_function(func_type, name='foo')
 
@@ -370,11 +348,11 @@ class TestStructSystemVABI(unittest.TestCase, FloatTestMixin):
 
         self.assertEqual(arg.x * arg.x, ret.x)
 
-if not sys.platform.startswith('win32'):
-    tests.append(TestStructSystemVABI)
+tests.append(TestStructSystemVABI)
 
+@skip_if_not_intel_cpu
 @skip_if_not_win32
-class TestStructMicrosoftABI(unittest.TestCase, FloatTestMixin):
+class TestStructMicrosoftABI(TestCase):
     '''
     Microsoft convention
     '''
@@ -701,10 +679,7 @@ class TestStructMicrosoftABI(unittest.TestCase, FloatTestMixin):
         self.assertClose(arg.x / arg.y, ret.y)
         self.assertEqual(arg.z, ret.z)
 
-
-
-if sys.platform.startswith('win32'):
-    tests.append(TestStructMicrosoftABI)
+tests.append(TestStructMicrosoftABI)
 
 if __name__ == "__main__":
     unittest.main()
