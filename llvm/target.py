@@ -191,6 +191,10 @@ class TargetMachine(llvm.Wrapper):
     def target(self):
         return self._ptr.getTarget()
 
+    if llvm.version >= (3, 3):
+        def add_analysis_passes(self, pm):
+            self._ptr.addAnalysisPasses(pm._ptr)
+
     if llvm.version >= (3, 4):
         @property
         def reg_info(self):

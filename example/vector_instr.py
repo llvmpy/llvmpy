@@ -64,7 +64,8 @@ def build_manual_vector():
 
 def build_auto_vector():
     mod = lc.Module.new('auto.vector')
-    intty = lc.Type.int(32)
+    # Loop vectorize is sensitive to the size of the index size(!?)
+    intty = lc.Type.int(tuple.__itemsize__ * 8)
     aryty = lc.Type.pointer(lc.Type.float())
     fnty = lc.Type.function(lc.Type.void(), [aryty, aryty, aryty, intty])
     fn = mod.add_function(fnty, name='vector_add')

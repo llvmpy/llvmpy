@@ -80,6 +80,15 @@ class PassManagerBuilder(llvm.Wrapper):
             self._ptr.BBVectorize = enable
 
         vectorize = bbvectorize
+
+        @property
+        def slpvectorize(self):
+            return self._ptr.SLPVectorize
+
+        @slpvectorize.setter
+        def slpvectorize(self, enable):
+            self._ptr.SLPVectorize = enable
+
     else:
         @property
         def vectorize(self):
@@ -311,8 +320,9 @@ class TargetTransformInfo(Pass):
 # Helpers
 #===----------------------------------------------------------------------===
 
-def build_pass_managers(tm, opt=2, loop_vectorize=False, vectorize=False,
-                        inline_threshold=2000, pm=True, fpm=True, mod=None):
+def build_pass_managers(tm, opt=2, loop_vectorize=False, slp_vectorize=False,
+                        vectorize=False, inline_threshold=None,
+                        pm=True, fpm=True, mod=None):
     '''
         tm --- The TargetMachine for which the passes are optimizing for.
         The TargetMachine must stay alive until the pass managers
@@ -326,6 +336,14 @@ def build_pass_managers(tm, opt=2, loop_vectorize=False, vectorize=False,
         fpm --- [boolean] Whether to build a function-level pass-manager.
         mod --- [Module] The module object for the FunctionPassManager.
         '''
+    if inline_threshold is None:
+        if opt == 1:
+            inline_threshold = 75
+        elif opt == 2:
+            inline_threshold = 25
+        else:
+            inline_threshold = 275
+
     if pm:
         pm = PassManager.new()
     if fpm:
@@ -338,20 +356,26 @@ def build_pass_managers(tm, opt=2, loop_vectorize=False, vectorize=False,
     pmb.opt_level = opt
     pmb.vectorize = vectorize
     pmb.loop_vectorize = loop_vectorize
+    if llvm.version >= (3, 3):
+        pmb.slp_vectorize = slp_vectorize
     if inline_threshold:
         pmb.use_inliner_with_threshold(inline_threshold)
     if pm:
         pm.add(tm.target_data.clone())
         pm.add(TargetLibraryInfo.new(tm.triple))
-        if llvm.version >= (3, 2):
+        if llvm.version <= (3, 2):
             pm.add(TargetTransformInfo.new(tm))
+        else:
+            tm.add_analysis_passes(pm)
         pmb.populate(pm)
 
     if fpm:
         fpm.add(tm.target_data.clone())
         fpm.add(TargetLibraryInfo.new(tm.triple))
-        if llvm.version >= (3, 2):
+        if llvm.version <= (3, 2):
             fpm.add(TargetTransformInfo.new(tm))
+        else:
+            tm.add_analysis_passes(pm)
         pmb.populate(fpm)
         fpm.initialize()
 

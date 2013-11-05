@@ -53,6 +53,9 @@ class TargetMachine:
         getVectorTargetTransformInfo = Method(const(
                                           ownedptr(VectorTargetTransformInfo)))
 
+    else:
+        addAnalysisPasses = Method(Void, ref(PassManagerBase))
+
     addPassesToEmitFile = Method(cast(bool, Bool),
                                  ref(PassManagerBase),
                                  ref(formatted_raw_ostream),
