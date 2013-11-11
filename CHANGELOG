@@ -1,5 +1,9 @@
-2013-8-28    0.12.0:
---------------------
+2013-11-11    0.12.1:
+---------------------
+  * various bug fixes
+
+2013-08-28    0.12.0:
+---------------------
   * update to LLVM 3.3 and maintain compatibility with LLVM 3.2
   * add LLRT for minimal support for 64-bit divmod on 32-bit platform
   * start to adopt MCJIT (not quite usable on win32)
