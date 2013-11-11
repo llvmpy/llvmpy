@@ -6,8 +6,9 @@ import subprocess
 import tempfile
 from distutils.spawn import find_executable
 from llvm.core import (Module, Type, Builder, Constant)
-from .support import TestCase, IS_PY3K, tests
+from .support import TestCase, IS_PY3K, tests, skip_if
 
+@skip_if(sys.platform in ('win32', 'darwin'))
 class TestNative(TestCase):
 
     def setUp(self):
@@ -60,10 +61,10 @@ class TestNative(TestCase):
         self._compile(src)
 
     def test_object(self):
-        #        if sys.platform == 'darwin':
-        #            # skip this test on MacOSX for now
-        #            return
-
+        '''
+        Note: Older Darwin with GCC will report missing _main symbol when
+              compile the object file to an executable.
+        '''
         m = self._make_module()
         output = m.to_native_object()
 
@@ -73,8 +74,7 @@ class TestNative(TestCase):
 
         self._compile(src)
 
-if sys.platform != 'win32':
-    tests.append(TestNative)
+tests.append(TestNative)
 
 if __name__ == '__main__':
     unittest.main()
