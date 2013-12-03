@@ -3,7 +3,7 @@
 # Import the llvm-py modules.
 from llvm import *
 from llvm.core import *
-from llvm.test_llvmpy import TestCase
+from llvm.tests.support import TestCase
 
 import logging
 import unittest

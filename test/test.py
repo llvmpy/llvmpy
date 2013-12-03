@@ -7,7 +7,7 @@ import unittest, sys, logging
 
 from llvm import *
 from llvm.core import *
-from llvm.test_llvmpy import TestCase
+from llvm.tests.support import TestCase
 
 class TestModule(TestCase):
 
