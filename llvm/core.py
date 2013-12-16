@@ -2337,15 +2337,20 @@ class Builder(llvm.Wrapper):
     # misc
 
     def extract_value(self, retval, idx, name=""):
-        return _make_value(self._ptr.CreateExtractValue(retval._ptr, [idx], name))
+        if not isinstance(idx, (tuple, list)):
+            idx = [idx]
+        return _make_value(self._ptr.CreateExtractValue(retval._ptr, idx,
+                                                        name))
 
     # obsolete synonym for extract_value
     getresult = extract_value
 
     def insert_value(self, retval, rhs, idx, name=""):
+        if not isinstance(idx, (tuple, list)):
+            idx = [idx]
         return _make_value(self._ptr.CreateInsertValue(retval._ptr,
                                                        rhs._ptr,
-                                                       [idx],
+                                                       idx,
                                                        name))
 
     def phi(self, ty, name=""):
