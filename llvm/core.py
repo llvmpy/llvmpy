@@ -1951,6 +1951,33 @@ class CompareInstruction(Instruction):
             return FCMPEnum.get(n)
 
 
+class AllocaInstruction(Instruction):
+    _type_ = api.llvm.AllocaInst
+
+    @property
+    def alignment(self):
+        return self._ptr.getAlignment()
+
+    @alignment.setter
+    def alignment(self, n):
+        self._ptr.setAlignment(n)
+
+    @property
+    def array_size(self):
+        return self._ptr.getArraySize()
+
+    @array_size.setter
+    def array_size(self, value):
+        return self._ptr.setArraySize(value._ptr)._ptr
+
+    @property
+    def is_array(self):
+        return self._ptr.isArrayAllocation()
+
+    @property
+    def is_static(self):
+        return self._ptr.isStaticAlloca()
+
 #===----------------------------------------------------------------------===
 # Basic block
 #===----------------------------------------------------------------------===
@@ -2010,7 +2037,8 @@ class _ValueFactory(object):
         VALUE_INSTRUCTION + OPCODE_INVOKE     : CallOrInvokeInstruction,
         VALUE_INSTRUCTION + OPCODE_SWITCH     : SwitchInstruction,
         VALUE_INSTRUCTION + OPCODE_ICMP       : CompareInstruction,
-        VALUE_INSTRUCTION + OPCODE_FCMP       : CompareInstruction
+        VALUE_INSTRUCTION + OPCODE_FCMP       : CompareInstruction,
+        VALUE_INSTRUCTION + OPCODE_ALLOCA     : AllocaInstruction,
     }
 
     @classmethod
@@ -2218,7 +2246,6 @@ class Builder(llvm.Wrapper):
     # memory
 
     def malloc(self, ty, name=""):
-        context = api.llvm.getGlobalContext()
         allocsz = api.llvm.ConstantExpr.getSizeOf(ty._ptr)
         ity = allocsz.getType()
         malloc = api.llvm.CallInst.CreateMalloc(self.basic_block._ptr,
@@ -2232,7 +2259,6 @@ class Builder(llvm.Wrapper):
         return _make_value(inst)
 
     def malloc_array(self, ty, size, name=""):
-        context = api.llvm.getGlobalContext()
         allocsz = api.llvm.ConstantExpr.getSizeOf(ty._ptr)
         ity = allocsz.getType()
         malloc = api.llvm.CallInst.CreateMalloc(self.basic_block._ptr,
@@ -2246,7 +2272,6 @@ class Builder(llvm.Wrapper):
         return _make_value(inst)
 
     def alloca(self, ty, name=""):
-        intty = Type.int()
         return _make_value(self._ptr.CreateAlloca(ty._ptr, None, name))
 
     def alloca_array(self, ty, size, name=""):

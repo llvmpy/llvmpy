@@ -346,6 +346,9 @@ class AllocaInst:
     isStaticAlloca = Method(cast(Bool, bool))
     getArraySize = Method(ptr(Value))
     getAllocatedType = Method(ptr(Type))
+    getAlignment = Method(cast(Unsigned, int))
+    setAlignment = Method(Void, cast(int, Unsigned))
+    getArraySize = Method(ptr(Value))
 
 
 @CastInst

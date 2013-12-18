@@ -84,7 +84,7 @@ class Capsule(object):
         return cls(self)
 
     def __eq__(self, other):
-        if self.pointer == other.pointer:
+        if  isinstance(other, Capsule) and self.pointer == other.pointer:
             assert self.name == other.name
             return True
         else:
@@ -193,7 +193,8 @@ class Wrapper(object):
         return hash(self._capsule)
 
     def __eq__(self, other):
-        return self._capsule == other._capsule
+        if isinstance(other, Wrapper):
+            return self._capsule == other._capsule
 
     def __ne__(self, other):
         return not(self == other)
