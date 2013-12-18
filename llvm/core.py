@@ -379,6 +379,7 @@ class Module(llvm.Wrapper):
 
     module_obj = Module.new('my_module')
     """
+    __slots__ = '__weakref__'
     __cache = weakref.WeakValueDictionary()
 
     def __new__(cls, ptr):
@@ -688,6 +689,7 @@ class Type(llvm.Wrapper):
     Use one of the static methods to create an instance. Example:
     ty = Type.double()
     """
+    __slots__ = '__name__'
     _type_ = api.llvm.Type
 
     def __init__(self, ptr):
@@ -880,6 +882,7 @@ class Type(llvm.Wrapper):
 
 class IntegerType(Type):
     """Represents an integer type."""
+    __slots__ = ()
     _type_ = api.llvm.IntegerType
 
     @property
@@ -889,6 +892,7 @@ class IntegerType(Type):
 
 class FunctionType(Type):
     """Represents a function type."""
+    __slots__ = ()
     _type_ = api.llvm.FunctionType
 
     @property
@@ -918,6 +922,7 @@ class FunctionType(Type):
 class StructType(Type):
     """Represents a structure type."""
     _type_ = api.llvm.StructType
+    __slots__ = ()
 
     @property
     def element_count(self):
@@ -976,6 +981,7 @@ class StructType(Type):
 class ArrayType(Type):
     """Represents an array type."""
     _type_ = api.llvm.ArrayType
+    __slots__ = ()
 
     @property
     def element(self):
@@ -987,6 +993,7 @@ class ArrayType(Type):
 
 class PointerType(Type):
     _type_ = api.llvm.PointerType
+    __slots__ = ()
 
     @property
     def pointee(self):
@@ -998,6 +1005,7 @@ class PointerType(Type):
 
 class VectorType(Type):
     _type_ = api.llvm.VectorType
+    __slots__ = ()
 
     @property
     def element(self):
@@ -1009,6 +1017,7 @@ class VectorType(Type):
 
 class Value(llvm.Wrapper):
     _type_ = api.llvm.Value
+    __slots__ = '__weakref__'
 
     def __init__(self, builder, ptr):
         assert builder is _ValueFactory
@@ -1077,6 +1086,7 @@ class Value(llvm.Wrapper):
 
 class User(Value):
     _type_ = api.llvm.User
+    __slots__ = ()
 
     @property
     def operand_count(self):
@@ -1091,6 +1101,7 @@ class User(Value):
 
 class Constant(User):
     _type_ = api.llvm.Constant
+    __slots__ = ()
 
     @staticmethod
     def null(ty):
@@ -1276,6 +1287,7 @@ class Constant(User):
 
 class ConstantExpr(Constant):
     _type_ = api.llvm.ConstantExpr
+    __slots__ = ()
 
     @property
     def opcode(self):
@@ -1286,19 +1298,20 @@ class ConstantExpr(Constant):
         return self._ptr.getOpcodeName()
 
 class ConstantAggregateZero(Constant):
-    pass
+    __slots__ = ()
 
 
 class ConstantDataArray(Constant):
-    pass
+    __slots__ = ()
 
 
 class ConstantDataVector(Constant):
-    pass
+    __slots__ = ()
 
 
 class ConstantInt(Constant):
     _type_ = api.llvm.ConstantInt
+    __slots__ = ()
 
     @property
     def z_ext_value(self):
@@ -1314,30 +1327,32 @@ class ConstantInt(Constant):
 
 
 class ConstantFP(Constant):
-    pass
+    __slots__ = ()
 
 
 class ConstantArray(Constant):
-    pass
+    __slots__ = ()
 
 
 class ConstantStruct(Constant):
-    pass
+    __slots__ = ()
 
 
 class ConstantVector(Constant):
-    pass
+    __slots__ = ()
 
 
 class ConstantPointerNull(Constant):
-    pass
+    __slots__ = ()
 
 
 class UndefValue(Constant):
-    pass
+    __slots__ = ()
+
 
 class GlobalValue(Constant):
     _type_ = api.llvm.GlobalValue
+    __slots__ = ()
 
     def _get_linkage(self):
         return self._ptr.getLinkage()
@@ -1383,6 +1398,7 @@ class GlobalValue(Constant):
 
 class GlobalVariable(GlobalValue):
     _type_ = api.llvm.GlobalVariable
+    __slots__ = ()
 
     @staticmethod
     def new(module, ty, name, addrspace=0):
@@ -1443,6 +1459,7 @@ class GlobalVariable(GlobalValue):
     thread_local = property(_get_thread_local, _set_thread_local)
 
 class Argument(Value):
+    __slots__ = ()
     _type_ = api.llvm.Argument
     _valid_attrs = frozenset([ATTR_BY_VAL, ATTR_NEST, ATTR_NO_ALIAS,
                               ATTR_NO_CAPTURE, ATTR_STRUCT_RET])
@@ -1543,6 +1560,7 @@ class Argument(Value):
         return self._ptr.hasStructRetAttr()
 
 class Function(GlobalValue):
+    __slots__ = ()
     _type_ = api.llvm.Function
 
     @staticmethod
@@ -1681,6 +1699,7 @@ class Function(GlobalValue):
 #===----------------------------------------------------------------------===
 
 class InlineAsm(Value):
+    __slots__ = ()
     _type_ = api.llvm.InlineAsm
 
     @staticmethod
@@ -1695,6 +1714,7 @@ class InlineAsm(Value):
 #===----------------------------------------------------------------------===
 
 class MetaData(Value):
+    __slots__ = ()
     _type_ = api.llvm.MDNode
 
     @staticmethod
@@ -1751,6 +1771,7 @@ class MetaDataString(Value):
 
 
 class NamedMetaData(llvm.Wrapper):
+    __slots__ = ()
 
     @staticmethod
     def get_or_insert(mod, name):
@@ -1780,6 +1801,7 @@ class NamedMetaData(llvm.Wrapper):
 #===----------------------------------------------------------------------===
 
 class Instruction(User):
+    __slots__ = ()
     _type_ = api.llvm.Instruction
 
     @property
@@ -1861,6 +1883,7 @@ class Instruction(User):
 
 
 class CallOrInvokeInstruction(Instruction):
+    __slots__ = ()
     _type_ = api.llvm.CallInst, api.llvm.InvokeInst
 
     def _get_cc(self):
@@ -1916,6 +1939,7 @@ class CallOrInvokeInstruction(Instruction):
 
 
 class PHINode(Instruction):
+    __slots__ = ()
     _type_ = api.llvm.PHINode
 
     @property
@@ -1933,6 +1957,7 @@ class PHINode(Instruction):
 
 
 class SwitchInstruction(Instruction):
+    __slots__ = ()
     _type_ = api.llvm.SwitchInst
 
     def add_case(self, const, bblk):
@@ -1940,6 +1965,7 @@ class SwitchInstruction(Instruction):
 
 
 class CompareInstruction(Instruction):
+    __slots__ = ()
     _type_ = api.llvm.CmpInst
 
     @property
@@ -1952,6 +1978,7 @@ class CompareInstruction(Instruction):
 
 
 class AllocaInstruction(Instruction):
+    __slots__ = ()
     _type_ = api.llvm.AllocaInst
 
     @property
@@ -1983,6 +2010,7 @@ class AllocaInstruction(Instruction):
 #===----------------------------------------------------------------------===
 
 class BasicBlock(Value):
+    __slots__ = ()
     _type_ = api.llvm.BasicBlock
 
     def insert_before(self, name):
@@ -2009,6 +2037,7 @@ class BasicBlock(Value):
 
 
 class _ValueFactory(object):
+    __slots__ = ()
     cache = weakref.WeakValueDictionary()
 
     # value ID -> class map
@@ -2085,6 +2114,7 @@ _atomic_orderings = {
 }
 
 class Builder(llvm.Wrapper):
+    __slots__ = ()
 
     @staticmethod
     def new(basic_block):

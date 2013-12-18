@@ -37,7 +37,17 @@ def run(verbosity=1):
     if sys.version_info[:2] > (2, 6):
         kwargs['buffer'] = True
     runner = unittest.TextTestRunner(**kwargs)
-    testresult = runner.run(suite)
+
+    try:
+        from guppy import hpy
+    except ImportError:
+        testresult = runner.run(suite)
+    else:
+        hp = hpy()
+        hp.setref()
+        testresult = runner.run(suite)
+        print(hp.heap())
+
 
     if testresult:
         # Run isolated tests

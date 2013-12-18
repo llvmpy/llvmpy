@@ -46,6 +46,7 @@ def _capsule_weakref_dtor(item):
 
 class Capsule(object):
     "Wraps PyCapsule so that we can build weakref of it."
+    __slots__ = 'pointer', 'capsule', 'name', '__weakref__'
 
     from ._capsule import check, getClassName, getName, getPointer
 
@@ -97,7 +98,7 @@ class Capsule(object):
         return not (self == other)
 
 class WeakRef(ref):
-    pass
+    __slots__ = 'pointer', 'name', 'capsule'
 
 _addr2refct = defaultdict(lambda: 0)
 _capsule2weak = WeakKeyDictionary()
@@ -126,7 +127,7 @@ def obtain_ownership(cap):
     if cls._has_dtor():
         addr = cap.pointer
         name = cap.name
-        assert _addr2dtor[addr] is None
+        assert _addr2dtor[(name, addr)] is None
         _addr2dtor[(name, addr)] = cls._delete_
 
 def has_ownership(cap):

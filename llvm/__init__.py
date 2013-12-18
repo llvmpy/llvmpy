@@ -9,6 +9,8 @@ version = extra.get_llvm_version()
 del extra
 
 class Wrapper(object):
+    __slots__ = '__ptr'
+
     def __init__(self, ptr):
         assert ptr
         self.__ptr = ptr

@@ -1,5 +1,4 @@
 import inspect, textwrap
-import functools
 import codegen as cg
 import os
 
@@ -8,9 +7,11 @@ namespaces = {}
 
 RESERVED = frozenset(['None'])
 
+
 def makedir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
+
 
 class SubModule(object):
     def __init__(self):
@@ -293,6 +294,10 @@ class Class(SubModule, _Type):
         writer.println('@capsule.register_class("%s")' % self.fullname)
         with writer.block('class %(clsname)s(%(bases)s):' % locals()):
             writer.println('_llvm_type_ = "%s"' % self.fullname)
+            if self.bases:
+                writer.println('__slots__ = ()')
+            else:
+                writer.println('__slots__ = "__weakref__"')
             for enum in self.enums:
                 enum.compile_py(writer)
             for meth in self.methods:
@@ -398,6 +403,7 @@ class Enum(object):
                 p = '.'.join(['_api'] + self.parent.fullname.split('::'))
                 writer.println(fmt % locals())
         writer.println()
+
 
 class Method(object):
     _kind_ = 'meth'
@@ -516,6 +522,7 @@ class Method(object):
                 with writer.block('if len(%s) > %d:' % (unwrapped, i)):
                     writer.release_ownership('%s[%d]' % (unwrapped, i))
 
+
 class CustomMethod(Method):
     def __init__(self, methodname, retty, *argtys):
         super(CustomMethod, self).__init__(retty, *argtys)
@@ -594,6 +601,7 @@ class CustomFunction(Function):
     def fullname(self):
         return self.realname
 
+
 class Destructor(Method):
     _kind_ = 'dtor'
 
@@ -624,6 +632,7 @@ class Constructor(StaticMethod):
         stmt = 'new %(alloctype)s(%(arglist)s)' % locals()
         ret = writer.declare(retty.fullname, stmt)
         return ret
+
 
 class ref(_Type):
     def __init__(self, element):
@@ -686,12 +695,15 @@ class ptr(_Type):
         return writer.pycapsule_new(val, self.element.capsule_name,
                                     self.element.fullname)
 
+
 class ownedptr(ptr):
     pass
+
 
 def const(ptr_or_ref):
     ptr_or_ref.const = True
     return ptr_or_ref
+
 
 class cast(_Type):
     format = 'O'
@@ -756,6 +768,7 @@ class CustomPythonMethod(object):
     def compile_py(self, writer):
         for line in self.sourcelines:
             writer.println(line)
+
 
 class CustomPythonStaticMethod(CustomPythonMethod):
     def compile_py(self, writer):
@@ -844,6 +857,7 @@ class Attr(object):
 #
 
 TARGETS_BUILT = os.environ.get('LLVM_TARGETS_BUILT', '').split()
+
 
 def _parse_llvm_version(ver):
     import re
