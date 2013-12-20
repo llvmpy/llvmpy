@@ -41,7 +41,7 @@ import contextlib, weakref
 
 import llvm
 from llvm._intrinsic_ids import *
-
+from llvm.deprecated import deprecated
 from llvmpy import api
 
 #===----------------------------------------------------------------------===
@@ -2301,11 +2301,13 @@ class Builder(llvm.Wrapper):
         inst = self._ptr.Insert(malloc, name)
         return _make_value(inst)
 
-    def alloca(self, ty, name=""):
-        return _make_value(self._ptr.CreateAlloca(ty._ptr, None, name))
+    def alloca(self, ty, size=None, name=""):
+        sizeptr = size._ptr if size else None
+        return _make_value(self._ptr.CreateAlloca(ty._ptr, sizeptr, name))
 
+    @deprecated
     def alloca_array(self, ty, size, name=""):
-        return _make_value(self._ptr.CreateAlloca(ty._ptr, size._ptr, name))
+        return self.alloca(ty, size, name=name)
 
     def free(self, ptr):
         free = api.llvm.CallInst.CreateFree(ptr._ptr, self.basic_block._ptr)

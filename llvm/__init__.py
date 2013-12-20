@@ -34,7 +34,7 @@ def _extract_ptrs(objs):
 class LLVMException(Exception):
     pass
 
-def test(verbosity=1):
+def test(verbosity=3):
     """test(verbosity=1) -> TextTestResult
 
         Run self-test, and return the number of failures + errors
