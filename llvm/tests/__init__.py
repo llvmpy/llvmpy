@@ -48,7 +48,6 @@ def run(verbosity=1):
         testresult = runner.run(suite)
         print(hp.heap())
 
-
     if testresult:
         # Run isolated tests
         print("run isolated tests".center(80, '-'))
@@ -60,7 +59,7 @@ def run(verbosity=1):
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
         for line in p.stdout:
-            print(line, end='')
+            print(line.decode('utf8'), end='')
         p.wait()
         if p.returncode:
             raise Exception("%s returned: %d" % p.returncode)
