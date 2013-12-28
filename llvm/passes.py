@@ -320,14 +320,15 @@ class TargetTransformInfo(Pass):
 # Helpers
 #===----------------------------------------------------------------------===
 
-def build_pass_managers(tm, opt=2, loop_vectorize=False, slp_vectorize=False,
-                        vectorize=False, inline_threshold=None,
-                        pm=True, fpm=True, mod=None):
+def build_pass_managers(tm, opt=2, size=0, loop_vectorize=False,
+                        slp_vectorize=False, vectorize=False,
+                        inline_threshold=None, pm=True, fpm=True, mod=None):
     '''
         tm --- The TargetMachine for which the passes are optimizing for.
         The TargetMachine must stay alive until the pass managers
         are removed.
         opt --- [0-3] Optimization level. Default to 2.
+        size --- [0-2] Optimize for size. Default to 0.
         loop_vectorize --- [boolean] Whether to use loop-vectorizer.
         vectorize --- [boolean] Whether to use basic-block vectorizer.
         inline_threshold --- [int] Threshold for the inliner.
@@ -337,11 +338,15 @@ def build_pass_managers(tm, opt=2, loop_vectorize=False, slp_vectorize=False,
         mod --- [Module] The module object for the FunctionPassManager.
         '''
     if inline_threshold is None:
-        if opt == 1:
+        if 0 < opt < 3:
+            inline_threshold = 225
+
+        if size == 1:
             inline_threshold = 75
-        elif opt == 2:
+        elif size == 2:
             inline_threshold = 25
-        else:
+
+        if opt >= 3:
             inline_threshold = 275
 
     if pm:
