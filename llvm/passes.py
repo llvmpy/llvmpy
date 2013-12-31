@@ -380,9 +380,8 @@ def build_pass_managers(tm, opt=2, size=0, loop_vectorize=False,
         if llvm.version <= (3, 2):
             fpm.add(TargetTransformInfo.new(tm))
         else:
-            tm.add_analysis_passes(pm)
+            tm.add_analysis_passes(fpm)
         pmb.populate(fpm)
-        fpm.initialize()
 
     from collections import namedtuple
     return namedtuple('passmanagers', ['pm', 'fpm'])(pm=pm, fpm=fpm)
