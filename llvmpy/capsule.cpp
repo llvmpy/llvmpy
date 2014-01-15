@@ -530,9 +530,11 @@ static PyGetSetDef Capsule_getseters[] = {
 };
 
 static PyTypeObject CapsuleType = {
-    PyObject_HEAD_INIT(NULL)
 #if (PY_MAJOR_VERSION < 3)
+    PyObject_HEAD_INIT(NULL)
     0,                         /*ob_size*/
+#else
+    PyVarObject_HEAD_INIT(NULL, 0)
 #endif
     "_capsule.Capsule",        /*tp_name*/
     sizeof(CapsuleObject),     /*tp_basicsize*/
