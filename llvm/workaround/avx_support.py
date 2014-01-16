@@ -12,7 +12,11 @@ http://software.intel.com/sites/default/files/m/a/b/3/4/d/41604-319433-012a.pdf
 
 """
 
-import sys, os, subprocess
+import sys
+import os
+import subprocess
+import contextlib
+
 
 def detect_avx_support(option='detect'):
     '''Detect AVX support'''
@@ -36,13 +40,14 @@ def detect_unix_like():
     except IOError:
         return False
 
-    for line in info:
-        if line.lstrip().startswith('flags'):
-            features = line.split()
-            if 'avx' in features and 'xsave' in features:
-                # enable AVX if flags contain AVX
-                return True
-    return False
+    with contextlib.closing(info):
+        for line in info:
+            if line.lstrip().startswith('flags'):
+                features = line.split()
+                if 'avx' in features and 'xsave' in features:
+                    # enable AVX if flags contain AVX
+                    return True
+        return False
 
 def detect_osx_like():
     try:
@@ -50,9 +55,11 @@ def detect_osx_like():
                                 stdout=subprocess.PIPE)
     except OSError:
         return False
-    features = info.stdout.read().decode('UTF8')
-    features = features.split()
-    return 'AVX1.0' in features and 'OSXSAVE' in features and 'XSAVE' in features
+
+    with info:
+        features = info.stdout.read().decode('UTF8')
+        features = features.split()
+        return 'AVX1.0' in features and 'OSXSAVE' in features and 'XSAVE' in features
 
 
 if __name__ == '__main__':
