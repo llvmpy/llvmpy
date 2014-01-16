@@ -44,8 +44,4 @@ def test(verbosity=3):
     result = run(verbosity=verbosity)
     errct = len(result.failures) + len(result.errors)
 
-    # Dump some intrinsic usage result with MCJIT.
-    from llvm.utils import check_intrinsics
-    check_intrinsics.main()
-
     return errct

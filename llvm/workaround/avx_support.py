@@ -49,6 +49,17 @@ def detect_unix_like():
                     return True
         return False
 
+
+@contextlib.contextmanager
+def _close_popen(popen):
+    if sys.version_info[0] >= 3:
+        with popen:
+            yield
+    else:
+        yield
+        popen.stdout.close()
+
+
 def detect_osx_like():
     try:
         info = subprocess.Popen(['sysctl', '-n', 'machdep.cpu.features'],
@@ -56,7 +67,7 @@ def detect_osx_like():
     except OSError:
         return False
 
-    with info:
+    with _close_popen(info):
         features = info.stdout.read().decode('UTF8')
         features = features.split()
         return 'AVX1.0' in features and 'OSXSAVE' in features and 'XSAVE' in features
