@@ -42,6 +42,10 @@ def test(verbosity=3):
     from llvm.tests import run
 
     result = run(verbosity=verbosity)
+    errct = len(result.failures) + len(result.errors)
 
-    return len(result.failures) + len(result.errors)
+    # Dump some intrinsic usage result with MCJIT.
+    from llvm.utils import check_intrinsics
+    check_intrinsics.main()
 
+    return errct
