@@ -55,14 +55,14 @@ def run(verbosity=1):
         for test in isolated_tests:
             print(('testing %s' % test).center(80))
 
-        cmd = [sys.executable, '-m', test]
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
-        for line in p.stdout:
-            print(line.decode('utf8'), end='')
-        p.wait()
-        if p.returncode:
-            raise Exception("%s returned: %d" % p.returncode)
+            cmd = [sys.executable, '-m', test]
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT)
+            for line in p.stdout:
+                print(line.decode('utf8'), end='')
+            p.wait()
+            if p.returncode:
+                raise Exception("%s returned: %d" % (test, p.returncode))
 
     return testresult
 
