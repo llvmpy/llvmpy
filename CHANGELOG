@@ -1,3 +1,10 @@
+2013-01-31    0.12.2:
+---------------------
+  * enhance wrapper efficiency by moving some capsule code into C++
+  * fix unclosed file handler in avx_support
+  * multiple-dimension insert_value, extract_value
+  * various minor fixes
+
 2013-11-11    0.12.1:
 ---------------------
   * various bug fixes
