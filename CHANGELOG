@@ -1,4 +1,4 @@
-2013-02-04    0.12.2:
+2014-02-04    0.12.2:
 ---------------------
   * enhance wrapper efficiency by moving some capsule code into C++
   * fix unclosed file handler in avx_support
