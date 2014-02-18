@@ -9,7 +9,7 @@ extern "C" {
 
 #if (PY_MAJOR_VERSION >= 3)
 
-PyObject *
+PyMODINIT_FUNC
 PyInit_%(module)s(void)
 {
 PyObject *module = create_python_module("%(module)s", meth_%(ns)s);
