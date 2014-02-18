@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import unittest
-from llvm.test_llvmpy import TestCase
+from llvm.tests.support import TestCase
 from llvm.core import *
 
 class TestMetaData(TestCase):

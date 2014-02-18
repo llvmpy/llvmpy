@@ -2,7 +2,7 @@ from llvm.core import *
 from llvm.passes import *
 from llvm.ee import *
 import llvm
-from llvm.test_llvmpy import TestCase
+from llvm.tests.support import TestCase
 from os.path import dirname, join as join_path
 
 

@@ -1,6 +1,6 @@
 from llvm.core import *
 from llvm.tbaa import *
-from llvm.test_llvmpy import TestCase
+from llvm.tests.support import TestCase
 import unittest
 
 class TestTBAABuilder(TestCase):

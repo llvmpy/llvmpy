@@ -4,7 +4,7 @@ import unittest
 import llvm.ee
 from llvm.core import *
 from llvm import _dwarf, debuginfo
-from llvm.test_llvmpy import TestCase
+from llvm.tests.support import TestCase
 
 class TestDebugInfo(TestCase):
 
