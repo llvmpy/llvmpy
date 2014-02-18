@@ -2,6 +2,8 @@
 ---------------------
   * Fix deprecation message for py2.6
   * Fix llvm_cbuilder for using deprecated_alloca
+  * Merged PR #88 by cantora
+  * Merged PR #94 by cgohlke
 
 2014-02-04    0.12.2:
 ---------------------
