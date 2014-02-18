@@ -1,3 +1,8 @@
+2014-02-18    0.12.3:
+---------------------
+  * Fix deprecation message for py2.6
+  * Fix llvm_cbuilder for using deprecated_alloca
+
 2014-02-04    0.12.2:
 ---------------------
   * enhance wrapper efficiency by moving some capsule code into C++

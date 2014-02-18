@@ -349,7 +349,7 @@ class CBuilder(object):
             elif not isinstance(count, lc.Value):
                 count = self.constant(types.int, count).value
 
-            ptr = self.builder.alloca_array(ty, count, name=name)
+            ptr = self.builder.alloca(ty, size=count, name=name)
             return CArray(self, ptr)
 
     def ret(self, val=None):
