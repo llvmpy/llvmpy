@@ -174,20 +174,37 @@ class OpcodeEnum(Enum):
     OPCODE_PTRTOINT       = 42
     OPCODE_INTTOPTR       = 43
     OPCODE_BITCAST        = 44
-    OPCODE_ICMP           = 45
-    OPCODE_FCMP           = 46
-    OPCODE_PHI            = 47
-    OPCODE_CALL           = 48
-    OPCODE_SELECT         = 49
-    OPCODE_USEROP1        = 50
-    OPCODE_USEROP2        = 51
-    OPCODE_VAARG          = 52
-    OPCODE_EXTRACTELEMENT = 53
-    OPCODE_INSERTELEMENT  = 54
-    OPCODE_SHUFFLEVECTOR  = 55
-    OPCODE_EXTRACTVALUE   = 56
-    OPCODE_INSERTVALUE    = 57
-    OPCODE_LANDINGPAD     = 58
+    if llvm.version <= (3, 3):
+        OPCODE_ICMP           = 45
+        OPCODE_FCMP           = 46
+        OPCODE_PHI            = 47
+        OPCODE_CALL           = 48
+        OPCODE_SELECT         = 49
+        OPCODE_USEROP1        = 50
+        OPCODE_USEROP2        = 51
+        OPCODE_VAARG          = 52
+        OPCODE_EXTRACTELEMENT = 53
+        OPCODE_INSERTELEMENT  = 54
+        OPCODE_SHUFFLEVECTOR  = 55
+        OPCODE_EXTRACTVALUE   = 56
+        OPCODE_INSERTVALUE    = 57
+        OPCODE_LANDINGPAD     = 58
+    else:
+        OPCODE_ADDRSPACECAST  = 45
+        OPCODE_ICMP           = 46
+        OPCODE_FCMP           = 47
+        OPCODE_PHI            = 48
+        OPCODE_CALL           = 49
+        OPCODE_SELECT         = 50
+        OPCODE_USEROP1        = 51
+        OPCODE_USEROP2        = 52
+        OPCODE_VAARG          = 53
+        OPCODE_EXTRACTELEMENT = 54
+        OPCODE_INSERTELEMENT  = 55
+        OPCODE_SHUFFLEVECTOR  = 56
+        OPCODE_EXTRACTVALUE   = 57
+        OPCODE_INSERTVALUE    = 58
+        OPCODE_LANDINGPAD     = 59
 
 OpcodeEnum.declare()
 
