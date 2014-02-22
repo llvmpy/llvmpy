@@ -13,7 +13,7 @@ class GlobalValue:
 
     LinkageTypes = Enum('''
         ExternalLinkage, AvailableExternallyLinkage, LinkOnceAnyLinkage,
-        LinkOnceODRLinkage, LinkOnceODRAutoHideLinkage, WeakAnyLinkage,
+        LinkOnceODRLinkage, WeakAnyLinkage,
         WeakODRLinkage, AppendingLinkage, InternalLinkage, PrivateLinkage,
         LinkerPrivateLinkage, LinkerPrivateWeakLinkage, DLLImportLinkage,
         DLLExportLinkage, ExternalWeakLinkage, CommonLinkage
