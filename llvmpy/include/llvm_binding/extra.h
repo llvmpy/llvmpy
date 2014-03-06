@@ -40,7 +40,7 @@
 
 namespace extra{
     using namespace llvm;
-    
+
     class raw_svector_ostream_helper: public raw_svector_ostream {
         SmallVectorImpl<char> *SV;
     public:
@@ -85,7 +85,7 @@ PyObject* make_raw_ostream_for_printing(PyObject* self, PyObject* args)
 {
     using extra::raw_svector_ostream_helper;
     using llvm::raw_svector_ostream;
-    
+
     if (!PyArg_ParseTuple(args, "")) {
         return NULL;
     }
@@ -99,7 +99,7 @@ PyObject* make_small_vector_from_types(PyObject* self, PyObject* args)
 {
     using llvm::Type;
     typedef llvm::SmallVector<llvm::Type*, 8> SmallVector_Type;
-    
+
     SmallVector_Type* SV = new SmallVector_Type;
     Py_ssize_t size = PyTuple_Size(args);
     for (Py_ssize_t i = 0; i < size; ++i) {
@@ -420,7 +420,7 @@ PyObject* ExecutionEngine_RunFunction(llvm::ExecutionEngine* EE,
             PyErr_SetString(PyExc_RuntimeError, "Failed to index into args?");
             return NULL;
         }
-        
+
         GenericValue* gv = static_cast<GenericValue*>(
                               PyCapsule_GetPointer(obj, GVN));
 
@@ -626,7 +626,7 @@ PyObject* Linker_LinkInModule(llvm::Linker* Linker,
     if (! failed) {
         Py_RETURN_FALSE;
     } else {
-    
+
         auto_pyobject buf = PyBytes_FromString(errmsg.c_str());
         if (NULL == callwrite(ErrMsg, *buf)){
             return NULL;
@@ -861,6 +861,27 @@ PyObject* DynamicLibrary_LoadLibraryPermanently(const char * Filename,
     }
 }
 
+static
+PyObject* DynamicLibrary_getPermanentLibrary(const char * Filename,
+                                                PyObject* ErrMsg = 0)
+{
+    using namespace llvm::sys;
+    std::string errmsg;
+    DynamicLibrary dylib = DynamicLibrary::getPermanentLibrary(Filename, &errmsg);
+    if (!dylib.isValid()) {
+        if (ErrMsg) {
+            auto_pyobject buf = PyBytes_FromString(errmsg.c_str());
+            if (!callwrite(ErrMsg, *buf))
+                return NULL;
+        }
+        PyErr_SetString(PyExc_RuntimeError, errmsg.c_str());
+        return NULL;
+    }
+    return pycapsule_new(new DynamicLibrary(dylib),
+                     "llvm::sys::DynamicLibrary",
+                     "llvm::sys::DynamicLibrary");
+}
+
 class PassRegistryEnumerator : public llvm::PassRegistrationListener{
 public:
     PyObject* List;
@@ -988,7 +1009,7 @@ fail:
 }
 
 static
-PyObject* MCDisassembler_getInstruction(llvm::MCDisassembler *disasm, 
+PyObject* MCDisassembler_getInstruction(llvm::MCDisassembler *disasm,
                                         llvm::MCInst &instr,
                                         const llvm::MemoryObject &region,
                                         uint64_t address
@@ -998,7 +1019,7 @@ PyObject* MCDisassembler_getInstruction(llvm::MCDisassembler *disasm,
     llvm::MCDisassembler::DecodeStatus status;
 
     size = 0;
-    status = disasm->getInstruction(instr, size, region, address, 
+    status = disasm->getInstruction(instr, size, region, address,
                                     llvm::nulls(), llvm::nulls());
     return Py_BuildValue("(i,i)", int(status), size);
 }
@@ -1046,5 +1067,5 @@ PyObject* llvm_sys_isBigEndianHost()
     else
         Py_RETURN_FALSE;
 }
-#endif 
+#endif
 

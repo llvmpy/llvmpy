@@ -26,3 +26,10 @@ class DynamicLibrary:
                              cast(str, StringRef), # symbolName
                              cast(int, VoidPtr),   # address
                              )
+
+    getPermanentLibrary = CustomStaticMethod(
+                          'DynamicLibrary_getPermanentLibrary',
+                          PyObjectPtr,
+                          cast(str, ConstCharPtr), # filename
+                          PyObjectPtr,             # std::string * errmsg = 0
+                          ).require_only(1)

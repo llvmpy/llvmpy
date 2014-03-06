@@ -238,3 +238,27 @@ def dylib_add_symbol(name, ptr):
 
 def dylib_address_of_symbol(name):
     return api.llvm.sys.DynamicLibrary.SearchForAddressOfSymbol(name)
+
+def dylib_import_library(filename):
+    """Permanently import a dynamic library.
+
+    Returns a DynamicLibrary object
+
+    Raises RuntimeError
+    """
+    return DynamicLibrary(filename)
+
+
+class DynamicLibrary(object):
+    def __init__(self, filename):
+        """
+        Raises RuntimeError
+        """
+        self._ptr = api.llvm.sys.DynamicLibrary.getPermanentLibrary(
+            filename)
+
+    def get_address_of_symbol(self, symbol):
+        """
+        Get the address of `symbol` (str) as integer
+        """
+        return self._ptr.getAddressOfSymbol(symbol)
