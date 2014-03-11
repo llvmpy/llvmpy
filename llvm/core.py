@@ -452,12 +452,12 @@ class Module(llvm.Wrapper):
             """
         return str(self._ptr)
 
+    def __hash__(self):
+        return id(self._ptr)
+
     def __eq__(self, rhs):
-        assert isinstance(rhs, Module), type(rhs)
         if isinstance(rhs, Module):
-            return str(self) == str(rhs)
-        else:
-            return False
+            return self._ptr == rhs._ptr
 
     def __ne__(self, rhs):
         return not (self == rhs)
