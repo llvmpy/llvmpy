@@ -16,7 +16,7 @@ if sys.platform == 'darwin':
     assert target.triple.startswith(s + '-apple-darwin')
 
 assert llvm.test(verbosity=2, run_isolated=False) == 0
-check_intrinsics.main()
+#check_intrinsics.main()
 
 print('llvm.__version__: %s' % llvm.__version__)
 #assert llvm.__version__ == '0.12.0'
