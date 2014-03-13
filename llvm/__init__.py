@@ -34,14 +34,14 @@ def _extract_ptrs(objs):
 class LLVMException(Exception):
     pass
 
-def test(verbosity=3):
+def test(verbosity=3, run_isolated=True):
     """test(verbosity=1) -> TextTestResult
 
         Run self-test, and return the number of failures + errors
         """
     from llvm.tests import run
 
-    result = run(verbosity=verbosity)
+    result = run(verbosity=verbosity, run_isolated=run_isolated)
     errct = len(result.failures) + len(result.errors)
 
     return errct

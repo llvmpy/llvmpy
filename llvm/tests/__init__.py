@@ -12,7 +12,7 @@ tests = []  # stores unittest.TestCase objects
 isolated_tests = []  # stores modue name
 
 
-def run(verbosity=1):
+def run(verbosity=1, run_isolated=True):
     print('llvmpy is installed in: ' + os.path.dirname(__file__))
     print('llvmpy version: ' + llvm.__version__)
     print(sys.version)
@@ -48,7 +48,7 @@ def run(verbosity=1):
         testresult = runner.run(suite)
         print(hp.heap())
 
-    if testresult:
+    if testresult and run_isolated:
         # Run isolated tests
         print("run isolated tests".center(80, '-'))
 
