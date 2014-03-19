@@ -1,12 +1,13 @@
 from binding import *
 from .namespace import llvm
-from .Value import Function, BasicBlock
+from .Value import Function, BasicBlock, Value
 from .Instruction import Instruction, TerminatorInst
 from .LLVMContext import LLVMContext
 from .ADT.StringRef import StringRef
 
 @BasicBlock
 class BasicBlock:
+    _downcast_ = Value
     Create = StaticMethod(ptr(BasicBlock), ref(LLVMContext),
                           cast(str, StringRef),
                           ptr(Function),
