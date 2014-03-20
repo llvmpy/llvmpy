@@ -1,3 +1,10 @@
+2014-03-20    0.12.4:
+---------------------
+  * Add dylib_import_library and friends
+  * Fix BasicBlock downcast
+  * Module hashing
+  * Fix test script
+
 2014-02-18    0.12.3:
 ---------------------
   * Fix deprecation message for py2.6
