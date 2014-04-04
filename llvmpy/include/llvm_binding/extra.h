@@ -186,8 +186,8 @@ PyObject* iterator_to_pylist_deref(iterator begin, iterator end,
 {
     PyObject* list = PyList_New(0);
     for(; begin != end; ++begin) {
-        PyObject* cap = pycapsule_new(&*begin, capsuleName, className);
-        PyList_Append(list, cap);
+        auto_pyobject cap = pycapsule_new(&*begin, capsuleName, className);
+        PyList_Append(list, *cap);
     }
     return list;
 }
@@ -198,8 +198,8 @@ PyObject* iterator_to_pylist(iterator begin, iterator end,
 {
     PyObject* list = PyList_New(0);
     for(; begin != end; ++begin) {
-        PyObject* cap = pycapsule_new(*begin, capsuleName, className);
-        PyList_Append(list, cap);
+        auto_pyobject cap = pycapsule_new(*begin, capsuleName, className);
+        PyList_Append(list, *cap);
     }
     return list;
 }
@@ -575,11 +575,11 @@ PyObject* TargetMachine_addPassesToEmitFile(
     bool status = TM->addPassesToEmitFile(PM, fso, FTy, disableVerify);
     if (status) {
         StringRef sr = rso.str();
-        PyObject* buf = PyString_FromStringAndSize(sr.data(), sr.size());
+        auto_pyobject buf = PyString_FromStringAndSize(sr.data(), sr.size());
         if (!buf) {
             return NULL;
         }
-        if (-1 == PyFile_WriteObject(buf, Out, Py_PRINT_RAW)){
+        if (-1 == PyFile_WriteObject(*buf, Out, Py_PRINT_RAW)){
             return NULL;
         }
         Py_RETURN_TRUE;
@@ -891,7 +891,8 @@ public:
     inline virtual void passEnumerate(const llvm::PassInfo * pass_info){
         PyObject* passArg = PyString_FromString(pass_info->getPassArgument());
         PyObject* passName = PyString_FromString(pass_info->getPassName());
-        PyList_Append(List, Py_BuildValue("(OO)", passArg, passName));
+        auto_pyobject pair = Py_BuildValue("(OO)", passArg, passName);
+        PyList_Append(List, *pair);
     }
 };
 
