@@ -1,3 +1,8 @@
+2014-04-28    0.12.5:
+---------------------
+  * Fixes memory leaks (#92)
+  * Fixes tarball (#99)
+
 2014-03-20    0.12.4:
 ---------------------
   * Add dylib_import_library and friends
