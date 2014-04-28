@@ -114,20 +114,38 @@ class DIBuilder:
                               ref(DIType),          # Ty
                               )
 
-    createClassType = Method(DIType,
-                             ref(DIDescriptor),     # Scope
-                             stringref_arg,         # Name
-                             ref(DIFile),           # File
-                             unsigned_arg,          # LineNum
-                             uint64_arg,            # SizeInBits
-                             uint64_arg,            # AlignInBits
-                             uint64_arg,            # OffsetInBits,
-                             unsigned_arg,          # Flags
-                             ref(DIType),           # DerivedFrom
-                             ref(DIArray),          # Elements
-                             ptr(MDNode),           # VTableHolder = 0
-                             ptr(MDNode),           # TemplateParms = 0
-                             ).require_only(10)
+    if LLVM_VERSION <= (3, 3):
+        createClassType = Method(DIType,
+                                 ref(DIDescriptor),     # Scope
+                                 stringref_arg,         # Name
+                                 ref(DIFile),           # File
+                                 unsigned_arg,          # LineNum
+                                 uint64_arg,            # SizeInBits
+                                 uint64_arg,            # AlignInBits
+                                 uint64_arg,            # OffsetInBits,
+                                 unsigned_arg,          # Flags
+                                 ref(DIType),           # DerivedFrom
+                                 ref(DIArray),          # Elements
+                                 ptr(MDNode),           # VTableHolder = 0
+                                 ptr(MDNode),           # TemplateParms = 0
+                                 ).require_only(10)
+    else:
+        createClassType = Method(DIType,
+                                 ref(DIDescriptor),     # Scope
+                                 stringref_arg,         # Name
+                                 ref(DIFile),           # File
+                                 unsigned_arg,          # LineNum
+                                 uint64_arg,            # SizeInBits
+                                 uint64_arg,            # AlignInBits
+                                 uint64_arg,            # OffsetInBits,
+                                 unsigned_arg,          # Flags
+                                 ref(DIType),           # DerivedFrom
+                                 ref(DIArray),          # Elements
+                                 ref(DIType),           # VTableHolder = DIType()
+                                 ptr(MDNode),           # TemplateParms = 0
+                                 stringref_arg,         # UniqueIdentifier
+                                 ).require_only(10)
+
 
     if LLVM_VERSION >= (3, 3):
         createStructType = Method(DIType,
@@ -303,7 +321,7 @@ class DIBuilder:
                           bool_arg,                 # isDefinition
                           unsigned_arg,             # Virtuality=0
                           unsigned_arg,             # VTableIndex=0
-                          ptr(MDNode),              # *VTableHolder=0
+                          ptr(MDNode) if LLVM_VERSION <= (3, 3) else ref(DIType), # VTableHolder
                           unsigned_arg,             # Flags=0
                           bool_arg,                 # isOptimized=false
                           ptr(Function),            # *Fn=0

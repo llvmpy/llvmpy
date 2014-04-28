@@ -10,14 +10,7 @@ mthds = (
     ("description:",            "getShortDescription"),
     ("has JIT:",                "hasJIT"             ),
     ("has target machine:",     "hasTargetMachine"   ),
-    ("has asm backend:",        "hasMCAsmBackend"    ),
-    ("has asm parser:",         "hasMCAsmParser"     ),
-    ("has asm printer:",        "hasAsmPrinter"      ),
-    ("has disassembler:",       "hasMCDisassembler"  ),
-    ("has inst printer:",       "hasMCInstPrinter"   ),
-    ("has code emitter:",       "hasMCCodeEmitter"   ),
-    ("has object streamer:",    "hasMCObjectStreamer"),
-    ("has asm streamer:",       "hasAsmStreamer"     )
+    ("has asm backend:",        "hasMCAsmBackend"    )
 )
 
 for target in llvm.TargetRegistry.targetsList():
