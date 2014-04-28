@@ -1,5 +1,6 @@
-include CHANGELOG LICENSE README setup.py MANIFEST.in
+include CHANGELOG LICENSE README.rst setup.py MANIFEST.in versioneer.py
 recursive-include llvm *
+recursive-include llvmpy *
 recursive-include www *
 recursive-include test *
 recursive-include tools *
