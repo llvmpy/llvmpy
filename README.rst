@@ -30,10 +30,13 @@ Quickstart
     to separate your custom build from the default system package.  Please
     replace ``LLVM_INSTALL_PATH`` with your own path.
 
-3. Run ``REQUIRES_RTTI=1 make`` to build.
+3. Run ``REQUIRES_RTTI=1 make install`` to build and install.
 
     **Note**: With LLVM 3.2, the default build configuration has C++ RTTI 
     disabled.  However, llvmpy requires RTTI.
+    
+    **Note**: Use ``make -j2 install`` to enable concurrent build.  
+    Replace ``2`` with the actual number of processor you have. 
 
 4. Get llvm-py and install it::
 
