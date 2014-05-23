@@ -408,7 +408,7 @@ class Module(llvm.Wrapper):
         fileobj_or_str -- takes a file-like object or string that contains
         a module represented in bitcode.
         """
-        if isinstance(fileobj_or_str, str):
+        if isinstance(fileobj_or_str, bytes):
             bc = fileobj_or_str
         else:
             bc = fileobj_or_str.read()
