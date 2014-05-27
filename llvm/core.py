@@ -2029,7 +2029,19 @@ class BasicBlock(Value):
 
     @property
     def instructions(self):
+        """
+        Returns a list of instructions.
+        Note: This function is expensive.  To access the terminator of the
+        block, use BasicBlock.terminator.
+        """
         return list(map(_make_value, self._ptr.getInstList()))
+
+    @property
+    def terminator(self):
+        """Returns None or the terminator of this basicblock.
+        """
+        inst = self._ptr.getTerminator()
+        return _make_value(inst) if inst is not None else None
 
 #===----------------------------------------------------------------------===
 # Value factory method
