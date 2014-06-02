@@ -1644,7 +1644,6 @@ class Function(GlobalValue):
 
     @property
     def entry_basic_block(self):
-        assert self.basic_block_count
         return _make_value(self._ptr.getEntryBlock())
 
     def get_entry_basic_block(self):
