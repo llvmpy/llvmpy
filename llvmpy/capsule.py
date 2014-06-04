@@ -222,7 +222,7 @@ class Wrapper(object):
 
     @classmethod
     def _has_dtor(cls):
-        return hasattr(cls, '__delete__')
+        return hasattr(cls, '_delete_')
 
 
 #def downcast(obj, cls):
