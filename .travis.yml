@@ -16,6 +16,7 @@ before_install:
   - chmod +x miniconda.sh
   - ./miniconda.sh -b
   - export PATH=/home/travis/miniconda/bin:$PATH
+  - if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then export PATH=/home/travis/miniconda/bin:$PATH; else export PATH=/home/travis/miniconda3/bin:$PATH; fi
   - conda update --yes conda
   # Setup environment
   - conda create -n travisci --yes python=${TRAVIS_PYTHON_VERSION:0:3} llvm numpy
