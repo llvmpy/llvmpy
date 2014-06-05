@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, division
 import llvm
 from llvmpy import api, extra
 from io import BytesIO

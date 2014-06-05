@@ -3,6 +3,7 @@ Shameless borrowed from Smart_deprecation_warnings
 https://wiki.python.org/moin/PythonDecoratorLibrary
 """
 
+from __future__ import print_function, absolute_import, division
 import warnings
 import functools
 
