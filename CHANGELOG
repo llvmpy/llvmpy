@@ -1,3 +1,9 @@
+2014-06-06    0.12.6:
+---------------------
+  * Fixes Module.from_bitcode for python 3 (#101)
+  * Remove expensive assertions
+  * Expose BasicBlock.terminator
+
 2014-04-28    0.12.5:
 ---------------------
   * Fixes memory leaks (#92)
