@@ -25,18 +25,18 @@ Quickstart
     **Note**: Without the ``--enable-optimized`` flag, debug build will be
     selected.  Unless you are developing LLVM or llvmpy, it is recommended
     that the flag is used to reduce build time and binary size.
-    
+
     **Note**: Use prefix to select the installation path.  It is recommended
     to separate your custom build from the default system package.  Please
     replace ``LLVM_INSTALL_PATH`` with your own path.
 
 3. Run ``REQUIRES_RTTI=1 make install`` to build and install.
 
-    **Note**: With LLVM 3.2, the default build configuration has C++ RTTI 
+    **Note**: With LLVM 3.2, the default build configuration has C++ RTTI
     disabled.  However, llvmpy requires RTTI.
-    
-    **Note**: Use ``make -j2 install`` to enable concurrent build.  
-    Replace ``2`` with the actual number of processor you have. 
+
+    **Note**: Use ``make -j2 install`` to enable concurrent build.
+    Replace ``2`` with the actual number of processor you have.
 
 4. Get llvm-py and install it::
 
@@ -50,7 +50,7 @@ Quickstart
 
 5. See documentation at 'http://www.llvmpy.org' and examples
    under 'test'.
-   
+
 Common Build Problems
 ---------------------
 
@@ -58,6 +58,9 @@ Common Build Problems
    _ZTIN4llvm24PassRegistrationListenerE", it is because RTTI is not enabled
    when building LLVM.  "_ZTIN4llvm24PassRegistrationListenerE" is the typeinfo
    of PassRegistrationListener class.
+
+2. *LLVM3.3 ssize_t mismatch on 64-bit Windows.*
+   Get patch from http://lists.cs.uiuc.edu/pipermail/llvm-commits/Week-of-Mon-20130701/180049.html
 
 LICENSE
 -------
