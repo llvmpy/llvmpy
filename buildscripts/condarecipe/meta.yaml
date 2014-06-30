@@ -14,10 +14,10 @@ requirements:
   run:
     - llvm           [unix]
     - python
-  test:
-    - unittest2
 
 test:
+  requires:
+    - unittest2      [py26]
   imports:
     - llvm
     - llvmpy
