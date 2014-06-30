@@ -1,4 +1,4 @@
-include CHANGELOG LICENSE README.rst setup.py MANIFEST.in versioneer.py
+include CHANGELOG LICENSE README.rst setup.py MANIFEST.in versioneer.py llvm-config-win32.py
 recursive-include llvm *
 recursive-include llvmpy *
 recursive-include www *
