@@ -8,7 +8,7 @@ from distutils.spawn import find_executable
 from llvm.core import (Module, Type, Builder, Constant)
 from .support import TestCase, IS_PY3K, tests, skip_if
 
-@skip_if(sys.platform in ('win32', 'darwin'))
+# @skip_if(sys.platform in ('win32', 'darwin'), "only works in win32 and darwin")
 class TestNative(TestCase):
 
     def setUp(self):

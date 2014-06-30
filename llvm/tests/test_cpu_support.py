@@ -75,7 +75,7 @@ class TestCPUSupport(TestCase):
         print('disable mattrs', mattrs)
         self._template(mattrs)
 
-    @skip_if(not detect_avx_support(), msg="no AVX support")
+    @skip_if(not detect_avx_support(), "no AVX support")
     def test_cpu_support6(self):
         features = []
         mattrs = ','.join(map(lambda s: '-%s' % s, features))

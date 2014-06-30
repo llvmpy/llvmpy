@@ -12,11 +12,13 @@ elif le.initialize_target('NVPTX', noraise=True):
 else:
     PTX_ARCH = None
 
+
 class TestTargetMachines(TestCase):
     '''Exercise target machines
 
     Require PTX backend
     '''
+
     def test_native(self):
         m, _ = self._build_module()
         tm = le.EngineBuilder.new(m).select_target()
@@ -28,7 +30,7 @@ class TestTargetMachines(TestCase):
         self.assertIn('foo', tm.emit_assembly(m))
         self.assertTrue(le.get_host_cpu_name())
 
-    @skip_if(not PTX_ARCH, msg='LLVM is not compiled with PTX enabled')
+    @skip_if(not PTX_ARCH, 'LLVM is not compiled with PTX enabled')
     def test_ptx(self):
         arch = PTX_ARCH
         print(arch)

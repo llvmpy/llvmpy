@@ -4,7 +4,7 @@ from llvm.core import (Module, Type, Builder)
 from llvm.ee import EngineBuilder
 from .support import TestCase, tests, skip_if, skip_if_not_64bits
 
-@skip_if(llvm.version < (3, 3))
+@skip_if(llvm.version < (3, 3), "MCJIT requires llvm >= 3.3")
 class TestArith(TestCase):
     '''
     Test basic arithmetic support with LLVM MCJIT
