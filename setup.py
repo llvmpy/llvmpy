@@ -35,6 +35,7 @@ def run_llvm_config(extra_args):
         raise Exception("%r stderr is:\n%s" % (args, stderr.decode()))
     return stdout.decode().strip()
 
+
 llvm_version = run_llvm_config(['--version'])
 
 print('LLVM version = %r' % llvm_version)
@@ -43,6 +44,7 @@ targets_built = run_llvm_config(['--targets-built'])
 include_targets = set(os.environ.get('LLVMPY_TARGETS', '').split())
 targets_built = ' '.join(set(targets_built.split()) & include_targets)
 print('LLVM targets = %s' % targets_built)
+
 
 def get_libs_and_objs(components):
     parts = run_llvm_config(['--libs'] + components).split()
@@ -55,8 +57,10 @@ def get_libs_and_objs(components):
             objs.append(part)
     return libs, objs
 
+
 def get_enabled_components():
     return run_llvm_config(['--components']).split()
+
 
 def auto_intrinsic_gen(incdir):
     # let's do auto intrinsic generation
@@ -76,12 +80,11 @@ incdir = run_llvm_config(['--includedir'])
 libdir = run_llvm_config(['--libdir'])
 ldflags = run_llvm_config(['--ldflags'])
 
-
-
 auto_intrinsic_gen(incdir)
 
 macros = [('__STDC_CONSTANT_MACROS', None),
           ('__STDC_LIMIT_MACROS', None)]
+
 
 def determine_to_use_dynlink(libdir, llvm_version):
     user_envvar = os.getenv('LLVMPY_DYNLINK')
@@ -110,7 +113,6 @@ def determine_to_use_dynlink(libdir, llvm_version):
 
 dynlink = determine_to_use_dynlink(libdir, llvm_version)
 
-
 if dynlink:
     print('Using dynamic linking')
     libs_core = ['LLVM-%s' % llvm_version]
@@ -126,7 +128,7 @@ else:
 
     libs_core, objs_core = get_libs_and_objs(
         ['core', 'analysis', 'scalaropts', 'executionengine', 'mcjit',
-         'jit',  'native', 'interpreter', 'bitreader', 'bitwriter',
+         'jit', 'native', 'interpreter', 'bitreader', 'bitwriter',
          'instrumentation', 'ipa', 'ipo', 'transformutils',
          'asmparser', 'linker', 'support', 'vectorize', 'all-targets']
         + extra_components)
@@ -144,27 +146,27 @@ check_call([sys.executable, 'llvmpy/build.py'])
 # generate shared objects
 extra_link_args = ldflags.split()
 kwds = dict(
-    ext_modules = [
+    ext_modules=[
         Extension(
             name='llvmpy._api',
             sources=['llvmpy/api.cpp'],
-            define_macros = macros,
-            include_dirs = [incdir, 'llvmpy/include'],
-            library_dirs = [libdir],
-            libraries = libs_core,
-            extra_objects = objs_core,
-            extra_link_args = extra_link_args),
+            define_macros=macros,
+            include_dirs=[incdir, 'llvmpy/include'],
+            library_dirs=[libdir],
+            libraries=libs_core,
+            extra_objects=objs_core,
+            extra_link_args=extra_link_args),
 
         Extension(
             name='llvmpy._capsule',
             sources=['llvmpy/capsule.cpp'],
             include_dirs=['llvmpy/include'],
         )
-#        Extension(name='llvm._dwarf',
-#                  sources=['llvm/_dwarf.cpp'],
-#                  include_dirs=[incdir])
-        ],
-    cmdclass = versioneer.get_cmdclass(),
+        #        Extension(name='llvm._dwarf',
+        #                  sources=['llvm/_dwarf.cpp'],
+        #                  include_dirs=[incdir])
+    ],
+    cmdclass=versioneer.get_cmdclass(),
 )
 
 
@@ -176,29 +178,29 @@ kwds = dict(
 kwds['long_description'] = open('README.rst').read()
 
 setup(
-    name = 'llvmpy',
+    name='llvmpy',
     version=versioneer.get_version(),
-    description = 'Python bindings for LLVM',
-    author = 'R Mahadevan, Siu Kwan Lam',
-    maintainer = 'Continuum Analytics, Inc.',
-    maintainer_email = 'llvmpy@continuum.io',
-    url = 'http://www.llvmpy.org/',
-    packages = ['llvm', 'llvm.workaround',
-                'llvm.mc',
-                'llvm_cbuilder',
-                'llpython',
-                'llvm_array',
-                'llvmpy.api', 'llvmpy.api.llvm',
-                'llvm.tests',
-                'llvm.utils',],
-    package_data = {'llvm': ['llrt/*.ll']},
-    py_modules = ['llvmpy',
-                  'llvmpy._capsule',
-                  'llvmpy._api',
-                  'llvmpy.capsule',
-                  'llvmpy.extra'],
-    license = "BSD",
-    classifiers = [
+    description='Python bindings for LLVM',
+    author='R Mahadevan, Siu Kwan Lam',
+    maintainer='Continuum Analytics, Inc.',
+    maintainer_email='llvmpy@continuum.io',
+    url='http://www.llvmpy.org/',
+    packages=['llvm', 'llvm.workaround',
+              'llvm.mc',
+              'llvm_cbuilder',
+              'llpython',
+              'llvm_array',
+              'llvmpy.api', 'llvmpy.api.llvm',
+              'llvm.tests',
+              'llvm.utils', ],
+    package_data={'llvm': ['llrt/*.ll']},
+    py_modules=['llvmpy',
+                'llvmpy._capsule',
+                'llvmpy._api',
+                'llvmpy.capsule',
+                'llvmpy.extra'],
+    license="BSD",
+    classifiers=[
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
         "Programming Language :: C++",

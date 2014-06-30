@@ -1,5 +1,6 @@
-import sys, os
-from binding import *
+from __future__ import print_function
+import sys, os, time
+from binding import namespaces
 import codegen
 
 
@@ -39,33 +40,50 @@ populate_submodules(module, submodule_%(ns)s);
 
 def populate_headers(println):
     includes = [
-                'cstring',
-                'Python.h',
-                'python3adapt.h',
-                'capsulethunk.h',
-                'llvm_binding/conversion.h',
-                'llvm_binding/binding.h',
-                'llvm_binding/capsule_context.h',
-                'llvm_binding/extra.h',             # extra submodule to add
-                ]
+        'cstring',
+        'Python.h',
+        'python3adapt.h',
+        'capsulethunk.h',
+        'llvm_binding/conversion.h',
+        'llvm_binding/binding.h',
+        'llvm_binding/capsule_context.h',
+        'llvm_binding/extra.h', # extra submodule to add
+    ]
     for inc in includes:
         println('#include "%s"' % inc)
     println()
+
 
 def main():
     outputfilename = sys.argv[1]
     entry_modname = sys.argv[2]
     sys.path += [os.path.dirname(os.curdir)]
     entry_module = __import__(entry_modname)
-
     rootns = namespaces['']
 
+    # Check if files are modified
+
+    outputfilepath = '%s.cpp' % outputfilename
+    now = time.time()
+    try:
+        mtime = os.path.getmtime(outputfilepath)
+    except OSError:
+        mtime = now
+
+    includes = list(rootns.aggregate_includes())
+    for inc in includes:
+        inc_mtime = max(mtime, os.path.getmtime(outputfilepath))
+
+    if inc_mtime <= time.time():
+        print("up to date")
+        return
+
     # Generate C++ source
-    with open('%s.cpp' % outputfilename, 'w') as cppfile:
+    with open(outputfilepath, 'w') as cppfile:
         println = codegen.wrap_println_from_file(cppfile)
         populate_headers(println)                  # extra headers
         # print all includes
-        for inc in rootns.aggregate_includes():
+        for inc in includes:
             println('#include "%s"' % inc)
         println()
         # print all downcast
@@ -95,9 +113,10 @@ static
         println()
         # generate submodule
         rootns.generate_cpp(println, extras=[('extra', 'extra_methodtable'),
-                                             ('downcast', 'downcast_methodtable')])
-        println(extension_entry % {'module' : '_api',
-                                   'ns'     : ''})
+                                             ('downcast',
+                                              'downcast_methodtable')])
+        println(extension_entry % {'module': '_api',
+                                   'ns': ''})
 
     # Generate Python source
     rootns.generate_py(rootdir='.', name='api')
