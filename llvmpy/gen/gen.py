@@ -70,11 +70,7 @@ def main():
     except OSError:
         mtime = now
 
-    includes = list(rootns.aggregate_includes())
-    for inc in includes:
-        inc_mtime = max(mtime, os.path.getmtime(outputfilepath))
-
-    if inc_mtime <= time.time():
+    if entry_module.last_mtime <= mtime:
         print("up to date")
         return
 
@@ -83,7 +79,7 @@ def main():
         println = codegen.wrap_println_from_file(cppfile)
         populate_headers(println)                  # extra headers
         # print all includes
-        for inc in includes:
+        for inc in rootns.aggregate_includes():
             println('#include "%s"' % inc)
         println()
         # print all downcast
