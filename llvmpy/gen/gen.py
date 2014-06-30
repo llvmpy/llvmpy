@@ -64,11 +64,10 @@ def main():
     # Check if files are modified
 
     outputfilepath = '%s.cpp' % outputfilename
-    now = time.time()
     try:
         mtime = os.path.getmtime(outputfilepath)
     except OSError:
-        mtime = now
+        mtime = 0
 
     if entry_module.last_mtime <= mtime:
         print("up to date")
