@@ -226,7 +226,7 @@ class ExecutionEngine(llvm.Wrapper):
     @property
     def target_data(self):
         ptr = self._ptr.getDataLayout()
-        return TargetData(ptr)
+        return TargetData.new(str(ptr))
 
 
 #===----------------------------------------------------------------------===
