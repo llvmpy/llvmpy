@@ -6,3 +6,5 @@ _build
 /llvm/_intrinsic_ids.py
 llvm_
 newbinding/api/*
+llvmpy/api*.cpp
+

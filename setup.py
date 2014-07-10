@@ -142,6 +142,7 @@ else:
 os.environ['LLVMPY_LLVM_VERSION'] = llvm_version
 os.environ['LLVM_TARGETS_BUILT'] = targets_built
 check_call([sys.executable, 'llvmpy/build.py'])
+api_file = 'llvmpy/api.%d.%d.cpp' % (sys.version_info[0], sys.version_info[1])
 
 # generate shared objects
 extra_link_args = ldflags.split()
@@ -149,7 +150,7 @@ kwds = dict(
     ext_modules=[
         Extension(
             name='llvmpy._api',
-            sources=['llvmpy/api.cpp'],
+            sources=[api_file],
             define_macros=macros,
             include_dirs=[incdir, 'llvmpy/include'],
             library_dirs=[libdir],
