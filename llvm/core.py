@@ -2042,6 +2042,13 @@ class BasicBlock(Value):
         inst = self._ptr.getTerminator()
         return _make_value(inst) if inst is not None else None
 
+    @property
+    def successors(self):
+        """Returns a list of successor basic blocks.
+        """
+        return list(map(_make_value, map(self.terminator._ptr.getSuccessor,
+            range(0, self.terminator._ptr.getNumSuccessors()))))
+
 #===----------------------------------------------------------------------===
 # Value factory method
 #===----------------------------------------------------------------------===
