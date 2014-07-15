@@ -1878,7 +1878,7 @@ class Instruction(User):
         return self._ptr.eraseFromParent()
 
     def replace_all_uses_with(self, inst):
-        self._ptr.replaceAllUsesWith(inst)
+        self._ptr.replaceAllUsesWith(inst._ptr)
 
 
 class CallOrInvokeInstruction(Instruction):
