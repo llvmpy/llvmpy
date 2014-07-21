@@ -105,13 +105,14 @@ def release_ownership(old):
     logger.debug('Release %s', old)
     addr = getPointer(old)
     name = getName(old)
-    if _addr2dtor.get((name, addr)) is None:
+    key = name, addr
+    if key not in _addr2dtor:
         clsname = getClassName(old)
         if not _pyclasses[clsname]._has_dtor():
             return
-            # Guard duplicated release
+        # Guard duplicated release
         raise Exception("Already released")
-    _addr2dtor[(name, addr)] = None
+    del _addr2dtor[key]
 
 
 def obtain_ownership(cap):
@@ -119,8 +120,9 @@ def obtain_ownership(cap):
     if cls._has_dtor():
         addr = cap.pointer
         name = cap.name
-        assert _addr2dtor[(name, addr)] is None
-        _addr2dtor[(name, addr)] = cls._delete_
+        key = name, addr
+        assert key not in _addr2dtor
+        _addr2dtor[key] = cls._delete_
 
 
 #def has_ownership(cap):
@@ -184,13 +186,16 @@ class Wrapper(object):
 
         item = self.__capsule
         addr = item.pointer
-        name = item.name
 
-        _addr2refct[addr] -= 1
-        refct = _addr2refct[addr]
+        refct = _addr2refct[addr] - 1
         assert refct >= 0, "RefCt drop below 0"
-        if refct == 0:
-            dtor = _addr2dtor.pop((name, addr), None)
+        if refct > 0:
+            _addr2refct[addr] = refct
+        else:
+            del _addr2refct[addr]
+            name = item.name
+            key = name, addr
+            dtor = _addr2dtor.pop(key, None)
             if dtor is not None:
                 if not NO_DEBUG:
                     # Some globals in logger could be removed by python GC
