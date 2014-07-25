@@ -54,7 +54,13 @@ def populate_headers(println):
     println()
 
 
+FILE_HEADER = """// This file is generated automatically
+// Python: 0x%x
+""" % (sys.hexversion,)
+
+
 def main():
+    print("Running LLVM API generator")
     outputfilename = sys.argv[1]
     entry_modname = sys.argv[2]
     sys.path += [os.path.dirname(os.curdir)]
@@ -70,12 +76,23 @@ def main():
         mtime = 0
 
     if entry_module.last_mtime <= mtime:
-        print("up to date")
-        return
+
+        # Check if file header matches
+        with open(outputfilepath) as checkfile:
+            n = len(FILE_HEADER)
+            header = checkfile.read(n)
+
+        if header == FILE_HEADER:
+            print("up to date")
+            return
+        else:
+            print("file is outdated")
+            pass
 
     # Generate C++ source
     with open(outputfilepath, 'w') as cppfile:
         println = codegen.wrap_println_from_file(cppfile)
+        println(FILE_HEADER)
         populate_headers(println)                  # extra headers
         # print all includes
         for inc in rootns.aggregate_includes():
