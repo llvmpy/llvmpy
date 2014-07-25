@@ -1,4 +1,5 @@
 import re
+import os
 import sys
 from distutils.spawn import find_executable
 from os.path import abspath, dirname, isfile, join
@@ -7,7 +8,8 @@ from subprocess import Popen, PIPE
 
 
 def find_llvm_tblgen():
-    path = find_executable('llvm-tblgen')
+    frompath = os.environ.get('LLVM_TBLGEN_PATH')
+    path = find_executable('llvm-tblgen', path=frompath)
     if path is None:
         sys.exit('Error: could not locate llvm-tblgen')
     return path
