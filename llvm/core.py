@@ -1878,7 +1878,7 @@ class Instruction(User):
         return self._ptr.eraseFromParent()
 
     def replace_all_uses_with(self, inst):
-        self._ptr.replaceAllUsesWith(inst)
+        self._ptr.replaceAllUsesWith(inst._ptr)
 
 
 class CallOrInvokeInstruction(Instruction):
@@ -2041,6 +2041,15 @@ class BasicBlock(Value):
         """
         inst = self._ptr.getTerminator()
         return _make_value(inst) if inst is not None else None
+
+    @property
+    def successors(self):
+        """Returns a list of successor basic blocks.
+        """
+        if not hasattr(self.terminator._ptr, "getSuccessor"):
+            return []
+        return list(map(_make_value, map(self.terminator._ptr.getSuccessor,
+            range(0, self.terminator._ptr.getNumSuccessors()))))
 
 #===----------------------------------------------------------------------===
 # Value factory method
