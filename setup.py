@@ -145,6 +145,12 @@ check_call([sys.executable, 'llvmpy/build.py'])
 
 # generate shared objects
 extra_link_args = ldflags.split()
+
+
+capsule_link_args = []
+if sys.platform == 'darwin' and sys.version_info[:2] == (2, 6):
+    capsule_link_args += ['-lstdc++']
+
 kwds = dict(
     ext_modules=[
         Extension(
@@ -161,6 +167,7 @@ kwds = dict(
             name='llvmpy._capsule',
             sources=['llvmpy/capsule.cpp'],
             include_dirs=['llvmpy/include'],
+            extra_link_args=capsule_link_args,
         )
         #        Extension(name='llvm._dwarf',
         #                  sources=['llvm/_dwarf.cpp'],
