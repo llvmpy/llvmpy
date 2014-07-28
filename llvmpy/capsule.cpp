@@ -606,7 +606,7 @@ extern "C" {
         NULL, NULL, NULL, NULL
     };
 #define INITERROR return NULL
-    PyObject *
+    PyMODINIT_FUNC
     PyInit__capsule(void)
 #else
 #define INITERROR return
