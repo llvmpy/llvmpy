@@ -8,6 +8,7 @@
 #define PyBytes_AsString            PyString_AsString
 #define PyBytes_FromStringAndSize   PyString_FromStringAndSize
 #define PyBytes_FromString          PyString_FromString
+#define PyBytes_InternFromString    PyString_InternFromString
 
 #else
 
@@ -15,6 +16,7 @@
 #define PyString_Size PyUnicode_GET_SIZE
 #define PyString_FromStringAndSize PyUnicode_FromStringAndSize
 #define PyString_FromString PyUnicode_FromString
+#define PyString_InternFromString PyUnicode_InternFromString
 
 #define PyInt_Check PyLong_Check
 #define PyInt_FromLong PyLong_FromLong
