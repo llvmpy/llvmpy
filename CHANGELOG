@@ -1,3 +1,7 @@
+2014-07-30    0.12.7:
+---------------------
+  * Fixes many memory leaks
+
 2014-06-06    0.12.6:
 ---------------------
   * Fixes Module.from_bitcode for python 3 (#101)
