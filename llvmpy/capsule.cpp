@@ -104,7 +104,7 @@ PyObject* GetClassName(PyObject* obj) {
     if (!context) {
         return NULL;
     } else {
-        return PyString_FromString(context->className);
+        return PyString_InternFromString(context->className);
     }
 }
 
@@ -121,7 +121,7 @@ static
 PyObject* GetName(PyObject* obj) {
     const char* name = PyCapsule_GetName(obj);
     if (!name) return NULL;
-    return PyString_FromString(name);
+    return PyString_InternFromString(name);
 }
 
 static
@@ -193,6 +193,8 @@ static bool HasOwnership(PyObject* obj) {
     PyObject* addr = GetPointer(obj);
     PyObject* name = GetName(obj);
     auto_pyobject nameaddr = PyTuple_Pack(2, name, addr);
+    Py_DECREF(name);
+    Py_DECREF(addr);
     PyObject* dtor = PyDict_GetItem(GetAddrDtorDict(), *nameaddr);
     if (!dtor || dtor == Py_None) {
         return false;
@@ -231,20 +233,26 @@ PyObject* WrapCore(PyObject *oldCap, bool owned) {
                                                      NULL);
     auto_pyobject cls = PyObject_CallMethod(*cap, "get_class", "");
     auto_pyobject addr = GetPointer(oldCap);
-    auto_pyobject name = GetName(oldCap);
 
     // look up cached object
     auto_pyobject cache_cls = PyObject_GetItem(GetCache(), *cls);
     Assert(*cache_cls);
-    int addr_in_cache = PyMapping_HasKey(*cache_cls, *addr);
-
     PyObject* obj = NULL;
-    if (addr_in_cache) {
-        obj = PyObject_GetItem(*cache_cls, *addr);
-    } else {
+
+    obj = PyObject_GetItem(*cache_cls, *addr);
+
+    if (obj) {
+        /* cache hit */
+    }
+    else {
+        if (!PyErr_ExceptionMatches(PyExc_KeyError))
+            return NULL;
+        /* cache miss */
+        PyErr_Clear();
         if (!owned) {
             auto_pyobject hasDtor = PyObject_CallMethod(*cls, "_has_dtor", "");
             if (PyObject_IsTrue(*hasDtor)) {
+                auto_pyobject name = GetName(oldCap);
                 auto_pyobject key = PyTuple_Pack(2, *name, *addr);
                 auto_pyobject val = PyObject_GetAttrString(*cls, "_delete_");
 
@@ -265,19 +273,18 @@ static
 PyObject* Wrap(PyObject* cap, bool owned){
     if (!Check(cap)) {
         if (PyList_Check(cap)) {
-            const int N = PyList_Size(cap);
+            Py_ssize_t N = PyList_GET_SIZE(cap);
             PyObject* result = PyList_New(N);
 
-            for (int i = 0; i < N; ++i){
-                PyObject* item = PyList_GetItem(cap, i);
-                if (!item)
-                    return NULL;
+            for (Py_ssize_t i = 0; i < N; i++) {
+                PyObject* item = PyList_GET_ITEM(cap, i);
                 PyObject* out = Wrap(item, false);
-                if (!out) return NULL;
-                if (-1 == PyList_SetItem(result, i, out))
+                if (!out) {
+                    Py_DECREF(result);
                     return NULL;
+                }
+                PyList_SET_ITEM(result, i, out);
             }
-
             return result;
         } else {
             Py_INCREF(cap);
@@ -310,9 +317,7 @@ PyObject* downcast(PyObject* self, PyObject* args) {
         return NULL;
     }
 
-    auto_pyobject objType = PyObject_Type(obj);
-
-    if (*objType == cls) {
+    if ((PyObject *) Py_TYPE(obj) == cls) {
         Py_INCREF(obj);
         return obj;
     }
@@ -395,13 +400,7 @@ int Capsule_init(CapsuleObject *self, PyObject *args, PyObject *kwds)
 
     Py_INCREF(cap);
     self->capsule = cap;
-
-    PyObject* addr2refct = GetAddrRefCt();
-
-    auto_pyobject ptr = GetPointer(self->capsule);
-    auto_pyobject refct = PyObject_GetItem(addr2refct, *ptr);
-    auto_pyobject inc = PyNumber_InPlaceAdd(*refct, ConstantOne);
-    return PyObject_SetItem(addr2refct, *ptr, *inc);
+    return 0;
 }
 
 static
@@ -436,7 +435,20 @@ PyObject* Capsule_get_class(CapsuleObject* self, PyObject* args) {
 
 static
 PyObject* Capsule_instantiate(CapsuleObject* self, PyObject* args) {
-    return PyObject_CallFunctionObjArgs(Capsule_GetClass(self), self, NULL);
+    PyObject* addr2refct = GetAddrRefCt();
+    auto_pyobject ptr = GetPointer(self->capsule);
+    auto_pyobject refct = PyObject_GetItem(addr2refct, *ptr);
+    auto_pyobject inc = PyNumber_InPlaceAdd(*refct, ConstantOne);
+
+    PyObject *obj = PyObject_CallFunctionObjArgs(Capsule_GetClass(self),
+                                                 self, NULL);
+    if (obj == NULL)
+        return NULL;
+    if (PyObject_SetItem(addr2refct, *ptr, *inc)) {
+        Py_DECREF(obj);
+        return NULL;
+    }
+    return obj;
 }
 
 /// Rotate Right
@@ -480,7 +492,7 @@ long Capsule_hash(CapsuleObject *self) {
 
 static
 bool Capsule_eq(PyObject *self, PyObject *other) {
-    if (PyObject_Type(self) == PyObject_Type(other)) {
+    if (Py_TYPE(self) == Py_TYPE(other)) {
         CapsuleObject *a = (CapsuleObject*)self;
         CapsuleObject *b = (CapsuleObject*)other;
 
