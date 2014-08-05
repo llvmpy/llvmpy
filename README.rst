@@ -63,11 +63,11 @@ Common Build Problems
    Get patch from http://lists.cs.uiuc.edu/pipermail/llvm-commits/Week-of-Mon-20130701/180049.html
 
 3. OSX 10.9 Mavericks uses libc++ by default but Anaconda distributes LLVM
-binaries link with the old libstdc++.  The two binaries are **incompatible**
-but there are no compile/link time warnings.  The resulting binaries may
-generate segmentation fault at runtime (probably due to ABI mismatch).
-**The Fix:** Use the following c++ flags:
-``-std=libstdc++ -mmacosx-version-min=10.6``.
+   binaries link with the old libstdc++.  The two binaries are **incompatible**
+   but there are no compile/link time warnings.  The resulting binaries may
+   generate segmentation fault at runtime (probably due to ABI mismatch).
+   **The Fix:** Use the following c++ flags:
+   ``-std=libstdc++ -mmacosx-version-min=10.6``.
 
 LICENSE
 -------
