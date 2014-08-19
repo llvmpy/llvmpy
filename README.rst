@@ -10,14 +10,14 @@ http://www.llvmpy.org
 Versions
 --------
 
-This package has been tested with LLVM 3.2, Python 2.6, 2.7 and 3.3.
+This package has been tested with LLVM 3.3, Python 2.6, 2.7, 3.3 and 3.4.
 Other Python versions may work.
 
 Quickstart
 ----------
 
 1. Get and extract LLVM 3.2 source tarball from
-   `llvm.org <http://llvm.org/releases/download.html#3.2>`_.  Then, ``cd`` into
+   `llvm.org <http://llvm.org/releases/download.html#3.3>`_.  Then, ``cd`` into
    the extracted directory.
 
 2. Run ``./configure --enable-optimized --prefix=LLVM_INSTALL_PATH``.
@@ -32,7 +32,7 @@ Quickstart
 
 3. Run ``REQUIRES_RTTI=1 make install`` to build and install.
 
-    **Note**: With LLVM 3.2, the default build configuration has C++ RTTI
+    **Note**: With LLVM 3.3, the default build configuration has C++ RTTI
     disabled.  However, llvmpy requires RTTI.
 
     **Note**: Use ``make -j2 install`` to enable concurrent build.
@@ -40,7 +40,7 @@ Quickstart
 
 4. Get llvm-py and install it::
 
-   $ git clone git@github.com:llvmpy/llvmpy.git
+   $ git clone https://github.com/llvmpy/llvmpy.git
    $ cd llvmpy
    $ LLVM_CONFIG_PATH=LLVM_INSTALL_PATH/bin/llvm-config python setup.py install
 
