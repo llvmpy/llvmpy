@@ -40,6 +40,10 @@ llvm_version = run_llvm_config(['--version'])
 
 print('LLVM version = %r' % llvm_version)
 
+if not (llvm_version.startswith('3.2') or llvm_version.startswith('3.3')):
+    print('llvmpy requires LLVM version 3.2 or 3.3.  See README.rst for installation details.')
+    sys.exit(1)
+
 targets_built = run_llvm_config(['--targets-built'])
 include_targets = set(os.environ.get('LLVMPY_TARGETS', '').split())
 targets_built = ' '.join(set(targets_built.split()) & include_targets)
@@ -67,7 +71,7 @@ def auto_intrinsic_gen(incdir):
     print("Generate intrinsic IDs")
     from tools import intrgen
 
-    if llvm_version.startswith('3.3') or llvm_version.startswith('3.4'):
+    if llvm_version.startswith('3.3'):
         path = "%s/llvm/IR/Intrinsics.gen" % incdir
     else:
         path = "%s/llvm/Intrinsics.gen" % incdir
