@@ -30,6 +30,9 @@ Quickstart
     to separate your custom build from the default system package.  Please
     replace ``LLVM_INSTALL_PATH`` with your own path.
 
+    **Note**: OSX requires to set ``CC="/usr/bin/clang" CXX="/usr/bin/clang++"``
+    before the ``./configure ...`` command.
+
 3. Run ``REQUIRES_RTTI=1 make install`` to build and install.
 
     **Note**: With LLVM 3.3, the default build configuration has C++ RTTI
@@ -42,7 +45,7 @@ Quickstart
 
    $ git clone https://github.com/llvmpy/llvmpy.git
    $ cd llvmpy
-   $ LLVM_CONFIG_PATH=LLVM_INSTALL_PATH/bin/llvm-config python setup.py install
+   $ sudo LLVM_CONFIG_PATH=LLVM_INSTALL_PATH/bin/llvm-config python setup.py install
 
    Run the tests::
 
