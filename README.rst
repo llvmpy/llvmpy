@@ -43,6 +43,11 @@ Quickstart
    $ git clone https://github.com/llvmpy/llvmpy.git
    $ cd llvmpy
    $ LLVM_CONFIG_PATH=LLVM_INSTALL_PATH/bin/llvm-config python setup.py install
+   
+   **Note**: Some OS has a default python that may install to system 
+   locations thus requiring root permission.  In that case, use::
+   
+   $ LLVM_CONFIG_PATH=LLVM_INSTALL_PATH/bin/llvm-config python setup.py install --user
 
    Run the tests::
 
