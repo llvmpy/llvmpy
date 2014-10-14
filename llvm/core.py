@@ -362,6 +362,7 @@ class AttrEnum(Enum):
     ATTR_NAKED              = AttrVal.Naked
     ATTR_INLINE_HINT        = AttrVal.InlineHint
     ATTR_STACK_ALIGNMENT    = AttrVal.StackAlignment
+    ATTR_RETURNS_TWICE      = AttrVal.ReturnsTwice
 
 AttrEnum.declare()
 
