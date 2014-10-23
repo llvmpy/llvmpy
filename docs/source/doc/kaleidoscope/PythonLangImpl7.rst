@@ -360,7 +360,7 @@ the function:
       entry = function.get_entry_basic_block()
       builder = Builder.new(entry)
       builder.position_at_beginning(entry) return
-      builder.alloca(Type.double(), var_name)
+      builder.alloca(Type.double(), name=var_name)
 
 
 
@@ -951,7 +951,7 @@ Globals
       entry = function.get_entry_basic_block()
       builder = Builder.new(entry)
       builder.position_at_beginning(entry)
-      return builder.alloca(Type.double(), var_name)
+      return builder.alloca(Type.double(), name=var_name)
 
 Lexer
 -----
