@@ -170,7 +170,7 @@ Next we hook it up as a primary expression:
       if isinstance(self.current, IdentifierToken):
          return self.ParseIdentifierExpr()
       elif isinstance(self.current, NumberToken):
-         return self.ParseNumberExpr();
+         return self.ParseNumberExpr()
       elif isinstance(self.current, IfToken):
          return self.ParseIfExpr()
       elif self.current == CharacterToken('('):
@@ -682,7 +682,7 @@ the two blocks.
 .. code-block:: python
 
    # Start insertion in loop_block.
-   g_llvm_builder.position_at_end(loop_block);
+   g_llvm_builder.position_at_end(loop_block)
 
    # Start the PHI node with an entry for start.
    variable_phi = g_llvm_builder.phi(Type.double(), self.loop_variable)

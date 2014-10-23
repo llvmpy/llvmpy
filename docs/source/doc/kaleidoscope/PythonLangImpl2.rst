@@ -253,7 +253,7 @@ function calls:
 
 
       if self.current != CharacterToken('('):  # Simple variable reference.
-         return VariableExpressionNode(identifier_name);
+         return VariableExpressionNode(identifier_name)
 
       # Call.
       self.Next()  # eat '('.
@@ -298,7 +298,7 @@ primary expression, we need to determine what sort of expression it is:
       if isinstance(self.current, IdentifierToken):
           return self.ParseIdentifierExpr()
       elif isinstance(self.current, NumberToken):
-         return self.ParseNumberExpr();
+         return self.ParseNumberExpr()
       elif self.current == CharacterToken('('):
          return self.ParseParenExpr()
       else:
@@ -495,7 +495,7 @@ for ``a+b``, and then continue parsing:
       ... if body omitted ...
 
    # Merge left/right.
-   left = BinaryOperatorExpressionNode(binary_operator, left, right);
+   left = BinaryOperatorExpressionNode(binary_operator, left, right)
 
 
 
