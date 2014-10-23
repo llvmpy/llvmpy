@@ -1169,7 +1169,7 @@ Abstract Syntax Tree (aka Parse Tree)
          # end of the function.
          then_block = function.append_basic_block('then')
          else_block = function.append_basic_block('else')
-         merge_block = function.append_basic_block('ifcond')
+         merge_block = function.append_basic_block('ifcont')
 
          g_llvm_builder.cbranch(condition_bool, then_block, else_block)
 
