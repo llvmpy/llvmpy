@@ -1502,7 +1502,7 @@ Main driver code.
    def main():
       # Set up the optimizer pipeline. Start with registering info about how the
       # target lays out data structures.
-      g_llvm_pass_manager.add(g_llvm_executor.target_data)
+      g_llvm_pass_manager.add(g_llvm_executor.target_data.clone())
       # Do simple "peephole" optimizations and bit-twiddling optzns.
       g_llvm_pass_manager.add(PASS_INSTCOMBINE)
       # Reassociate expressions.
