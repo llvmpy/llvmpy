@@ -5,7 +5,7 @@ Chapter 5: Extending the Language: Control Flow
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
-Introduction 
+Introduction
 =======================
 
 Welcome to Chapter 5 of the `Implementing a language with
@@ -21,7 +21,7 @@ extend Kaleidoscope to have an if/then/else expression plus a simple
 
 --------------
 
-If/Then/Else 
+If/Then/Else
 ========================
 
 Extending Kaleidoscope to support if/then/else is quite straightforward.
@@ -37,10 +37,10 @@ sort of thing:
 
 .. code-block:: python
 
-   def fib(x) 
-      if x < 3 then 
-         1 
-      else 
+   def fib(x)
+      if x < 3 then
+         1
+      else
          fib(x-1) + fib(x-2)
 
 
@@ -63,7 +63,7 @@ down.
 Now that we know what we "want", let's break this down into its
 constituent pieces.
 
-Lexer Extensions for If/Then/Else 
+Lexer Extensions for If/Then/Else
 -----------------------------------------------
 
 The lexer extensions are straightforward. First we add new token classes
@@ -72,11 +72,11 @@ for the relevant tokens:
 
 .. code-block:: python
 
-   class IfToken(object): 
-      pass 
-   class ThenToken(object): 
-      pass 
-   class ElseToken(object): 
+   class IfToken(object):
+      pass
+   class ThenToken(object):
+      pass
+   class ElseToken(object):
       pass
 
 
@@ -87,23 +87,23 @@ pretty simple stuff:
 
 .. code-block:: python
 
-   ... 
-   if identifier == 'def': 
-      yield DefToken() 
-   elif identifier == 'extern': 
-      yield ExternToken() 
+   ...
+   if identifier == 'def':
+      yield DefToken()
+   elif identifier == 'extern':
+      yield ExternToken()
    elif identifier == 'if':
-      yield IfToken() 
-   elif identifier == 'then': 
-      yield ThenToken() 
-   elif identifier == 'else': 
-      yield ElseToken() 
-   else: 
+      yield IfToken()
+   elif identifier == 'then':
+      yield ThenToken()
+   elif identifier == 'else':
+      yield ElseToken()
+   else:
       yield IdentifierToken(identifier)
 
 
 
-AST Extensions for If/Then/Else 
+AST Extensions for If/Then/Else
 -------------------------------------------
 
 To represent the new expression we add a new AST node for it:
@@ -111,22 +111,22 @@ To represent the new expression we add a new AST node for it:
 
 .. code-block:: python
 
-   # Expression class for if/then/else. 
+   # Expression class for if/then/else.
    class IfExpressionNode(ExpressionNode):
-   
+
       def __init__(self, condition, then_branch, else_branch):
-         self.condition = condition 
+         self.condition = condition
          self.then_branch = then_branch
          self.else_branch = else_branch
-      
-      def CodeGen(self): 
+
+      def CodeGen(self):
          ...
 
 
 
 The AST node just has pointers to the various subexpressions.
 
-Parser Extensions for If/Then/Else 
+Parser Extensions for If/Then/Else
 -------------------------------------------------
 
 Now that we have the relevant tokens coming from the lexer and we have
@@ -136,28 +136,28 @@ First we define a new parsing function:
 
 .. code-block:: python
 
-   # ifexpr ::= 'if' expression 'then' expression 'else' expression 
-   def ParseIfExpr(self): 
+   # ifexpr ::= 'if' expression 'then' expression 'else' expression
+   def ParseIfExpr(self):
       self.Next()  # eat the if.
 
       # condition.
       condition = self.ParseExpression()
-      
+
       if not isinstance(self.current, ThenToken):
          raise RuntimeError('Expected "then".')
       self.Next()  # eat the then.
-      
+
       then_branch = self.ParseExpression()
-      
+
       if not isinstance(self.current, ElseToken):
          raise RuntimeError('Expected "else".')
       self.Next()  # eat the else.
-      
+
       else_branch = self.ParseExpression()
-      
+
       return IfExpressionNode(condition, then_branch, else_branch)
-   
-   
+
+
 
 
 
@@ -166,21 +166,21 @@ Next we hook it up as a primary expression:
 
 .. code-block:: python
 
-   def ParsePrimary(self): 
-      if isinstance(self.current, IdentifierToken): 
-         return self.ParseIdentifierExpr() 
+   def ParsePrimary(self):
+      if isinstance(self.current, IdentifierToken):
+         return self.ParseIdentifierExpr()
       elif isinstance(self.current, NumberToken):
-         return self.ParseNumberExpr(); 
+         return self.ParseNumberExpr();
       elif isinstance(self.current, IfToken):
-         return self.ParseIfExpr() 
+         return self.ParseIfExpr()
       elif self.current == CharacterToken('('):
-         return self.ParseParenExpr() 
-      else: 
+         return self.ParseParenExpr()
+      else:
          raise RuntimeError('Unknown token when expecting an expression.')
 
 
 
-LLVM IR for If/Then/Else 
+LLVM IR for If/Then/Else
 -----------------------------------
 
 Now that we have it parsing and building the AST, the final piece is
@@ -195,8 +195,8 @@ example. Consider:
 
 .. code-block:: python
 
-   extern foo(); 
-   extern bar(); 
+   extern foo();
+   extern bar();
    def baz(x) if x then foo() else bar();
 
 
@@ -207,26 +207,26 @@ Kaleidoscope looks something like this:
 
 .. code-block:: llvm
 
-   declare double @foo() 
+   declare double @foo()
 
-   declare double @bar() 
+   declare double @bar()
 
-   define double @baz(double %x) { 
-   entry: 
-      %ifcond = fcmp one double %x, 0.000000e+00 
-      br i1 %ifcond, label %then, label %else 
+   define double @baz(double %x) {
+   entry:
+      %ifcond = fcmp one double %x, 0.000000e+00
+      br i1 %ifcond, label %then, label %else
 
-   then:       ; preds = %entry 
-      %calltmp = call double @foo() 
-      br label %ifcont 
+   then:       ; preds = %entry
+      %calltmp = call double @foo()
+      br label %ifcont
 
-   else:       ; preds = %entry 
-      %calltmp1 = call double @bar() 
-      br label %ifcont 
+   else:       ; preds = %entry
+      %calltmp1 = call double @bar()
+      br label %ifcont
 
    ifcont:     ; preds = %else, %then
-      %iftmp = phi double [ %calltmp, %then ], [ %calltmp1, %else ] 
-      ret double %iftmp 
+      %iftmp = phi double [ %calltmp, %then ], [ %calltmp1, %else ]
+      ret double %iftmp
    }
 
 
@@ -295,7 +295,7 @@ really easy to generate the Phi node, so we choose to do it directly.
 
 Okay, enough of the motivation and overview, lets generate code!
 
-Code Generation for If/Then/Else 
+Code Generation for If/Then/Else
 ------------------------------------------------
 
 In order to generate code for this, we implement the ``Codegen`` method
@@ -304,14 +304,14 @@ for ``IfExpressionNode``:
 
 .. code-block:: python
 
-   def CodeGen(self): 
+   def CodeGen(self):
       condition = self.condition.CodeGen()
 
       # Convert condition to a bool by comparing equal to 0.0.
       condition_bool = g_llvm_builder.fcmp(
          FCMP_ONE, condition, Constant.real(Type.double(), 0), 'ifcond')
-   
-   
+
+
 
 
 
@@ -329,10 +329,10 @@ a truth value as a 1-bit (bool) value.
    then_block = function.append_basic_block('then')
    else_block = function.append_basic_block('else')
    merge_block = function.append_basic_block('ifcond')
-   
+
    g_llvm_builder.cbranch(condition_bool, then_block, else_block)
-   
-   
+
+
 
 
 
@@ -353,15 +353,15 @@ still inserting into the block that the condition went into.
 .. code-block:: python
 
    # Emit then value.
-   g_llvm_builder.position_at_end(then_block) 
-   then_value = self.then_branch.CodeGen() 
+   g_llvm_builder.position_at_end(then_block)
+   then_value = self.then_branch.CodeGen()
    g_llvm_builder.branch(merge_block)
 
    # Codegen of 'Then' can change the current block; update then_block for the
    # PHI node.
    then_block = g_llvm_builder.basic_block
-   
-   
+
+
 
 
 
@@ -399,15 +399,15 @@ value for code that will set up the Phi node.
 .. code-block:: python
 
    # Emit else block.
-   g_llvm_builder.position_at_end(else_block) 
-   else_value = self.else_branch.CodeGen() 
+   g_llvm_builder.position_at_end(else_block)
+   else_value = self.else_branch.CodeGen()
    g_llvm_builder.branch(merge_block)
 
    # Codegen of 'Else' can change the current block, update else_block for the
    # PHI node.
    else_block = g_llvm_builder.basic_block
-   
-   
+
+
 
 
 
@@ -422,14 +422,14 @@ code:
 .. code-block:: python
 
    # Emit merge block.
-   g_llvm_builder.position_at_end(merge_block) 
+   g_llvm_builder.position_at_end(merge_block)
    phi = g_llvm_builder.phi(Type.double(), 'iftmp')
    phi.add_incoming(then_value, then_block)
    phi.add_incoming(else_value, else_block)
 
    return phi
-   
-   
+
+
 
 
 
@@ -450,7 +450,7 @@ languages...
 
 --------------
 
-'for' Loop Expression 
+'for' Loop Expression
 ==============================
 
 Now that we know how to add basic control flow constructs to the
@@ -460,15 +460,15 @@ something more aggressive, a 'for' expression:
 
 .. code-block:: python
 
-   extern putchard(char) 
-   def printstar(n) 
-      for i = 1, i < n, 1.0 in 
+   extern putchard(char)
+   def printstar(n)
+      for i = 1, i < n, 1.0 in
          putchard(42)  # ascii 42 = '*'
 
    # print 100 '*' characters
    printstar(100)
-   
-   
+
+
 
 
 
@@ -483,7 +483,7 @@ the future when we have mutable variables, it will get more useful.
 As before, lets talk about the changes that we need to Kaleidoscope to
 support this.
 
-Lexer Extensions for the 'for' Loop 
+Lexer Extensions for the 'for' Loop
 --------------------------------------------------
 
 The lexer extensions are the same sort of thing as for if/then/else:
@@ -492,22 +492,22 @@ The lexer extensions are the same sort of thing as for if/then/else:
 .. code-block:: python
 
    ...
-   
-   class ThenToken(object): 
-      pass 
-   class ElseToken(object): 
-      pass 
-   class ForToken(object): 
-      pass 
-   class InToken(object): 
+
+   class ThenToken(object):
       pass
-   
+   class ElseToken(object):
+      pass
+   class ForToken(object):
+      pass
+   class InToken(object):
+      pass
+
    ...
-   
+
    def Tokenize(string):
 
       ...
-   
+
       elif identifier == 'else':
          yield ElseToken()
       elif identifier == 'for':
@@ -516,12 +516,12 @@ The lexer extensions are the same sort of thing as for if/then/else:
          yield InToken()</b>
       else:
          yield IdentifierToken(identifier)
-   
-   
 
 
 
-AST Extensions for the 'for' Loop 
+
+
+AST Extensions for the 'for' Loop
 ----------------------------------------------
 
 The AST node is just as simple. It basically boils down to capturing the
@@ -530,22 +530,22 @@ variable name and the constituent expressions in the node.
 
 .. code-block:: python
 
-   # Expression class for for/in. 
+   # Expression class for for/in.
    class ForExpressionNode(ExpressionNode):
-   
+
       def __init__(self, loop_variable, start, end, step, body):
-         self.loop_variable = loop_variable 
-         self.start = start 
+         self.loop_variable = loop_variable
+         self.start = start
          self.end = end
-         self.step = step 
+         self.step = step
          self.body = body
-      
-      def CodeGen(self): 
+
+      def CodeGen(self):
          ...
 
 
 
-Parser Extensions for the 'for' Loop 
+Parser Extensions for the 'for' Loop
 ----------------------------------------------------
 
 The parser code is also fairly standard. The only interesting thing here
@@ -556,48 +556,48 @@ value to null in the AST node:
 
 .. code-block:: python
 
-   # forexpr ::= 'for' identifier '=' expr ',' expr (',' expr)? 'in' expression 
-   def ParseForExpr(self): 
+   # forexpr ::= 'for' identifier '=' expr ',' expr (',' expr)? 'in' expression
+   def ParseForExpr(self):
       self.Next()  # eat the for.
 
       if not isinstance(self.current, IdentifierToken):
          raise RuntimeError('Expected identifier after for.')
-      
+
       loop_variable = self.current.name
       self.Next()  # eat the identifier.
-      
+
       if self.current != CharacterToken('='):
          raise RuntimeError('Expected "=" after for variable.')
       self.Next()  # eat the '='.
-      
+
       start = self.ParseExpression()
-      
+
       if self.current != CharacterToken(','):
          raise RuntimeError('Expected "," after for start value.')
       self.Next()  # eat the ','.
-      
+
       end = self.ParseExpression()
-      
+
       # The step value is optional.
       if self.current == CharacterToken(','):
          self.Next()  # eat the ','.
          step = self.ParseExpression()
       else:
          step = None
-      
+
       if not isinstance(self.current, InToken):
          raise RuntimeError('Expected "in" after for variable specification.')
       self.Next()  # eat 'in'.
-      
+
       body = self.ParseExpression()
-      
+
       return ForExpressionNode(loop_variable, start, end, step, body)
-   
-   
 
 
 
-LLVM IR for the 'for' Loop 
+
+
+LLVM IR for the 'for' Loop
 --------------------------------------
 
 Now we get to the good part: the LLVM IR we want to generate for this
@@ -607,29 +607,29 @@ this dump is generated with optimizations disabled for clarity):
 
 .. code-block:: llvm
 
-   declare double @putchard(double) 
+   declare double @putchard(double)
 
-   define double @printstar(double %n) { 
-   entry: 
+   define double @printstar(double %n) {
+   entry:
       ; initial value = 1.0 (inlined into phi)
-      br label %loop 
+      br label %loop
 
-   loop:    ; preds = %loop, %entry 
+   loop:    ; preds = %loop, %entry
    %i = phi double [
-      1.000000e+00, %entry ], [ %nextvar, %loop ] 
-      ; body 
-      %calltmp = call double @putchard(double 4.200000e+01) 
-      ; increment 
-      %nextvar = fadd double %i, 1.000000e+00 
+      1.000000e+00, %entry ], [ %nextvar, %loop ]
+      ; body
+      %calltmp = call double @putchard(double 4.200000e+01)
+      ; increment
+      %nextvar = fadd double %i, 1.000000e+00
 
-      ; termination test 
+      ; termination test
       %cmptmp = fcmp ult double %i, %n
-      %booltmp = uitofp i1 %cmptmp to double 
-      %loopcond = fcmp one double %booltmp, 0.000000e+00 
+      %booltmp = uitofp i1 %cmptmp to double
+      %loopcond = fcmp one double %booltmp, 0.000000e+00
       br i1 %loopcond, label %loop, label %afterloop
 
-   afterloop:        ; preds = %loop 
-      ; loop always returns 0.0 
+   afterloop:        ; preds = %loop
+      ; loop always returns 0.0
       ret double 0.000000e+00 }
 
 
@@ -638,7 +638,7 @@ This loop contains all the same constructs we saw before: a phi node,
 several expressions, and some basic blocks. Lets see how this fits
 together.
 
-Code Generation for the 'for' Loop 
+Code Generation for the 'for' Loop
 ---------------------------------------------------
 
 The first part of Codegen is very simple: we just output the start
@@ -647,10 +647,10 @@ expression for the loop value:
 
 .. code-block:: python
 
-   def CodeGen(self): 
-      # Emit the start code first, without 'variable' in scope. 
-      start_value = self.start.CodeGen() 
-   
+   def CodeGen(self):
+      # Emit the start code first, without 'variable' in scope.
+      start_value = self.start.CodeGen()
+
 With this out of the way, the next step is to set up the LLVM basic
 block for the start of the loop body. In the case above, the whole loop
 body is one block, but remember that the body code itself could consist
@@ -658,17 +658,17 @@ of multiple blocks (e.g. if it contains an if/then/else or a for/in
 expression).
 
 .. code-block:: python
-   
-   # Make the new basic block for the loop header, inserting after current 
-   # block. 
-   function = g_llvm_builder.basic_block.function 
-   pre_header_block = g_llvm_builder.basic_block 
+
+   # Make the new basic block for the loop header, inserting after current
+   # block.
+   function = g_llvm_builder.basic_block.function
+   pre_header_block = g_llvm_builder.basic_block
    loop_block = function.append_basic_block('loop')
 
    # Insert an explicit fallthrough from the current block to the loop_block.
    g_llvm_builder.branch(loop_block)
-   
-   
+
+
 
 
 
@@ -687,8 +687,8 @@ the two blocks.
    # Start the PHI node with an entry for start.
    variable_phi = g_llvm_builder.phi(Type.double(), self.loop_variable)
    variable_phi.add_incoming(start_value, pre_header_block)
-   
-   
+
+
 
 
 
@@ -702,16 +702,16 @@ backedge, but we can't set it up yet (because it doesn't exist!).
 
 .. code-block:: python
 
-   # Within the loop, the variable is defined equal to the PHI node. If it 
-   # shadows an existing variable, we have to restore it, so save it now. 
+   # Within the loop, the variable is defined equal to the PHI node. If it
+   # shadows an existing variable, we have to restore it, so save it now.
    old_value = g_named_values.get(self.loop_variable, None)
    g_named_values[self.loop_variable] = variable_phi
 
    # Emit the body of the loop.  This, like any other expr, can change the
    # current BB.  Note that we ignore the value computed by the body.
    self.body.CodeGen()
-   
-   
+
+
 
 
 
@@ -735,16 +735,16 @@ table.
 
 .. code-block:: python
 
-   # Emit the step value. 
-   if self.step: 
-      step_value = self.step.CodeGen() 
-   else: 
-      # If not specified, use 1.0. 
+   # Emit the step value.
+   if self.step:
+      step_value = self.step.CodeGen()
+   else:
+      # If not specified, use 1.0.
       step_value = Constant.real(Type.double(), 1)
 
    next_value = g_llvm_builder.fadd(variable_phi, step_value, 'next')
-   
-   
+
+
 
 
 
@@ -756,9 +756,9 @@ iteration of the loop.
 
 .. code-block:: python
 
-   # Compute the end condition and convert it to a bool by comparing to 0.0. 
+   # Compute the end condition and convert it to a bool by comparing to 0.0.
    end_condition = self.end.CodeGen()
-   end_condition_bool = g_llvm_builder.fcmp( 
+   end_condition_bool = g_llvm_builder.fcmp(
       FCMP_ONE, end_condition, Constant.real(Type.double(), 0), 'loopcond')
 
 
@@ -771,16 +771,16 @@ if/then/else statement.
 .. code-block:: python
 
    # Create the "after loop" block and insert it.
-   loop_end_block = g_llvm_builder.basic_block 
+   loop_end_block = g_llvm_builder.basic_block
    after_block = function.append_basic_block('afterloop')
 
    # Insert the conditional branch into the end of loop_end_block.
    g_llvm_builder.cbranch(end_condition_bool, loop_block, after_block)
-   
+
    # Any new code will be inserted in after_block.
    g_llvm_builder.position_at_end(after_block)
-   
-   
+
+
 
 
 
@@ -795,7 +795,7 @@ insertion position to it.
 
 .. code-block:: python
 
-   # Add a new entry to the PHI node for the backedge. 
+   # Add a new entry to the PHI node for the backedge.
    variable_phi.add_incoming(next_value, loop_end_block)
 
    # Restore the unshadowed variable.
@@ -803,11 +803,11 @@ insertion position to it.
       g_named_values[self.loop_variable] = old_value
    else:
       del g_named_values[self.loop_variable]
-   
+
    # for expr always returns 0.0.
    return Constant.real(Type.double(), 0)
-   
-   
+
+
 
 
 
@@ -827,7 +827,7 @@ operators <PythonLangImpl6.html>`_ to our poor innocent language.
 
 --------------
 
-Full Code Listing 
+Full Code Listing
 ===========================
 
 Here is the complete code listing for our running example, enhanced with
@@ -837,95 +837,95 @@ the if/then/else and for expressions:
 .. code-block:: python
 
    #!/usr/bin/env python
-   
-   import re 
-   from llvm.core import Module, Constant, Type, Function, Builder 
-   from llvm.ee import ExecutionEngine, TargetData 
+
+   import re
+   from llvm.core import Module, Constant, Type, Function, Builder
+   from llvm.ee import ExecutionEngine, TargetData
    from llvm.passes import FunctionPassManager
-   
-   from llvm.core import FCMP_ULT, FCMP_ONE 
-   from llvm.passes import (PASS_INSTRUCTION_COMBINING, 
-                            PASS_REASSOCIATE, 
+
+   from llvm.core import FCMP_ULT, FCMP_ONE
+   from llvm.passes import (PASS_INSTRUCTION_COMBINING,
+                            PASS_REASSOCIATE,
                             PASS_GVN,
                             PASS_CFG_SIMPLIFICATION)
-   
+
 Globals
 -------
 
 .. code-block:: python
-   
+
    # The LLVM module, which holds all the IR code.
    g_llvm_module = Module.new('my cool jit')
-   
+
    # The LLVM instruction builder. Created whenever a new function is entered.
    g_llvm_builder = None
-   
+
    # A dictionary that keeps track of which values are defined in the current scope
    # and what their LLVM representation is.
    g_named_values = {}
-   
+
    # The function optimization passes manager.
    g_llvm_pass_manager = FunctionPassManager.new(g_llvm_module)
-   
+
    # The LLVM execution engine.
    g_llvm_executor = ExecutionEngine.new(g_llvm_module)
-   
+
 Lexer
 -----
 
 .. code-block:: python
-   
+
    # The lexer yields one of these types for each token.
-   class EOFToken(object): 
-      pass 
-   class DefToken(object): 
-      pass 
-   class ExternToken(object): 
-      pass 
-   class IfToken(object): 
-      pass 
-   class ThenToken(object): 
-      pass 
-   class ElseToken(object): 
-      pass 
-   class ForToken(object): 
-      pass 
-   class InToken(object): 
+   class EOFToken(object):
       pass
-   
-   class IdentifierToken(object): 
-      def __init__(self, name): 
+   class DefToken(object):
+      pass
+   class ExternToken(object):
+      pass
+   class IfToken(object):
+      pass
+   class ThenToken(object):
+      pass
+   class ElseToken(object):
+      pass
+   class ForToken(object):
+      pass
+   class InToken(object):
+      pass
+
+   class IdentifierToken(object):
+      def __init__(self, name):
          self.name = name
-   
-   class NumberToken(object): 
-      def __init__(self, value): 
+
+   class NumberToken(object):
+      def __init__(self, value):
          self.value = value
-   
-   class CharacterToken(object): 
+
+   class CharacterToken(object):
       def __init__(self, char):
-         self.char = char 
-      def __eq__(self, other): 
-         return isinstance(other, CharacterToken) and self.char == other.char 
-      def __ne__(self, other): 
+         self.char = char
+      def __eq__(self, other):
+         return isinstance(other, CharacterToken) and self.char == other.char
+      def __ne__(self, other):
          return not self == other
-   
+
    # Regular expressions that tokens and comments of our language.
-   REGEX_NUMBER = re.compile('[0-9]+(?:\.[0-9]+)?') 
-   REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9]*') 
+   REGEX_NUMBER = re.compile('[0-9]+(?:\.[0-9]+)?')
+   REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9]*')
    REGEX_COMMENT = re.compile('#.*')
-   
-   def Tokenize(string): 
-      while string: 
-         # Skip whitespace. 
-         if string[0].isspace(): 
-            string = string[1:] 
+
+   def Tokenize(string):
+      while string:
+         # Skip whitespace.
+         if string[0].isspace():
+            string = string[1:]
             continue
 
          # Run regexes.
          comment_match = REGEX_COMMENT.match(string)
          number_match = REGEX_NUMBER.match(string)
          identifier_match = REGEX_IDENTIFIER.match(string)
-         
+
          # Check if any of the regexes matched and yield the appropriate result.
          if comment_match:
             comment = comment_match.group(0)
@@ -958,49 +958,49 @@ Lexer
             # Yield the ASCII value of the unknown character.
             yield CharacterToken(string[0])
             string = string[1:]
-   
+
       yield EOFToken()
-   
+
 Abstract Syntax Tree (aka Parse Tree)
 -------------------------------------
 
 .. code-block:: python
-   
+
    # Base class for all expression nodes.
-   class ExpressionNode(object): 
+   class ExpressionNode(object):
       pass
-   
+
    # Expression class for numeric literals like "1.0".
    class NumberExpressionNode(ExpressionNode):
-   
-      def __init__(self, value): 
+
+      def __init__(self, value):
          self.value = value
-      
-      def CodeGen(self): 
+
+      def CodeGen(self):
          return Constant.real(Type.double(), self.value)
-   
+
    # Expression class for referencing a variable, like "a".
    class VariableExpressionNode(ExpressionNode):
-   
-      def __init__(self, name): 
+
+      def __init__(self, name):
          self.name = name
-      
-      def CodeGen(self): 
-         if self.name in g_named_values: 
-            return g_named_values[self.name] 
-         else: 
+
+      def CodeGen(self):
+         if self.name in g_named_values:
+            return g_named_values[self.name]
+         else:
             raise RuntimeError('Unknown variable name: ' + self.name)
-   
+
    # Expression class for a binary operator.
    class BinaryOperatorExpressionNode(ExpressionNode):
-   
-      def __init__(self, operator, left, right): 
+
+      def __init__(self, operator, left, right):
          self.operator = operator
-         self.left = left 
+         self.left = left
          self.right = right
-      
-      def CodeGen(self): 
-         left = self.left.CodeGen() 
+
+      def CodeGen(self):
+         left = self.left.CodeGen()
          right = self.right.CodeGen()
 
          if self.operator == '+':
@@ -1015,274 +1015,274 @@ Abstract Syntax Tree (aka Parse Tree)
             return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
          else:
             raise RuntimeError('Unknown binary operator.')
-   
+
    # Expression class for function calls.
    class CallExpressionNode(ExpressionNode):
-   
-      def __init__(self, callee, args): 
-         self.callee = callee 
+
+      def __init__(self, callee, args):
+         self.callee = callee
          self.args = args
-   
-      def CodeGen(self): 
-         # Look up the name in the global module table. 
+
+      def CodeGen(self):
+         # Look up the name in the global module table.
          callee = g_llvm_module.get_function_named(self.callee)
 
          # Check for argument mismatch error.
          if len(callee.args) != len(self.args):
             raise RuntimeError('Incorrect number of arguments passed.')
-         
+
          arg_values = [i.CodeGen() for i in self.args]
-         
+
          return g_llvm_builder.call(callee, arg_values, 'calltmp')
-   
+
    # Expression class for if/then/else.
    class IfExpressionNode(ExpressionNode):
-   
+
       def __init__(self, condition, then_branch, else_branch):
-         self.condition = condition 
+         self.condition = condition
          self.then_branch = then_branch
          self.else_branch = else_branch
-      
-      def CodeGen(self): 
+
+      def CodeGen(self):
          condition = self.condition.CodeGen()
 
          # Convert condition to a bool by comparing equal to 0.0.
          condition_bool = g_llvm_builder.fcmp(
             FCMP_ONE, condition, Constant.real(Type.double(), 0), 'ifcond')
-         
+
          function = g_llvm_builder.basic_block.function
-         
+
          # Create blocks for the then and else cases. Insert the 'then' block at the
          # end of the function.
          then_block = function.append_basic_block('then')
          else_block = function.append_basic_block('else')
          merge_block = function.append_basic_block('ifcond')
-         
+
          g_llvm_builder.cbranch(condition_bool, then_block, else_block)
-         
+
          # Emit then value.
          g_llvm_builder.position_at_end(then_block)
          then_value = self.then_branch.CodeGen()
          g_llvm_builder.branch(merge_block)
-         
+
          # Codegen of 'Then' can change the current block; update then_block for the
          # PHI node.
          then_block = g_llvm_builder.basic_block
-         
+
          # Emit else block.
          g_llvm_builder.position_at_end(else_block)
          else_value = self.else_branch.CodeGen()
          g_llvm_builder.branch(merge_block)
-         
+
          # Codegen of 'Else' can change the current block, update else_block for the
          # PHI node.
          else_block = g_llvm_builder.basic_block
-         
+
          # Emit merge block.
          g_llvm_builder.position_at_end(merge_block)
          phi = g_llvm_builder.phi(Type.double(), 'iftmp')
          phi.add_incoming(then_value, then_block)
          phi.add_incoming(else_value, else_block)
-         
+
          return phi
-   
+
    # Expression class for for/in.
    class ForExpressionNode(ExpressionNode):
-   
+
       def __init__(self, loop_variable, start, end, step, body):
-         self.loop_variable = loop_variable 
-         self.start = start 
+         self.loop_variable = loop_variable
+         self.start = start
          self.end = end
-         self.step = step 
+         self.step = step
          self.body = body
-      
-      def CodeGen(self): 
-         # Output this as: 
-         #   ... 
-         #   start = startexpr 
-         #   goto loop 
-         # loop: 
-         #   variable = phi [start, loopheader], [nextvariable, loopend] 
-         #   ... 
-         #   bodyexpr 
-         #   ... 
-         # loopend: 
-         #   step = stepexpr 
-         #   nextvariable = variable + step # endcond = endexpr # br endcond, loop, endloop 
+
+      def CodeGen(self):
+         # Output this as:
+         #   ...
+         #   start = startexpr
+         #   goto loop
+         # loop:
+         #   variable = phi [start, loopheader], [nextvariable, loopend]
+         #   ...
+         #   bodyexpr
+         #   ...
+         # loopend:
+         #   step = stepexpr
+         #   nextvariable = variable + step # endcond = endexpr # br endcond, loop, endloop
          # outloop:
 
          # Emit the start code first, without 'variable' in scope.
          start_value = self.start.CodeGen()
-         
+
          # Make the new basic block for the loop header, inserting after current
          # block.
          function = g_llvm_builder.basic_block.function
          pre_header_block = g_llvm_builder.basic_block
          loop_block = function.append_basic_block('loop')
-         
+
          # Insert an explicit fallthrough from the current block to the loop_block.
          g_llvm_builder.branch(loop_block)
-         
+
          # Start insertion in loop_block.
          g_llvm_builder.position_at_end(loop_block)
-         
+
          # Start the PHI node with an entry for start.
          variable_phi = g_llvm_builder.phi(Type.double(), self.loop_variable)
          variable_phi.add_incoming(start_value, pre_header_block)
-         
+
          # Within the loop, the variable is defined equal to the PHI node.  If it
          # shadows an existing variable, we have to restore it, so save it now.
          old_value = g_named_values.get(self.loop_variable, None)
          g_named_values[self.loop_variable] = variable_phi
-         
+
          # Emit the body of the loop.  This, like any other expr, can change the
          # current BB.  Note that we ignore the value computed by the body.
          self.body.CodeGen()
-         
+
          # Emit the step value.
          if self.step:
             step_value = self.step.CodeGen()
          else:
             # If not specified, use 1.0.
             step_value = Constant.real(Type.double(), 1)
-         
+
          next_value = g_llvm_builder.fadd(variable_phi, step_value, 'next')
-         
+
          # Compute the end condition and convert it to a bool by comparing to 0.0.
          end_condition = self.end.CodeGen()
          end_condition_bool = g_llvm_builder.fcmp(
             FCMP_ONE, end_condition, Constant.real(Type.double(), 0), 'loopcond')
-         
+
          # Create the "after loop" block and insert it.
          loop_end_block = g_llvm_builder.basic_block
          after_block = function.append_basic_block('afterloop')
-         
+
          # Insert the conditional branch into the end of loop_end_block.
          g_llvm_builder.cbranch(end_condition_bool, loop_block, after_block)
-         
+
          # Any new code will be inserted in after_block.
          g_llvm_builder.position_at_end(after_block)
-         
+
          # Add a new entry to the PHI node for the backedge.
          variable_phi.add_incoming(next_value, loop_end_block)
-         
+
          # Restore the unshadowed variable.
          if old_value:
             g_named_values[self.loop_variable] = old_value
          else:
             del g_named_values[self.loop_variable]
-         
+
          # for expr always returns 0.0.
          return Constant.real(Type.double(), 0)
-   
+
    # This class represents the "prototype" for a function, which captures its name,
    # and its argument names (thus implicitly the number of arguments the function
    # takes).
    class PrototypeNode(object):
-   
-      def __init__(self, name, args): 
-         self.name = name 
+
+      def __init__(self, name, args):
+         self.name = name
          self.args = args
-      
-      def CodeGen(self): 
+
+      def CodeGen(self):
       # Make the function type, eg. double(double,double).
-         funct_type = Type.function( 
+         funct_type = Type.function(
             Type.double(), [Type.double()] * len(self.args), False)
 
          function = Function.new(g_llvm_module, funct_type, self.name)
-         
+
          # If the name conflicted, there was already something with the same name.
          # If it has a body, don't allow redefinition or reextern.
          if function.name != self.name:
             function.delete()
             function = g_llvm_module.get_function_named(self.name)
-         
+
             # If the function already has a body, reject this.
             if not function.is_declaration:
                raise RuntimeError('Redefinition of function.')
-            
+
             # If the function took a different number of args, reject.
             if len(function.args) != len(self.args):
                raise RuntimeError('Redeclaration of a function with different number '
                                   'of args.')
-         
+
          # Set names for all arguments and add them to the variables symbol table.
          for arg, arg_name in zip(function.args, self.args):
             arg.name = arg_name
             # Add arguments to variable symbol table.
             g_named_values[arg_name] = arg
-         
+
          return function
-   
+
    # This class represents a function definition itself.
    class FunctionNode(object):
-   
-      def __init__(self, prototype, body): 
+
+      def __init__(self, prototype, body):
          self.prototype = prototype
          self.body = body
-      
-      def CodeGen(self): 
-         # Clear scope. 
+
+      def CodeGen(self):
+         # Clear scope.
          g_named_values.clear()
 
          # Create a function object.
          function = self.prototype.CodeGen()
-         
+
          # Create a new basic block to start insertion into.
          block = function.append_basic_block('entry')
          global g_llvm_builder
          g_llvm_builder = Builder.new(block)
-         
+
          # Finish off the function.
          try:
             return_value = self.body.CodeGen()
             g_llvm_builder.ret(return_value)
-         
+
             # Validate the generated code, checking for consistency.
             function.verify()
-         
+
             # Optimize the function.
             g_llvm_pass_manager.run(function)
          except:
             function.delete()
             raise
-      
+
          return function
-   
+
 Parser
 ------
-   
+
 .. code-block:: python
 
    class Parser(object):
-   
-      def __init__(self, tokens, binop_precedence): 
+
+      def __init__(self, tokens, binop_precedence):
          self.tokens = tokens
-         self.binop_precedence = binop_precedence 
+         self.binop_precedence = binop_precedence
          self.Next()
-      
+
       # Provide a simple token buffer. Parser.current is the current token the
-      # parser is looking at. Parser.Next() reads another token from the lexer and 
-      # updates Parser.current with its results. 
+      # parser is looking at. Parser.Next() reads another token from the lexer and
+      # updates Parser.current with its results.
       def Next(self):
          self.current = self.tokens.next()
-      
-      # Gets the precedence of the current token, or -1 if the token is not a binary 
-      # operator. 
-      def GetCurrentTokenPrecedence(self): 
-         if isinstance(self.current, CharacterToken): 
-            return self.binop_precedence.get(self.current.char, -1) 
-         else: 
+
+      # Gets the precedence of the current token, or -1 if the token is not a binary
+      # operator.
+      def GetCurrentTokenPrecedence(self):
+         if isinstance(self.current, CharacterToken):
+            return self.binop_precedence.get(self.current.char, -1)
+         else:
             return -1
-      
-      # identifierexpr ::= identifier | identifier '(' expression* ')' 
-      def ParseIdentifierExpr(self): 
+
+      # identifierexpr ::= identifier | identifier '(' expression* ')'
+      def ParseIdentifierExpr(self):
          identifier_name = self.current.name
          self.Next()  # eat identifier.
 
          if self.current != CharacterToken('('):  # Simple variable reference.
             return VariableExpressionNode(identifier_name)
-         
+
          # Call.
          self.Next()  # eat '('.
          args = []
@@ -1294,241 +1294,241 @@ Parser
                elif self.current != CharacterToken(','):
                   raise RuntimeError('Expected ")" or "," in argument list.')
                self.Next()
-         
+
          self.Next()  # eat ')'.
          return CallExpressionNode(identifier_name, args)
-      
-      # numberexpr ::= number 
-      def ParseNumberExpr(self): 
-         result = NumberExpressionNode(self.current.value) 
-         self.Next()  # consume the number. 
+
+      # numberexpr ::= number
+      def ParseNumberExpr(self):
+         result = NumberExpressionNode(self.current.value)
+         self.Next()  # consume the number.
          return result
-      
-      # parenexpr ::= '(' expression ')' 
-      def ParseParenExpr(self): 
+
+      # parenexpr ::= '(' expression ')'
+      def ParseParenExpr(self):
          self.Next()  # eat '('.
-         
-         
-         
+
+
+
          contents = self.ParseExpression()
-         
+
          if self.current != CharacterToken(')'):
             raise RuntimeError('Expected ")".')
          self.Next()  # eat ')'.
-         
+
          return contents
-      
-      # ifexpr ::= 'if' expression 'then' expression 'else' expression 
-      def ParseIfExpr(self): 
+
+      # ifexpr ::= 'if' expression 'then' expression 'else' expression
+      def ParseIfExpr(self):
          self.Next() # eat the if.
-         
+
          # condition.
          condition = self.ParseExpression()
-         
+
          if not isinstance(self.current, ThenToken):
             raise RuntimeError('Expected "then".')
          self.Next()  # eat the then.
-         
+
          then_branch = self.ParseExpression()
-         
+
          if not isinstance(self.current, ElseToken):
             raise RuntimeError('Expected "else".')
          self.Next()  # eat the else.
-         
+
          else_branch = self.ParseExpression()
-         
+
          return IfExpressionNode(condition, then_branch, else_branch)
-      
+
       # forexpr ::= 'for' identifier '=' expr ',' expr (',' expr)? 'in'
-      expression 
-      def ParseForExpr(self): 
+      expression
+      def ParseForExpr(self):
          self.Next()  # eat the for.
 
          if not isinstance(self.current, IdentifierToken):
             raise RuntimeError('Expected identifier after for.')
-         
+
          loop_variable = self.current.name
          self.Next()  # eat the identifier.
-         
+
          if self.current != CharacterToken('='):
             raise RuntimeError('Expected "=" after for variable.')
          self.Next()  # eat the '='.
-         
+
          start = self.ParseExpression()
-         
+
          if self.current != CharacterToken(','):
             raise RuntimeError('Expected "," after for start value.')
          self.Next()  # eat the ','.
-         
+
          end = self.ParseExpression()
-         
+
          # The step value is optional.
          if self.current == CharacterToken(','):
             self.Next()  # eat the ','.
             step = self.ParseExpression()
          else:
             step = None
-         
+
          if not isinstance(self.current, InToken):
             raise RuntimeError('Expected "in" after for variable specification.')
          self.Next()  # eat 'in'.
-         
+
          body = self.ParseExpression()
-         
+
          return ForExpressionNode(loop_variable, start, end, step, body)
-      
-      # primary ::= identifierexpr | numberexpr | parenexpr | ifexpr | forexpr 
-      def ParsePrimary(self): 
-         if isinstance(self.current, IdentifierToken): 
-            return self.ParseIdentifierExpr() 
-         elif isinstance(self.current, NumberToken): 
+
+      # primary ::= identifierexpr | numberexpr | parenexpr | ifexpr | forexpr
+      def ParsePrimary(self):
+         if isinstance(self.current, IdentifierToken):
+            return self.ParseIdentifierExpr()
+         elif isinstance(self.current, NumberToken):
             return self.ParseNumberExpr()
-         elif isinstance(self.current, IfToken): 
-            return self.ParseIfExpr() 
-         elif isinstance(self.current, ForToken): 
-            return self.ParseForExpr() 
-         elif self.current == CharacterToken('('): 
-            return self.ParseParenExpr() 
+         elif isinstance(self.current, IfToken):
+            return self.ParseIfExpr()
+         elif isinstance(self.current, ForToken):
+            return self.ParseForExpr()
+         elif self.current == CharacterToken('('):
+            return self.ParseParenExpr()
          else:
             raise RuntimeError('Unknown token when expecting an expression.')
-      
-      # binoprhs ::= (operator primary)* 
-      def ParseBinOpRHS(self, left, left_precedence): 
+
+      # binoprhs ::= (operator primary)*
+      def ParseBinOpRHS(self, left, left_precedence):
          # If this is a binary operator, find its precedence.
-         while True: 
+         while True:
             precedence = self.GetCurrentTokenPrecedence()
 
             # If this is a binary operator that binds at least as tightly as the
             # current one, consume it; otherwise we are done.
             if precedence < left_precedence:
                return left
-            
+
             binary_operator = self.current.char
             self.Next()  # eat the operator.
-            
+
             # Parse the primary expression after the binary operator.
             right = self.ParsePrimary()
-            
+
             # If binary_operator binds less tightly with right than the operator after
             # right, let the pending operator take right as its left.
             next_precedence = self.GetCurrentTokenPrecedence()
             if precedence < next_precedence:
                right = self.ParseBinOpRHS(right, precedence + 1)
-            
+
             # Merge left/right.
             left = BinaryOperatorExpressionNode(binary_operator, left, right)
-      
-      # expression ::= primary binoprhs 
-      def ParseExpression(self): 
-         left = self.ParsePrimary() 
+
+      # expression ::= primary binoprhs
+      def ParseExpression(self):
+         left = self.ParsePrimary()
          return self.ParseBinOpRHS(left, 0)
-      
-      # prototype ::= id '(' id* ')' 
-      def ParsePrototype(self): 
-         if not isinstance(self.current, IdentifierToken): 
+
+      # prototype ::= id '(' id* ')'
+      def ParsePrototype(self):
+         if not isinstance(self.current, IdentifierToken):
             raise RuntimeError('Expected function name in prototype.')
 
          function_name = self.current.name
          self.Next()  # eat function name.
-         
+
          if self.current != CharacterToken('('):
             raise RuntimeError('Expected "(" in prototype.')
          self.Next()  # eat '('.
-         
+
          arg_names = []
          while isinstance(self.current, IdentifierToken):
             arg_names.append(self.current.name)
             self.Next()
-         
+
          if self.current != CharacterToken(')'):
             raise RuntimeError('Expected ")" in prototype.')
-         
+
          # Success.
          self.Next()  # eat ')'.
-         
+
          return PrototypeNode(function_name, arg_names)
-      
-      # definition ::= 'def' prototype expression 
+
+      # definition ::= 'def' prototype expression
       def ParseDefinition(self):
-         self.Next()  # eat def. 
-         proto = self.ParsePrototype() 
-         body = self.ParseExpression() 
+         self.Next()  # eat def.
+         proto = self.ParsePrototype()
+         body = self.ParseExpression()
          return FunctionNode(proto, body)
-      
-      # toplevelexpr ::= expression 
+
+      # toplevelexpr ::= expression
       def ParseTopLevelExpr(self):
-         proto = PrototypeNode('', []) 
+         proto = PrototypeNode('', [])
          return FunctionNode(proto, self.ParseExpression())
-      
-      # external ::= 'extern' prototype 
-      def ParseExtern(self): 
-         self.Next()  # eat extern. 
+
+      # external ::= 'extern' prototype
+      def ParseExtern(self):
+         self.Next()  # eat extern.
          return self.ParsePrototype()
-      
-      # Top-Level parsing 
+
+      # Top-Level parsing
       def HandleDefinition(self):
          self.Handle(self.ParseDefinition, 'Read a function definition:')
-      
-      def HandleExtern(self): 
+
+      def HandleExtern(self):
          self.Handle(self.ParseExtern, 'Read an extern:')
-      
-      def HandleTopLevelExpression(self): 
-         try: 
-            function = self.ParseTopLevelExpr().CodeGen() 
-            result = g_llvm_executor.run_function(function, []) 
-            print 'Evaluated to:', result.as_real(Type.double()) 
-         except Exception, e: 
+
+      def HandleTopLevelExpression(self):
+         try:
+            function = self.ParseTopLevelExpr().CodeGen()
+            result = g_llvm_executor.run_function(function, [])
+            print 'Evaluated to:', result.as_real(Type.double())
+         except Exception, e:
             print 'Error:', e
-            try: 
-               self.Next() # Skip for error recovery. 
-            except: 
-               pass
-      
-      def Handle(self, function, message): 
-         try: 
-            print message, function().CodeGen() 
-         except Exception, e: 
-            print 'Error:', e 
             try:
-               self.Next() # Skip for error recovery. 
-            except: 
+               self.Next() # Skip for error recovery.
+            except:
                pass
-   
+
+      def Handle(self, function, message):
+         try:
+            print message, function().CodeGen()
+         except Exception, e:
+            print 'Error:', e
+            try:
+               self.Next() # Skip for error recovery.
+            except:
+               pass
+
 Main driver code.
 -----------------
 
 .. code-block:: python
-   
-   def main(): 
-      # Set up the optimizer pipeline. Start with registering info about how the 
+
+   def main():
+      # Set up the optimizer pipeline. Start with registering info about how the
       # target lays out data structures.
-      g_llvm_pass_manager.add(g_llvm_executor.target_data) 
+      g_llvm_pass_manager.add(g_llvm_executor.target_data)
       # Do simple "peephole" optimizations and bit-twiddling optzns.
-      g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING) 
+      g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING)
       # Reassociate expressions.
-      g_llvm_pass_manager.add(PASS_REASSOCIATE) 
-      # Eliminate Common SubExpressions. 
-      g_llvm_pass_manager.add(PASS_GVN) 
+      g_llvm_pass_manager.add(PASS_REASSOCIATE)
+      # Eliminate Common SubExpressions.
+      g_llvm_pass_manager.add(PASS_GVN)
       # Simplify the control flow graph (deleting unreachable blocks, etc).
       g_llvm_pass_manager.add(PASS_CFG_SIMPLIFICATION)
-      
+
       g_llvm_pass_manager.initialize()
-      
-      # Install standard binary operators. 
-      # 1 is lowest possible precedence. 40 is the highest. 
-      operator_precedence = { 
-         '<': 10, 
-         '+': 20, 
+
+      # Install standard binary operators.
+      # 1 is lowest possible precedence. 40 is the highest.
+      operator_precedence = {
+         '<': 10,
+         '+': 20,
          '-': 20,
-         '*': 40 
+         '*': 40
       }
-      
-      # Run the main "interpreter loop". 
-      while True: 
-         print 'ready>', 
-         try: 
-            raw = raw_input() 
-         except KeyboardInterrupt: 
+
+      # Run the main "interpreter loop".
+      while True:
+         print 'ready>',
+         try:
+            raw = raw_input()
+         except KeyboardInterrupt:
             break
 
          parser = Parser(Tokenize(raw), operator_precedence)
@@ -1542,8 +1542,8 @@ Main driver code.
                parser.HandleExtern()
             else:
                parser.HandleTopLevelExpression()
-      
+
       # Print out all of the generated code. print '', g_llvm_module
-   
-   if __name__ == '__main__': 
+
+   if __name__ == '__main__':
       main()

@@ -5,7 +5,7 @@ Chapter 3: Code generation to LLVM IR
 Written by `Chris Lattner <mailto:sabre@nondot.org>`_ and `Max
 Shawabkeh <http://max99x.com>`_
 
-Introduction 
+Introduction
 =======================
 
 Welcome to Chapter 3 of the `Implementing a language with
@@ -25,7 +25,7 @@ page <http://www.mdevan.org/llvmpy/examples.html>`_
 
 --------------
 
-Code Generation Setup 
+Code Generation Setup
 =================================
 
 In order to generate LLVM IR, we want some simple setup to get started.
@@ -34,24 +34,24 @@ First we define code generation methods in each AST node class:
 
 .. code-block:: python
 
-   # Expression class for numeric literals like "1.0". 
+   # Expression class for numeric literals like "1.0".
    class NumberExpressionNode(ExpressionNode):
-   
-      def __init__(self, value): 
+
+      def __init__(self, value):
          self.value = value
-      
-      def CodeGen(self): 
-         ... 
-   
+
+      def CodeGen(self):
+         ...
+
    # Expression class for referencing a variable, like "a".
    class VariableExpressionNode(ExpressionNode):
-      
-      def __init__(self, name): 
+
+      def __init__(self, name):
          self.name = name
-      
-      def CodeGen(self): 
+
+      def CodeGen(self):
          ...
-   
+
    ...
 
 
@@ -78,10 +78,10 @@ during code generation:
 
    # The LLVM module, which holds all the IR code.
    g_llvm_module = Module.new('my cool jit')
-   
+
    # The LLVM instruction builder. Created whenever a new function is entered.
    g_llvm_builder = None
-   
+
    # A dictionary that keeps track of which values are defined in the current scope
    # and what their LLVM representation is.
    g_named_values = {}
@@ -115,7 +115,7 @@ that this has already been done, and we'll just use it to emit code.
 
 --------------
 
-Expression Code Generation 
+Expression Code Generation
 =====================================
 
 Generating LLVM code for expression nodes is very straightforward: less
@@ -125,7 +125,7 @@ First we'll do numeric literals:
 
 .. code-block:: python
 
-   def CodeGen(self): 
+   def CodeGen(self):
       return Constant.real(Type.double(), self.value)
 
 
@@ -143,10 +143,10 @@ one directly.
 
 .. code-block:: python
 
-   def CodeGen(self): 
-      if self.name in g_named_values: 
-         return g_named_values[self.name] 
-      else: 
+   def CodeGen(self):
+      if self.name in g_named_values:
+         return g_named_values[self.name]
+      else:
          raise RuntimeError('Unknown variable name: ' + self.name)
 
 
@@ -164,7 +164,7 @@ and for `local variables <PythonLangImpl7.html#localvars>`_.
 
 .. code-block:: python
 
-   def CodeGen(self): 
+   def CodeGen(self):
       left = self.left.CodeGen()
       right = self.right.CodeGen()
 
@@ -180,8 +180,8 @@ and for `local variables <PythonLangImpl7.html#localvars>`_.
          return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
       else:
          raise RuntimeError('Unknown binary operator.')
-   
-   
+
+
 
 
 
@@ -224,19 +224,19 @@ the input value.
 
 .. code-block:: python
 
-   def CodeGen(self): 
-      # Look up the name in the global module table. 
+   def CodeGen(self):
+      # Look up the name in the global module table.
       callee = g_llvm_module.get_function_named(self.callee)
 
       # Check for argument mismatch error.
       if len(callee.args) != len(self.args):
          raise RuntimeError('Incorrect number of arguments passed.')
-      
+
       arg_values = [i.CodeGen() for i in self.args]
-      
+
       return g_llvm_builder.call(callee, arg_values, 'calltmp')
-   
-   
+
+
 
 
 
@@ -263,7 +263,7 @@ basic framework.
 
 --------------
 
-Function Code Generation 
+Function Code Generation
 ===================================
 
 Code generation for prototypes and functions must handle a number of
@@ -276,14 +276,14 @@ with:
 
 .. code-block:: python
 
-   def CodeGen(self): 
-      # Make the function type, eg. double(double,double). 
-      funct_type = Type.function( 
+   def CodeGen(self):
+      # Make the function type, eg. double(double,double).
+      funct_type = Type.function(
          Type.double(), [Type.double()] * len(self.args), False)
-     
+
       function = Function.new(g_llvm_module, funct_type, self.name)
-   
-   
+
+
 
 
 
@@ -310,10 +310,10 @@ the function call code above.
 
 .. code-block:: python
 
-   # If the name conflicted, there was already something with the same name. 
-   # If it has a body, don't allow redefinition or reextern. 
+   # If the name conflicted, there was already something with the same name.
+   # If it has a body, don't allow redefinition or reextern.
    if function.name != self.name:
-      function.delete() 
+      function.delete()
       function = g_llvm_module.get_function_named(self.name)
 
 
@@ -341,16 +341,16 @@ name.
 
 .. code-block:: python
 
-   # If the function already has a body, reject this.  
-   if not function.is_declaration: 
+   # If the function already has a body, reject this.
+   if not function.is_declaration:
       raise RuntimeError('Redefinition of function.')
 
    # If F took a different number of args, reject.
    if len(callee.args) != len(self.args):
-      raise RuntimeError('Redeclaration of a function with different number ' 
+      raise RuntimeError('Redeclaration of a function with different number '
                          'of args.')
-   
-   
+
+
 
 
 
@@ -364,15 +364,15 @@ match up. If not, we emit an error.
 
 .. code-block:: python
 
-   # Set names for all arguments and add them to the variables symbol table. 
-   for arg, arg_name in zip(function.args, self.args): 
-      arg.name = arg_name 
+   # Set names for all arguments and add them to the variables symbol table.
+   for arg, arg_name in zip(function.args, self.args):
+      arg.name = arg_name
       # Add arguments to variable symbol
       table. g_named_values[arg_name] = arg
 
    return function
-   
-   
+
+
 
 
 
@@ -388,14 +388,14 @@ caller.
 
 .. code-block:: python
 
-   def CodeGen(self): 
+   def CodeGen(self):
       # Clear scope.
       g_named_values.clear()
 
       # Create a function object.
       function = self.prototype.CodeGen()
-   
-   
+
+
 
 
 
@@ -408,10 +408,10 @@ LLVM Function object that is ready to go for us.
 
 .. code-block:: python
 
-   # Create a new basic block to start insertion into. 
-   block = function.append_basic_block('entry') 
-   global g_llvm_builder 
-   g_llvm_builder = Builder.new(block) 
+   # Create a new basic block to start insertion into.
+   block = function.append_basic_block('entry')
+   global g_llvm_builder
+   g_llvm_builder = Builder.new(block)
 
 
 
@@ -428,17 +428,17 @@ functions that define the `Control Flow
 Graph <http://en.wikipedia.org/wiki/Control_flow_graph>`_. Since we
 don't have any control flow, our functions will only contain one block
 at this point. We'll fix this in `Chapter 5 <PythonLangImpl5.html>`_ :).
-   
+
 .. code-block:: python
 
-   # Finish off the function. 
-   try: 
-      return_value = self.body.CodeGen() 
+   # Finish off the function.
+   try:
+      return_value = self.body.CodeGen()
       g_llvm_builder.ret(return_value)
 
       # Validate the generated code, checking for consistency.
       function.verify()
-   
+
 
 
 
@@ -456,13 +456,13 @@ Once the function is finished and validated, we return it.
 
 .. code-block:: python
 
-   except: 
-      function.delete() 
+   except:
+      function.delete()
       raise
-   
+
    return function
-   
-   
+
+
 
 
 
@@ -480,15 +480,15 @@ this bug; see what you can come up with! Here is a testcase:
 
 .. code-block:: python
 
-   extern foo(a b)      # ok, defines foo. 
-   def foo(a b) c       # error, 'c' is invalid. 
+   extern foo(a b)      # ok, defines foo.
+   def foo(a b) c       # error, 'c' is invalid.
    def bar() foo(1, 2)  # error, unknown function "foo"
 
 
 
 --------------
 
-Driver Changes and Closing Thoughts 
+Driver Changes and Closing Thoughts
 ===============================================
 
 For now, code generation to LLVM doesn't really get us much, except that
@@ -500,11 +500,11 @@ example:
 
 .. code-block:: bash
 
-   ready> 4+5 
-   Read a top-level expression: 
-   define double @0() { 
-   entry: 
-      ret double 9.000000e+00 
+   ready> 4+5
+   Read a top-level expression:
+   define double @0() {
+   entry:
+      ret double 9.000000e+00
    }
 
 
@@ -518,17 +518,17 @@ the Builder. We will add optimizations explicitly in the next chapter.
 
 .. code-block:: bash
 
-   ready> def foo(a b) a *a + 2* a *b + b* b 
-   Read a function definition: 
-   define double @foo(double %a, double %b) { 
+   ready> def foo(a b) a *a + 2* a *b + b* b
+   Read a function definition:
+   define double @foo(double %a, double %b) {
    entry:
-      %multmp = fmul double %a, %a              ; <double> [#uses=1] 
-      %multmp1 = fmul double 2.000000e+00, %a   ; <double> [#uses=1] 
-      %multmp2 = fmul double %multmp1, %b       ; <double> [#uses=1] 
-      %addtmp = fadd double %multmp, %multmp2   ; <double> [#uses=1] 
-      %multmp3 = fmul double %b, %b             ; <double> [#uses=1] 
-      %addtmp4 = fadd double %addtmp, %multmp3  ; <double> [#uses=1] 
-      ret double %addtmp4 
+      %multmp = fmul double %a, %a              ; <double> [#uses=1]
+      %multmp1 = fmul double 2.000000e+00, %a   ; <double> [#uses=1]
+      %multmp2 = fmul double %multmp1, %b       ; <double> [#uses=1]
+      %addtmp = fadd double %multmp, %multmp2   ; <double> [#uses=1]
+      %multmp3 = fmul double %b, %b             ; <double> [#uses=1]
+      %addtmp4 = fadd double %addtmp, %multmp3  ; <double> [#uses=1]
+      ret double %addtmp4
    }
 
 
@@ -539,14 +539,14 @@ LLVM builder calls that we use to create the instructions.
 
 .. code-block:: bash
 
-   ready> def bar(a) foo(a, 4.0) + bar(31337) 
-   Read a function definition: 
-   define double @bar(double %a) { 
-   entry: 
-      %calltmp = call double @foo(double %a, double 4.000000e+00) ; <double> [#uses=1] 
-      %calltmp1 = call double @bar(double 3.133700e+04)           ; <double> [#uses=1] 
-      %addtmp = fadd double %calltmp, %calltmp1                   ; <double> [#uses=1] 
-      ret double %addtmp 
+   ready> def bar(a) foo(a, 4.0) + bar(31337)
+   Read a function definition:
+   define double @bar(double %a) {
+   entry:
+      %calltmp = call double @foo(double %a, double 4.000000e+00) ; <double> [#uses=1]
+      %calltmp1 = call double @bar(double 3.133700e+04)           ; <double> [#uses=1]
+      %addtmp = fadd double %calltmp, %calltmp1                   ; <double> [#uses=1]
+      ret double %addtmp
    }
 
 
@@ -558,16 +558,16 @@ control flow to actually make recursion useful :).
 
 .. code-block:: bash
 
-   ready> extern cos(x) 
-   Read extern: 
+   ready> extern cos(x)
+   Read extern:
    declare double @cos(double)
-   
-   ready> cos(1.234) 
-   Read a top-level expression: 
+
+   ready> cos(1.234)
+   Read a top-level expression:
    define double @1() {
-   entry: 
-      %calltmp = call double @cos(double 1.234000e+00) ; <double> [#uses=1] 
-      ret double %calltmp 
+   entry:
+      %calltmp = call double @cos(double 1.234000e+00) ; <double> [#uses=1]
+      ret double %calltmp
    }
 
 
@@ -577,39 +577,39 @@ This shows an extern for the libm "cos" function, and a call to it.
 
 .. code-block:: bash
 
-   ready> ^C 
+   ready> ^C
    ; ModuleID = 'my cool jit'
-   
-   define double @0() { 
-   entry: 
-      ret double 9.000000e+00 
+
+   define double @0() {
+   entry:
+      ret double 9.000000e+00
    }
-   
-   define double @foo(double %a, double %b) { 
-   entry: 
-      %multmp = fmul double %a, %a             ; <double> [#uses=1] 
+
+   define double @foo(double %a, double %b) {
+   entry:
+      %multmp = fmul double %a, %a             ; <double> [#uses=1]
       %multmp1 = fmul double 2.000000e+00, %a  ; <double> [#uses=1]
-      %multmp2 = fmul double %multmp1, %b      ; <double> [#uses=1] 
-      %addtmp = fadd double %multmp, %multmp2  ; <double> [#uses=1] 
+      %multmp2 = fmul double %multmp1, %b      ; <double> [#uses=1]
+      %addtmp = fadd double %multmp, %multmp2  ; <double> [#uses=1]
       %multmp3 = fmul double %b, %b            ; <double> [#uses=1]
-      %addtmp4 = fadd double %addtmp, %multmp3 ; <double> [#uses=1] 
+      %addtmp4 = fadd double %addtmp, %multmp3 ; <double> [#uses=1]
       ret double %addtmp4
    }
-   
-   define double @bar(double %a) { 
-   entry: 
-      %calltmp = call double @foo(double %a, double 4.000000e+00) ; <double> [#uses=1] 
-      %calltmp1 = call double @bar(double 3.133700e+04) ; <double> [#uses=1] 
-      %addtmp = fadd double %calltmp, %calltmp1 ; <double> [#uses=1] 
-      ret double %addtmp 
+
+   define double @bar(double %a) {
+   entry:
+      %calltmp = call double @foo(double %a, double 4.000000e+00) ; <double> [#uses=1]
+      %calltmp1 = call double @bar(double 3.133700e+04) ; <double> [#uses=1]
+      %addtmp = fadd double %calltmp, %calltmp1 ; <double> [#uses=1]
+      ret double %addtmp
    }
-   
+
    declare double @cos(double)
-   
-   define double @1() { 
-   entry: 
-      %calltmp = call double @cos(double 1.234000e+00) ; <double> [#uses=1] 
-      ret double %calltmp 
+
+   define double @1() {
+   entry:
+      %calltmp = call double @cos(double 1.234000e+00) ; <double> [#uses=1]
+      ret double %calltmp
    }
 
 
@@ -625,7 +625,7 @@ running code!
 
 --------------
 
-Full Code Listing 
+Full Code Listing
 ===========================
 
 Here is the complete code listing for our running example, enhanced with
@@ -637,73 +637,73 @@ need to `download <../download.html>`_ and
 .. code-block:: python
 
    #!/usr/bin/env python
-   
-   import re 
+
+   import re
    from llvm.core import Module, Constant, Type, Function, Builder, FCMP_ULT
-   
+
 Globals
 -------
 
 .. code-block:: python
-   
+
    # The LLVM module, which holds all the IR code.
    g_llvm_module = Module.new('my cool jit')
-   
+
    # The LLVM instruction builder. Created whenever a new function is entered.
    g_llvm_builder = None
-   
+
    # A dictionary that keeps track of which values are defined in the current scope
    # and what their LLVM representation is.
    g_named_values = {}
-   
+
 Lexer
 -----
 
 .. code-block:: python
-   
+
    # The lexer yields one of these types for each token.
-   class EOFToken(object): 
+   class EOFToken(object):
       pass
-   
-   class DefToken(object): 
+
+   class DefToken(object):
       pass
-   
-   class ExternToken(object): 
+
+   class ExternToken(object):
       pass
-   
-   class IdentifierToken(object): 
-      def __init__(self, name): 
+
+   class IdentifierToken(object):
+      def __init__(self, name):
          self.name = name
-   
-   class NumberToken(object): 
-      def __init__(self, value): 
+
+   class NumberToken(object):
+      def __init__(self, value):
          self.value = value
-   
-   class CharacterToken(object): 
-      def __init__(self, char): 
-         self.char = char 
-      def __eq__(self, other): 
-            return isinstance(other, CharacterToken)and self.char == other.char 
-      def __ne__(self, other): 
+
+   class CharacterToken(object):
+      def __init__(self, char):
+         self.char = char
+      def __eq__(self, other):
+            return isinstance(other, CharacterToken)and self.char == other.char
+      def __ne__(self, other):
          return not self == other
-   
+
       # Regular expressions that tokens and comments of our language.
       REGEX_NUMBER = re.compile('[0-9]+(?:\.[0-9]+)?')
       REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9]*')
       REGEX_COMMENT = re.compile('#.*')
-      
-      def Tokenize(string): 
-         while string: 
-            # Skip whitespace. 
-            if string[0].isspace(): 
-               string = string[1:] 
+
+      def Tokenize(string):
+         while string:
+            # Skip whitespace.
+            if string[0].isspace():
+               string = string[1:]
                continue
-         
+
             # Run regexes.
             comment_match = REGEX_COMMENT.match(string)
             number_match = REGEX_NUMBER.match(string)
             identifier_match = REGEX_IDENTIFIER.match(string)
-            
+
             # Check if any of the regexes matched and yield the appropriate result.
             if comment_match:
                comment = comment_match.group(0)
@@ -726,49 +726,49 @@ Lexer
                # Yield the ASCII value of the unknown character.
                yield CharacterToken(string[0])
                string = string[1:]
-         
+
          yield EOFToken()
-   
+
 Abstract Syntax Tree (aka Parse Tree)
 -------------------------------------
 
 .. code-block:: python
 
    # Base class for all expression nodes.
-   class ExpressionNode(object): 
+   class ExpressionNode(object):
       pass
-   
+
    # Expression class for numeric literals like "1.0".
    class NumberExpressionNode(ExpressionNode):
-   
-      def __init__(self, value): 
+
+      def __init__(self, value):
          self.value = value
-   
-      def CodeGen(self): 
+
+      def CodeGen(self):
             return Constant.real(Type.double(), self.value)
-   
+
    # Expression class for referencing a variable, like "a".
    class VariableExpressionNode(ExpressionNode):
-   
+
       def __init__(self, name):
          self.name = name
-   
-      def CodeGen(self): 
-         if self.name in g_named_values: 
-            return g_named_values[self.name] 
-         else: 
+
+      def CodeGen(self):
+         if self.name in g_named_values:
+            return g_named_values[self.name]
+         else:
             raise RuntimeError('Unknown variable name: ' + self.name)
-   
+
    # Expression class for a binary operator.
    class BinaryOperatorExpressionNode(ExpressionNode):
-   
-      def __init__(self, operator, left, right): 
+
+      def __init__(self, operator, left, right):
          self.operator = operator
-         self.left = left 
+         self.left = left
          self.right = right
-      
-      def CodeGen(self): 
-         left = self.left.CodeGen() 
+
+      def CodeGen(self):
+         left = self.left.CodeGen()
          right = self.right.CodeGen()
 
          if self.operator == '+':
@@ -783,131 +783,131 @@ Abstract Syntax Tree (aka Parse Tree)
             return g_llvm_builder.uitofp(result, Type.double(), 'booltmp')
          else:
             raise RuntimeError('Unknown binary operator.')
-   
+
    # Expression class for function calls.
    class CallExpressionNode(ExpressionNode):
-   
-      def __init__(self, callee, args): 
-         self.callee = callee 
+
+      def __init__(self, callee, args):
+         self.callee = callee
          self.args = args
-      
-      def CodeGen(self): 
-         # Look up the name in the global module table. 
+
+      def CodeGen(self):
+         # Look up the name in the global module table.
          callee = g_llvm_module.get_function_named(self.callee)
 
          # Check for argument mismatch error.
          if len(callee.args) != len(self.args):
             raise RuntimeError('Incorrect number of arguments passed.')
-         
+
          arg_values = [i.CodeGen() for i in self.args]
-         
+
          return g_llvm_builder.call(callee, arg_values, 'calltmp')
-   
+
    # This class represents the "prototype" for a function, which captures its name,
    # and its argument names (thus implicitly the number of arguments the function
    # takes).
    class PrototypeNode(object):
-   
-      def __init__(self, name, args): 
-         self.name = name 
+
+      def __init__(self, name, args):
+         self.name = name
          self.args = args
-      
-      def CodeGen(self): 
+
+      def CodeGen(self):
          # Make the function type, eg. double(double,double).
-         funct_type = Type.function( 
+         funct_type = Type.function(
             Type.double(), [Type.double()] * len(self.args), False)
 
          function = Function.new(g_llvm_module, funct_type, self.name)
-      
+
          # If the name conflicted, there was already something with the same name.
          # If it has a body, don't allow redefinition or reextern.
          if function.name != self.name:
             function.delete()
             function = g_llvm_module.get_function_named(self.name)
-         
+
             # If the function already has a body, reject this.
             if not function.is_declaration:
                raise RuntimeError('Redefinition of function.')
-         
+
             # If F took a different number of args, reject.
             if len(callee.args) != len(self.args):
                raise RuntimeError('Redeclaration of a function with different number '
                                   'of args.')
-      
+
          # Set names for all arguments and add them to the variables symbol table.
          for arg, arg_name in zip(function.args, self.args):
             arg.name = arg_name
             # Add arguments to variable symbol table.
             g_named_values[arg_name] = arg
-         
+
          return function
-   
+
    # This class represents a function definition itself.
    class FunctionNode(object):
-   
-      def __init__(self, prototype, body): 
+
+      def __init__(self, prototype, body):
          self.prototype = prototype
          self.body = body
-      
-      def CodeGen(self): 
-         # Clear scope. 
+
+      def CodeGen(self):
+         # Clear scope.
          g_named_values.clear()
 
          # Create a function object.
          function = self.prototype.CodeGen()
-         
+
          # Create a new basic block to start insertion into.
          block = function.append_basic_block('entry')
          global g_llvm_builder
          g_llvm_builder = Builder.new(block)
-         
+
          # Finish off the function.
          try:
             return_value = self.body.CodeGen()
             g_llvm_builder.ret(return_value)
-            
+
             # Validate the generated code, checking for consistency.
             function.verify()
          except:
             function.delete()
             raise
-         
+
          return function
-   
+
 Parser
 ------
 
 .. code-block:: python
 
    class Parser(object):
-      
-      def __init__(self, tokens, binop_precedence): 
+
+      def __init__(self, tokens, binop_precedence):
          self.tokens = tokens
-         self.binop_precedence = binop_precedence 
+         self.binop_precedence = binop_precedence
          self.Next()
-   
+
       # Provide a simple token buffer. Parser.current is the current token the
-      # parser is looking at. Parser.Next() reads another token from the lexer and 
-      # updates Parser.current with its results. 
+      # parser is looking at. Parser.Next() reads another token from the lexer and
+      # updates Parser.current with its results.
       def Next(self):
          self.current = self.tokens.next()
-      
-      # Gets the precedence of the current token, or -1 if the token is not a binary 
-      # operator. 
-      def GetCurrentTokenPrecedence(self): 
-         if isinstance(self.current, CharacterToken): 
-            return self.binop_precedence.get(self.current.char, -1) 
-         else: 
+
+      # Gets the precedence of the current token, or -1 if the token is not a binary
+      # operator.
+      def GetCurrentTokenPrecedence(self):
+         if isinstance(self.current, CharacterToken):
+            return self.binop_precedence.get(self.current.char, -1)
+         else:
             return -1
-      
-      # identifierexpr ::= identifier | identifier '(' expression* ')' 
-      def ParseIdentifierExpr(self): 
+
+      # identifierexpr ::= identifier | identifier '(' expression* ')'
+      def ParseIdentifierExpr(self):
          identifier_name = self.current.name
          self.Next()  # eat identifier.
 
          if self.current != CharacterToken('('):  # Simple variable reference.
             return VariableExpressionNode(identifier_name)
-      
+
          # Call.
          self.Next()  # eat '('.
          args = []
@@ -919,153 +919,153 @@ Parser
                elif self.current != CharacterToken(','):
                   raise RuntimeError('Expected ")" or "," in argument list.')
                self.Next()
-      
+
          self.Next()  # eat ')'.
          return CallExpressionNode(identifier_name, args)
-      
-      # numberexpr ::= number 
-      def ParseNumberExpr(self): 
-         result = NumberExpressionNode(self.current.value) 
-         self.Next()  # consume the number. 
+
+      # numberexpr ::= number
+      def ParseNumberExpr(self):
+         result = NumberExpressionNode(self.current.value)
+         self.Next()  # consume the number.
          return result
-      
-      # parenexpr ::= '(' expression ')' 
-      def ParseParenExpr(self): 
+
+      # parenexpr ::= '(' expression ')'
+      def ParseParenExpr(self):
          self.Next()  # eat '('.
-         
+
          contents = self.ParseExpression()
-         
+
          if self.current != CharacterToken(')'):
             raise RuntimeError('Expected ")".')
          self.Next()  # eat ')'.
-         
+
          return contents
-      
-      # primary ::= identifierexpr | numberexpr | parenexpr 
-      def ParsePrimary(self): 
-         if isinstance(self.current, IdentifierToken): 
-            return self.ParseIdentifierExpr() 
+
+      # primary ::= identifierexpr | numberexpr | parenexpr
+      def ParsePrimary(self):
+         if isinstance(self.current, IdentifierToken):
+            return self.ParseIdentifierExpr()
          elif isinstance(self.current, NumberToken):
-            return self.ParseNumberExpr() 
+            return self.ParseNumberExpr()
          elif self.current == CharacterToken('('):
-            return self.ParseParenExpr() 
-         else: 
+            return self.ParseParenExpr()
+         else:
             raise RuntimeError('Unknown token when expecting an expression.')
-      
-      # binoprhs ::= (operator primary)* 
-      def ParseBinOpRHS(self, left, left_precedence): 
+
+      # binoprhs ::= (operator primary)*
+      def ParseBinOpRHS(self, left, left_precedence):
          # If this is a binary operator, find its precedence.
-         while True: 
+         while True:
             precedence = self.GetCurrentTokenPrecedence()
 
             # If this is a binary operator that binds at least as tightly as the
             # current one, consume it; otherwise we are done.
             if precedence < left_precedence:
                return left
-            
+
             binary_operator = self.current.char
             self.Next()  # eat the operator.
-            
+
             # Parse the primary expression after the binary operator.
             right = self.ParsePrimary()
-            
+
             # If binary_operator binds less tightly with right than the operator after
             # right, let the pending operator take right as its left.
             next_precedence = self.GetCurrentTokenPrecedence()
             if precedence < next_precedence:
                right = self.ParseBinOpRHS(right, precedence + 1)
-            
+
             # Merge left/right.
             left = BinaryOperatorExpressionNode(binary_operator, left, right)
-      
-      # expression ::= primary binoprhs 
-      def ParseExpression(self): 
-         left = self.ParsePrimary() 
+
+      # expression ::= primary binoprhs
+      def ParseExpression(self):
+         left = self.ParsePrimary()
          return self.ParseBinOpRHS(left, 0)
-      
-      # prototype ::= id '(' id* ')' 
-      def ParsePrototype(self): 
-         if not isinstance(self.current, IdentifierToken): 
+
+      # prototype ::= id '(' id* ')'
+      def ParsePrototype(self):
+         if not isinstance(self.current, IdentifierToken):
             raise RuntimeError('Expected function name in prototype.')
- 
+
          function_name = self.current.name
          self.Next()  # eat function name.
-         
+
          if self.current != CharacterToken('('):
             raise RuntimeError('Expected "(" in prototype.')
          self.Next()  # eat '('.
-         
+
          arg_names = []
          while isinstance(self.current, IdentifierToken):
             arg_names.append(self.current.name)
             self.Next()
-         
+
          if self.current != CharacterToken(')'):
             raise RuntimeError('Expected ")" in prototype.')
-         
+
          # Success.
          self.Next()  # eat ')'.
-         
+
          return PrototypeNode(function_name, arg_names)
-      
-      # definition ::= 'def' prototype expression 
+
+      # definition ::= 'def' prototype expression
       def ParseDefinition(self):
-         self.Next()  # eat def. 
-         proto = self.ParsePrototype() 
-         body = self.ParseExpression() 
+         self.Next()  # eat def.
+         proto = self.ParsePrototype()
+         body = self.ParseExpression()
          return FunctionNode(proto, body)
-      
-      # toplevelexpr ::= expression 
-      def ParseTopLevelExpr(self): 
-         proto = PrototypeNode('', []) 
+
+      # toplevelexpr ::= expression
+      def ParseTopLevelExpr(self):
+         proto = PrototypeNode('', [])
          return FunctionNode(proto, self.ParseExpression())
-      
-      # external ::= 'extern' prototype 
-      def ParseExtern(self): 
-         self.Next()  # eat extern. 
+
+      # external ::= 'extern' prototype
+      def ParseExtern(self):
+         self.Next()  # eat extern.
          return self.ParsePrototype()
-      
-      # Top-Level parsing 
+
+      # Top-Level parsing
       def HandleDefinition(self):
          self.Handle(self.ParseDefinition, 'Read a function definition:')
-      
-      def HandleExtern(self): 
+
+      def HandleExtern(self):
          self.Handle(self.ParseExtern, 'Read an extern:')
-      
-      def HandleTopLevelExpression(self): 
+
+      def HandleTopLevelExpression(self):
          self.Handle(self.ParseTopLevelExpr, 'Read a top-level expression:')
-      
-      def Handle(self, function, message): 
-         try: 
-            print message, function().CodeGen() 
-         except Exception, e: 
-            print 'Error:', e 
+
+      def Handle(self, function, message):
+         try:
+            print message, function().CodeGen()
+         except Exception, e:
+            print 'Error:', e
             try:
-               self.Next() # Skip for error recovery. 
-            except: 
+               self.Next() # Skip for error recovery.
+            except:
                pass
-   
+
 Main driver code.
 -----------------
 
 .. code-block:: python
-   
-   def main(): 
-      # Install standard binary operators. 
-      # 1 is lowest possible precedence. 40 is the highest. 
-      operator_precedence = { 
-      '<': 10, 
-      '+': 20, 
-      '-': 20, 
-      '*': 40 
+
+   def main():
+      # Install standard binary operators.
+      # 1 is lowest possible precedence. 40 is the highest.
+      operator_precedence = {
+      '<': 10,
+      '+': 20,
+      '-': 20,
+      '*': 40
       }
-   
-      # Run the main "interpreter loop". 
-      while True: 
-         print 'ready>', 
-         try: 
-            raw = raw_input() 
-         except KeyboardInterrupt: 
+
+      # Run the main "interpreter loop".
+      while True:
+         print 'ready>',
+         try:
+            raw = raw_input()
+         except KeyboardInterrupt:
             break
 
          parser = Parser(Tokenize(raw), operator_precedence)
@@ -1079,9 +1079,9 @@ Main driver code.
                parser.HandleExtern()
             else:
                parser.HandleTopLevelExpression()
-   
-      # Print out all of the generated code. 
+
+      # Print out all of the generated code.
       print '\n', g_llvm_module
-   
-   if __name__ == '__main__': 
+
+   if __name__ == '__main__':
       main()
