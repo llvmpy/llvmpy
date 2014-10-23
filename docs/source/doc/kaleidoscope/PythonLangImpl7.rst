@@ -454,20 +454,20 @@ get good codegen once again:
 
 .. code-block:: python
 
-   from llvm.passes import (PASS_PROMOTE_MEMORY_TO_REGISTER,
-                            PASS_INSTRUCTION_COMBINING,
+   from llvm.passes import (PASS_MEM2REG,
+                            PASS_INSTCOMBINE,
                             PASS_REASSOCIATE,
                             PASS_GVN,
-                            PASS_CFG_SIMPLIFICATION)
+                            PASS_SIMPLIFYCFG)
    ...
    def main():
       # Set up the optimizer pipeline. Start with registering info about how the
       # target lays out data structures.
       g_llvm_pass_manager.add(g_llvm_executor.target_data)
       # Promote allocas to registers.
-      g_llvm_pass_manager.add(PASS_PROMOTE_MEMORY_TO_REGISTER)
+      g_llvm_pass_manager.add(PASS_MEM2REG)
       # Do simple "peephole" optimizations and bit-twiddling optzns.
-      g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING)
+      g_llvm_pass_manager.add(PASS_INSTCOMBINE)
       # Reassociate expressions.
       g_llvm_pass_manager.add(PASS_REASSOCIATE)
 
@@ -915,11 +915,11 @@ mutable variables and var/in support:
    from llvm.passes import FunctionPassManager
 
    from llvm.core import FCMP_ULT, FCMP_ONE
-   from llvm.passes import(PASS_PROMOTE_MEMORY_TO_REGISTER,
-                           PASS_INSTRUCTION_COMBINING,
+   from llvm.passes import(PASS_MEM2REG,
+                           PASS_INSTCOMBINE,
                            PASS_REASSOCIATE,
                            PASS_GVN,
-                           PASS_CFG_SIMPLIFICATION)
+                           PASS_SIMPLIFYCFG)
 
 Globals
 -------
@@ -1788,15 +1788,15 @@ Main driver code.
       # target lays out data structures.
       g_llvm_pass_manager.add(g_llvm_executor.target_data)
       # Promote allocas to registers.
-      g_llvm_pass_manager.add(PASS_PROMOTE_MEMORY_TO_REGISTER)
+      g_llvm_pass_manager.add(PASS_MEM2REG)
       # Do simple "peephole" optimizations and bit-twiddling optzns.
-      g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING)
+      g_llvm_pass_manager.add(PASS_INSTCOMBINE)
       # Reassociate expressions.
       g_llvm_pass_manager.add(PASS_REASSOCIATE)
       # Eliminate Common SubExpressions.
       g_llvm_pass_manager.add(PASS_GVN)
       # Simplify the control flow graph (deleting unreachable blocks, etc).
-      g_llvm_pass_manager.add(PASS_CFG_SIMPLIFICATION)
+      g_llvm_pass_manager.add(PASS_SIMPLIFYCFG)
 
       g_llvm_pass_manager.initialize()
 

@@ -155,13 +155,13 @@ this:
       # target lays out data structures.
       g_llvm_pass_manager.add(g_llvm_executor.target_data)
       # Do simple "peephole" optimizations and bit-twiddling optzns.
-      g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING)
+      g_llvm_pass_manager.add(PASS_INSTCOMBINE)
       # Reassociate expressions.
       g_llvm_pass_manager.add(PASS_REASSOCIATE)
       # Eliminate Common SubExpressions.
       g_llvm_pass_manager.add(PASS_GVN)
       # Simplify the control flow graph (deleting unreachable blocks, etc).
-      g_llvm_pass_manager.add(PASS_CFG_SIMPLIFICATION)
+      g_llvm_pass_manager.add(PASS_SIMPLIFYCFG)
 
       g_llvm_pass_manager.initialize()
 
@@ -454,10 +454,10 @@ the LLVM JIT and optimizer:
    from llvm.core import Module, Constant, Type, Function, Builder, FCMP_ULT
    from llvm.ee import ExecutionEngine, TargetData
    from llvm.passes import FunctionPassManager
-   from llvm.passes import (PASS_INSTRUCTION_COMBINING,
+   from llvm.passes import (PASS_INSTCOMBINE,
                             PASS_REASSOCIATE,
                             PASS_GVN,
-                            PASS_CFG_SIMPLIFICATION)
+                            PASS_SIMPLIFYCFG)
 
 Globals
 -------
@@ -890,13 +890,13 @@ Main driver code.
       # target lays out data structures.
       g_llvm_pass_manager.add(g_llvm_executor.target_data)
       # Do simple "peephole" optimizations and bit-twiddling optzns.
-      g_llvm_pass_manager.add(PASS_INSTRUCTION_COMBINING)
+      g_llvm_pass_manager.add(PASS_INSTCOMBINE)
       # Reassociate expressions.
       g_llvm_pass_manager.add(PASS_REASSOCIATE)
       # Eliminate Common SubExpressions.
       g_llvm_pass_manager.add(PASS_GVN)
       # Simplify the control flow graph (deleting unreachable blocks, etc).
-      g_llvm_pass_manager.add(PASS_CFG_SIMPLIFICATION)
+      g_llvm_pass_manager.add(PASS_SIMPLIFYCFG)
 
       g_llvm_pass_manager.initialize()
 
