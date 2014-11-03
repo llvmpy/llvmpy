@@ -159,11 +159,11 @@ class with some basic helper routines:
          self.binop_precedence = binop_precedence 
          self.Next()
    
-   # Provide a simple token buffer. Parser.current is the current token the
-   # parser is looking at. Parser.Next() reads another token from the lexer and 
-   # updates Parser.current with its results. 
-   def Next(self):
-      self.current = self.tokens.next()
+      # Provide a simple token buffer. Parser.current is the current token the
+      # parser is looking at. Parser.Next() reads another token from the lexer and 
+      # updates Parser.current with its results. 
+      def Next(self):
+         self.current = self.tokens.next()
 
 
 
@@ -218,13 +218,13 @@ the parenthesis operator is defined like this:
       self.Next() # eat '('.
 
    
-   contents = self.ParseExpression()
+      contents = self.ParseExpression()
    
-   if self.current != CharacterToken(')'):
-      raise RuntimeError('Expected ")".')
-   self.Next()  # eat ')'.
+      if self.current != CharacterToken(')'):
+         raise RuntimeError('Expected ")".')
+      self.Next()  # eat ')'.
    
-   return contents
+      return contents
    
    
 
