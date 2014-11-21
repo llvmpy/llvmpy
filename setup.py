@@ -36,11 +36,34 @@ def run_llvm_config(extra_args):
     return stdout.decode().strip()
 
 
+def llvm_version_ok():
+    """Checks if the llvm version is ok"""
+    return llvm_version.startswith('3.2') or llvm_version.startswith('3.3')
+
+
 llvm_version = run_llvm_config(['--version'])
+
+# If the version returned by llvm_config is not sufficient and we are on a
+# linux system, try the version specific versions of llvm_config
+if not llvm_version_ok():
+    if sys.platform == 'linux2':
+        old_config, olc_llvm_version = llvm_config, llvm_version
+        # Try version specific llvm-configs
+        for llvm_config in ['llvm-config-3.3', 'llvm-config-3.2']:
+            try:
+                llvm_version = run_llvm_config(['--version'])
+            except SystemExit:
+                pass
+            if llvm_version_ok():
+                break
+        else:
+            # Restore failing conditions
+            llvm_config, llvm_version = old_config, olc_llvm_version
+
 
 print('LLVM version = %r' % llvm_version)
 
-if not (llvm_version.startswith('3.2') or llvm_version.startswith('3.3')):
+if not llvm_version_ok():
     print('llvmpy requires LLVM version 3.2 or 3.3.  See README.rst for installation details.')
     sys.exit(1)
 
