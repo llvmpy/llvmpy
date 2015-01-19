@@ -56,6 +56,20 @@ Quickstart
 5. See documentation at 'http://www.llvmpy.org' and examples
    under 'test'.
 
+Ubuntu 14.04 installation instructions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To install llvmpy with pip on ubuntu 14.04, follow these steps:
+
+1. Make sure both the system version of llvm and version 3.3 is installed::
+
+   $ sudo apt-get install llvm llvm-3.3
+
+2. Install the non-released package of llvmpy that has support for
+   multiple versions of llvm (as described in #126)::
+
+   $ pip install https://pypi.python.org/packages/source/l/llvmpy/llvmpy-0.12.7-9-g60b512d.tar.gz
+
 Common Build Problems
 ---------------------
 
