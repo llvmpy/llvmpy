@@ -88,6 +88,12 @@ Common Build Problems
    **The Fix:** Use the following c++ flags:
    ``-std=libstdc++ -mmacosx-version-min=10.6``.
 
+4. OSX 10.10 user will need to change the Makefile of LLVM 3.3 due to a version match error. 
+   At line 574 of llvm3.3 Makefile.rules, modify 
+   ``DARWIN_VERSION := $(shell echo $(DARWIN_VERSION)| sed -E 's/(10.[0-9]).*/\1/')``
+   to ``DARWIN_VERSION := $(shell echo $(DARWIN_VERSION)| sed -E 's/(10.[0-9]+).*/\1/')``
+   (Note the extra "+" in the regex). See https://github.com/llvmpy/llvmpy/issues/130 for the original issue.
+
 LICENSE
 -------
 
