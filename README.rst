@@ -2,6 +2,17 @@
 llvmpy: Python bindings for LLVM
 ================================
 
+Important Note: Use llvmlite instead
+------------------------------------
+
+This project is **no longer maintained** and users are recommended to switch 
+to `llvmlite <https://github.com/numba/llvmlite>`_, which is developed by llvmpy 
+maintainers and numba developers.  For temporary compatibility with llvmpy, 
+llvmlite emulates the `some API of llvmpy <https://github.com/numba/llvmlite/tree/master/llvmlite/llvmpy>`_.
+This compatibility layer is enough to allow numba to transition to llvmlite with 
+minimal code changes.  Keep in mind that this compatibility layer is **temporary**.
+New code should be written for the llvmlite API, which is not very different.
+
 Home page
 ---------
 
