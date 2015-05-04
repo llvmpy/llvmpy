@@ -34,13 +34,6 @@ class Target:
     hasJIT = _has()
     hasTargetMachine = _has()
     hasMCAsmBackend = _has()
-    hasMCAsmParser = _has()
-    hasAsmPrinter = _has()
-    hasMCDisassembler = _has()
-    hasMCInstPrinter = _has()
-    hasMCCodeEmitter = _has()
-    hasMCObjectStreamer = _has()
-    hasAsmStreamer = _has()
 
     createTargetMachine = Method(ptr(TargetMachine),
                                  cast(str, StringRef), # triple

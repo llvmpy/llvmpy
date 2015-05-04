@@ -88,9 +88,6 @@ class ExecutionEngine:
     isLazyCompilationDisabled = Method(cast(Bool, bool))
     DisableGVCompilation = Method(Void, cast(bool, Bool))
     isSymbolSearchingDisabled = Method(cast(Bool, bool))
-    RegisterTable = Method(Void, ptr(Function), cast(int, VoidPtr))
-    DeregisterTable = Method(Void, ptr(Function))
-    DeregisterAllTables = Method()
 
     _runFunction = CustomMethod('ExecutionEngine_RunFunction',
                                 PyObjectPtr, ptr(Function), PyObjectPtr)
