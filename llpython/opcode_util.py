@@ -1,147 +1,173 @@
 # ______________________________________________________________________
 
+from collections import namedtuple
 import dis
 import opcode
+import inspect
 
 # ______________________________________________________________________
 # Module data
 
-hasjump = opcode.hasjrel + opcode.hasjabs
-hascbranch = [op for op in hasjump
-              if 'IF' in opcode.opname[op]
-              or opcode.opname[op] in ('FOR_ITER', 'SETUP_LOOP')]
+# Note that opcode.hasjrel and opcode.hasjabs applies only to opcodes
+# that calculate a jump point based on the argument.  This ignores
+# jumps that use the frame stack to calculate their targets, and
+# exceptions.
+
+NON_ARG_JUMP_NAMES = ('BREAK_LOOP', 'RETURN_VALUE', 'END_FINALLY',
+                      'RAISE_VARARGS')
+NON_ARG_JUMPS = [opcode.opmap[opname]
+                 for opname in NON_ARG_JUMP_NAMES
+                 if opname in opcode.opmap]
+HAS_CBRANCH_NAMES = 'FOR_ITER',
+hasjump = opcode.hasjrel + opcode.hasjabs + NON_ARG_JUMPS
+hascbranch = [op for op, opname in ((op, opcode.opname[op])
+                                    for op in hasjump)
+              if 'IF' in opname
+              or 'SETUP' in opname
+              or opname in HAS_CBRANCH_NAMES]
+
+OpcodeData = namedtuple('OpcodeData', ('pops', 'pushes', 'is_stmt'))
+NO_OPCODE_DATA = OpcodeData(None, None, None)
 
 # Since the actual opcode value may change, manage opcode abstraction
 # data by opcode name.
 
 OPCODE_MAP = {
-    'BINARY_ADD': (2, 1, None),
-    'BINARY_AND': (2, 1, None),
-    'BINARY_DIVIDE': (2, 1, None),
-    'BINARY_FLOOR_DIVIDE': (2, 1, None),
-    'BINARY_LSHIFT': (2, 1, None),
-    'BINARY_MODULO': (2, 1, None),
-    'BINARY_MULTIPLY': (2, 1, None),
-    'BINARY_OR': (2, 1, None),
-    'BINARY_POWER': (2, 1, None),
-    'BINARY_RSHIFT': (2, 1, None),
-    'BINARY_SUBSCR': (2, 1, None),
-    'BINARY_SUBTRACT': (2, 1, None),
-    'BINARY_TRUE_DIVIDE': (2, 1, None),
-    'BINARY_XOR': (2, 1, None),
-    'BREAK_LOOP': (0, None, 1),
-    'BUILD_CLASS': (None, None, None),
-    'BUILD_LIST': (-1, 1, None),
-    'BUILD_MAP': (None, None, None),
-    'BUILD_SET': (None, None, None),
-    'BUILD_SLICE': (None, None, None),
-    'BUILD_TUPLE': (-1, 1, None),
-    'CALL_FUNCTION': (-2, 1, None),
-    'CALL_FUNCTION_KW': (-3, 1, None),
-    'CALL_FUNCTION_VAR': (-3, 1, None),
-    'CALL_FUNCTION_VAR_KW': (-4, 1, None),
-    'COMPARE_OP': (2, 1, None),
-    'CONTINUE_LOOP': (None, None, None),
-    'DELETE_ATTR': (1, None, 1),
-    'DELETE_DEREF': (None, None, None),
-    'DELETE_FAST': (0, None, 1),
-    'DELETE_GLOBAL': (0, None, 1),
-    'DELETE_NAME': (0, None, 1),
-    'DELETE_SLICE+0': (1, None, 1),
-    'DELETE_SLICE+1': (2, None, 1),
-    'DELETE_SLICE+2': (2, None, 1),
-    'DELETE_SLICE+3': (3, None, 1),
-    'DELETE_SUBSCR': (2, None, 1),
-    'DUP_TOP': (None, None, None),
-    'DUP_TOPX': (None, None, None),
-    'DUP_TOP_TWO': (None, None, None),
-    'END_FINALLY': (None, None, None),
-    'EXEC_STMT': (None, None, None),
-    'EXTENDED_ARG': (None, None, None),
-    'FOR_ITER': (1, 1, 1),
-    'GET_ITER': (1, 1, None),
-    'IMPORT_FROM': (None, None, None),
-    'IMPORT_NAME': (None, None, None),
-    'IMPORT_STAR': (1, None, 1),
-    'INPLACE_ADD': (2, 1, None),
-    'INPLACE_AND': (2, 1, None),
-    'INPLACE_DIVIDE': (2, 1, None),
-    'INPLACE_FLOOR_DIVIDE': (2, 1, None),
-    'INPLACE_LSHIFT': (2, 1, None),
-    'INPLACE_MODULO': (2, 1, None),
-    'INPLACE_MULTIPLY': (2, 1, None),
-    'INPLACE_OR': (2, 1, None),
-    'INPLACE_POWER': (2, 1, None),
-    'INPLACE_RSHIFT': (2, 1, None),
-    'INPLACE_SUBTRACT': (2, 1, None),
-    'INPLACE_TRUE_DIVIDE': (2, 1, None),
-    'INPLACE_XOR': (2, 1, None),
-    'JUMP_ABSOLUTE': (0, None, 1),
-    'JUMP_FORWARD': (0, None, 1),
-    'JUMP_IF_FALSE': (1, 1, 1),
-    'JUMP_IF_FALSE_OR_POP': (None, None, None),
-    'JUMP_IF_TRUE': (1, 1, 1),
-    'JUMP_IF_TRUE_OR_POP': (None, None, None),
-    'LIST_APPEND': (2, 0, 1),
-    'LOAD_ATTR': (1, 1, None),
-    'LOAD_BUILD_CLASS': (None, None, None),
-    'LOAD_CLOSURE': (None, None, None),
-    'LOAD_CONST': (0, 1, None),
-    'LOAD_DEREF': (0, 1, None),
-    'LOAD_FAST': (0, 1, None),
-    'LOAD_GLOBAL': (0, 1, None),
-    'LOAD_LOCALS': (None, None, None),
-    'LOAD_NAME': (0, 1, None),
-    'MAKE_CLOSURE': (None, None, None),
-    'MAKE_FUNCTION': (-2, 1, None),
-    'MAP_ADD': (None, None, None),
-    'NOP': (0, None, None),
-    'POP_BLOCK': (0, None, 1),
-    'POP_EXCEPT': (None, None, None),
-    'POP_JUMP_IF_FALSE': (1, None, 1),
-    'POP_JUMP_IF_TRUE': (1, None, 1),
-    'POP_TOP': (1, None, 1),
-    'PRINT_EXPR': (1, None, 1),
-    'PRINT_ITEM': (1, None, 1),
-    'PRINT_ITEM_TO': (2, None, 1),
-    'PRINT_NEWLINE': (0, None, 1),
-    'PRINT_NEWLINE_TO': (1, None, 1),
-    'RAISE_VARARGS': (None, None, None),
-    'RETURN_VALUE': (1, None, 1),
-    'ROT_FOUR': (None, None, None),
-    'ROT_THREE': (None, None, None),
-    'ROT_TWO': (None, None, None),
-    'SETUP_EXCEPT': (None, None, None),
-    'SETUP_FINALLY': (None, None, None),
-    'SETUP_LOOP': (None, None, None),
-    'SETUP_WITH': (None, None, None),
-    'SET_ADD': (None, None, None),
-    'SLICE+0': (1, 1, None),
-    'SLICE+1': (2, 1, None),
-    'SLICE+2': (2, 1, None),
-    'SLICE+3': (3, 1, None),
-    'STOP_CODE': (None, None, None),
-    'STORE_ATTR': (2, None, 1),
-    'STORE_DEREF': (1, 0, 1),
-    'STORE_FAST': (1, None, 1),
-    'STORE_GLOBAL': (1, None, 1),
-    'STORE_LOCALS': (None, None, None),
-    'STORE_MAP': (1, None, 1),
-    'STORE_NAME': (1, None, 1),
-    'STORE_SLICE+0': (1, None, 1),
-    'STORE_SLICE+1': (2, None, 1),
-    'STORE_SLICE+2': (2, None, 1),
-    'STORE_SLICE+3': (3, None, 1),
-    'STORE_SUBSCR': (3, None, 1),
-    'UNARY_CONVERT': (1, 1, None),
-    'UNARY_INVERT': (1, 1, None),
-    'UNARY_NEGATIVE': (1, 1, None),
-    'UNARY_NOT': (1, 1, None),
-    'UNARY_POSITIVE': (1, 1, None),
-    'UNPACK_EX': (None, None, None),
-    'UNPACK_SEQUENCE': (None, None, None),
-    'WITH_CLEANUP': (None, None, None),
-    'YIELD_VALUE': (1, None, 1),
+    'BINARY_ADD': OpcodeData(2, 1, None),
+    'BINARY_AND': OpcodeData(2, 1, None),
+    'BINARY_DIVIDE': OpcodeData(2, 1, None),
+    'BINARY_FLOOR_DIVIDE': OpcodeData(2, 1, None),
+    'BINARY_LSHIFT': OpcodeData(2, 1, None),
+    'BINARY_MODULO': OpcodeData(2, 1, None),
+    'BINARY_MULTIPLY': OpcodeData(2, 1, None),
+    'BINARY_OR': OpcodeData(2, 1, None),
+    'BINARY_POWER': OpcodeData(2, 1, None),
+    'BINARY_RSHIFT': OpcodeData(2, 1, None),
+    'BINARY_SUBSCR': OpcodeData(2, 1, None),
+    'BINARY_SUBTRACT': OpcodeData(2, 1, None),
+    'BINARY_TRUE_DIVIDE': OpcodeData(2, 1, None),
+    'BINARY_XOR': OpcodeData(2, 1, None),
+    'BREAK_LOOP': OpcodeData(0, None, 1),
+    'BUILD_CLASS': OpcodeData(3, 1, None),
+    'BUILD_LIST': OpcodeData(-1, 1, None),
+    'BUILD_MAP': OpcodeData(-1, 1, None),
+    'BUILD_SET': OpcodeData(-1, 1, None),
+    'BUILD_SLICE': OpcodeData(-1, 1, None), # oparg should only be 2 or 3
+    'BUILD_TUPLE': OpcodeData(-1, 1, None),
+    'CALL_FUNCTION': OpcodeData(-2, 1, None),
+    'CALL_FUNCTION_KW': OpcodeData(-3, 1, None),
+    'CALL_FUNCTION_VAR': OpcodeData(-3, 1, None),
+    'CALL_FUNCTION_VAR_KW': OpcodeData(-4, 1, None),
+    'COMPARE_OP': OpcodeData(2, 1, None),
+    'CONTINUE_LOOP': OpcodeData(0, None, 1),
+    'DELETE_ATTR': OpcodeData(1, None, 1),
+    'DELETE_DEREF': NO_OPCODE_DATA,
+    'DELETE_FAST': OpcodeData(0, None, 1),
+    'DELETE_GLOBAL': OpcodeData(0, None, 1),
+    'DELETE_NAME': OpcodeData(0, None, 1),
+    'DELETE_SLICE+0': OpcodeData(1, None, 1),
+    'DELETE_SLICE+1': OpcodeData(2, None, 1),
+    'DELETE_SLICE+2': OpcodeData(2, None, 1),
+    'DELETE_SLICE+3': OpcodeData(3, None, 1),
+    'DELETE_SUBSCR': OpcodeData(2, None, 1),
+    'DUP_TOP': NO_OPCODE_DATA,
+    'DUP_TOPX': NO_OPCODE_DATA,
+    'DUP_TOP_TWO': NO_OPCODE_DATA,
+
+    # The data for END_FINALLY is a total fabrication; END_FINALLY may
+    # pop 1 or 3 values off the value stack, based on the type of the
+    # top of the value stack.  If, however, a value stack simulator
+    # ignores the part of the CPython evaluator loop that pushes the
+    # why code on the value stack for WHY_RETURN and WHY_CONTINUE (as
+    # this table does), this should work out fine.
+    'END_FINALLY': OpcodeData(0, 0, 1), 
+
+    'EXEC_STMT': OpcodeData(3, 0, 1),
+    'EXTENDED_ARG': NO_OPCODE_DATA,
+    'FOR_ITER': OpcodeData(1, 1, 1),
+    'GET_ITER': OpcodeData(1, 1, None),
+    'IMPORT_FROM': NO_OPCODE_DATA,
+    'IMPORT_NAME': OpcodeData(2, 1, None),
+    'IMPORT_STAR': OpcodeData(1, None, 1),
+    'INPLACE_ADD': OpcodeData(2, 1, None),
+    'INPLACE_AND': OpcodeData(2, 1, None),
+    'INPLACE_DIVIDE': OpcodeData(2, 1, None),
+    'INPLACE_FLOOR_DIVIDE': OpcodeData(2, 1, None),
+    'INPLACE_LSHIFT': OpcodeData(2, 1, None),
+    'INPLACE_MODULO': OpcodeData(2, 1, None),
+    'INPLACE_MULTIPLY': OpcodeData(2, 1, None),
+    'INPLACE_OR': OpcodeData(2, 1, None),
+    'INPLACE_POWER': OpcodeData(2, 1, None),
+    'INPLACE_RSHIFT': OpcodeData(2, 1, None),
+    'INPLACE_SUBTRACT': OpcodeData(2, 1, None),
+    'INPLACE_TRUE_DIVIDE': OpcodeData(2, 1, None),
+    'INPLACE_XOR': OpcodeData(2, 1, None),
+    'JUMP_ABSOLUTE': OpcodeData(0, None, 1),
+    'JUMP_FORWARD': OpcodeData(0, None, 1),
+    'JUMP_IF_FALSE': OpcodeData(1, 1, 1),
+    'JUMP_IF_FALSE_OR_POP': NO_OPCODE_DATA,
+    'JUMP_IF_TRUE': OpcodeData(1, 1, 1),
+    'JUMP_IF_TRUE_OR_POP': NO_OPCODE_DATA,
+    'LIST_APPEND': NO_OPCODE_DATA,
+    'LOAD_ATTR': OpcodeData(1, 1, None),
+    'LOAD_BUILD_CLASS': NO_OPCODE_DATA,
+    'LOAD_CLOSURE': NO_OPCODE_DATA,
+    'LOAD_CONST': OpcodeData(0, 1, None),
+    'LOAD_DEREF': OpcodeData(0, 1, None),
+    'LOAD_FAST': OpcodeData(0, 1, None),
+    'LOAD_GLOBAL': OpcodeData(0, 1, None),
+    'LOAD_LOCALS': OpcodeData(0, 1, None),
+    'LOAD_NAME': OpcodeData(0, 1, None),
+    'MAKE_CLOSURE': NO_OPCODE_DATA,
+    'MAKE_FUNCTION': OpcodeData(-2, 1, None),
+    'MAP_ADD': NO_OPCODE_DATA,
+    'NOP': OpcodeData(0, None, None),
+    'POP_BLOCK': OpcodeData(0, None, 1),
+    'POP_EXCEPT': NO_OPCODE_DATA,
+    'POP_JUMP_IF_FALSE': OpcodeData(1, None, 1),
+    'POP_JUMP_IF_TRUE': OpcodeData(1, None, 1),
+    'POP_TOP': OpcodeData(1, None, 1),
+    'PRINT_EXPR': OpcodeData(1, None, 1),
+    'PRINT_ITEM': OpcodeData(1, None, 1),
+    'PRINT_ITEM_TO': OpcodeData(2, None, 1),
+    'PRINT_NEWLINE': OpcodeData(0, None, 1),
+    'PRINT_NEWLINE_TO': OpcodeData(1, None, 1),
+    'RAISE_VARARGS': OpcodeData(-1, None, 1),
+    'RETURN_VALUE': OpcodeData(1, None, 1),
+    'ROT_FOUR': NO_OPCODE_DATA,
+    'ROT_THREE': NO_OPCODE_DATA,
+    'ROT_TWO': NO_OPCODE_DATA,
+    'SETUP_EXCEPT': NO_OPCODE_DATA,
+    'SETUP_FINALLY': NO_OPCODE_DATA,
+    'SETUP_LOOP': NO_OPCODE_DATA,
+    'SETUP_WITH': NO_OPCODE_DATA,
+    'SET_ADD': NO_OPCODE_DATA,
+    'SLICE+0': OpcodeData(1, 1, None),
+    'SLICE+1': OpcodeData(2, 1, None),
+    'SLICE+2': OpcodeData(2, 1, None),
+    'SLICE+3': OpcodeData(3, 1, None),
+    'STOP_CODE': NO_OPCODE_DATA,
+    'STORE_ATTR': OpcodeData(2, None, 1),
+    'STORE_DEREF': OpcodeData(1, 0, 1),
+    'STORE_FAST': OpcodeData(1, None, 1),
+    'STORE_GLOBAL': OpcodeData(1, None, 1),
+    'STORE_LOCALS': NO_OPCODE_DATA,
+    'STORE_MAP': OpcodeData(1, None, 1),
+    'STORE_NAME': OpcodeData(1, None, 1),
+    'STORE_SLICE+0': OpcodeData(1, None, 1),
+    'STORE_SLICE+1': OpcodeData(2, None, 1),
+    'STORE_SLICE+2': OpcodeData(2, None, 1),
+    'STORE_SLICE+3': OpcodeData(3, None, 1),
+    'STORE_SUBSCR': OpcodeData(3, None, 1),
+    'UNARY_CONVERT': OpcodeData(1, 1, None),
+    'UNARY_INVERT': OpcodeData(1, 1, None),
+    'UNARY_NEGATIVE': OpcodeData(1, 1, None),
+    'UNARY_NOT': OpcodeData(1, 1, None),
+    'UNARY_POSITIVE': OpcodeData(1, 1, None),
+    'UNPACK_EX': NO_OPCODE_DATA,
+    'UNPACK_SEQUENCE': NO_OPCODE_DATA,
+    'WITH_CLEANUP': NO_OPCODE_DATA,
+    'YIELD_VALUE': OpcodeData(1, None, 1),
 }
 
 # ______________________________________________________________________
@@ -167,12 +193,57 @@ def itercode(code, start = 0):
             i = i + 2
             if op == opcode.EXTENDED_ARG:
                 extended_arg = oparg * 65536
+                continue
 
         delta = yield num, op, oparg
         if delta is not None:
             abs_rel, dst = delta
             assert abs_rel == 'abs' or abs_rel == 'rel'
             i = dst if abs_rel == 'abs' else i + dst
+
+# ______________________________________________________________________
+
+def itercodeobjs(codeobj):
+    "Iterator that traverses code objects via the co_consts member."
+    yield codeobj
+    for const in codeobj.co_consts:
+        if inspect.iscode(const):
+            for childobj in itercodeobjs(const):
+                yield childobj
+
+# ______________________________________________________________________
+
+def visit_code_args(visitor, *args, **kws):
+    """Utility function for testing or demonstrating various code
+    analysis passes in llpython.
+
+    Takes a visitor function and a sequence of command line arguments.
+    The visitor function should be able to handle either function
+    objects or code objects."""
+    def _visit_code_objs(root_obj):
+        for code_obj in itercodeobjs(root_obj):
+            visitor(code_obj)
+    try:
+        from .tests import llfuncs
+    except ImportError:
+        llfuncs = object()
+    if not args:
+        if 'default_args' in kws:
+            args = kws['default_args']
+        else:
+            args = ('pymod',)
+    for arg in args:
+        if inspect.iscode(arg):
+            _visit_code_objs(arg)
+        elif inspect.isfunction(arg):
+            _visit_code_objs(get_code_object(arg))
+        elif arg.endswith('.py'):
+            with open(arg) as in_file:
+                in_source = in_file.read()
+                in_codeobj = compile(in_source, arg, 'exec')
+                _visit_code_objs(in_codeobj)
+        else:
+            visitor(getattr(llfuncs, arg))
 
 # ______________________________________________________________________
 
@@ -194,15 +265,8 @@ def extendlabels(code, labels = None):
         i += 1
         if op >= dis.HAVE_ARGUMENT:
             i += 2
-            label = -1
-            if op in hasjump:
-                label = i
-            if label >= 0:
-                if label not in labels:
-                    labels.append(label)
-        elif op == opcode.opmap['BREAK_LOOP']:
-            if i not in labels:
-                labels.append(i)
+        if op in hasjump and i < n and i not in labels:
+            labels.append(i)
     return labels
 
 # ______________________________________________________________________
@@ -220,6 +284,13 @@ def build_basic_blocks (co_obj):
                   for index, next_index in zip([0] + labels,
                                                labels + [len(co_code)]))
     return blocks
+
+# ______________________________________________________________________
+
+def get_nargs(co_obj):
+    flags = co_obj.co_flags
+    return (1 + co_obj.co_argcount + (1 if flags & 4 else 0) +
+            (1 if flags & 8 else 0))
 
 # ______________________________________________________________________
 # End of opcode_util.py

@@ -170,8 +170,8 @@ class BasicBlockVisitor (BytecodeVisitor):
         block_indices.sort()
         for block_index in block_indices:
             self.enter_block(block_index)
-            for i, op, arg in blocks[block_index]:
-                self.visit_op(i, op, arg)
+            for op_tuple in blocks[block_index]:
+                self.visit_op(*op_tuple)
             self.exit_block(block_index)
         return self.exit_blocks(blocks)
 
@@ -189,7 +189,7 @@ class BasicBlockVisitor (BytecodeVisitor):
 
 # ______________________________________________________________________
 
-class BytecodeFlowVisitor (BytecodeVisitor):
+class GenericFlowVisitor (BytecodeVisitor):
     def visit (self, flow):
         self.block_list = list(flow.keys())
         self.block_list.sort()
@@ -208,15 +208,6 @@ class BytecodeFlowVisitor (BytecodeVisitor):
         del self.block_list
         return self.exit_flow_object(flow)
 
-    def visit_op (self, i, op, arg, *args, **kws):
-        new_args = []
-        for child_i, child_op, _, child_arg, child_args in args:
-            new_args.extend(self.visit_op(child_i, child_op, child_arg,
-                                          *child_args))
-        ret_val = super(BytecodeFlowVisitor, self).visit_op(i, op, arg,
-                                                            *new_args)
-        return ret_val
-
     def enter_flow_object (self, flow):
         self.new_flow = {}
 
@@ -230,6 +221,18 @@ class BytecodeFlowVisitor (BytecodeVisitor):
 
     def exit_block (self, block):
         pass
+
+# ______________________________________________________________________
+
+class BytecodeFlowVisitor (GenericFlowVisitor):
+    def visit_op (self, i, op, arg, *args, **kws):
+        new_args = []
+        for child_i, child_op, _, child_arg, child_args in args:
+            new_args.extend(self.visit_op(child_i, child_op, child_arg,
+                                          *child_args))
+        ret_val = super(BytecodeFlowVisitor, self).visit_op(i, op, arg,
+                                                            *new_args)
+        return ret_val
 
 # ______________________________________________________________________
 

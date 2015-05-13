@@ -1,10 +1,21 @@
 # ______________________________________________________________________
+
 from __future__ import absolute_import
 import dis
 import opcode
+import pprint
+import inspect
+from collections import namedtuple
 
 from .bytecode_visitor import BasicBlockVisitor
 from . import opcode_util
+from . import byte_control
+
+# ______________________________________________________________________
+# Class definition(s)
+
+Instr = namedtuple('Instr', ('address', 'opcode', 'opname', 'oparg',
+                             'stackargs'))
 
 # ______________________________________________________________________
 
@@ -41,7 +52,7 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
             del self.stack[-pops:]
         else:
             stk_args = []
-        ret_val = (i, op, opname, arg, stk_args)
+        ret_val = Instr(i, op, opname, arg, stk_args)
         if pushes:
             self.stack.append(ret_val)
         if appends:
@@ -63,13 +74,13 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
         labels.sort()
         self.blocks = dict((index, [])
                            for index in labels)
-        self.loop_stack = []
+        self.control_stack = []
         self.stacks = {}
 
     def exit_blocks (self, blocks):
         ret_val = self.blocks
         del self.stacks
-        del self.loop_stack
+        del self.control_stack
         del self.blocks
         return ret_val
 
@@ -113,11 +124,19 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     op_BINARY_XOR = _op
 
     def op_BREAK_LOOP (self, i, op, arg):
-        loop_i, _, loop_arg = self.loop_stack[-1]
-        assert arg is None
-        return self._op(i, op, loop_i + loop_arg + 3)
+        if self.opnames[op] == 'BREAK_LOOP':
+            # Break target was already computed in control flow analysis;
+            # reuse that, replacing the opcode argument.
+            blocks_out = tuple(self.cfg.blocks_out[self.block_no])
+            assert len(blocks_out) == 1
+            assert arg is None
+            arg = blocks_out[0]
+        # else: Continue target is already in the argument.  Note that
+        # the argument might not be the same as CFG destination block,
+        # since we might have a finally block to visit first.
+        return self._op(i, op, arg)
 
-    #op_BUILD_CLASS = _op
+    op_BUILD_CLASS = _op
     op_BUILD_LIST = _op
     op_BUILD_MAP = _op
     op_BUILD_SLICE = _op
@@ -127,7 +146,7 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     op_CALL_FUNCTION_VAR = _op
     op_CALL_FUNCTION_VAR_KW = _op
     op_COMPARE_OP = _op
-    #op_CONTINUE_LOOP = _op
+    op_CONTINUE_LOOP = op_BREAK_LOOP
     op_DELETE_ATTR = _op
     op_DELETE_FAST = _op
     op_DELETE_GLOBAL = _op
@@ -141,12 +160,29 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     def op_DUP_TOPX (self, i, op, arg):
         self.stack += self.stack[-arg:]
 
-    #op_END_FINALLY = _op
+    #op_DUP_TOP_TWO = _not_implemented
+
+    # See the note regarding END_FINALLY in the definition of
+    # opcope_util.OPCODE_MAP.
+    op_END_FINALLY = _op
+
     op_EXEC_STMT = _op
-    #op_EXTENDED_ARG = _op
+
+    def op_EXTENDED_ARG (self, i, op, arg):
+        raise ValueError("Unexpected EXTENDED_ARG opcode at index %d (should "
+                         "be removed by itercode)." % i)
+
     op_FOR_ITER = _op
     op_GET_ITER = _op
-    op_IMPORT_FROM = _op
+
+    def op_IMPORT_FROM (self, i, op, arg):
+        # References top of stack without popping, so we can't use the
+        # generic machinery.
+        opname = self.opmap[op][0]
+        ret_val = Instr(i, op, opname, arg, [self.stack[-1]])
+        self.stack.append(ret_val)
+        return ret_val
+
     op_IMPORT_NAME = _op
     op_IMPORT_STAR = _op
     op_INPLACE_ADD = _op
@@ -166,15 +202,26 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     op_JUMP_FORWARD = _op
 
     def op_JUMP_IF_FALSE (self, i, op, arg):
-        opname, _, _, _ = self.opmap[op]
-        ret_val = (i, op, opname, arg, [self.stack[-1]])
+        ret_val = Instr(i, op, self.opnames[op], arg, [self.stack[-1]])
         self.block.append(ret_val)
         return ret_val
 
+    #op_JUMP_IF_FALSE_OR_POP = _not_implemented
     op_JUMP_IF_TRUE = op_JUMP_IF_FALSE
-    op_LIST_APPEND = _op
+    #op_JUMP_IF_TRUE_OR_POP = op_JUMP_IF_FALSE_OR_POP
+
+    def op_LIST_APPEND (self, i, op, arg):
+        '''This method is used for both LIST_APPEND, and SET_ADD
+        opcodes.'''
+        elem = self.stack.pop()
+        container = self.stack[-arg]
+        ret_val = Instr(i, op, self.opnames[op], arg, [container, elem])
+        self.block.append(ret_val)
+        return ret_val
+
     op_LOAD_ATTR = _op
-    op_LOAD_CLOSURE = _op
+    #op_LOAD_BUILD_CLASS = _not_implemented
+    #op_LOAD_CLOSURE = _not_implemented
     op_LOAD_CONST = _op
     op_LOAD_DEREF = _op
     op_LOAD_FAST = _op
@@ -186,8 +233,9 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     op_NOP = _op
 
     def op_POP_BLOCK (self, i, op, arg):
-        self.loop_stack.pop()
-        return self._op(i, op, arg)
+        _, _, _, target_stack_size = self.control_stack.pop()
+        pops = len(self.stack) - target_stack_size
+        return self._visit_op(i, op, arg, self.opnames[op], pops, 0, 1)
 
     op_POP_JUMP_IF_FALSE = _op
     op_POP_JUMP_IF_TRUE = _op
@@ -210,19 +258,38 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     def op_ROT_TWO (self, i, op, arg):
         self.stack[-2:] = (self.stack[-1], self.stack[-2])
 
-    #op_SETUP_EXCEPT = _op
-    #op_SETUP_FINALLY = _op
+    def _op_SETUP (self, i, op, arg):
+        self.control_stack.append((i, op, arg, len(self.stack)))
+        ret_val = Instr(i, op, self.opnames[op], arg, [])
+        self.block.append(ret_val)
+        return ret_val
 
-    def op_SETUP_LOOP (self, i, op, arg):
-        self.loop_stack.append((i, op, arg))
-        self.block.append((i, op, self.opnames[op], arg, []))
+    op_SETUP_EXCEPT = _op_SETUP
+    op_SETUP_FINALLY = _op_SETUP
+    op_SETUP_LOOP = _op_SETUP
 
+    def op_SETUP_WITH (self, i, op, arg):
+        assert arg is not None
+        # Care has to be taken here.  SETUP_WITH pushes two things on
+        # the value stack (the exit ), and once on the handler frame.
+        ctx = self.stack.pop()
+        # We signal that the value is an exit handler by setting arg to None
+        exit_handler = Instr(i, op, self.opnames[op], None, [ctx])
+        self.stack.append(exit_handler)
+        ret_val = Instr(i, op, self.opnames[op], arg, [ctx])
+        self.control_stack.append((i, op, arg, len(self.stack)))
+        self.stack.append(ret_val)
+        self.block.append(ret_val)
+        return ret_val
+
+    op_SET_ADD = op_LIST_APPEND
     op_SLICE = _op
-    #op_STOP_CODE = _op
+    #op_STOP_CODE = _not_implemented
     op_STORE_ATTR = _op
     op_STORE_DEREF = _op
     op_STORE_FAST = _op
     op_STORE_GLOBAL = _op
+    #op_STORE_LOCALS = _not_implemented
     op_STORE_MAP = _op
     op_STORE_NAME = _op
     op_STORE_SLICE = _op
@@ -232,29 +299,68 @@ class BytecodeFlowBuilder (BasicBlockVisitor):
     op_UNARY_NEGATIVE = _op
     op_UNARY_NOT = _op
     op_UNARY_POSITIVE = _op
-    op_UNPACK_SEQUENCE = _op
-    #op_WITH_CLEANUP = _op
+    #op_UNPACK_EX = _not_implemented
+
+    def op_UNPACK_SEQUENCE (self, i, op, arg):
+        seq = self.stack.pop()
+        opname = self.opnames[op]
+        while arg > 0:
+            arg -= 1
+            ret_val = Instr(i, op, opname, arg, [seq])
+            self.stack.append(ret_val)
+        return ret_val
+
+    #op_WITH_CLEANUP = _not_implemented
     op_YIELD_VALUE = _op
+
+    @classmethod
+    def build_flow(cls, func):
+        '''Given a Python function, return a flow representation of that
+        function.'''
+        cfg = byte_control.build_cfg(func)
+        return cls().visit_cfg(cfg)
+
+    @classmethod
+    def build_flow_from_co(cls, code_obj):
+        '''Given a Python code object, return a flow representation of
+        that code object.'''
+        cfg = byte_control.ControlFlowBuilder.build_cfg_from_co(code_obj)
+        return cls().visit_cfg(cfg)
+
+    @classmethod
+    def build_flows_from_co(cls, root_code_obj):
+        '''Given a Python code object, return a map from that code
+        object and any nested code objects to flow representations of
+        those code objects.'''
+        return dict((co, cls.build_flow_from_co(co))
+                    for co in opcode_util.itercodeobjs(root_code_obj))
+
+# ______________________________________________________________________
+# Function definition(s)
+
+def build_flow(func):
+    '''Kept for backwards compatibility in downstream modules.  Use
+    BytecodeFlowBuilder.build_flow() instead.'''
+    return BytecodeFlowBuilder.build_flow(func)
 
 # ______________________________________________________________________
 
-def build_flow (func):
-    '''Given a Python function, return a bytecode flow tree for that
-    function.'''
-    import byte_control
-    cfg = byte_control.build_cfg(func)
-    return BytecodeFlowBuilder().visit_cfg(cfg)
+def demo_flow_builder(builder_cls, *args):
+    def _visit(obj):
+        print("_" * 70)
+        print(obj)
+        if inspect.isfunction(obj):
+            flow = builder_cls.build_flow(obj)
+        else:
+            flow = builder_cls.build_flow_from_co(obj)
+        pprint.pprint(flow)
+    return opcode_util.visit_code_args(_visit, *args)
 
 # ______________________________________________________________________
 # Main (self-test) routine
 
-def main (*args):
-    import pprint
-    from tests import llfuncs
-    if not args:
-        args = ('doslice',)
-    for arg in args:
-        pprint.pprint(build_flow(getattr(llfuncs, arg)))
+def main(*args):
+    return demo_flow_builder(BytecodeFlowBuilder, *args)
 
 # ______________________________________________________________________
 
