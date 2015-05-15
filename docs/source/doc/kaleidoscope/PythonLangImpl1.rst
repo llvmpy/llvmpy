@@ -96,7 +96,7 @@ play with languages!
 
 .. _language:
 
-The Basic Language 
+The Basic Language
 ================================
 
 This tutorial will be illustrated with a toy language that we'll call
@@ -117,13 +117,13 @@ numbers <http://en.wikipedia.org/wiki/Fibonacci_number>`_:
 
 .. code-block:: text
 
-   # Compute the x'th fibonacci number. 
+   # Compute the x'th fibonacci number.
    def fib(x)
       if x < 3
          return 1
       else
          return fib(x-1)+fib(x-2)
-   
+
    # This expression will compute the 40th number.
    fib(40)
 
@@ -137,10 +137,10 @@ useful for mutually recursive functions). For example:
 
 .. code-block:: python
 
-   extern sin(arg); 
-   extern cos(arg); 
+   extern sin(arg);
+   extern cos(arg);
    extern atan2(arg1 arg2);
-   
+
    atan2(sin(0.4), cos(42))
 
 
@@ -154,7 +154,7 @@ Lets dive into the implementation of this language!
 
 --------------
 
-The Lexer 
+The Lexer
 ====================
 
 When it comes to implementing a language, the first thing needed is the
@@ -168,21 +168,21 @@ numeric value of a number). First, we define the possibilities:
 
 .. code-block:: python
 
-   # The lexer yields one of these types for each token. 
+   # The lexer yields one of these types for each token.
    class EOFToken(object): pass
-   
+
    class DefToken(object): pass
-   
+
    class ExternToken(object): pass
-   
+
    class IdentifierToken(object):
        def __init__(self, name):
            self.name = name
-   
+
    class NumberToken(object):
        def __init__(self, value):
            self.value = value
-   
+
    class CharacterToken(object):
        def __init__(self, char):
            self.char = char
@@ -221,14 +221,14 @@ the line.
 .. code-block:: python
 
    import re
-   
+
    ...
-   
+
    # Regular expressions that tokens and comments of our language.
    REGEX_NUMBER = re.compile('[0-9]+(?:.[0-9]+)?')
    REGEX_IDENTIFIER = re.compile('[a-zA-Z][a-zA-Z0-9]*')
    REGEX_COMMENT = re.compile('#.*')
-   
+
 
 Next, let's start defining the ``Tokenize`` function itself. The first
 thing we need to do is set up a loop that scans the string, while
@@ -242,8 +242,8 @@ ignoring whitespace between tokens:
            if string[0].isspace():
               string = string[1:]
               continue
-   
-   
+
+
 
 
 
@@ -276,7 +276,7 @@ ignore the captured match:
   # For numbers, we yield the captured match, converted to a float and
   # tagged with the appropriate token type:
 
-  elif number_match: 
+  elif number_match:
     number = number_match.group(0)
     yield NumberToken(float(number))
     string = string[len(number):]
@@ -291,7 +291,7 @@ ignore the captured match:
       yield DefToken()
     elif identifier == 'extern':
       yield ExternToken()
-    else: 
+    else:
       yield IdentifierToken(identifier)
     string = string[len(identifier):]
 
