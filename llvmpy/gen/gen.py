@@ -69,7 +69,8 @@ def main():
 
     # Check if files are modified
 
-    outputfilepath = '%s.cpp' % outputfilename
+    outputfilepath = '%s.%d.%d.cpp' % (outputfilename,
+                                       sys.version_info[0], sys.version_info[1])
     try:
         mtime = os.path.getmtime(outputfilepath)
     except OSError:
